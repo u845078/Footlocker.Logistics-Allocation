@@ -1,0 +1,53 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.StoreLookup>
+
+@{
+    ViewBag.Title = "Update";
+}
+
+<h2>Update Individual Store Attributes</h2>
+
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreLookup>()
+        .Name("StoreGrid")
+        .DataKeys(keys =>
+        {
+            keys.Add(p => p.Store).RouteKey("store");
+            keys.Add(p => p.Division).RouteKey("div");
+        })
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Division).ReadOnly();
+            columns.Bound(o => o.Region).ReadOnly();
+            columns.Bound(o => o.League).ReadOnly();
+            columns.Bound(o => o.Store).ReadOnly();
+            columns.Bound(o => o.Mall).ReadOnly();
+            columns.Bound(o => o.City).ReadOnly();
+            columns.Bound(o => o.State).ReadOnly();
+            columns.Bound(o => o.DBA).ReadOnly();
+            columns.Bound(o => o.ExcludeStore).Width(20);
+            columns.Bound(o => o.FirstReceipt).Width(150).FooterTemplate(
+                        @<text>
+                        <input type="button" name="name" value="Save" class="t-button" onclick='saveChanges()' />
+                    </text>
+                    );
+
+        })
+                .DataBinding(dataBinding =>
+                {
+                    dataBinding.Ajax().Select("_Update", "StoreExtension").Update("_SaveBatchEditing", "StoreExtension");
+                })
+                .Scrollable(scrolling => scrolling.Enabled(false))
+                .Sortable(sorting => sorting.Enabled(true))
+                .Pageable(paging => paging.Enabled(true))
+                .Filterable(filtering => filtering.Enabled(true))
+                .Groupable(grouping => grouping.Enabled(false))
+                .Footer(true)
+                .Editable(editing => editing.Mode(GridEditMode.InCell))
+
+        )
+
+    <script type="text/javascript">
+        function saveChanges() {
+            $('#StoreGrid').data('tGrid').submitChanges();
+        }
+    </script>

@@ -1,0 +1,40 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.StoreLookup>
+
+@{
+    ViewBag.Title = "Like Stores";
+}
+
+<h2>Like Stores</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create", null, new { @class="t-button"})
+</p>
+@(Html.Telerik().Grid(Model)
+        .Name("StoreAttributeGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Division).Width(50);
+            columns.Bound(o => o.Store).Width(50);
+            columns.Bound(o => o.Mall);
+            columns.Bound(o => o.City);
+            columns.Bound(o => o.State);
+            columns.Template(@<text>
+                    <a class='t-button' href="@Url.Content("~/StoreAttribute/Edit?div=" + @item.Division + "&store=" + @item.Store)">Edit</a>
+            </text>).ClientTemplate("<a class='t-button' href='"
+                    + Url.Content("~/StoreAttribute/Edit?div=<#= Division #>&store=<#= Store #>")
+                    + "'>Edit</a>"
+                    ).HtmlAttributes(new { style = "text-align: left" });
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Server().Select("Index", "StoreAttribute");            
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+
+
+</table>

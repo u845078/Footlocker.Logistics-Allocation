@@ -1,0 +1,128 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.SizeAllocation>
+
+@using (Html.BeginForm("SaveStoreSizeAllocation", "SkuRange", FormMethod.Post))
+{
+    <fieldset>
+<b>Update Individual Stores:</b>
+<div class="t-widget t-grid">
+<table cellpadding=0 cellspacing=0>
+    <thead class="t-grid-header">
+    <tr>
+        <th class='t-header'>
+            @Html.DisplayNameFor(model => model.Store)
+        </th>
+        <th class='t-header'>
+            Start
+        </th>
+        <th class='t-header'>
+            End
+        </th>
+    @{
+    string prevStore = "";
+    string prevDiv = "";
+    if (Model.Count() > 0)
+    {
+        prevStore = Model.First().Store;
+        prevDiv = Model.First().Division;
+    }
+    Boolean alternate = false;
+    foreach (var item in Model)
+    {
+        if (!((prevDiv.Equals(item.Division)) && (prevStore.Equals(item.Store))))
+        {
+            break;
+        }
+        @Html.Raw("<th class='t-header'>")
+            @Html.Raw(item.Size + "<BR><font size=\"0.5em\">Rng/Min/Max/Days</font>")
+        @Html.Raw("</th>")        
+    }
+}
+    </tr>
+    </thead>
+
+@{
+    prevStore = "FIRST";
+    prevDiv = "FIRST";
+    alternate = false;
+    int count = 0;
+    int storeCount = 0;
+    foreach (var item in Model)
+    {
+        if (!((prevDiv.Equals(item.Division)) && (prevStore.Equals(item.Store))))
+        {
+            if (!(prevDiv.Equals("FIRST")))
+            {
+                @Html.Raw("</tr>");
+                                  storeCount++;
+                                  if (storeCount > 5)
+                                  {
+                                      break;
+                                  }
+            }
+            prevDiv = item.Division;
+            prevStore = item.Store;
+            if (alternate)
+            {
+                @Html.Raw("<tr class = 't-alt'>")
+            }
+            else
+            {
+                @Html.Raw("<tr>")
+            }
+            alternate = !alternate;
+                @Html.Raw("<td>")
+                    @Html.DisplayFor(modelItem => item.Store)
+                    
+                @Html.Raw("</td>")
+                @Html.Raw("<td>")
+                    @(Html.Telerik().DatePicker()
+                            .Name("[" + count + "].StartDate")
+                            .HtmlAttributes(new { id = "DatePicker_wrapper" })
+                            .Value(item.StartDate)
+                    )
+                @Html.Raw("</td>")
+                @Html.Raw("<td>")
+                    @(Html.Telerik().DatePicker()
+                            .Name("[" + count + "].EndDate")
+                            .HtmlAttributes(new { id = "DatePicker_wrapper" })
+                            .Value(item.EndDate)
+                    )
+
+                @Html.Raw("</td>")
+        }
+        @Html.Raw("<td nowrap>")
+        @*@Html.DisplayFor(modelItem => item.Size)*@
+        @Html.Raw("<input name=\"[" + count + "].PlanID\" type=\"hidden\" value=\"" + item.PlanID + "\"/>")
+        @Html.Raw("<input name=\"[" + count + "].Division\" type=\"hidden\" value=\"" + item.Division + "\"/>")
+        @Html.Raw("<input name=\"[" + count + "].Store\" type=\"hidden\" value=\"" + item.Store + "\"/>")
+        @Html.Raw("<input name=\"[" + count + "].Size\" type=\"hidden\" value=\"" + item.Size + "\"/>")
+
+        @Html.CheckBox("[" + count + "].Range", item.Range)
+        @Html.Raw("<input name=\"[" + count + "].Min\" type=\"text\" value=\"" + item.Min + "\" style = \"Width:20px\"/>")
+        @Html.Raw("&nbsp;")
+        @Html.Raw("<input name=\"[" + count + "].Max\" type=\"text\" value=\"" + item.Max + "\" style = \"Width:20px\"/>")
+        @Html.Raw("&nbsp;")
+        @Html.Raw("<input name=\"[" + count + "].Days\" type=\"text\" value=\"" + item.Days + "\" style = \"Width:20px\"/>")
+        count++;
+
+    
+@*            @Html.TextBoxFor(modelItem => item.Min, new { style = "Width:20px" })
+            @Html.Raw("&nbsp;")
+            @Html.TextBoxFor(modelItem => item.Max, new { style = "Width:20px" })
+            @Html.Raw("&nbsp;")
+            @Html.TextBoxFor(modelItem => item.Days, new { style = "Width:20px" })
+*@        
+        @Html.Raw("</td>")        
+        
+    }
+    if (!(prevDiv.Equals("FIRST")))
+    {
+        @Html.Raw("</tr>");
+    }
+}
+</table>
+</div>
+<br />
+<input type="submit" value="Save" class="t-button"/>
+</fieldset>
+}

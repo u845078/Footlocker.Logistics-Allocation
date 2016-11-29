@@ -1,0 +1,67 @@
+﻿@model Footlocker.Logistics.Allocation.Models.EditStoreLeadTimeModel
+
+@{
+    ViewBag.Title = "EditStoreLeadTime";
+}
+
+<h2>Edit Store Lead Time</h2>
+<table><tr>
+@if (Model.Store != null)
+{ 
+    <td>
+    @Html.Raw("<b>Store:<br>" + @Model.Store.Division + "-" + @Model.Store.Store + "<br>" + @Model.Store.Mall + "<br>" + @Model.Store.City + ", " + @Model.Store.State + "</b><br>")
+    </td>
+}
+<td></td>
+@if (Model.BasedOnStore != null)
+{ 
+    <td>
+    @Html.Raw("Based on store:<br>" + @Model.BasedOnStore.Division + "-" + @Model.BasedOnStore.Store + "<br>" + @Model.BasedOnStore.Mall + "<br>" + @Model.BasedOnStore.City + ", " + @Model.BasedOnStore.State + "<br>")
+    </td>
+}
+</tr></table>
+<br />
+@using (Html.BeginForm("EditStoreLeadTime", "Route", FormMethod.Post))
+{
+<table>
+    <tr>
+        <th>
+            Warehouse
+        </th>
+        <th>
+            Lead Time
+        </th>
+        <th>
+            Rank
+        </th>
+        <th>
+            Active
+        </th>
+    </tr>
+
+@for (var count = 0; count < Model.LeadTimes.Count(); count++)
+{
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => Model.LeadTimes[count].Warehouse)
+            @Html.HiddenFor(modelItem => Model.LeadTimes[count].DCID)
+            @Html.HiddenFor(modelItem => Model.LeadTimes[count].Division)
+            @Html.HiddenFor(modelItem => Model.LeadTimes[count].Store)
+            @Html.HiddenFor(modelItem => Model.LeadTimes[count].Warehouse)
+        </td>
+        <td>
+            @Html.EditorFor(modelItem => Model.LeadTimes[count].LeadTime)
+        </td>
+        <td>
+            @Html.EditorFor(modelItem => Model.LeadTimes[count].Rank)
+        </td>
+        <td>
+            @Html.EditorFor(modelItem => Model.LeadTimes[count].Active)
+        </td>
+    </tr>
+}
+
+</table>
+    <input type="submit" value="Save" text="Save" class="t-button">
+    @Html.ActionLink("Back to List", "StoreLeadTimes", new { div = Model.Store.Division }, new { @class = "t-button" })
+}

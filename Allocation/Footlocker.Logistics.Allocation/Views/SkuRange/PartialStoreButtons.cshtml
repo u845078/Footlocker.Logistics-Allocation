@@ -1,0 +1,10 @@
+﻿@model Footlocker.Logistics.Allocation.Models.StoreLookupModel
+
+@if (Model.InCurrentPlan)
+{
+    @Html.ActionLink("Delete", "DeleteStore", new { store = Model.Store, div = Model.Division, planID = Model.CurrentPlan })
+}
+else
+{
+    @Html.ActionLink("Add", "AddStore", new { store = Model.Store, div = Model.Division, planID = Model.CurrentPlan })
+}

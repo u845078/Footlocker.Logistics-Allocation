@@ -1,0 +1,992 @@
+﻿body
+{
+    font-size: 75%;
+    font-family: Verdana, Tahoma, Arial, "Helvetica Neue", Helvetica, Sans-Serif;
+    color: #232323;
+    background-color: #fff;
+}
+
+/* Styles for basic forms
+-----------------------------------------------------------*/
+
+fieldset 
+{
+    border:1px solid #ddd;
+    padding:0 1.4em 1.4em 1.4em;
+    margin:0 0 1.5em 0;
+}
+
+.fieldset 
+{
+    margin: 1em 0;
+    padding: 1em;
+    border: 1px solid #CCC;
+}
+
+textarea 
+{
+    min-height: 75px;
+}
+
+.editor-label 
+{
+    margin: 1em 0 0 0;
+}
+
+.editor-field 
+{
+    margin:0.5em 0 0 0;
+}
+
+
+/* Styles for validation helpers
+-----------------------------------------------------------*/
+.field-validation-error
+{
+    color: #ff0000;
+}
+
+.field-validation-valid
+{
+    display: none;
+}
+
+.input-validation-error
+{
+    border: 1px solid #ff0000;
+    background-color: #ffeeee;
+}
+
+.validation-summary-errors
+{
+    font-weight: bold;
+    color: #ff0000;
+}
+
+.validation-summary-valid
+{
+    display: none;
+}
+
+/*----------------------------------------------------------
+The base color for this template is #5c87b2. If you'd like
+to use a different color start by replacing all instances of
+#5c87b2 with your new color.
+----------------------------------------------------------*/
+body
+{
+/*    background-color: #5c87b2;*/
+	background: url(Images/bg-main.jpg);
+	background-repeat:repeat-x;
+    background-color: #ddecf3;
+    font-size: .75em;
+    font-family: Verdana, Helvetica, Sans-Serif;
+    margin: 0;
+    padding: 0;
+    color: #696969;
+}
+
+a, button
+{
+	 font-variant:small-caps;
+}
+a:link
+{
+    color: #034af3;
+    text-decoration: underline;
+}
+a:visited
+{
+    color: #505abc;
+}
+a:hover
+{
+    color: #1d60ff;
+    text-decoration: none;
+}
+a:active
+{
+    color: #12eb87;
+}
+
+p, ul
+{
+    margin-bottom: 20px;
+    line-height: 1.6em;
+}
+
+/* HEADINGS   
+----------------------------------------------------------*/
+h1, h2, h3, h4, h5, h6
+{
+    font-size: 1.5em;
+    color: #000;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+h1
+{
+    font-size: 2em;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+h2
+{
+    padding: 0 0 10px 0;
+}
+h3
+{
+    font-size: 1.2em;
+}
+h4
+{
+    font-size: 1.1em;
+}
+h5, h6
+{
+    font-size: 1em;
+}
+
+/* this rule styles <h2> tags that are the 
+first child of the left and right table columns */
+.rightColumn > h1, .rightColumn > h2, .leftColumn > h1, .leftColumn > h2
+{
+    margin-top: 0;
+}
+
+/* PRIMARY LAYOUT ELEMENTS   
+----------------------------------------------------------*/
+
+/* you can specify a greater or lesser percentage for the 
+page width. Or, you can specify an exact pixel width. */
+.page
+{
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#header
+{
+    position: relative;
+    margin-bottom: 0px;
+    color: #000;
+    padding: 0;
+}
+
+#header h1
+{
+    font-weight: bold;
+    padding: 5px 0;
+    margin: 0;
+    color: #fff;
+    border: none;
+    line-height: 2em;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 32px !important;
+}
+
+#main
+{
+    padding: 1px 20px 20px 10px;
+    background-color: #fff;
+    margin-bottom: 30px;
+    _height: 1px; /* only IE6 applies CSS properties starting with an underscore */
+}
+
+#footer
+{
+    color: #999;
+    padding: 10px 0;
+    text-align: center;
+    line-height: normal;
+    margin: 0;
+    font-size: .9em;
+}
+
+/* TAB MENU   
+----------------------------------------------------------*/
+ul#menu
+{
+    border-bottom: 1px #5C87B2 solid;
+    padding-top: 0;
+    padding-bottom: 2px;
+    padding-left:0;
+    position: relative;
+    margin: 0;
+    text-align: left;
+
+}
+
+ul#menu li
+{
+    display: inline;
+    list-style: none;
+}
+
+ul#menu li#greeting
+{
+    padding: 10px 20px;
+    font-weight: bold;
+    text-decoration: none;
+    line-height: 2.8em;
+    color: #fff;
+}
+
+ul#menu li a
+{
+    padding: 10px 20px;
+    font-weight: bold;
+    text-decoration: none;
+    line-height: 2.8em;
+    background-color: #ddecf3;
+    color: #034af3;
+}
+
+ul#menu li a:hover
+{
+    background-color: #fff;
+    text-decoration: none;
+}
+
+ul#menu li a:active
+{
+    background-color: #a6e2a6;
+    text-decoration: none;
+}
+
+ul#menu li.selected a
+{
+    background-color: #fff;
+    color: #000;
+}
+
+ul#submenu
+{
+    text-align:center;
+    position:relative;
+    margin-top: -20px;
+}
+
+ul#submenu li
+{
+    display: inline;
+    list-style: none;
+}
+
+ul#submenu li a
+{
+    font-weight: bold;
+    line-height: 2.8em;
+    color: #034af3;
+}
+
+/* FORM LAYOUT ELEMENTS   
+----------------------------------------------------------*/
+
+fieldset 
+{
+    margin: 1em 0;
+    padding: 1em;
+    border: 1px solid #CCC;
+}
+
+fieldset p 
+{
+    margin: 5px 12px 10px 10px;
+}
+
+legend 
+{
+	padding-left: 10px; 
+	padding-right: 10px; 
+	padding-top: 5px; 
+	padding-bottom: 5px; 
+	text-align:center;
+	color:white;
+	background-color:black;
+	font-weight:bold;
+    border-top: 1px solid #CCC;
+    border-bottom: 1px solid #CCC;
+}
+
+input[type="text"] 
+{
+    width: 200px;
+    border: 1px solid #CCC;
+}
+
+input[type="password"] 
+{
+    width: 200px;
+    border: 1px solid #CCC;
+}
+
+input[type="submit"] 
+{
+    width: 100px;
+}
+
+/* TABLE
+----------------------------------------------------------*/
+
+table 
+{
+  border-collapse: collapse;
+}
+
+table td 
+{
+  padding: 5px;   
+  border-top: solid 1px #ddecf3;   
+  border-bottom: solid 1px #ddecf3;   
+}
+
+table th
+{
+  padding: 6px 5px;
+  text-align: left;
+  background-color: #ddecf3; 
+  font-variant:small-caps;
+}
+
+/* MISC  
+----------------------------------------------------------*/
+.clear
+{
+    clear: both;
+}
+
+.error
+{
+    color:Red;
+}
+
+#menucontainer
+{
+    margin-top:50px;
+}
+
+div#title
+{
+    display:block;
+    float:left;
+    text-align:left;
+}
+
+#logindisplay
+{
+    font-size:1.1em;
+    display:block;
+    text-align:right;
+    margin:10px;
+    color:White;
+}
+
+#logindisplay a:link
+{
+    color: white;
+    text-decoration: underline;
+}
+
+#logindisplay a:visited
+{
+    color: white;
+    text-decoration: underline;
+}
+
+#logindisplay a:hover
+{
+    color: white;
+    text-decoration: none;
+}
+
+/* Styles for validation helpers
+-----------------------------------------------------------*/
+.field-validation-error
+{
+    color: #ff0000;
+}
+
+.field-validation-valid
+{
+    display: none;
+}
+
+.input-validation-error
+{
+    border: 1px solid #ff0000;
+    background-color: #ffeeee;
+}
+
+.validation-summary-errors
+{
+    font-weight: bold;
+    color: #ff0000;
+}
+
+.validation-summary-valid
+{
+    display: none;
+}
+
+/* Styles for editor and display helpers
+----------------------------------------------------------*/
+.display-label,
+.editor-label,
+.display-field,
+.editor-field
+{
+    margin: 0.5em 0;
+}
+
+.display-label
+{
+    font-weight:bold;    
+}
+
+.text-box
+{
+    width: 10em;
+}
+
+.text-box.multi-line
+{
+    height: 6.5em;
+}
+
+.tri-state
+{
+    width: 6em;
+}
+
+
+/* Styles for audit fields
+----------------------------------------------------------*/
+.audit 
+{
+    font-size: 0.9em;
+    font-weight: 600;
+    padding: 2px 4px 8px 4px;
+}
+
+/* Styles for alerts
+----------------------------------------------------------*/
+.alert-fieldset
+{
+	width:50%;
+}
+
+.alert-message-information
+{
+	padding-left: 5px; 
+	padding-top: 10px; 
+	font-style:italic;
+	font-weight:bold;
+	color:Green;
+}
+
+.alert-message-warning
+{
+	padding-left: 5px; 
+	padding-top: 10px; 
+	font-style:italic;
+	font-weight:bold;
+	color:Orange;
+}
+
+.alert-message-error
+{
+	padding-left: 5px; 
+	padding-top: 10px; 
+	font-style:italic;
+	font-weight:bold;
+	color:Red;
+}
+
+.alert-legend-information
+{
+	padding-left: 10px; 
+	padding-right: 10px; 
+	padding-top: 5px; 
+	padding-bottom: 5px; 
+	text-align:center;
+	text-decoration:none;
+	color:Black;
+	background-color:#ddecf3;
+	font-weight:bold;
+}
+
+.alert-legend-warning
+{
+	padding-left: 10px; 
+	padding-right: 10px; 
+	padding-top: 5px; 
+	padding-bottom: 5px; 
+	text-align:center;
+	text-decoration:none;
+	color:Yellow;
+	background-color:Black;
+	font-weight:bold;
+}
+
+.alert-legend-error
+{
+	padding-left: 10px; 
+	padding-right: 10px; 
+	padding-top: 5px; 
+	padding-bottom: 5px; 
+	text-align:center;
+	text-decoration:none;
+	color:Red;
+	background-color:Black;
+	font-weight:bold;
+}
+
+.display-legend 
+{
+	padding-left: 10px; 
+	padding-right: 10px; 
+	padding-top: 5px; 
+	padding-bottom: 5px; 
+	text-align:center;
+	color:Black;
+	background-color:#ddecf3;
+	font-weight:bold;
+    border-top: 1px solid #CCC;
+    border-bottom: 1px solid #CCC;
+}
+
+/* Footlocker custom styles
+----------------------------------------------------------*/
+.legend-child
+{
+	padding-left: 10px; 
+	padding-right: 10px; 
+	padding-top: 5px; 
+	padding-bottom: 5px; 
+	text-align:center;
+	color:Black;
+	background-color:#ddecf3;
+	font-weight:bold;
+    border-top: 1px solid #CCC;
+    border-bottom: 1px solid #CCC;
+}
+
+.link-button 
+{
+	padding-left: 10px; 
+	padding-right: 10px; 
+	padding-top: 5px; 
+	padding-bottom: 5px; 
+	border:2px solid; 
+	text-decoration:none;
+	font-variant:small-caps;
+    background-color:#f1f5fb;
+}
+
+.t-grid .t-grid-header .t-header .t-link {
+    height: auto;
+}
+ 
+.t-grid .t-grid-header .t-header,
+.t-grid .t-grid-header .t-last-header {
+    white-space: normal;
+}
+
+.flbutton 
+{
+     color: #034af3;
+     text-decoration: none;
+     background-color:#ededed;
+     border:1px solid #000000;
+
+     font-family:arial;
+     font-size:12px;
+     font-weight:bold;
+     padding:2px 5px;
+     margin:2px;
+     cursor: pointer;
+     position: relative;
+     text-align: center;
+ }
+ 
+ .div-nowrap
+ {
+     white-space: nowrap;   
+     border-collapse: collapse;  
+ }
+ 
+ input[type=checkbox], input[type=radio] 
+ {     vertical-align: middle;     
+       
+       bottom: 1px;   
+ }   
+       
+ input[type=radio] 
+ {     
+     bottom: 2px;   
+ } 
+ 
+ 
+.topLeft  
+{
+    float:left;
+    width:575px;
+}
+ 
+.topRight 
+{ 
+   float:left;
+   width:500px; 
+} 
+
+.bottom
+{
+    overflow: auto; 
+    width: 100%;
+}
+
+.bottomLeft 
+{
+   width:575px;
+   float:left;
+} 
+
+.bottomRight
+{ 
+    width:575px;
+    float:left;
+}  
+
+table.noWrap td  
+{
+    white-space: nowrap; 
+} 
+
+.image-button
+{
+    width: 18px;    
+    min-width: 0;
+    outline:none;
+    border:0;
+}
+
+.highlight
+{
+    color:Blue;
+}
+
+.highlight2
+{
+    color:Red;
+}
+
+.qtywidth
+{
+    width: 10px;    
+}
+
+button.t-button.link-text-button
+{
+    color: #034af3;
+}
+
+
+/*
+.scrolltable {
+  table-layout: fixed; 
+  width: 100%;
+  *margin-left: -325px;
+}
+.scrolltd, .scrollth {
+  vertical-align: top;
+  border-top: 1px solid #ccc;
+  padding:10px;
+  width:160px;
+}
+.scrollth {
+  position:absolute;
+  *position: relative; 
+  left:0; 
+  width:100px;
+}
+.outer {position:relative}
+.inner {
+  overflow-x:scroll;
+  overflow-y:visible;
+  width:750px; 
+  margin-left:325px;
+}
+input.frank-checkbox {
+    *overflow: hidden;
+}
+*/
+
+.hidden-control 
+{
+    visibility: hidden;   
+}
+
+.dialog-button.t-button
+{
+    min-width: 60px;
+    float: right; 
+    margin-left: 5px; 
+    margin-top: 5px;
+}
+
+.dialog-form
+{
+    margin-top: 5px; 
+    margin-left: 5px; 
+    margin-right: 5px; 
+    padding-bottom: 30px;
+}
+
+.t-window div.t-window-content.t-content
+{
+    padding-bottom: 10px;
+}
+
+.t-window .form-fieldset
+{
+    min-width: 285px; /* NOTE: Anything smaller than this will start to shrink grid footer's text to multiple lines... */
+    -moz-border-radius: 4px; /* Firefox */  
+    -webkit-border-radius: 4px; /* Safari, Chrome */  
+    border-radius: 4px; /* CSS3 */
+    background-color: rgb(241, 245, 251);  
+}
+
+/* Smaller min width for tiny override window */
+.t-window.overrideWindow .form-fieldset
+{
+    min-width: 200px;
+}
+
+.form-input-area-container-first
+{
+    float: left;
+}
+
+.form-input-area-container-middle
+{
+    float: left;
+    margin-left: 10%;
+}
+
+.form-input-area-container-last
+{
+    float: left;
+    margin-left: 10%;
+}
+
+.form-input-label-area
+{
+    float: left;   
+}
+
+.form-input-value-area
+{
+    float: left;
+    margin-left: 20px;
+}
+
+.form-input
+{
+    /*margin-top: 10px;   */
+    margin-top: 5px;
+    height: 20px;
+}
+
+.textbox-readonly
+{
+   border: none;
+   border-color: transparent !important;
+   background-color: transparent;
+   background: transparent;
+   font-weight: bold;
+}
+
+/* Telerik Numeric Text Box consistent width */
+div.t-numerictextbox.editor-input input.t-input
+{
+    width: 146px !important;
+    height: 16px !important;
+}
+div.t-numerictextbox.editor-input
+{
+    margin-top: -2px;   
+}
+
+/* Telerik Grid Overrides ------------------------------------------------------- */
+
+/* Skinny action columns */
+.grid-action-column
+{
+    text-align: center !important;   
+}
+.t-grid th.t-header.grid-action-column-header span.t-link
+{
+    padding-right: 0.6em;   
+}
+.selectable-grid.t-widget.t-grid tr.t-state-selected
+{
+    /* TODO: Work in linear gradient... */
+    background-color: #01669a;
+    color: White;   
+}
+
+
+/* Telerik ComboBox Overrides ------------------------------------------------ */
+div.t-widget.t-combobox.ui-corner-all div.t-dropdown-wrap
+{
+  -moz-border-radius: 4px; /* Firefox */  
+  -webkit-border-radius: 4px; /* Safari, Chrome */  
+  border-radius: 4px; /* CSS3 */ 
+}
+div.t-widget.t-combobox.ui-corner-all div.t-dropdown-wrap input.t-input
+{
+    /* ui-corner-left */
+     -moz-border-radius-topleft: 4px/*{cornerRadius}*/; 
+     -webkit-border-top-left-radius: 4px/*{cornerRadius}*/; 
+     border-top-left-radius: 4px/*{cornerRadius}*/; 
+     -moz-border-radius-bottomleft: 4px/*{cornerRadius}*/; 
+     -webkit-border-bottom-left-radius: 4px/*{cornerRadius}*/; 
+     border-bottom-left-radius: 4px/*{cornerRadius}*/;
+}
+div.t-widget.t-combobox.ui-corner-all div.t-dropdown-wrap span.t-select
+{
+    /* ui-corner-right */
+     -moz-border-radius-topright: 4px/*{cornerRadius}*/; 
+     -webkit-border-top-right-radius: 4px/*{cornerRadius}*/; 
+     border-top-right-radius: 4px/*{cornerRadius}*/; 
+     -moz-border-radius-bottomright: 4px/*{cornerRadius}*/; 
+     -webkit-border-bottom-right-radius: 4px/*{cornerRadius}*/; 
+     border-bottom-right-radius: 4px/*{cornerRadius}*/;
+}
+
+/* Overflow combobox causing drop-down pop-up to continuously grow height */
+div.t-animation-container div.t-popup.t-group
+{
+    overflow-x: hidden !important;
+}
+
+
+/* Telerik TabStrip Styles */
+div.t-widget.t-tabstrip.tabstrip-cutdown
+{
+    /*margin-bottom: 35px; */
+    
+    margin-bottom: 10px; 
+    padding: 10px;   
+}
+div.tab-content-cutdown
+{
+    border-top-left-radius: 0px; /* To go with rounded-corners */   
+}
+
+.content-container
+{
+    margin-top: 20px;
+    background-color: #ddecf3; 
+    padding: 10px;
+    border-width: 1px; 
+    border-style: solid;  
+    border-color: #a5b3c5;
+}
+
+.content-container-tabstrip
+{
+    margin-bottom: 10px;
+}
+.content-container-tabstrip .t-widget.t-grid td
+{
+    border-bottom: 1px solid #dae2e8;
+}
+/*.content-container-tabstrip .t-widget.t-grid tr
+{
+    height: 60px;   
+}*/
+.content-container-tabstrip .t-widget.t-grid .t-grid-content
+{
+    overflow-y: auto;
+}
+.content-container-tabstrip .t-widget.t-grid .t-grid-header
+{
+    /* HACK: We need to at least give a pixel of padding or an overflow occurs, causing scrollbar to appear near footer, tried tinkering w/ this for a while to no avail... */
+    padding-right: 1px !important;
+    /*padding-right: 0px !important;*/
+}
+
+
+/* General Rounded Corners style */
+.rounded-corners 
+{  
+  -moz-border-radius: 10px; /* Firefox */  
+  -webkit-border-radius: 10px; /* Safari, Chrome */  
+  border-radius: 10px; /* CSS3 */  
+} 
+
+
+.form-fieldset-grey
+{
+    background-color: rgb(241, 245, 251);    
+    margin-top: 25px;
+}
+
+.indicator-color
+{
+    color: Blue;   
+}
+
+.modalDialog {
+	position: fixed;
+	font-family: Arial, Helvetica, sans-serif;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background: rgba(0,0,0,0.8);
+	z-index: 999999999;
+	opacity:0;
+	-webkit-transition: opacity 400ms ease-in;
+	-moz-transition: opacity 400ms ease-in;
+	transition: opacity 400ms ease-in;
+	pointer-events: none;
+}
+
+.modalDialog:target {
+	opacity:1;
+	pointer-events: auto;
+}
+
+.modalDialog > div {
+	width: 400px;
+	position: relative;
+	margin: 10% auto;
+	padding: 5px 20px 13px 20px;
+	border-radius: 10px;
+	background: #fff;
+}
+
+.close {
+	background: #00d9ff;
+	color: #FFFFFF;
+	line-height: 25px;
+	position: absolute;
+	right: -12px;
+	text-align: center;
+	top: -10px;
+	width: 24px;
+	text-decoration: none;
+	font-weight: bold;
+	-webkit-border-radius: 12px;
+	-moz-border-radius: 12px;
+	border-radius: 12px;
+	-moz-box-shadow: 1px 1px 3px #000;
+	-webkit-box-shadow: 1px 1px 3px #000;
+	box-shadow: 1px 1px 3px #000;
+}
+
+.close:hover { background: #00d9ff; }

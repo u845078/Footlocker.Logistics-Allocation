@@ -1,0 +1,482 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.SizeAllocation>
+<!--[if gt IE 8]>
+<link rel="stylesheet" type="text/css" href="../../Content/gridscroll.css" />
+<![endif]-->
+
+<style>
+    .total 
+    {
+    }
+    .initdemand
+    {
+        font-color:Red; 
+        background-color : #99FFCC;
+    }
+</style>
+
+
+@if (Model.Count() > 0)
+{
+if ((@ViewData["Chrome"] != null) && (@ViewData["Chrome"] != ""))
+{
+    <link rel="stylesheet" type="text/css" href="../../Content/gridscroll.css" />
+}
+<script>
+    function disableFLPage() {
+        $('StoreSizeAllocationDiv').hide();
+    }
+
+    function Page(pageid) {
+        window.location = "PresentationQuantities?planID=" + planID + "&page=" + pageid;
+    }
+
+    function disableFLPage() {
+        alarmWindow = document.body.appendChild(document.createElement("div"))
+        alarmWindow.id = 'modalWindow';
+        alarmWindow.style.height = document.documentElement.scrollHeight + 'px';
+        alarmWindow.style.backgroundColor = '#000000'//'transparent';
+        alarmWindow.style.position = 'absolute';
+        alarmWindow.style.width = '100%';
+        alarmWindow.style.top = '0px';
+        alarmWindow.style.left = '0px';
+        alarmWindow.style.zIndex = '10000';
+        alarmWindow.style.opacity = .5;
+        alarmWindow.style.MozOpacity = .5;
+        alarmWindow.style.filter = 'alpha(opacity=50)';
+
+        var ScrollTop = document.body.scrollTop;
+        if (ScrollTop == 0) {
+            if (window.pageYOffset)
+                ScrollTop = window.pageYOffset;
+            else
+                ScrollTop = (document.body.parentElement) ? document.body.parentElement.scrollTop : 0;
+        }
+
+        //Create a div dynamically.
+        element2 = document.createElement("div");
+        element2.id = 'loading div';
+        element2.style.position = 'absolute';
+        element2.style.top = ScrollTop;
+        element2.style.left = '0px';
+        element2.style.width = '90%';
+        element2.style.zIndex = '10001';
+        element2.innerHTML = '<br><br><br><br><center><span class="FLtitle">Loading...</span></center>';
+        document.body.appendChild(element2);
+
+
+    }
+
+    function SaveChanges(startrowid, rowid) {
+        disableFLPage();
+        var allocations = [];
+        var daterow;
+        for (var i = startrowid; i < rowid; i++) {
+            if ($("input[name='det[" + i + "].EndDate']").val() != null)
+            {
+                daterow = i;
+            }
+            allocations.push({ "PlanID": $("input[name='det[" + i + "].PlanID']").val(),
+                "Division": $("input[name='det[" + i + "].Division']").val(),
+                "Store": $("input[name='det[" + i + "].Store']").val(),
+                "Size": $("input[name='det[" + i + "].Size']").val(),
+                "Range": ($("input[name='det[" + i + "].Range']:checked").length >0),
+                "Min": $("input[name='det[" + i + "].Min']").val(),
+                "Max": $("input[name='det[" + i + "].Max']").val(),
+                "Days": $("input[name='det[" + i + "].Days']").val(),
+                "InitialDemand": $("input[name='det[" + i + "].InitialDemand']").val(),
+                "StartDate": $("input[name='det[" + daterow + "].StartDate']").val(),
+                "EndDate": $("input[name='det[" + daterow + "].EndDate']").val()
+            });
+        }
+
+        var dataString = JSON.stringify(allocations);
+
+        $.ajax({
+            url: "/SkuRange/SaveStoreSizeAllocationAjax",
+            data: dataString,
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    window.location = window.location;
+                }
+                else {
+                    alert(result);
+                }
+            }
+        });
+
+    }
+</script>
+    
+<script>
+    var sizeList = [];
+
+        function GetMinDetTotals() {
+            var sum = 0;
+            var totalsum = 0;
+            var array = [];
+            var current = 0;
+            var lastBreak = 0;
+            var size;
+            var qty;
+            var me;
+            $("[id*='sizeTotal']").each(function () {
+                me = $(this).attr('id');
+                $(this).empty().append(window['extra' + me.replace('sizeTotal', '')]);
+                totalsum += window['extra' + me.replace('sizeTotal', '')];
+            }); 
+
+            $('input').filter(function () { return /^det.*Min/.test(this.name); }).each(function () {
+                current = this.name.split('[')[1].split(']')[0];
+                qty=Number($(this).val());
+                totalsum += Number($(this).val());
+                if ($.inArray(Number(current), breakIndexes) >= 0) {
+                    $('#DetTotal' + lastBreak).empty().append(Number(sum));
+                    lastBreak = current;
+                    sum = Number($(this).val());
+                } else {
+                    sum += Number($(this).val());
+                 }
+                size = sizeList[current];
+                $("[id*='sizeTotal"+size+"']").each(function () {
+                    var szTotal = Number($(this).text());
+                    szTotal = szTotal + qty;
+                    $(this).empty().append(szTotal);
+                }); 
+            });
+            $('#DetTotal' + lastBreak).empty().append(Number(sum));
+            $('#DetTotal').empty().append(Number(totalsum));
+        }
+
+
+        $(document).ready(
+        function () {
+            $('input').filter(function () { return /^det.*Min/.test(this.name); }).blur(GetMinDetTotals);
+
+            GetMinDetTotals();
+        }
+    );
+
+</script>
+
+<div id="StoreSizeAllocationDiv">
+@using (Html.BeginForm("SaveStoreSizeAllocation", "SkuRange", FormMethod.Post))
+{
+    <fieldset>
+<b>Update Individual Stores:</b> 
+<div class="t-widget t-grid">
+@*<div class="outer">
+<div class="inner">*@
+<div class="scrollablearea">
+<table class="scrolltable" cellpadding=0 cellspacing=0>
+    <tr>
+        <th nowrap class='headcol' style='width:85px;'>
+            @Html.DisplayNameFor(model => model.Store) 
+            <br /><br />
+        </th>
+        <th nowrap class='headcol2' style='width:100px;'>
+            OnRange
+            <br /><br />
+        </th>
+        <th nowrap class='headcol3' style='width:100px;'>
+            End
+            <br /><br />
+        </th>
+        <th nowrap class='headcol4' style='width:50px;'>
+        (<span class='total' id="DetTotal"></span>)
+            <br /><br />
+        </th>
+    @{
+    string prevStore = "";
+    string prevDiv = "";
+    if (Model.Count() > 0)
+    {
+        prevStore = Model.First().Store;
+        prevDiv = Model.First().Division;
+    }
+    Boolean alternate = false;
+    foreach (var item in Model)
+    {
+        if (!((prevDiv.Equals(item.Division)) && (prevStore.Equals(item.Store))))
+        {
+            break;
+        }
+        @Html.Raw("<th class='long' nowrap>")
+        @Html.Raw(item.Size + "")
+        @Html.Raw("&nbsp;(<span class='total' id='sizeTotal" + item.Size + "'></span>)")        
+        @Html.Raw("<BR><font size=\"0.5em\">Rng/Min/Max/Days/Dm</font>")
+
+        <script type="text/javascript">
+        @Html.Raw("var extra" + item.Size + " = Number(0);")
+        </script>
+        
+        @Html.Raw("</th>")        
+        
+
+    }
+}
+    <th></th>
+    </tr>
+
+@{
+    prevStore = "FIRST";
+    prevDiv = "FIRST";
+    alternate = false;
+    int count = 0;
+    int startCount = 0;
+    int storeCount = 0;
+    int page = Convert.ToInt32(ViewData["page"]) + 1;
+
+    int minStore = page * 10 - 10;
+    int maxStore = page * 10 - 1;
+    Int64 planID;
+    foreach (var item in Model)
+    {
+        if (!((prevDiv.Equals(item.Division)) && (prevStore.Equals(item.Store))))
+        {
+            if (!(prevDiv.Equals("FIRST")))
+            {
+                if ((storeCount >= minStore) && (storeCount <= maxStore))
+                {
+                    @Html.Raw("<td class=\"scrolltd\"><div class=\"t-button\" onclick=\"SaveChanges('" + startCount + "', '" + count + "');\" >Save</div></td>")
+                    @Html.Raw("</tr>");
+                    <script>
+                        maxCell = @count;
+                        if (minCell == -1)
+                        {
+                            minCell = @startCount;
+                        }
+                    </script>
+                }
+                startCount = count;
+                storeCount++;
+
+                //if (storeCount > maxStore)
+                //{
+                //    break;
+                //}
+            }
+            else
+            {
+                <script>
+                    var planID = @item.PlanID;
+                    var breakIndexes=[];
+                    var minCell = -1;
+                    var maxCell=0;  
+                </script>
+            }
+            prevDiv = item.Division;
+            prevStore = item.Store;
+            if ((storeCount >= minStore) && (storeCount <= maxStore))
+            {
+                if (alternate)
+                {
+                @Html.Raw("<tr class = 't-alt scrolltr'>")
+                }
+                else
+                {
+                @Html.Raw("<tr class=\"scrolltr\">")
+                }
+                <script>
+                    breakIndexes.push(@count);
+                </script>
+                if (alternate)
+                {
+                    @Html.Raw("<td class=\"t-alt headcol\" >")
+                }
+                else
+                {
+                    @Html.Raw("<td class=\"headcol\" >")
+                }
+                alternate = !alternate;
+
+                @Html.DisplayFor(modelItem => item.Store)
+                @Html.Raw("</td>")
+                @Html.Raw("<td class=\"headcol2\">")
+                @Html.DisplayFor(m => item.StartDate);
+                @Html.Raw("<input type='hidden' id='det[" + count + "]_StartDate' name='det[" + count + "].StartDate' value='" + item.StartDate + "'/>")
+
+@*                    @(Html.Telerik().DatePicker()
+                            .Name("det[" + count + "].StartDate")
+                            .ClientEvents(events => events
+                            .OnChange("setEndDate")
+                            )
+                            .HtmlAttributes(new { id = "DatePicker_wrapper", title = "First day of sales (Start date + store lead time)" })
+                            .Value(item.StartDate).Enable(false)
+                    )
+*@                @Html.Raw("</td>")
+                @Html.Raw("<td class=\"headcol3\">")
+                    @(Html.Telerik().DatePicker()
+                            .Name("det[" + count + "].EndDate")
+                            .HtmlAttributes(new { id = "DatePicker_wrapper", title = "Last day of learning (end date + store lead time)" })
+                            .Value(item.EndDate).Enable(true)
+                    )
+                @Html.Raw("</td><td class=\"headcol4\">")
+                @Html.Raw("(<span class='total' id='DetTotal" + count + "'></span>)")    
+                @Html.Raw("</td>")
+            }
+        }
+        <script>
+            @Html.Raw("sizeList.push('" + item.Size + "');")                  
+        </script>
+
+        if ((storeCount >= minStore) && (storeCount <= maxStore))
+        {
+            @Html.Raw("<td nowrap  class=\"long\">")
+            @*@Html.DisplayFor(modelItem => item.Size)*@
+            @Html.Raw("<input name=\"det[" + count + "].PlanID\" type=\"hidden\" value=\"" + item.PlanID + "\"/>")
+            @Html.Raw("<input name=\"det[" + count + "].Division\" type=\"hidden\" value=\"" + item.Division + "\"/>")
+            @Html.Raw("<input name=\"det[" + count + "].Store\" type=\"hidden\" value=\"" + item.Store + "\"/>")
+            @Html.Raw("<input name=\"det[" + count + "].Size\" type=\"hidden\" value=\"" + item.Size + "\"/>")
+
+            @Html.CheckBox("det[" + count + "].Range", item.Range)
+            
+            @Html.Raw("<input name=\"det[" + count + "].Min\" type=\"text\" value=\"" + item.Min + "\" style = \"Width:28px\"/>")
+            @Html.Raw("&nbsp;")
+            @Html.Raw("<input name=\"det[" + count + "].Max\" type=\"text\" value=\"" + item.Max + "\" style = \"Width:28px\"/>")
+            @Html.Raw("&nbsp;")
+            @Html.Raw("<input name=\"det[" + count + "].Days\" type=\"text\" value=\"" + item.Days + "\" style = \"Width:28px\"/>")
+            @Html.Raw("&nbsp;")
+            @Html.Raw("<input class=\"initdemand\" name=\"det[" + count + "].InitialDemand\" type=\"text\" value=\"" + item.InitialDemand + "\" style = \"Width:28px\"/>")
+            @Html.Raw("</td>")        
+        }
+        else
+        { 
+            <script type="text/javascript">
+                @Html.Raw("extra" + item.Size + " += Number(" + item.Min + ");")
+            </script>
+        }
+        count++;
+
+
+    }
+    if (!(prevDiv.Equals("FIRST")))
+    {
+        if ((storeCount >= minStore) && (storeCount <= maxStore))
+        {
+            @Html.Raw("<td class=\"scrolltd\"><div class=\"t-button\" onclick=\"SaveChanges('" + startCount + "', '" + count + "');\" >Save</div></td>")
+            <script>
+                maxCell = @count;
+                if (minCell == -1)
+                {
+                    minCell = @startCount;
+                }
+            </script>
+        }
+        @Html.Raw("</tr></table>");
+          
+        @Html.Raw("</div>");
+
+
+            <div class="t-grid-pager t-grid-bottom">
+            <div class="t-status"></div>
+            <div class="t-pager t-reset">
+                <a class="t-link t-state-enabled" onclick="Page('0');">
+                    <span class="t-icon t-arrow-first">first</span>
+                </a>
+                @if (page > 1)
+                {
+                <a class="t-link t-state-enabled" onclick="Page('@(page - 2)');">
+                    <span class="t-icon t-arrow-prev">prev</span>
+                </a>
+                }
+                else
+                { 
+                <a class="t-link t-state-disabled">
+                    <span class="t-icon t-arrow-prev">prev</span>
+                </a>
+                }
+                <div class="t-numeric">
+        
+        @{
+                int numpages = 0;
+                int currentpage = 0;
+                for (int j = 0; j <= storeCount; j += 10)
+                {
+                    if ((j / 10) == (page - 1))
+                    {
+                    @Html.Raw("<span class=\"t-state-active\" >" + j / 10 + "</span>")
+                        currentpage = j / 10;
+                    }
+                    else
+                    {
+                    @Html.Raw("<div class=\"t-link\" onclick=\"Page('" + j / 10 + "');\" >" + j / 10 + "</div>")
+                    }
+                    numpages = j / 10;
+                }
+                if (page < numpages)
+                {
+                    currentpage = currentpage + 1;
+            <a class="t-link t-state-enabled" onclick="Page('@currentpage');"><span class="t-icon t-arrow-next">next</span></a>
+            <a class="t-link t-state-enabled" onclick="Page('@numpages ');"><span class="t-icon t-arrow-last">last</span></a>
+                }
+                else
+                { 
+            <a class="t-link t-state-disabled" ><span class="t-icon t-arrow-next">next</span></a>
+            <a class="t-link t-state-disabled" ><span class="t-icon t-arrow-last">last</span></a>
+
+                }
+        }
+        </div><div class="t-status-text"></div></div>
+        
+        </div>      
+        <br />                          
+        @Html.Raw("<div class=\"t-button\" onclick=\"SaveChanges(minCell,maxCell);\" >Save All Changes</div>")
+                          
+    }
+}
+</div>
+<br />
+</fieldset>
+}
+</div>
+}
+
+<script type="text/javascript">
+    function () {
+        $('#DatePicker_wrapper').tooltip();
+    }
+</script>
+
+@if (ViewData["LifeCycle"] != null)
+{ 
+<script type="text/javascript">
+var ss_days = @ViewData["LifeCycle"];
+</script>
+}
+else
+{ 
+<script type="text/javascript">
+    var ss_days = 365;
+</script>
+
+}
+<script type="text/javascript">
+//    Date.prototype.addDays = function (days) {
+//        var dat = new Date(this.valueOf());
+//        dat.setDate(dat.getDate() + days);
+//        return dat;
+//    }
+
+    function setEndDate(e) {
+        //alert(e.target.id.replace('Start', 'End'));
+        var start = e.target.id;
+        start = start.replace('_', '.');
+        //alert(start);
+        var end = start.replace('Start', 'End');
+        //alert(end);
+        var date = new Date($('[name="' + start + '"]').val());
+        if ((date != 'NaN')&&(date != 'Invalid Date')) {
+            date = date.addDays(ss_days);
+            $('[name="' + end + '"]').val((date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear());
+        }
+        else {
+            $('[name="' + end + '"]').val('');
+        }
+    }
+</script>

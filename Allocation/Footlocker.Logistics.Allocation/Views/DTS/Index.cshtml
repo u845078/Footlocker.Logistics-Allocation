@@ -1,0 +1,55 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.DirectToStoreSku>
+
+@{
+    ViewBag.Title = "AR SKUs";
+}
+
+<h2>AR SKUs</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create", null, new {@class="t-button"})
+
+</p>
+
+@Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
+
+@(Html.Telerik().Grid(Model)
+        .Name("DTSGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Sku).Width(175);
+            columns.Bound(o => o.ItemMaster.Description).Width(150);
+            columns.Bound(o => o.Vendor).Width(50);
+            columns.Bound(o => o.StartDate);
+            columns.Bound(o => o.EndDate);
+            columns.Bound(o => o.VendorPackQty);
+            columns.Bound(o => o.OrderDays);
+            columns.Bound(o => o.CreatedBy).Title("Updated By");
+            columns.Bound(o => o.CreateDate).Title("Last Updated");
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("Edit")
+                .Text("Edit")
+                .DataRouteValues(route => { route.Add(o => o.Sku).RouteKey("Sku"); })
+                .Ajax(false)
+                .Action("Edit", "DTS");
+                commands
+                .Custom("Delete")
+                .Text("Delete")
+                .DataRouteValues(route => { route.Add(o => o.Sku).RouteKey("Sku"); })
+                .Ajax(false)
+                .Action("Delete", "DTS").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
+        })
+        .DataBinding(dataBinding => dataBinding.Server()
+                .Select("Index", "DTS"))
+            //.DataBinding(dataBinding => dataBinding.Ajax()
+            //        .Select("_Index", "DTS"))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+)
+

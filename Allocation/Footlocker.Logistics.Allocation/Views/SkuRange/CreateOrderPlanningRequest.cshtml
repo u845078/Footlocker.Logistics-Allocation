@@ -1,0 +1,60 @@
+﻿@model Footlocker.Logistics.Allocation.Models.OrderPlanningRequest
+
+@{
+    ViewBag.Title = "CreateOrderPlanningRequest";
+}
+
+<h2>CreateOrderPlanningRequest</h2>
+
+@if (ViewData["message"] != null)
+{ 
+    @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
+}
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Order Planning Request</legend>
+
+        <div class="editor-label">
+            @Html.HiddenFor(model => model.PlanID)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.StartSend)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.StartSend)
+            @Html.ValidationMessageFor(model => model.StartSend)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.EndSend)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.EndSend)
+            @Html.ValidationMessageFor(model => model.EndSend)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Comment)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Comment)
+            @Html.ValidationMessageFor(model => model.Comment)
+        </div>
+
+        <p>
+            <input type="submit" value="Create" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back", "PresentationQuantities", new { planID = Model.PlanID }, new {@class="t-button"})
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

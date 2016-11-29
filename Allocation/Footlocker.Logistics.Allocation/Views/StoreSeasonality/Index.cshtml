@@ -1,0 +1,77 @@
+﻿@model Footlocker.Logistics.Allocation.Models.StoreSeasonalityModel
+
+@{
+    ViewBag.Title = "Store Seasonality";
+}
+<script>
+    function autopostback(dropdown) {
+        window.location = '/StoreSeasonality/Index?div=' + dropdown.value;
+    }
+    function create() {
+        window.location = '/StoreSeasonality/Create?div=' + $('#CurrentDivision').val() + '&name=' + $('#Name').val();
+    }
+
+</script>
+<h2>Store Seasonality Grouping</h2>
+
+<p>Please note:  The seasonality index is controlled for Europe on this page.  North America is controlled on the Back to School page.</p>
+@if ((ViewData["message"] != null) && (ViewData["message"].ToString().Length > 0))
+{ 
+    @Html.Raw("<font color=\"Red\">" + ViewData["message"] + "</font><br>")
+}
+
+@Html.DropDownListFor(m => Model.CurrentDivision, new SelectList(Model.Divisions, "DivCode", "DivisionName"), new { onchange = "autopostback(this);" })
+@if ((Model.List != null)&&(Model.List.Count() > 0))
+{
+    @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreSeasonality>()
+        .Name("StoreSeasonality")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Name).Width(125);
+            columns.Bound(o => o.ValidDetailsCount).Title("Count");
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(120);
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("Details")
+                .Text("Details")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                .Ajax(false)
+                .Action("Details", "StoreSeasonality");
+                commands
+                .Custom("Delete")
+                .Text("Delete")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                .Ajax(false)
+                .Action("Delete", "StoreSeasonality").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
+        })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Ajax().Select("Grid_GetGroups", "StoreSeasonality", new { div = Model.CurrentDivision });
+            })
+        .Sortable()
+        .Pageable()
+        .Filterable()) 
+<br />
+
+    using (Html.BeginForm("Create", "StoreSeasonality", FormMethod.Get))
+    {
+        <fieldset>
+        <legend>Create a new Group</legend>
+            @Html.TextBox("Name")
+            <input type="button" onclick="create()" value="Create" class="t-button" />
+        </fieldset>
+    }
+    using (Html.BeginForm("Search", "StoreSeasonality", FormMethod.Get))
+    {
+        <fieldset>
+        <legend>Find Seasonality Group for Store</legend>
+            @Html.TextBox("Store")
+            @Html.Hidden("div", Model.CurrentDivision)
+            <input type="submit" value="Find" class="t-button" />
+        </fieldset>
+    }
+
+}

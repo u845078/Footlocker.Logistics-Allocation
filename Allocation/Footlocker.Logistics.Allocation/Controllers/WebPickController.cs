@@ -1,0 +1,952 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using Footlocker.Logistics.Allocation.Models;
+using Footlocker.Common;
+using Footlocker.Logistics.Allocation.Services;
+using Footlocker.Logistics.Allocation.Models.Services;
+using System.IO;
+using Aspose.Excel;
+using Telerik.Web.Mvc;
+using Footlocker.Logistics.Allocation.Common;
+
+namespace Footlocker.Logistics.Allocation.Controllers
+{
+    [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,VP of Allocation,Admin,Support")]
+    public class WebPickController : AppController
+    {
+        //
+        // GET: /WebPick/
+        Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+
+        public ActionResult Index(string message)
+        {
+            List<Division> divs = Divisions();
+            List<RDQ> list = (from a in db.RDQs where a.Type == "user" select a).ToList();
+            list = (from a in list join b in divs on a.Division equals b.DivCode select a).ToList();
+            ViewData["message"] = message;
+
+            return View(list);
+        }
+
+        public ActionResult BulkAdmin(string message)
+        {
+            BulkRDQModel model = new BulkRDQModel();
+
+            List<Division> divs = Divisions();
+            var allInstances = (from a in db.Instances join b in db.InstanceDivisions on a.ID equals b.InstanceID select new { instance = a, Division = b.Division }).ToList();
+            model.Instances = (from a in allInstances join b in divs on a.Division equals b.DivCode select a.instance).Distinct().ToList();
+            Division d = new Division();
+            d.DivCode = "00";
+            d.DivisionName = "All divisions";
+            divs.Insert(0, d);
+            model.Divisions = divs;
+
+            model.StatusList = (from a in db.RDQs select a.Status).Distinct().ToList();
+            model.StatusList.Sort();
+            model.StatusList.Insert(0, "All");
+
+            ViewData["message"] = message;
+            ViewData["ruleSetID"] = model.RuleSetID;
+            ViewData["ruleType"] = "rdq";
+
+            Session["searchresult"] = -1;
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult BulkAdmin(BulkRDQModel model)
+        {
+            ViewData["ruleSetID"] = model.RuleSetID;
+            ViewData["ruleType"] = "rdq";
+            InitializeForm(model);
+
+            if (model.ShowStoreSelector == "yes")
+            {
+                if (model.RuleSetID < 1)
+                {
+                    //get a new ruleset
+                    RuleSet rs = new RuleSet();
+                    rs.Type = "rdq";
+                    rs.CreateDate = DateTime.Now;
+                    rs.CreatedBy = UserName;
+                    db.RuleSets.Add(rs);
+                    db.SaveChanges();
+
+                    model.RuleSetID = rs.RuleSetID;
+
+                }
+
+                ViewData["ruleSetID"] = model.RuleSetID;
+                return View(model);
+            }
+
+            Session["searchresult"] = -1;
+
+            return View(model);
+        }
+
+        private void InitializeForm(BulkRDQModel model)
+        {
+            List<Division> divs = Divisions();
+            var allInstances = (from a in db.Instances join b in db.InstanceDivisions on a.ID equals b.InstanceID select new { instance = a, Division = b.Division }).ToList();
+            model.Instances = (from a in allInstances join b in divs on a.Division equals b.DivCode select a.instance).Distinct().ToList();
+            Division d = new Division();
+            d.DivCode = "00";
+            d.DivisionName = "All divisions";
+            divs.Insert(0, d);
+            model.Divisions = divs;
+
+            model.StatusList = (from a in db.RDQs select a.Status).Distinct().ToList();
+            model.StatusList.Insert(0, "All");
+            model.HaveResults = true;
+        }
+
+
+        [HttpPost]
+        public ActionResult ReleaseAll(BulkRDQModel model)
+        {
+            List<RDQ> rdqsToRelease = GetRDQsForSession(model.Instance, model.Division, model.Department, model.Category, model.Sku, model.Status, model.PO, model.Store, model.RuleSetID);
+
+            rdqsToRelease = (from a in rdqsToRelease where ((a.Status.StartsWith("HOLD")) && (a.Status != "HOLD-XDC")) select a).ToList();
+
+            ////they are releasing the RDQ, so we'll make it a user RDQ so that the hold won't apply and it will be picked the next pick day
+            ////first, find the RDQ being held.
+            rdqsToRelease.ToList().ForEach(r =>
+            {
+                //now update it to a user RDQ, so that it will go down with the next batch
+                //set to HOLD-REL so that it will pick on the stores next pick day
+                RDQ rdq = (from a in db.RDQs where a.ID == r.ID select a).First();
+                rdq.Status = "HOLD-REL";
+                rdq.CreateDate = DateTime.Now;
+                rdq.CreatedBy = User.Identity.Name;
+
+                if ((rdq.PO != null) && (rdq.PO != "") && (rdq.PO != "N/A") && (rdq.Size.Length == 5))
+                {
+                    rdq.DestinationType = "CROSSDOCK";
+                }
+                else
+                {
+                    rdq.DestinationType = "WAREHOUSE";
+                }
+            });
+
+            // Persist changes
+            db.SaveChanges(User.Identity.Name);
+
+            Session["searchresult"] = -1;
+            InitializeForm(model);
+            return View("BulkAdmin", model);
+        }
+
+        [HttpPost]
+        public ActionResult ReleaseAllToWarehouse(BulkRDQModel model)
+        {
+            List<RDQ> rdqsToRelease = GetRDQsForSession(model.Instance, model.Division, model.Department, model.Category, model.Sku, model.Status, model.PO, model.Store, model.RuleSetID);
+            rdqsToRelease.ToList().ForEach(r => 
+                {
+                    RDQ rdq = (from a in db.RDQs where a.ID == r.ID select a).First();
+                    db.RDQs.Remove(rdq);                    
+                });
+
+            // Persist changes
+            db.SaveChanges(User.Identity.Name);
+
+            Session["searchresult"] = -1;
+            InitializeForm(model);
+            return View("BulkAdmin", model);
+        }
+
+
+
+        [GridAction]
+        public ActionResult _BulkRDQs(int instance, string div, string department, string category, string sku, string status, string po, string store, Int64 ruleset)
+        {
+            List<RDQ> model = GetRDQsForSession(instance, div, department, category, sku, status, po, store, ruleset);
+
+            var rdqGroups =
+            from rdq in model
+            group rdq by new
+            {
+                Division = rdq.Division,
+                Store = rdq.Store,
+                WarehouseName = rdq.WarehouseName,
+                Category = rdq.Category,
+                ItemID = rdq.ItemID,
+                Sku = rdq.Sku,
+                Status = rdq.Status
+            } into g
+            select new RDQGroup()
+            {
+                Division = g.Key.Division,
+                Store = g.Key.Store,
+                WarehouseName = g.Key.WarehouseName,
+                Category = g.Key.Category,
+                ItemID = Convert.ToInt64(g.Key.ItemID),
+                Sku = g.Key.Sku,
+                IsBin = g.Where(r => r.Size.Length > 3).Any() ? false : true,
+                Qty = g.Sum(r => r.Qty),
+                UnitQty = g.Sum(r => r.UnitQty),
+                Status = g.Key.Status
+            };
+            return View(new GridModel(rdqGroups.OrderBy(g => g.Division)
+                    .ThenBy(g => g.Store)
+                    .ThenBy(g => g.WarehouseName)
+                    .ThenBy(g => g.Category)
+                    .ThenBy(g => g.Sku)
+                    .ThenBy(g => g.Status)
+                    .ToList()));
+        }
+
+        [GridAction]
+        public ActionResult _RDQDetails(string div, string store, string warehousename, string sku, string status)
+        {
+            List<RDQ> model = (List<RDQ>)Session["searchresultlist"];
+
+            model = (from a in model where ((a.Division == div)
+                         &&(a.Store == store)
+                         &&(a.WarehouseName == warehousename)
+                         &&(a.Sku == sku)
+                         &&(a.Status == status)
+                         ) select a).ToList();
+            return View(new GridModel(model.ToList()));
+        }
+
+
+        private List<RDQ> GetRDQsForSession(int instance, string div, string department, string category, string sku, string status, string po, string store, Int64 ruleset)
+        {
+            List<RDQ> model;
+            if (div == "00")
+            {
+                div = null;
+            }
+            if ((Session["searchresult"] != null) &&
+                ((Int32)Session["searchresult"] > 0))
+            {
+                model = (List<RDQ>)Session["searchresultlist"];
+            }
+            else
+            {
+                if ((department != null)&&(department.Contains("-")))
+                { 
+                    string[] tokens = department.Split('-');
+                    div = tokens[0];
+                    department = tokens[1];
+                }
+
+                List<RDQ> list = (from a in db.RDQs
+                                  join b in db.InstanceDivisions on a.Division equals b.Division
+                                  join c in db.ItemMasters on a.ItemID equals c.ID
+                                  where ((b.InstanceID == instance)
+                                    && ((c.Div == div) || (div == null))
+                                    && ((c.Dept == department) || (department == null))
+                                    && ((c.Category == category) || (category == null))
+                                    && ((a.Sku == sku) || (sku == null))
+                                    && ((a.PO == po) || (po == null))
+                                    && ((a.Store == store) || (store == null))
+                                    && ((a.Status == status) || (status == "All"))
+                                    )
+                                  select a).ToList();
+
+                RuleDAO dao = new RuleDAO();
+                if (ruleset > 0)
+                {
+                    List<StoreLookup> stores = dao.GetStoresInRuleSet(ruleset);
+                    list = (from a in list join b in stores on new { a.Division, a.Store } equals new { b.Division, b.Store } select a).ToList();
+                }
+                int qty;
+
+                if (list.Count() < 6000)
+                {
+                    List<RDQ> updateList = new List<RDQ>();
+                    List<string> caselots = new List<string>();
+                    foreach (RDQ r in list)
+                    {
+                        if (r.Size.Length > 3)
+                        {
+                            updateList.Add(r);
+                            caselots.Add(r.Size);
+                        }
+                        else
+                        {
+                            r.UnitQty = r.Qty;
+                        }
+                    }
+
+                    List<ItemPack> qtyPerCase = db.ItemPacks.Where(p => caselots.Contains(p.Name)).ToList();
+                    foreach (RDQ r in updateList)
+                    {
+                        try
+                        {
+                            r.UnitQty = (from a in qtyPerCase where a.Name == r.Size select a.TotalQty).First() * r.Qty;
+                        }
+                        catch
+                        {
+                            //    //don't know per qty, so we'll just leave blank
+                        }
+                    }
+                }
+
+                model = list.Select(x => new RDQ(x)).ToList();
+
+                Session["searchresult"] = 1;
+                Session["searchresultlist"] = model;
+            }
+            return model;
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        [GridAction]
+        public ActionResult _BulkPick([Bind(Prefix = "updated")]IEnumerable<RDQ> updated)
+        {
+            int instanceid = 0;
+            Int64 itemid = 0;
+            RDQ updateRDQ;
+            foreach (RDQ r in updated)
+            {
+                if (r.Release)
+                { 
+                    //need to pick this
+                    updateRDQ = (from a in db.RDQs where a.ID == r.ID select a).First();
+                    updateRDQ.Status = "HOLD-REL";
+                }
+            }
+            db.SaveChanges(UserName);
+
+            List<Division> divs = Divisions();
+            List<RDQ> list = (from a in db.RDQs select a).ToList();
+            list = (from a in list join b in divs on a.Division equals b.DivCode select a).ToList();
+            return View(new GridModel(list));
+
+        }
+
+        [HttpPost]
+        public ActionResult ReleaseRDQGroupToWarehouse(RDQGroup rdqGroup)
+        {
+            // Get all RDQs of specified SKU for specified hold
+            var dao = new RDQDAO();
+            if ((Session["searchresult"] != null) &&
+                ((Int32)Session["searchresult"] > 0))
+            {
+                var holdRDQs = (List<RDQ>)Session["searchresultlist"];
+                var groupRDQs = holdRDQs.Where(rdq =>
+                    rdq.Division == rdqGroup.Division
+                    && rdq.Store == rdqGroup.Store
+                    && rdq.WarehouseName == rdqGroup.WarehouseName
+                    && rdq.Category == rdqGroup.Category
+                    && rdq.Sku == rdqGroup.Sku
+                    && rdq.Status == rdqGroup.Status
+                    )
+                    .ToList();
+
+                //performance was really bad via entity framework, we'll just run a quick stored proc and update records in memory
+                dao.DeleteRDQs(groupRDQs, UserName);
+
+                groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
+
+/*                using (db)
+                {
+                    var rdqsToRelease = db.RDQs.ToList().Where(r => groupRDQs.Any(g => g.ID == r.ID));
+
+                    //to release back to the warehouse all we need to do is delete it
+                    //the result will be that we no longer decrease the inventory we send to Q, 
+                    //so it will see more available to allocate to whoever it would like
+                    rdqsToRelease.ToList().ForEach(rdq => 
+                        {
+                            db.RDQs.Remove(rdq);
+                        });
+
+                    groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
+
+                    // Persist changes
+                    db.SaveChanges(User.Identity.Name);
+                }
+                */
+                Session["searchresultlist"] = holdRDQs;
+                // Return JSON representing Success
+                return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
+            }
+            else
+            {
+                Session["searchresult"] = -1;
+                return new JsonResult() { Data = new JsonResultData(ActionResultCode.SystemError) };
+            }
+        }
+
+        [HttpPost]
+        public ActionResult ReleaseRDQGroup(RDQGroup rdqGroup, string status)
+        {
+            //FLLogger log = new FLLogger("c:\\log\\alloc_timing.log");
+            //log.Log("starting releaseRDQGroup", FLLogger.eLogMessageType.eInfo);
+            if ((Session["searchresult"] != null) &&
+                ((Int32)Session["searchresult"] > 0))
+            {
+                var holdRDQs = (List<RDQ>)Session["searchresultlist"];
+                //log.Log("pulled list from session", FLLogger.eLogMessageType.eInfo);
+                var groupRDQs = holdRDQs.Where(rdq =>
+                    rdq.Division == rdqGroup.Division
+                    && rdq.Store == rdqGroup.Store
+                    && rdq.WarehouseName == rdqGroup.WarehouseName
+                    && rdq.Category == rdqGroup.Category
+                    && rdq.Sku == rdqGroup.Sku
+                    && rdq.Status == rdqGroup.Status
+                    )
+                    .ToList();
+                //log.Log("pulled list of RDQs in group", FLLogger.eLogMessageType.eInfo);
+
+                //performance was really bad via entity framework, we'll just run a quick stored proc and update records in memory
+                RDQDAO dao = new RDQDAO();
+                dao.ReleaseRDQs(groupRDQs, UserName);
+                //log.Log("updated list in db", FLLogger.eLogMessageType.eInfo);
+
+                if (status == "All")
+                {
+                    groupRDQs.ForEach(rdq => { rdq.Status = "HOLD-REL"; });
+                }
+                else
+                {
+                    groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
+                }
+                //log.Log("updated list in session", FLLogger.eLogMessageType.eInfo);
+
+                Session["searchresultlist"] = holdRDQs;
+                //log.Log("finished", FLLogger.eLogMessageType.eInfo);
+                // Return JSON representing Success
+                return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
+            }
+            else
+            {
+                Session["searchresult"] = -1;
+                return new JsonResult() { Data = new JsonResultData(ActionResultCode.SystemError) };
+            }
+
+        }
+
+        [HttpPost]
+        public ActionResult ReleaseRDQToWarehouse(Int64 id)
+        {
+            // Get all RDQs of specified SKU for specified hold
+            var dao = new RDQDAO();
+            if ((Session["searchresult"] != null) &&
+                ((Int32)Session["searchresult"] > 0))
+            {
+                var holdRDQs = (List<RDQ>)Session["searchresultlist"];
+                RDQ del = (from a in holdRDQs where a.ID == id select a).First();
+                holdRDQs.Remove(del);
+
+                del = (from a in db.RDQs where a.ID == id select a).First();
+                db.RDQs.Remove(del);
+                db.SaveChanges(UserName);
+                Session["searchresultlist"] = holdRDQs;
+                // Return JSON representing Success
+                return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
+            }
+            else
+            {
+                Session["searchresult"] = -1;
+                return new JsonResult() { Data = new JsonResultData(ActionResultCode.SystemError) };
+            }
+        }
+
+        [HttpPost]
+        public ActionResult ReleaseRDQ(Int64 id)
+        {
+            //FLLogger log = new FLLogger("c:\\log\\alloc_timing.log");
+            //log.Log("starting releaseRDQGroup", FLLogger.eLogMessageType.eInfo);
+            if ((Session["searchresult"] != null) &&
+                ((Int32)Session["searchresult"] > 0))
+            {
+                var holdRDQs = (List<RDQ>)Session["searchresultlist"];
+                RDQ del = (from a in holdRDQs where a.ID == id select a).First();
+                del.Status = "HOLD-REL";
+                db.Entry(del).State = System.Data.EntityState.Modified;
+                db.SaveChanges(UserName);
+
+                Session["searchresultlist"] = holdRDQs;
+                // Return JSON representing Success
+                return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
+            }
+            else
+            {
+                Session["searchresult"] = -1;
+                return new JsonResult() { Data = new JsonResultData(ActionResultCode.SystemError) };
+            }
+
+        }
+
+
+        public ActionResult AuditIndex() 
+        {
+            AuditRDQModel model = new AuditRDQModel();
+            model.StartDate = DateTime.Now.AddDays(-7);
+            model.EndDate = DateTime.Now;
+            model.list = (from a in db.AuditRDQs where ((a.PickDate >= model.StartDate) && (a.PickDate <= model.EndDate)) select a).ToList();
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult AuditIndex(AuditRDQModel model)
+        {
+            model.list = (from a in db.AuditRDQs where ((a.PickDate >= model.StartDate) && (a.PickDate <= model.EndDate)) select a).ToList();
+            return View(model);
+        }
+
+        [GridAction]
+        public ActionResult _AuditIndex(string startdate, string enddate)
+        {
+            DateTime start = Convert.ToDateTime(startdate);
+            DateTime end = Convert.ToDateTime(enddate);
+            List<AuditRDQ> list = (from a in db.AuditRDQs where ((a.PickDate >= start)&&(a.PickDate <= end)) select a).ToList();
+
+            List<DistributionCenter> dcs = (from a in db.DistributionCenters select a).ToList();
+            foreach (AuditRDQ a in list)
+            {
+                a.WarehouseName = (from d in dcs where d.ID == a.DCID select d.Name).FirstOrDefault();
+            }
+            return View(new GridModel(list));
+        }
+
+        public ActionResult Create()
+        {
+            WebPickModel model = new WebPickModel();
+            InitializeCreate(model);
+            model.RDQ = new RDQ();
+
+            return View(model);
+        }
+
+        private void InitializeCreate(WebPickModel model)
+        {
+            model.Divisions = Divisions();
+            model.DCs = (from a in db.DistributionCenters where ((a.Type == "BOTH") || (a.Type == "BIN")) select a).ToList();
+        }
+
+        [HttpPost]
+        public ActionResult Create(WebPickModel model)
+        {
+            string message = "";
+            Boolean pickAnyway = model.AllowPickAnyway;
+
+            int size = (from a in db.Sizes where ((a.Sku == model.RDQ.Sku) && (a.Size == model.RDQ.Size)) select a).Count();
+            size += (from a in db.ItemPacks join b in db.ItemMasters on a.ItemID equals b.ID where ((b.MerchantSku == model.RDQ.Sku)&&(a.Name == model.RDQ.Size)) select a).Count();
+
+            if (size == 0)
+            {
+                model.Message = "Size does not exist for this sku";
+            }
+            else if (model.RDQ.Qty <= 0)
+            {
+                model.Message = "Qty must be greater than zero.";
+            }
+            else
+            {
+
+                message = CreateRDQ(model.RDQ, ref pickAnyway);
+                                //.Replace("(noringfence)", "<BR>If you would like to pick anyway, click &quot;Create&quot; again below.")
+                                //.Replace("(ringfence)", "<BR>Since this item is ringfenced, you cannot pick it.")
+                                //;
+
+                model.AllowPickAnyway = pickAnyway;
+                if (message == "")
+                {
+                    //call to apply holds
+                    List<RDQ> list = new List<RDQ>();
+                    list.Add(model.RDQ);
+                    int instance = (from a in db.InstanceDivisions where a.Division == model.RDQ.Division select a.InstanceID).First();
+
+                    RDQDAO rdqDAO = new RDQDAO();
+                    int holdcount = rdqDAO.ApplyHolds(list, instance);
+                    int cancelholdcount = rdqDAO.ApplyCancelHolds(list);
+                    message = "Web pick generated.  "; 
+                    if (cancelholdcount > 0)
+                    {
+                        message = message + cancelholdcount + " rejected by cancel inventory hold.  ";
+                    }
+                    if (holdcount > 0)
+                    {
+                        message = message + holdcount + " on hold.  Please go to ReleaseHeldRDQs to see held RDQs.  ";
+                    }
+                    return RedirectToAction("Index", new { message = message });
+                }
+                model.Message = message;
+            }
+
+            InitializeCreate(model);
+            return View(model);
+        }
+
+        /// <summary>
+        /// Will create a single RDQ if possible
+        /// If not enough inventory, will report message and whether or not inventory can go negative
+        /// </summary>
+        /// <param name="rdq">pick details</param>
+        /// <param name="pickAnyway">returns true if inventory can go negative (no ringfences)</param>
+        /// <param name="message">reason we can't create this pick</param>
+        /// <returns></returns>
+        private string CreateRDQ(RDQ rdq, ref Boolean pickAnyway)
+        {
+            string message="";
+            if (TryUpdateModel(rdq, "RDQ"))
+            {
+                //if (!(pickAnyway))
+                //{
+                message = AdditionalValidations(rdq, ref pickAnyway);
+                //}
+                if (message == "")
+                {
+                    rdq.CreateDate = DateTime.Now;
+                    rdq.CreatedBy = User.Identity.Name;
+                    rdq.PO = "N/A";
+                    rdq.DestinationType = "WAREHOUSE";
+                    rdq.Type = "user";
+                    try
+                    {
+                        rdq.ItemID = (from a in db.ItemMasters where a.MerchantSku == rdq.Sku select a.ID).First();
+                    }
+                    catch
+                    {
+                        message = "invalid sku";
+                    }
+
+                    if (rdq.ItemID > 0)
+                    {
+                        try
+                        {
+                            db.RDQs.Add(rdq);
+                            db.SaveChanges(User.Identity.Name);
+                        }
+                        catch (Exception e)
+                        {
+                            message = e.Message;
+                        }
+                    }
+                }
+            }
+            return message;
+        }
+
+        private Int32 InventoryAvailableToPick(RDQ rdq, ref Boolean pickAnyway)
+        {
+            //find maximum qty
+            RDQDAO dao = new RDQDAO();
+            string warehouse = (from a in db.DistributionCenters where a.ID == rdq.DCID select a.MFCode).FirstOrDefault();
+            if (warehouse == null)
+                return 0;
+            Int32 QtyAvailable = dao.GetWarehouseAvailable(rdq.Sku, rdq.Size, warehouse);
+
+            return QtyAvailable;
+        }
+
+        /// <summary>
+        /// Will validate if we have inventory to pick
+        /// </summary>
+        /// <param name="rdq">information for pick</param>
+        /// <param name="pickAnyway">returns true if no RDQs (inventory is allowed to go negative), false means there are rdqs (inventory is not allowed to go negative)</param>
+        /// <returns></returns>
+        public string AdditionalValidations(RDQ rdq, ref Boolean pickAnyway)
+        {
+            string message = "";
+            Int32 qtyAvailable = InventoryAvailableToPick(rdq, ref pickAnyway);
+            if (qtyAvailable < rdq.Qty)
+            {
+                message = "Not enough inventory.  Amount available (for size) is " + qtyAvailable;
+                if (pickAnyway)
+                {
+                    message = message + "(noringfence)";
+                }
+                else
+                {
+                    message = message + "(ringfence)";
+                }
+            }
+            else if (rdq.Division != rdq.Sku.Substring(0, 2))
+            {
+                message = "Division must be same for sku and store " + rdq.Division + " " + rdq.Sku.Substring(0, 2);
+            }
+            else
+            {
+
+                if ((from a in db.vValidStores where ((a.Division == rdq.Division) && (a.Store == rdq.Store)) select a).Count() == 0)
+                {
+                    message = rdq.Division + "-" + rdq.Store + " is not a valid store.";
+                }
+            }
+
+            return message;
+        }
+
+        public ActionResult Delete(Int64 ID)
+        {
+            RDQ rdq = (from a in db.RDQs where a.ID == ID select a).First();
+            
+            string message = "";
+            try
+            {
+                db.RDQs.Remove(rdq);
+                db.SaveChanges(User.Identity.Name);
+            }
+            catch (Exception ex)
+            {
+                message = ex.Message;
+            }
+            return RedirectToAction("Index", new { message = message });
+        }
+
+        public ActionResult ExcelUpload()
+        {
+            return View();
+        }
+
+
+        /// <summary>
+        /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
+        /// </summary>
+        /// <param name="attachments"></param>
+        /// <returns></returns>
+        public ActionResult Save(IEnumerable<HttpPostedFileBase> attachments)
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            string Division = "";
+            int row = 1;
+            List<RDQ> rdqErrors = new List<RDQ>();
+            List<RDQ> rdqGood = new List<RDQ>();
+            List<string> errorMessages = new List<string>();
+
+            foreach (HttpPostedFileBase file in attachments)
+            {
+                //Instantiate a Workbook object that represents an Excel file
+                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+                Byte[] data1 = new Byte[file.InputStream.Length];
+                file.InputStream.Read(data1, 0, data1.Length);
+                file.InputStream.Close();
+                MemoryStream memoryStream1 = new MemoryStream(data1);
+                workbook.Open(memoryStream1);
+                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+                string mainDivision;
+
+                if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Store")) &&
+                    (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Div")) &&
+                    (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Dept")) &&
+                    (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Stock")) &&
+                    (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Width")) &&
+                    (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Size")) &&
+                    (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Qty")) &&
+                    (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("DC"))
+                    )
+                {
+                    Division = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(2, '0');
+                    mainDivision = Division;
+                    if (!(Footlocker.Common.WebSecurityService.UserHasDivision(User.Identity.Name.Split('\\')[1], "Allocation", Division)))
+                    {
+                        return Content("You do not have permission to update this division.");
+                    }
+                    RDQ rdq;
+                    while (mySheet.Cells[row, 0].Value != null)
+                    {
+                        Division = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(2, '0');
+                        if (!(Division.Equals(mainDivision)))
+                        {
+                            return Content("Spreadsheet must be for one division only.");
+                        }
+                        //create RDQ
+                        rdq = new RDQ();
+                        rdq.Division = Division;
+                        rdq.Store = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(5, '0');
+                        rdq.Size = Convert.ToString(mySheet.Cells[row, 5].Value).PadLeft(3, '0');
+                        rdq.Qty = Convert.ToInt32(mySheet.Cells[row, 6].Value);
+
+                        rdq.Sku = Division + "-" + Convert.ToString(mySheet.Cells[row, 2].Value).PadLeft(2, '0')
+                                            + "-" + Convert.ToString(mySheet.Cells[row, 3].Value).PadLeft(5, '0')
+                                            + "-" + Convert.ToString(mySheet.Cells[row, 4].Value).PadLeft(2, '0');
+
+                        rdq.Status = "WEB PICK";
+                        string dc = Convert.ToString(mySheet.Cells[row, 7].Value).PadLeft(2, '0');
+                        string message = "";
+                        var dcQuery = (from a in db.DistributionCenters where a.MFCode == dc select a.ID);
+                        if (dcQuery.Count() == 0)
+                        {
+                            message = "invalid DC.  ";
+                        }
+                        else
+                        {
+                            rdq.DCID = (from a in db.DistributionCenters where a.MFCode == dc select a.ID).First();
+                        }
+                        Boolean pickAnyway = false;
+                        if ((Convert.ToString(mySheet.Cells[0, 9].Value).Contains("AllowNegative")))
+                        {
+                            pickAnyway = Convert.ToBoolean(mySheet.Cells[row, 9].Value);
+                        }
+                        message = CreateRDQ(rdq, ref pickAnyway)
+                            .Replace("(noringfence)", "  If you would like to pick anyway, put TRUE in AllowNegative column and reupload")
+                            .Replace("(ringfence)", "  Since this item is ringfenced, you cannot pick it.")
+                            ;
+                        if (message != "")
+                        {
+                            rdqErrors.Add(rdq);
+                            message = message;
+                            errorMessages.Add(message);
+                        }
+                        else
+                        {
+                            rdqGood.Add(rdq);
+                        }
+
+                        row++;
+                    }
+                }
+                else
+                {
+                    return Content("Incorrect header, please use template.");
+                }
+            }
+            int instance = (from a in db.InstanceDivisions where a.Division == Division select a.InstanceID).First();
+            RDQDAO rdqDAO = new RDQDAO();
+            int holdcount = rdqDAO.ApplyHolds(rdqGood, instance);
+            if (holdcount > 0)
+            {
+                errorMessages.Add(holdcount + " on hold.  Please go to ReleaseHeldRDQs to view held RDQs.");
+            }
+            int cancelholdcount = rdqDAO.ApplyCancelHolds(rdqGood);
+            if (cancelholdcount > 0)
+            {
+                errorMessages.Add(cancelholdcount + " rejected by cancel inventory hold.  ");
+            }
+
+
+
+            if (errorMessages.Count > 0)
+            {
+                Session["errorList"] = rdqErrors;
+                Session["errorMessageList"] = errorMessages;
+                return Content(rdqErrors.Count() + " Errors on spreadsheet (" + (row - rdqErrors.Count() -1) + " successfully uploaded)");
+            }
+            else
+            {
+                return Content("");
+            }
+        }
+
+        public ActionResult ExcelTemplate()
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+            Excel excelDocument = new Excel();
+            Worksheet mySheet = excelDocument.Worksheets[0];
+            int i = 0;
+            mySheet.Cells[0, i].PutValue("Store (#####)");
+            mySheet.Cells[0, i].Style.Font.IsBold = true;
+            i++;
+            mySheet.Cells[0, i].PutValue("Div (##)");
+            mySheet.Cells[0, i].Style.Font.IsBold = true;
+            i++;
+            mySheet.Cells[0, i].PutValue("Dept (##)");
+            mySheet.Cells[0, i].Style.Font.IsBold = true;
+            i++;
+            mySheet.Cells[0, i].PutValue("Stock (#####)");
+            mySheet.Cells[0, i].Style.Font.IsBold = true;
+            i++;
+            mySheet.Cells[0, i].PutValue("WidthCode (##)");
+            mySheet.Cells[0, i].Style.Font.IsBold = true;
+            i++;
+            mySheet.Cells[0, i].PutValue("Size Caselot (### or #####)");
+            mySheet.Cells[0, i].Style.Font.IsBold = true;
+            i++;
+            mySheet.Cells[0, i].PutValue("Qty (#)");
+            mySheet.Cells[0, i].Style.Font.IsBold = true;
+            i++;
+            mySheet.Cells[0, i].PutValue("DC (##)");
+            mySheet.Cells[0, i].Style.Font.IsBold = true;
+            excelDocument.Save("WebPicks.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            return View();
+        }
+
+        public ActionResult GetErrors()
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+            Excel excelDocument = new Excel();
+            Worksheet mySheet = excelDocument.Worksheets[0];
+            int col = 0;
+            mySheet.Cells[0, col].PutValue("Store (#####)");
+            mySheet.Cells[0, col].Style.Font.IsBold = true;
+            col++;
+            mySheet.Cells[0, col].PutValue("Div (##)");
+            mySheet.Cells[0, col].Style.Font.IsBold = true;
+            col++;
+            mySheet.Cells[0, col].PutValue("Dept (##)");
+            mySheet.Cells[0, col].Style.Font.IsBold = true;
+            col++;
+            mySheet.Cells[0, col].PutValue("Stock (#####)");
+            mySheet.Cells[0, col].Style.Font.IsBold = true;
+            col++;
+            mySheet.Cells[0, col].PutValue("WidthCode (##)");
+            mySheet.Cells[0, col].Style.Font.IsBold = true;
+            col++;
+            mySheet.Cells[0, col].PutValue("Size Caselot (### or #####)");
+            mySheet.Cells[0, col].Style.Font.IsBold = true;
+            col++;
+            mySheet.Cells[0, col].PutValue("Qty (#)");
+            mySheet.Cells[0, col].Style.Font.IsBold = true;
+            col++;
+            mySheet.Cells[0, col].PutValue("DC (##)");
+            mySheet.Cells[0, col].Style.Font.IsBold = true;
+            col++;
+            mySheet.Cells[0, col].PutValue("Message");
+            mySheet.Cells[0, col].Style.Font.IsBold = true;
+            col++;
+            mySheet.Cells[0, col].PutValue("AllowNegative (TRUE/FALSE)");
+            mySheet.Cells[0, col].Style.Font.IsBold = true;
+
+            List<RDQ> errors = (List<RDQ>)Session["errorList"];
+            List<string> errorMessages = (List<string>)Session["errorMessageList"];
+            int row = 1;
+            string[] tokens;
+            if (errors != null)
+            {
+                foreach (RDQ rdq in errors)
+                {
+                    col = 0;
+                    mySheet.Cells[row, col].PutValue(rdq.Store);
+                    col++;
+                    mySheet.Cells[row, col].PutValue(rdq.Division);
+                    col++;
+                    tokens = rdq.Sku.Split('-');
+                    mySheet.Cells[row, col].PutValue(tokens[1]);
+                    col++;
+                    mySheet.Cells[row, col].PutValue(tokens[2]);
+                    col++;
+                    mySheet.Cells[row, col].PutValue(tokens[3]);
+                    col++;
+                    mySheet.Cells[row, col].PutValue(rdq.Size);
+                    col++;
+                    mySheet.Cells[row, col].PutValue(rdq.Qty);
+                    col++;
+                    mySheet.Cells[row, col].PutValue(
+                        (from a in db.DistributionCenters where a.ID == rdq.DCID select a.MFCode).First());
+                    col++;
+                    mySheet.Cells[row, col].PutValue(errorMessages[row - 1]);
+
+                    row++;
+                }
+            }
+            else
+            {
+                col = 0;
+                mySheet.Cells[row, col].PutValue("Session timed out");
+            }
+            
+            excelDocument.Save("WebPicks.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            return View();
+        }
+
+    }
+}

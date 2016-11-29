@@ -1,0 +1,24 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RingFencePickModel
+
+@{
+    ViewBag.Title = "StorePick";
+}
+
+<h2>Store Pick</h2>
+
+@Html.ValidationSummary(true)
+@Html.Raw("<font color='red'>" + Model.Message + "</font>")
+<br /><br />
+@if (Model.Details.Count() > 0)
+{
+    @Html.ActionLink("Pick another store", "Pick", new { ID = Model.RingFence.ID }, new { @class = "t-button" })    
+    <br />
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

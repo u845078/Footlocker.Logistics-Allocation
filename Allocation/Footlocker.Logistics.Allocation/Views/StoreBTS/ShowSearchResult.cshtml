@@ -1,0 +1,16 @@
+﻿@model Footlocker.Logistics.Allocation.Models.StoreBTS
+
+@{
+    ViewBag.Title = "ShowSearchResult";
+}
+
+<h2>Search Result</h2>
+
+This store is in group:<br />
+@Html.DisplayFor(model => model.Year)
+@Html.DisplayFor(model => model.Name)
+<br /><br />
+<div>
+    @Html.ActionLink("Go to this Group", "Details", new { ID = Model.ID }, new { @class = "t-button" })
+    @Html.ActionLink("Back to List", "Index", null, new { @class="t-button"})
+</div>

@@ -1,0 +1,174 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.HoldByProductModel>
+
+@{
+    ViewBag.Title = "Holds By Product";
+}
+
+<h2>Holds</h2>
+<p>
+    @Html.ActionLink("Create New", "Create", new { }, new { @class = "t-button" })
+</p>
+
+<script>
+    function changeDuration(ddl) {
+        window.location = "/Hold/IndexByProduct?duration=" + ddl.value;
+    }
+
+    function DeleteGrid(ID) {
+        if (confirm('Are you sure?')) {
+            window.location = "/Hold/ConfirmDelete?ID=" + ID;
+        }
+    }
+
+    function ReleaseGrid(ID) {
+        //redirecting them to show them RDQs with ability to release them
+        window.location = "/Hold/ReleaseRDQs?ID=" + ID;
+    }
+
+    function MassDeleteGrid(div, level, value, type) {
+        if (confirm('Are you sure you want to delete this group of holds?')) {
+            window.location = "/Hold/MassDelete?div=" + div + "&level=" + level + "&value=" + value + "&holdType=" + type;
+        }
+    }
+
+    function MassReleaseGrid(div, level, value, type) {
+        //redirecting them to show them RDQs with ability to release them
+        window.location = "/Hold/MassReleaseRDQs?div=" + div + "&level=" + level + "&value=" + value + "&holdType=" + type;
+    }
+
+    function MassEditGrid(div, level, value, type) {
+        //redirecting them to show them RDQs with ability to release them
+        window.location = "/Hold/MassEdit?div=" + div + "&level=" + level + "&value=" + value + "&holdType=" + type;
+    }
+
+</script>
+    @if ((ViewData["message"] != "") && (ViewData["message"] != null))
+    { 
+        <font color="Red">
+        @Html.Raw(Convert.ToString(ViewData["message"]))
+        </font>
+    }
+<div class="editor-field">
+    <span>Filter: </span>
+    @Html.DropDownList("Duration", new List<SelectListItem> { new SelectListItem { Text = "All", Value = "All" }, new SelectListItem { Text = "Temporary", Value = "Temporary" }, new SelectListItem { Text = "Permanent", Value = "Permanent" } }, new { onChange = "changeDuration(this);" })
+</div>
+
+
+<div class="t-tabstrip-wrapper">
+<div id="tabstrip" data-role="tabstrip" tabindex="0" class="t-widget t-header t-tabstrip" role="tablist" aria-activedescendant="tabstrip_ts_active">
+                    <ul class="t-tabstrip-items t-reset">
+                        <li class="t-item t-state-default" role="tab" aria-controls="tabstrip-3"><span class="t-loading t-complete"></span><a class="t-link" href="/Hold/Index">
+                            All Holds
+                        </a></li>
+                        <li class="t-item t-state-default t-first t-tab-on-top t-state-active" role="tab" aria-controls="tabstrip-1" aria-selected="true"><span class="t-loading t-complete"></span><a class="t-link" href="/Hold/IndexByProduct">
+                            By Product
+                        </a></li><li class="t-item t-state-default" role="tab" aria-controls="tabstrip-2"><span class="t-loading t-complete"></span><a class="t-link" href="/Hold/IndexByStore">
+                            By Location
+                        </a></li>
+                        </ul>
+<div class="t-content t-state-active" id="tabstrip-1" role="tabpanel" aria-expanded="true" style="display: block; opacity: 1;">
+<br />
+<script type="text/javascript">
+
+    function expandFirstRow(grid, row) {
+        if (grid.$rows().index(row) == 0) {
+            grid.expandRow(row);
+        }
+    }
+
+    function headers_onRowDataBound(e) {
+        var grid = $(this).data('tGrid');
+        expandFirstRow(grid, e.row);
+    }
+
+    function onRowDataBound(e) {
+        var grid = $(this).data('tGrid');
+        // Expand the first row only
+        if (grid.$rows().index(e.row) == 0) {
+            grid.expandRow(e.row);
+        }
+    }
+
+    function onRowDataBound2(e) {
+        alert('made it');
+    }
+</script> 
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.HoldByProductModel>()
+        .Name("Headers")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Division).Title("Div").Width(50);
+            columns.Bound(o => o.Level);
+            columns.Bound(o => o.Value);
+            columns.Bound(o => o.HoldType);
+            columns.Template(@<text> 
+                                   @Html.Raw("<a class=\"t-button\" href='javascript:MassDeleteGrid(\"" + item.Division + "\",\"" + item.Level + "\",\"" + item.Value + "\",\"" + item.HoldType + "\");'>Delete</a>")
+                                   @Html.Raw("<a class=\"t-button\" href='javascript:MassEditGrid(\"" + item.Division + "\",\"" + item.Level + "\",\"" + item.Value + "\",\"" + item.HoldType + "\");'>Edit</a>")
+                                   @if (item.ReserveInventoryBool)
+                                   { 
+                                       @Html.Raw("<a class=\"t-button\" href='javascript:MassReleaseGrid(\"" + item.Division + "\",\"" + item.Level + "\",\"" + item.Value + "\",\"" + item.HoldType + "\");'>Release</a>")
+                                   }
+                               </text>)
+                .ClientTemplate("<a class=\"t-button\" href='javascript:MassDeleteGrid(\"<#= Division #>\",\"<#= Level #>\",\"<#= Value #>\",\"<#= HoldType #>\");'>Delete</a>"
+                    + "<a class=\"t-button\" href='javascript:MassEditGrid(\"<#= Division #>\",\"<#= Level #>\",\"<#= Value #>\",\"<#= HoldType #>\");'>Edit</a>"                
+                    + "<# if (ReserveInventoryBool) { #>"
+                    + "<a class=\"t-button\" href='javascript:MassReleaseGrid(\"<#= Division #>\",\"<#= Level #>\",\"<#= Value #>\",\"<#= HoldType #>\");'>Release</a>"
+                + "<# } #>"
+                ).Width(200);
+
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_IndexByProduct", "Hold");
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+        //.ClientEvents(events => events.OnRowDataBound("headers_onRowDataBound"))
+        .DetailView(ordersDetailView => ordersDetailView.ClientTemplate(
+                    Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.Hold>()
+                        .Name("Hold1" + "_<#= ID #>")
+                            .Columns(columns =>
+                            {
+                                //columns.Bound(o => o.Division).Width(50);
+                                columns.Bound(o => o.Store).Width(50);
+                                //columns.Bound(o => o.Level).Visible(false);
+                                //columns.Bound(o => o.Value).Visible(false);
+                                columns.Bound(o => o.StartDate);
+                                columns.Bound(o => o.EndDate);
+                                columns.Bound(o => o.Duration);
+                                //columns.Bound(o => o.HoldType).Visible(false);
+                                columns.Bound(o => o.Comments);
+                                columns.Bound(o => o.CreatedBy).Title("Updated By");
+                                columns.Bound(o => o.CreateDate).Title("Last Updated");
+                                columns.Template(@<text> 
+                                   @Html.Raw("<a class=\"t-button\" href='javascript:DeleteGrid(\"" + item.ID + "\");'>Delete</a>")
+                                   <a class='t-button' href="@Url.Content("~/Hold/Edit/" + @item.ID)">Edit</a>
+                                   @if (item.ReserveInventoryBool)
+                                   { 
+                                       @Html.Raw("<a class=\"t-button\" href='javascript:ReleaseGrid(\"" + item.ID + "\");'>Release</a>")
+                                   }
+                               </text>)
+                                    .ClientTemplate("<a class=\"t-button\" href='javascript:DeleteGrid(\"<#= ID #>\");'>Delete</a>"
+                                    + "<a class='t-button' href='"
+                                        + Url.Content("~/Hold/Edit/<#= ID #>")
+                                        + "'>Edit</a>"
+                                    + "<# if (ReserveInventoryBool) { #>"
+                                        + "<a class=\"t-button\" href='javascript:ReleaseGrid(\"<#= ID #>\");'>Release</a>"
+                                    + "<# } #>"
+                                    ).Width(200);
+                            })
+                        .DataBinding(dataBinding => dataBinding.Ajax()
+                        .Select("_HoldDetails", "Hold", new { div = "<#= Division #>", level = "<#= Level #>", value = "<#= Value #>", holdType = "<#= HoldType #>" }))
+                        .Pageable()
+                        .Sortable()
+                        .Filterable()
+                        .ToHtmlString()
+                        ))
+)
+</div>                
+</div>
+</div>

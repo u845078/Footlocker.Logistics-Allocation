@@ -1,0 +1,197 @@
+﻿@model Footlocker.Logistics.Allocation.Models.TroubleshootInventory
+
+@{
+    ViewBag.Title = "TroubleshootInventory";
+}
+
+<h2>Troubleshoot Inventory</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Troubleshoot Inventory</legend>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Sku) (required)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Sku)
+            @Html.ValidationMessageFor(model => model.Sku)
+        </div>
+@*        <div class="editor-label">
+            @Html.LabelFor(model => model.Warehouse) (Mainframe code)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Warehouse)
+            @Html.ValidationMessageFor(model => model.Warehouse)
+        </div>
+*@
+        <p>
+            <input type="submit" value="Submit" />
+        </p>
+    </fieldset>
+}
+
+@if (Model.Sku != null)
+{
+<fieldset>
+    <legend>Inventory Feed from Host</legend>
+
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.LegacyInventory>()
+        .Name("LegacyInventory")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.ProductTypeCode);
+            columns.Bound(o => o.Sku);
+            columns.Bound(o => o.Size);
+            columns.Bound(o => o.LocationTypeCode);
+            columns.Bound(o => o.Division);
+            columns.Bound(o => o.Store);
+            columns.Bound(o => o.OnHandQuantityInt).Aggregate(aggreages => aggreages.Sum())
+                   .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
+            columns.Bound(o => o.NonSellableQty);
+            columns.Bound(o => o.Qty1);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_LegacyInventory", "item", new { sku = Model.Sku });
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+
+</fieldset>
+
+<fieldset>
+    <legend>Final Inventory Feed to Q</legend>
+
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.LegacyInventory>()
+        .Name("LegacyInventoryFinal")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.ProductTypeCode);
+            columns.Bound(o => o.Sku);
+            columns.Bound(o => o.Size);
+            columns.Bound(o => o.LocationTypeCode);
+            columns.Bound(o => o.Division);
+            columns.Bound(o => o.Store);
+            columns.Bound(o => o.OnHandQuantityInt).Aggregate(aggreages => aggreages.Sum())
+                   .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
+            columns.Bound(o => o.NonSellableQty);
+            columns.Bound(o => o.Qty1);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_LegacyInventoryFinal", "item", new { sku = Model.Sku });
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+
+</fieldset>
+    
+<fieldset>
+    <legend>Future Inventory Feed from Host</legend>
+
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.LegacyFutureInventory>()
+        .Name("LegacyFutureInventory")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Sku);
+            columns.Bound(o => o.Size);
+            columns.Bound(o => o.InventoryType);
+            columns.Bound(o => o.InventoryID);
+            columns.Bound(o => o.Division);
+            columns.Bound(o => o.Store);
+            columns.Bound(o => o.StockQty).Aggregate(aggreages => aggreages.Sum())
+                   .ClientFooterTemplate("Filtered Qty: <#= Sum #>"); ;
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_LegacyFutureInventory", "item", new { sku = Model.Sku });
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+
+</fieldset>
+
+    <fieldset>
+    <legend>Final Future Inventory Feed to Q</legend>
+
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.LegacyFutureInventory>()
+        .Name("LegacyFutureInventoryFinal")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Sku);
+            columns.Bound(o => o.Size);
+            columns.Bound(o => o.InventoryType);
+            columns.Bound(o => o.InventoryID);
+            columns.Bound(o => o.Division);
+            columns.Bound(o => o.Store);
+            columns.Bound(o => o.StockQty).Aggregate(aggreages => aggreages.Sum())
+                   .ClientFooterTemplate("Filtered Qty: <#= Sum #>"); ;
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_LegacyFutureInventoryFinal", "item", new { sku = Model.Sku });
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+
+</fieldset>
+
+    
+<fieldset>
+    <legend>Mainframe Crossdock Links</legend>
+
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.MainframeLink>()
+        .Name("MainframeLinks")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Warehouse);
+            columns.Bound(o => o.Caselot);
+            columns.Bound(o => o.SACC);
+            columns.Bound(o => o.Lock);
+            columns.Bound(o => o.Division);
+            columns.Bound(o => o.Store);
+            columns.Bound(o => o.Qty).Aggregate(aggreages => aggreages.Sum())
+                   .ClientFooterTemplate("Filtered Qty: <#= Sum #>"); ;
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_MainframeLinks", "item", new { sku = Model.Sku });
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+
+</fieldset>
+    
+}
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

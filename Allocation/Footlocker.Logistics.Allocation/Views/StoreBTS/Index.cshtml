@@ -1,0 +1,138 @@
+﻿@model Footlocker.Logistics.Allocation.Models.StoreBTSModel
+
+@{
+    ViewBag.Title = "Store BTS";
+}
+<script>
+    function autopostback(dropdown) {
+        window.location = '/StoreBTS/Index?div=' + $('#CurrentDivision').val() + "&year=" + $('#CurrentYear').val();
+    }
+       
+    function create() {
+        window.location = '/StoreBTS/Create?div=' + $('#CurrentDivision').val() + '&name=' + $('#Name').val() + '&year=' + $('#Year').val();
+    }
+
+</script>
+<h2>Store Back To School Grouping</h2>
+<p>Please note:  The seasonality index is controlled for North America on this page(groups for TY).  Europe is controlled on the Seasonality page.</p>
+
+@if ((ViewData["message"] != null) && (ViewData["message"].ToString().Length > 0))
+{ 
+    @Html.Raw("<font color=\"Red\">" + ViewData["message"] + "</font><br>")
+}
+@Html.DropDownListFor(m => Model.CurrentDivision, new SelectList(Model.Divisions, "DivCode", "DivisionName"), new { onchange = "autopostback(this);" })
+@Html.DropDownListFor(m => Model.CurrentYear, new SelectList(Model.Years), new { onchange = "autopostback(this);" })
+
+@Html.ActionLink("Unassigned Stores", "DownloadUnassignedStores", new { div = Model.CurrentDivision, year = Model.CurrentYear }, new { @class = "t-button" })
+<br />
+
+
+@if (Model.List.Count() > 0)
+{
+@Html.Raw("Note:  Filtered to current year by default")
+@(Html.Telerik().Grid(Model.List)
+        .Name("StoreBTS")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Year).Width(100);
+            columns.Bound(o => o.Name).Width(150);
+            columns.Bound(o => o.Count);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(120);
+            columns.Command(commands =>
+            {
+                //commands
+                //.Custom("Edit")
+                //.Text("Edit")
+                //.DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                //.Ajax(false)
+                //.Action("Edit", "StoreBTS");
+                commands
+                .Custom("Details")
+                .Text("Details")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                .Ajax(false)
+                .Action("Details", "StoreBTS");
+                commands
+                .Custom("Delete")
+                .Text("Delete")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                .Ajax(false)
+                .Action("Delete", "StoreBTS").HtmlAttributes(new { onclick="return confirm('Are you sure?');"});
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
+        })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Server();
+                //dataBinding.Ajax().Select("_RefreshBTSGrid", "StoreBTS").Enabled(true);
+            })
+        .Sortable()
+        .Pageable()
+        .Filterable(filtering => filtering.Filters(filters => 
+        {
+            filters.Add(o => o.Year).IsEqualTo(Model.CurrentYear);
+        }))) 
+}
+
+
+@Html.EditorFor(m => m.Control)
+<script type="text/javascript">
+        function onAutoCompleteDataBinding(e) {
+            e.data = $.extend({}, e.data, { filterMode:
+'StartsWith'
+        });
+    }
+</script>
+@using (Html.BeginForm("Create","StoreBTS",FormMethod.Get)) {
+    <fieldset>
+    <legend> Create a new Group </legend>
+        @Html.DropDownList("Year", 
+        new List<SelectListItem> { 
+            new SelectListItem { Text = (System.DateTime.Now.Year - 1).ToString(), Value = (System.DateTime.Now.Year - 1).ToString() }, 
+            new SelectListItem { Selected=true, Text = System.DateTime.Now.Year.ToString(), Value = System.DateTime.Now.Year.ToString() }, 
+            new SelectListItem { Text = (System.DateTime.Now.Year + 1).ToString(), Value = (System.DateTime.Now.Year + 1).ToString() },
+            new SelectListItem { Text = (System.DateTime.Now.Year + 2).ToString(), Value = (System.DateTime.Now.Year + 2).ToString() }
+        })
+            @(Html.Telerik().AutoComplete()
+                .Name("Name")
+                .AutoFill(true)
+                .DataBinding(binding => binding.Ajax()
+                                                .Select("_AutoCompleteFilteringAjax", "StoreBTS", new { div = Model.CurrentDivision })
+                                                .Delay(400)
+                                                .Cache(true)
+                )
+                .Filterable(filtering =>
+                {
+                    filtering.FilterMode((AutoCompleteFilterMode)Enum.Parse(typeof(AutoCompleteFilterMode),
+                        "StartsWith"));
+                    filtering.MinimumChars(0);
+                })
+                .Multiple(multi => multi.Enabled(false))
+                .HighlightFirstMatch(true)
+        )
+
+        <input type="button" onclick="create()" value="Create" class="t-button" />
+    </fieldset>
+}
+
+<br />
+@using (Html.BeginForm("Search","StoreBTS",FormMethod.Get)) {
+    <fieldset>
+    <legend> Find BTS Group for Store </legend>
+        @Html.DropDownList("Year", 
+        new List<SelectListItem> { 
+            new SelectListItem { Text = (System.DateTime.Now.Year - 5).ToString(), Value = (System.DateTime.Now.Year - 5).ToString() },
+            new SelectListItem { Text = (System.DateTime.Now.Year - 4).ToString(), Value = (System.DateTime.Now.Year - 4).ToString() }, 
+            new SelectListItem { Text = (System.DateTime.Now.Year - 3).ToString(), Value = (System.DateTime.Now.Year - 3).ToString() }, 
+            new SelectListItem { Text = (System.DateTime.Now.Year - 2).ToString(), Value = (System.DateTime.Now.Year - 2).ToString() }, 
+            new SelectListItem { Text = (System.DateTime.Now.Year - 1).ToString(), Value = (System.DateTime.Now.Year - 1).ToString() }, 
+            new SelectListItem { Selected=true, Text = System.DateTime.Now.Year.ToString(), Value = System.DateTime.Now.Year.ToString() }, 
+            new SelectListItem { Text = (System.DateTime.Now.Year + 1).ToString(), Value = (System.DateTime.Now.Year + 1).ToString() },
+            new SelectListItem { Text = (System.DateTime.Now.Year + 2).ToString(), Value = (System.DateTime.Now.Year + 2).ToString() }
+        })
+
+        @Html.TextBox("Store")
+        @Html.Hidden("div", Model.CurrentDivision)
+        <input type="submit" value="Find" class="t-button" />
+    </fieldset>
+}

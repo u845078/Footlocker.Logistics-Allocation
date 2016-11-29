@@ -1,0 +1,744 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{E2F50E2F-9AAA-4EC8-9E25-676504C0A820}</ProjectGuid>
+    <ProjectTypeGuids>{E3E379DF-F4C6-4180-9B81-6769533ABE47};{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Footlocker.Logistics.Allocation</RootNamespace>
+    <AssemblyName>Footlocker.Logistics.Allocation</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <MvcBuildViews>false</MvcBuildViews>
+    <UseIISExpress>false</UseIISExpress>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
+    <IISExpressWindowsAuthentication>enabled</IISExpressWindowsAuthentication>
+    <IISExpressUseClassicPipelineMode />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <IncludeIisSettings>false</IncludeIisSettings>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Aspose.Excel, Version=3.6.0.0, Culture=neutral, PublicKeyToken=716fcc553a201e56">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Footlocker\Aspose.Excel.dll</HintPath>
+    </Reference>
+    <Reference Include="edtFTPnet, Version=1.3.0.0, Culture=neutral, PublicKeyToken=4b0c991f43097782">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Footlocker\edtFTPNet\Version 2.2.2\edtFTPnet.dll</HintPath>
+    </Reference>
+    <Reference Include="edtFTPnetPRO, Version=8.6.5.20, Culture=neutral, PublicKeyToken=0dce1ad63760d80b, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\FootLocker\edtFTPNet\Version 8.6.5.20\edtFTPnetPRO.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Footlocker\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="flcommon, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Footlocker\flcommon.dll</HintPath>
+    </Reference>
+    <Reference Include="Footlocker.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\FootLocker\Footlocker.Common 5.0\Footlocker.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Footlocker.Common.mvcExtensions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Footlocker\Footlocker.Common.mvcExtensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Footlocker.Common.Services">
+      <HintPath>C:\FootLocker\Footlocker.Common 9.0\Footlocker.Common.Services.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Data">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Data.Entity">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Drawing">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.DynamicData">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Entity">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.ApplicationServices">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.ComponentModel.DataAnnotations">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Helpers, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.Helpers.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Mvc, Version=4.0.0.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.Mvc.4.0.40804.0\lib\net40\System.Web.Mvc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Optimization, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Footlocker\System.Web.Optimization.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.Razor.2.0.20710.0\lib\net40\System.Web.Razor.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.WebPages, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.WebPages.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Deployment, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.WebPages.Deployment.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.WebPages.Razor.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Extensions">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Abstractions">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Routing">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Configuration">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Services">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.EnterpriseServices">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.DirectoryServices">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.Net.Http.2.0.20505.0\lib\net40\System.Net.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.4.0.20505.0\lib\net40\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.WebRequest">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.Net.Http.2.0.20505.0\lib\net40\System.Net.Http.WebRequest.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.4.0.20505.0\lib\net40\System.Web.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http.WebHost, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.4.0.20505.0\lib\net40\System.Web.Http.WebHost.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Web.Mvc">
+      <HintPath>C:\Footlocker\Telerik\2012Q1\Telerik.Web.Mvc.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App_Start\BundleConfig.cs" />
+    <Compile Include="App_Start\FilterConfig.cs" />
+    <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Common\ActionResultCode.cs" />
+    <Compile Include="Common\AjaxValidationException.cs" />
+    <Compile Include="Common\DeleteValidationException.cs" />
+    <Compile Include="Common\ExistsValidationException.cs" />
+    <Compile Include="Common\Filters\HandleAjaxError.cs" />
+    <Compile Include="Common\Filters\HandleAjaxValidationError.cs" />
+    <Compile Include="Common\Filters\LogError.cs" />
+    <Compile Include="Common\JsonResultData.cs" />
+    <Compile Include="Controllers\AppController.cs" />
+    <Compile Include="Controllers\ConceptTypeController.cs" />
+    <Compile Include="Controllers\ConfigController.cs" />
+    <Compile Include="Controllers\CrossDockExclusionController.cs" />
+    <Compile Include="Controllers\DTSController.cs" />
+    <Compile Include="Controllers\FOBController.cs" />
+    <Compile Include="Controllers\FOBPackController.cs" />
+    <Compile Include="Controllers\FOBPackOverrideController.cs" />
+    <Compile Include="Controllers\InvalidTransactionController.cs" />
+    <Compile Include="Controllers\MandatoryCrossdockController.cs" />
+    <Compile Include="Controllers\NonRangedProductController.cs" />
+    <Compile Include="Controllers\StoreExtensionController.cs" />
+    <Compile Include="Controllers\StoreAttributeController.cs" />
+    <Compile Include="Controllers\StoreBTSController.cs" />
+    <Compile Include="Controllers\DriverController.cs" />
+    <Compile Include="Controllers\ItemController.cs" />
+    <Compile Include="Controllers\OverridePOController.cs" />
+    <Compile Include="Controllers\Filters\CheckDivisionPermission.cs" />
+    <Compile Include="Controllers\SkuAttributeController.cs" />
+    <Compile Include="Controllers\StoreSeasonalityController.cs" />
+    <Compile Include="Controllers\DTSVendorGroupController.cs" />
+    <Compile Include="Controllers\ErrorController.cs" />
+    <Compile Include="Controllers\Filters\CheckAuthorization.cs" />
+    <Compile Include="Controllers\Filters\CheckPermission.cs" />
+    <Compile Include="Controllers\Filters\CheckSession.cs" />
+    <Compile Include="Controllers\HoldController.cs" />
+    <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\ImageController.cs" />
+    <Compile Include="Controllers\NetworkController.cs" />
+    <Compile Include="Controllers\RingFenceController.cs" />
+    <Compile Include="Controllers\RouteController.cs" />
+    <Compile Include="Controllers\RuleController.cs" />
+    <Compile Include="Controllers\SkuRangeController.cs" />
+    <Compile Include="Controllers\UploadController.cs" />
+    <Compile Include="Controllers\UtilityIndexController.cs" />
+    <Compile Include="Controllers\WarehouseBlackoutController.cs" />
+    <Compile Include="Controllers\WebPickController.cs" />
+    <Compile Include="DAO\AllocationContext.cs" />
+    <Compile Include="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AuditRDQModel.cs" />
+    <Compile Include="Models\BulkRDQModel.cs" />
+    <Compile Include="Models\TroubleshootRDQForSkuModel.cs" />
+    <Compile Include="Models\CreateConfigParamModel.cs" />
+    <Compile Include="Models\CreateConfigModel.cs" />
+    <Compile Include="Models\EditConfigModel.cs" />
+    <Compile Include="Models\MassEditRingFenceModel.cs" />
+    <Compile Include="Models\TroubleshootRDQModel.cs" />
+    <Compile Include="Models\HoldByStoreModel.cs" />
+    <Compile Include="Models\DTSConstraintModel.cs" />
+    <Compile Include="Models\EditMandatoryCrossdock.cs" />
+    <Compile Include="Models\FOBSaveOptionsModel.cs" />
+    <Compile Include="Models\HoldByProductModel.cs" />
+    <Compile Include="Models\QFeedModel.cs" />
+    <Compile Include="Models\RingFenceSizeModel.cs" />
+    <Compile Include="Models\CopyRangePlanModel.cs" />
+    <Compile Include="Models\CreateStoreAttributeModel.cs" />
+    <Compile Include="Models\CrossDockExclusionModel.cs" />
+    <Compile Include="Models\DCList.cs" />
+    <Compile Include="Models\DeliveryGroupMissingModel.cs" />
+    <Compile Include="Models\DeliveryGroupModel.cs" />
+    <Compile Include="Models\EditStoreAttributeModel.cs" />
+    <Compile Include="Models\ExpediteSkuModel.cs" />
+    <Compile Include="Models\ExpeditePOHeader.cs" />
+    <Compile Include="Models\EditStoreLeadTimeModel.cs" />
+    <Compile Include="Models\FOBPackModel.cs" />
+    <Compile Include="Models\FOBPackOverrideModel.cs" />
+    <Compile Include="Models\RingFenceUploadModel.cs" />
+    <Compile Include="Models\RouteDCModel.cs" />
+    <Compile Include="Models\RuleFilterModel.cs" />
+    <Compile Include="Models\SecuredDivisionModel.cs" />
+    <Compile Include="Models\StoreBatchFilterModel.cs" />
+    <Compile Include="Models\StoreBatchModel.cs" />
+    <Compile Include="Models\StoreLeadTimeModel.cs" />
+    <Compile Include="Models\StoreLookupViewModel.cs" />
+    <Compile Include="Models\StoreSeasonalityModel.cs" />
+    <Compile Include="Models\StoreBTSModel.cs" />
+    <Compile Include="Models\StoreBTSDetailModel.cs" />
+    <Compile Include="Models\DriverModel.cs" />
+    <Compile Include="Models\ExpeditePOModel.cs" />
+    <Compile Include="Models\ItemLookupModel.cs" />
+    <Compile Include="Models\RingFenceModel.cs" />
+    <Compile Include="Models\DeleteHoldModel.cs" />
+    <Compile Include="Models\DistributionCenterModel.cs" />
+    <Compile Include="Models\EditRouteZonesModel.cs" />
+    <Compile Include="Models\EditRouteModel.cs" />
+    <Compile Include="Models\HoldModel.cs" />
+    <Compile Include="Models\NetworkZoneStoreModel.cs" />
+    <Compile Include="Models\EditStoreModel.cs" />
+    <Compile Include="Models\NetworkLeadTimeModel.cs" />
+    <Compile Include="Models\NetworkZoneModel.cs" />
+    <Compile Include="Models\RangePlanModel.cs" />
+    <Compile Include="Models\RingFencePickModel.cs" />
+    <Compile Include="Models\RouteModel.cs" />
+    <Compile Include="Models\RuleModel.cs" />
+    <Compile Include="Models\SizeAllocationModel.cs" />
+    <Compile Include="Models\SizeAllocationTotal.cs" />
+    <Compile Include="Models\SkuAllocationModel.cs" />
+    <Compile Include="Models\SkuAttributeModel.cs" />
+    <Compile Include="Models\SkuImage.cs" />
+    <Compile Include="Models\StoreLookupModel.cs" />
+    <Compile Include="Models\StoreSeasonalityDetailModel.cs" />
+    <Compile Include="Models\StoreZoneModel.cs" />
+    <Compile Include="Models\TroubleshootInventory.cs" />
+    <Compile Include="Models\TroubleshootModel.cs" />
+    <Compile Include="Models\TroubleshootStoreModel.cs" />
+    <Compile Include="Models\VendorGroupDetailsModel.cs" />
+    <Compile Include="Models\WarehouseBlackoutModel.cs" />
+    <Compile Include="Models\WebPickModel.cs" />
+    <Compile Include="Models\WSMRequestModel.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\gridscroll.css" />
+    <Content Include="Content\Images\arrow_green_down.png" />
+    <Content Include="Content\Images\arrow_green_up.png" />
+    <Content Include="Content\Images\bg-main.jpg" />
+    <Content Include="Content\telerik.common.css" />
+    <Content Include="Content\telerik.default.css" />
+    <Content Include="Content\telerik.rtl.css" />
+    <Content Include="Content\telerik.windows7.css" />
+    <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
+    <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_55_fbf9ee_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_65_ffffff_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_75_dadada_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_75_e6e6e6_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_95_fef1ec_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_highlight-soft_75_cccccc_1x100.png" />
+    <Content Include="Content\themes\base\images\ui-icons_222222_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_2e83ff_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_454545_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_888888_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_cd0a0a_256x240.png" />
+    <Content Include="Content\themes\base\jquery.ui.accordion.css" />
+    <Content Include="Content\themes\base\jquery.ui.all.css" />
+    <Content Include="Content\themes\base\jquery.ui.autocomplete.css" />
+    <Content Include="Content\themes\base\jquery.ui.base.css" />
+    <Content Include="Content\themes\base\jquery.ui.button.css" />
+    <Content Include="Content\themes\base\jquery.ui.core.css" />
+    <Content Include="Content\themes\base\jquery.ui.datepicker.css" />
+    <Content Include="Content\themes\base\jquery.ui.dialog.css" />
+    <Content Include="Content\themes\base\jquery.ui.progressbar.css" />
+    <Content Include="Content\themes\base\jquery.ui.resizable.css" />
+    <Content Include="Content\themes\base\jquery.ui.selectable.css" />
+    <Content Include="Content\themes\base\jquery.ui.slider.css" />
+    <Content Include="Content\themes\base\jquery.ui.tabs.css" />
+    <Content Include="Content\themes\base\jquery.ui.theme.css" />
+    <Content Include="Content\Windows7\editor.png" />
+    <Content Include="Content\Windows7\imagebrowser.png" />
+    <Content Include="Content\Windows7\loading.gif" />
+    <Content Include="Content\Windows7\slider-h.gif" />
+    <Content Include="Content\Windows7\slider-v.gif" />
+    <Content Include="Content\Windows7\sprite-vertical.png" />
+    <Content Include="Content\Windows7\sprite.png" />
+    <Content Include="favicon.ico" />
+    <Content Include="Global.asax" />
+    <Content Include="Scripts\FootLocker\conceptType.js" />
+    <Content Include="Scripts\FootLocker\fobPack.js" />
+    <Content Include="Scripts\FootLocker\fobPackOverride.js" />
+    <Content Include="Scripts\FootLocker\telerikShims_ComboBox.js" />
+    <Content Include="Scripts\FootLocker\telerikShims_ChildGrid.js" />
+    <Content Include="Scripts\FootLocker\telerikShims_Grid_MultiSelect.js" />
+    <Content Include="Scripts\FootLocker\window.js" />
+    <Content Include="Scripts\form2js.js" />
+    <Content Include="Scripts\jquery-1.6.2-vsdoc.js" />
+    <Content Include="Scripts\jquery-1.6.2.js" />
+    <Content Include="Scripts\jquery-1.6.2.min.js" />
+    <Content Include="Scripts\jquery-1.7.1.min.js" />
+    <Content Include="Scripts\jquery-ui-1.8.11.js" />
+    <Content Include="Scripts\jquery-ui-1.8.11.min.js" />
+    <Content Include="Scripts\jquery.unobtrusive-ajax.js" />
+    <Content Include="Scripts\jquery.unobtrusive-ajax.min.js" />
+    <Content Include="Scripts\jquery.validate-vsdoc.js" />
+    <Content Include="Scripts\jquery.validate.js" />
+    <Content Include="Scripts\jquery.validate.min.js" />
+    <Content Include="Scripts\jquery.validate.unobtrusive.js" />
+    <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\knockout-2.0.0.debug.js" />
+    <Content Include="Scripts\knockout-2.0.0.js" />
+    <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
+    <Content Include="Scripts\telerik.all.js" />
+    <Content Include="Scripts\telerik.autocomplete.js" />
+    <Content Include="Scripts\telerik.autocomplete.min.js" />
+    <Content Include="Scripts\telerik.calendar.js" />
+    <Content Include="Scripts\telerik.calendar.min.js" />
+    <Content Include="Scripts\telerik.chart.js" />
+    <Content Include="Scripts\telerik.chart.min.js" />
+    <Content Include="Scripts\telerik.combobox.js" />
+    <Content Include="Scripts\telerik.combobox.min.js" />
+    <Content Include="Scripts\telerik.common.js" />
+    <Content Include="Scripts\telerik.common.min.js" />
+    <Content Include="Scripts\telerik.datepicker.js" />
+    <Content Include="Scripts\telerik.datepicker.min.js" />
+    <Content Include="Scripts\telerik.datetimepicker.js" />
+    <Content Include="Scripts\telerik.datetimepicker.min.js" />
+    <Content Include="Scripts\telerik.draganddrop.js" />
+    <Content Include="Scripts\telerik.draganddrop.min.js" />
+    <Content Include="Scripts\telerik.editor.js" />
+    <Content Include="Scripts\telerik.editor.min.js" />
+    <Content Include="Scripts\telerik.examples.min.js" />
+    <Content Include="Scripts\telerik.grid.editing.js" />
+    <Content Include="Scripts\telerik.grid.editing.min.js" />
+    <Content Include="Scripts\telerik.grid.filtering.js" />
+    <Content Include="Scripts\telerik.grid.filtering.min.js" />
+    <Content Include="Scripts\telerik.grid.grouping.js" />
+    <Content Include="Scripts\telerik.grid.grouping.min.js" />
+    <Content Include="Scripts\telerik.grid.js" />
+    <Content Include="Scripts\telerik.grid.min.js" />
+    <Content Include="Scripts\telerik.grid.reordering.js" />
+    <Content Include="Scripts\telerik.grid.reordering.min.js" />
+    <Content Include="Scripts\telerik.grid.resizing.js" />
+    <Content Include="Scripts\telerik.grid.resizing.min.js" />
+    <Content Include="Scripts\telerik.imagebrowser.js" />
+    <Content Include="Scripts\telerik.imagebrowser.min.js" />
+    <Content Include="Scripts\telerik.list.js" />
+    <Content Include="Scripts\telerik.list.min.js" />
+    <Content Include="Scripts\telerik.menu.js" />
+    <Content Include="Scripts\telerik.menu.min.js" />
+    <Content Include="Scripts\telerik.panelbar.js" />
+    <Content Include="Scripts\telerik.panelbar.min.js" />
+    <Content Include="Scripts\telerik.slider.js" />
+    <Content Include="Scripts\telerik.slider.min.js" />
+    <Content Include="Scripts\telerik.splitter.js" />
+    <Content Include="Scripts\telerik.splitter.min.js" />
+    <Content Include="Scripts\telerik.tabstrip.js" />
+    <Content Include="Scripts\telerik.tabstrip.min.js" />
+    <Content Include="Scripts\telerik.textbox.js" />
+    <Content Include="Scripts\telerik.textbox.min.js" />
+    <Content Include="Scripts\telerik.timepicker.js" />
+    <Content Include="Scripts\telerik.timepicker.min.js" />
+    <Content Include="Scripts\telerik.treeview.js" />
+    <Content Include="Scripts\telerik.treeview.min.js" />
+    <Content Include="Scripts\telerik.upload.js" />
+    <Content Include="Scripts\telerik.upload.min.js" />
+    <Content Include="Scripts\telerik.window.js" />
+    <Content Include="Scripts\telerik.window.min.js" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Content\Site.css" />
+    <Content Include="Scripts\_references.js" />
+    <Content Include="Images\accent.png" />
+    <Content Include="Images\bullet.png" />
+    <Content Include="Images\facebook.png" />
+    <Content Include="Images\heroAccent.png" />
+    <Content Include="Images\orderedList0.png" />
+    <Content Include="Images\orderedList1.png" />
+    <Content Include="Images\orderedList2.png" />
+    <Content Include="Images\orderedList3.png" />
+    <Content Include="Images\orderedList4.png" />
+    <Content Include="Images\orderedList5.png" />
+    <Content Include="Images\orderedList6.png" />
+    <Content Include="Images\orderedList7.png" />
+    <Content Include="Images\orderedList8.png" />
+    <Content Include="Images\orderedList9.png" />
+    <Content Include="Images\aspNetHome.png" />
+    <Content Include="Images\NuGetGallery.png" />
+    <Content Include="Images\findHosting.png" />
+    <Content Include="Images\twitter.png" />
+    <Content Include="Images\windowsLive.png" />
+    <Content Include="Views\_ViewStart.cshtml" />
+    <Content Include="Views\Home\About.cshtml" />
+    <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\Web.config" />
+    <Content Include="packages.config" />
+    <Content Include="Content\Templates\BulkRangeTemplate.xls" />
+    <None Include="Content\Templates\ProductTypeTemplate.xls">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Templates\SkuIdUploadTemplate.xls">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Templates\SkuTypeUpload.xls">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="readme.txt" />
+    <Content Include="Views\Shared\EditorTemplates\Date.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\DateTime.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Integer.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Number.cshtml" />
+    <Content Include="Web.sitemap">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Views\Error\AccessDenied.cshtml" />
+    <Content Include="Views\Error\PermissionDenied.cshtml" />
+    <Content Include="Views\Error\SessionExpired.cshtml" />
+    <Content Include="Views\SkuRange\AddStoresByRule.cshtml" />
+    <Content Include="Views\SkuRange\RuleList.cshtml" />
+    <Content Include="Views\SkuRange\StoreLookupList.cshtml" />
+    <Content Include="Views\SkuRange\Copy of AddStoresByRule.cshtml" />
+    <Content Include="Views\Rule\RuleFilterNoStores.cshtml" />
+    <Content Include="Views\Rule\RuleFilter.cshtml" />
+    <Content Include="Views\Rule\RuleList.cshtml" />
+    <Content Include="Views\Rule\StoreLookupList.cshtml" />
+    <Content Include="Views\SkuRange\CopyRangePlan.cshtml" />
+    <Content Include="Views\Driver\Control.cshtml" />
+    <Content Include="Views\Driver\EditControlDate.cshtml" />
+    <Content Include="Views\SkuRange\EditDeliveryGroup.cshtml" />
+    <Content Include="Views\SkuRange\Edit.cshtml" />
+    <Content Include="Views\RingFence\SizeSummary.cshtml" />
+    <Content Include="Views\RingFence\SizeDetail.cshtml" />
+    <Content Include="Views\RingFence\Audit.cshtml" />
+    <Content Include="Views\SkuRange\ShowRDQIssues.cshtml" />
+    <Content Include="Views\Item\TroubleshootStore.cshtml" />
+    <Content Include="Views\RingFence\SaveRingFences.cshtml" />
+    <Content Include="Views\RingFence\Upload.cshtml" />
+    <Content Include="Views\Route\UploadRanks.cshtml" />
+    <Content Include="Views\InvalidTransaction\Index.cshtml" />
+    <Content Include="Views\OverridePO\CheckForRanges.cshtml" />
+    <Content Include="Views\NonRangedProduct\Index.cshtml" />
+    <Content Include="Views\FOB\SaveOptions.cshtml" />
+    <Content Include="Views\MandatoryCrossdock\Index.cshtml" />
+    <Content Include="Views\MandatoryCrossdock\Edit.cshtml" />
+    <Content Include="Views\MandatoryCrossdock\Create.cshtml" />
+    <Content Include="Views\Hold\IndexByProduct.cshtml" />
+    <Content Include="Views\Hold\MassEdit.cshtml" />
+    <Content Include="Views\Hold\MassReleaseRDQs.cshtml" />
+    <Content Include="Views\Hold\IndexByStore.cshtml" />
+    <Content Include="Views\Hold\MassEditStore.cshtml" />
+    <Content Include="Views\Hold\MassReleaseRDQsStore.cshtml" />
+    <Content Include="Views\RingFence\IndexSummary.cshtml" />
+    <Content Include="Views\RingFence\IndexByStore.cshtml" />
+    <Content Include="Views\Item\TroubleshootInventory.cshtml" />
+    <Content Include="Views\Item\TroubleshootRDQ.cshtml" />
+    <Content Include="Views\Config\Index.cshtml" />
+    <Content Include="Views\Config\Edit.cshtml" />
+    <Content Include="Views\Config\Create.cshtml" />
+    <Content Include="Views\Config\CreateParam.cshtml" />
+    <Content Include="Views\RingFence\MassEditRingFence.cshtml" />
+    <Content Include="Views\RingFence\MassEditRingFenceStore.cshtml" />
+    <Content Include="Views\RingFence\PickFOB.cshtml" />
+    <Content Include="Views\SkuRange\PresentationQuantities.cshtml" />
+    <Content Include="Views\SkuRange\TotalSizeAllocation.cshtml" />
+    <Content Include="Views\SkuRange\StoreSizeAllocation.cshtml" />
+    <Content Include="Views\OverridePO\Upload.cshtml" />
+    <Content Include="Views\SkuRange\DeleteConfirm.cshtml" />
+    <Content Include="Views\Item\TroubleshootRDQForSku.cshtml" />
+    <Content Include="Views\OverridePO\IndexByPO.cshtml" />
+    <Content Include="Views\SkuRange\CreateOrderPlanningRequest.cshtml" />
+    <Content Include="Views\SkuRange\EditOrderPlanningRequest.cshtml" />
+    <Content Include="Views\Item\RequestWSM.cshtml" />
+    <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
+    <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
+    <Content Include="Views\SkuRange\TestRule.cshtml" />
+    <Content Include="Views\Rule\Delete.cshtml" />
+    <Content Include="Views\Rule\Edit.cshtml" />
+    <Content Include="Views\SkuRange\PartialStoreButtons.cshtml" />
+    <Content Include="Views\Upload\SkuTypeUpload.cshtml" />
+    <Content Include="Views\Upload\Save.cshtml" />
+    <Content Include="Views\SkuRange\EditStores.cshtml" />
+    <Content Include="Views\SkuRange\RemainingStores.cshtml" />
+    <Content Include="Views\SkuRange\AllStoresList.cshtml" />
+    <Content Include="Views\SkuRange\Index.cshtml" />
+    <Content Include="Views\SkuRange\CreateRangePlan.cshtml" />
+    <Content Include="Views\SkuRange\EditorTemplates\RangePlan.cshtml" />
+    <Content Include="Views\SkuRange\SizeAllocation.cshtml" />
+    <Content Include="Views\SkuRange\PresentationQuantitiesALR.cshtml" />
+    <Content Include="Views\SkuRange\TotalSizeAllocationALR.cshtml" />
+    <Content Include="Views\SkuRange\StoreSizeAllocationALR.cshtml" />
+    <Content Include="Views\SkuRange\RuleFilter.cshtml" />
+    <Content Include="Views\Network\Index.cshtml" />
+    <Content Include="Views\Network\PartialLeadTimeList.cshtml" />
+    <Content Include="Views\Network\ViewZones.cshtml" />
+    <Content Include="Views\Network\PartialZoneList.cshtml" />
+    <Content Include="Views\Network\ViewStores.cshtml" />
+    <Content Include="Views\Network\PartialNetworkStoreList.cshtml" />
+    <Content Include="Views\Route\Index.cshtml" />
+    <Content Include="Views\Route\PartialRouteList.cshtml" />
+    <Content Include="Views\Route\Create.cshtml" />
+    <Content Include="Views\Route\EditRoute.cshtml" />
+    <Content Include="Views\Route\EditRouteZones.cshtml" />
+    <Content Include="Views\Route\CreateDC.cshtml" />
+    <Content Include="Views\Hold\Index.cshtml" />
+    <Content Include="Views\Hold\Create.cshtml" />
+    <Content Include="Views\Hold\Edit.cshtml" />
+    <Content Include="Views\Hold\ReleaseRDQs.cshtml" />
+    <Content Include="Views\RingFence\Index.cshtml" />
+    <Content Include="Views\RingFence\Create.cshtml" />
+    <Content Include="Views\RingFence\AssignInventory.cshtml" />
+    <Content Include="Views\RingFence\PartialWarehouseDetails.cshtml" />
+    <Content Include="Views\RingFence\PartialFutureDetails.cshtml" />
+    <Content Include="Views\RingFence\Details.cshtml" />
+    <Content Include="Views\RingFence\Edit.cshtml" />
+    <Content Include="Views\Image\ShowImage.cshtml" />
+    <Content Include="Views\Upload\SaveProductType.cshtml" />
+    <Content Include="Views\Upload\ProductTypeUpload.cshtml" />
+    <Content Include="Index.cshtml" />
+    <Content Include="Views\WarehouseBlackout\Create.cshtml" />
+    <Content Include="Views\WarehouseBlackout\Edit.cshtml" />
+    <Content Include="Views\DTSVendorGroup\Index.cshtml" />
+    <Content Include="Views\DTSVendorGroup\Details.cshtml" />
+    <Content Include="Views\DTSVendorGroup\AddDetail.cshtml" />
+    <Content Include="Views\StoreSeasonality\Index.cshtml" />
+    <Content Include="Views\StoreSeasonality\Create.cshtml" />
+    <Content Include="Views\StoreSeasonality\Details.cshtml" />
+    <Content Include="Views\StoreSeasonality\AddDetail.cshtml" />
+    <Content Include="Views\StoreSeasonality\Search.cshtml" />
+    <Content Include="Views\StoreSeasonality\ShowSearchResult.cshtml" />
+    <Content Include="Views\StoreSeasonality\Edit.cshtml" />
+    <Content Include="Views\DTSVendorGroup\Edit.cshtml" />
+    <Content Include="Views\SkuRange\Manage.cshtml" />
+    <Content Include="Views\Driver\Index.cshtml" />
+    <Content Include="Views\Driver\Create.cshtml" />
+    <Content Include="Views\Driver\Edit.cshtml" />
+    <Content Include="Views\OverridePO\Index.cshtml" />
+    <Content Include="Views\OverridePO\Create.cshtml" />
+    <Content Include="Views\OverridePO\Verify.cshtml" />
+    <Content Include="Views\OverridePO\Edit.cshtml" />
+    <Content Include="Views\RingFence\SelectStorePick.cshtml" />
+    <Content Include="Views\RingFence\PickStorePick.cshtml" />
+    <Content Include="Views\SkuAttribute\Create.cshtml" />
+    <Content Include="Views\SkuAttribute\Index.cshtml" />
+    <Content Include="Views\SkuAttribute\Edit.cshtml" />
+    <Content Include="Views\Upload\NetworkUpload.cshtml" />
+    <Content Include="Views\Upload\SaveNetwork.cshtml" />
+    <Content Include="Views\Item\Lookup.cshtml" />
+    <Content Include="Views\StoreBTS\AddDetail.cshtml" />
+    <Content Include="Views\StoreBTS\ShowSearchResult.cshtml" />
+    <Content Include="Views\StoreBTS\Create.cshtml" />
+    <Content Include="Views\StoreBTS\Details.cshtml" />
+    <Content Include="Views\StoreBTS\Edit.cshtml" />
+    <Content Include="Views\StoreBTS\Index.cshtml" />
+    <Content Include="Views\StoreBTS\Search.cshtml" />
+    <Content Include="Views\StoreBTS\ShowDetail.cshtml" />
+    <Content Include="Views\StoreSeasonality\ShowDetail.cshtml" />
+    <Content Include="Views\Network\IndexOld.cshtml" />
+    <Content Include="Views\DTS\Index.cshtml" />
+    <Content Include="Views\DTS\Create.cshtml" />
+    <Content Include="Views\DTS\Edit.cshtml" />
+    <Content Include="Views\DTS\Details.cshtml" />
+    <Content Include="Views\Upload\SkuIdUpload.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Rule.cshtml" />
+    <Content Include="Views\StoreBTS\EditorTemplates\StoreBTSControl.cshtml" />
+    <Content Include="Views\SkuRange\Copy of StoreSizeAllocation.cshtml" />
+    <Content Include="Views\Route\RouteDC.cshtml" />
+    <Content Include="Views\Route\StoreLeadTimes.cshtml" />
+    <Content Include="Views\Route\EditStoreLeadTime.cshtml" />
+    <Content Include="Views\OverridePO\CreateAllPOsForSku.cshtml" />
+    <Content Include="Views\OverridePO\VerifyList.cshtml" />
+    <Content Include="Views\OverridePO\EditSku.cshtml" />
+    <Content Include="Views\Upload\BTSUpload.cshtml" />
+    <Content Include="Views\DTS\OneSizeConstraints.cshtml" />
+    <Content Include="Views\Item\Troubleshoot.cshtml" />
+    <Content Include="Views\StoreAttribute\Index.cshtml" />
+    <Content Include="Views\StoreAttribute\Edit.cshtml" />
+    <Content Include="Views\StoreAttribute\Create.cshtml" />
+    <Content Include="Views\StoreAttribute\EditStoreAttribute.cshtml" />
+    <Content Include="Views\StoreExtension\BatchUpdate.cshtml" />
+    <Content Include="Views\StoreExtension\Filter.cshtml" />
+    <Content Include="Views\ConceptType\Index.cshtml" />
+    <Content Include="Views\ConceptType\Edit.cshtml" />
+    <Content Include="Views\ConceptType\Editor.cshtml" />
+    <Content Include="Views\ConceptType\EditorTemplates\ConceptType.cshtml" />
+    <Content Include="Views\ConceptType\AddDivisions.cshtml" />
+    <Content Include="Views\ConceptType\ConceptTypeDivisions.cshtml" />
+    <Content Include="Views\DTS\Constraints.cshtml" />
+    <Content Include="Views\DTSVendorGroup\EditLeadTime.cshtml" />
+    <Content Include="Views\WebPick\Index.cshtml" />
+    <Content Include="Views\WebPick\Create.cshtml" />
+    <Content Include="Views\UtilityIndex\Index.cshtml" />
+    <Content Include="Views\FOBPack\Edit.cshtml" />
+    <Content Include="Views\FOBPack\Editor.cshtml" />
+    <Content Include="Views\FOBPack\EditorTemplates\FOBPack.cshtml" />
+    <Content Include="Views\FOBPackOverride\Edit.cshtml" />
+    <Content Include="Views\FOBPackOverride\Editor.cshtml" />
+    <Content Include="Views\FOBPackOverride\EditorTemplates\FOBPackOverride.cshtml" />
+    <Content Include="Views\CrossDockExclusion\Index.cshtml" />
+    <Content Include="Views\CrossDockExclusion\Create.cshtml" />
+    <Content Include="Views\Route\DCIndex.cshtml" />
+    <Content Include="Views\Route\EditDC.cshtml" />
+    <Content Include="Views\Upload\SeasonUpload.cshtml" />
+    <Content Include="Views\WebPick\ExcelUpload.cshtml" />
+    <Content Include="Views\WebPick\AuditIndex.cshtml" />
+    <Content Include="Views\StoreExtension\Update.cshtml" />
+    <Content Include="Views\SkuRange\ShowStoresWithoutDeliveryGroup.cshtml" />
+    <Content Include="Views\SkuRange\ShowQFeed.cshtml" />
+    <Content Include="Views\WarehouseBlackout\Index.cshtml" />
+    <Content Include="Views\WebPick\BulkAdmin.cshtml" />
+    <Content Include="Views\SkuRange\UploadRange.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="App_Data\" />
+    <Folder Include="Views\Hold\EditorTemplates\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AllocationLibrary\AllocationLibrary.csproj">
+      <Project>{D63C6B8B-23A5-447D-A73D-05CD2AD30016}</Project>
+      <Name>AllocationLibrary</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
+    <AspNetCompiler VirtualPath="temp" PhysicalPath="$(WebProjectOutputDir)" />
+  </Target>
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>False</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>57766</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>
+          </IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target> -->
+</Project>

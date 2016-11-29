@@ -1,0 +1,192 @@
+﻿@model Footlocker.Logistics.Allocation.Models.ConceptType
+
+<script type="text/javascript">
+    function addDivisionButton_Click(e) {
+        e.preventDefault();
+
+        // Show 'Add Divisions' window
+        var $contentContainer = $(".form-fieldset-concept");
+        var conceptId = $('#ID').val();
+        showAddConceptDivisionWindow($contentContainer, conceptId);
+
+        return false;
+    }
+
+    function deleteConceptDivision(e, division) {
+        e.preventDefault();
+
+        // Prompt for confirmation
+        if (confirm("Are you sure you want to remove this Division?")) {
+            // Post to the controller via ajax
+            $.ajax({
+                type: "POST",
+                url: "/ConceptType/DeleteDivision",
+                data: JSON.stringify({ conceptTypeID: $('#ID').val(), div: division }),
+                contentType: "application/json; charset=utf-8",
+                success: function (e) {
+                    // Update the UI accordingly
+                    var isWithConceptAccess = e.Data;
+                    refreshDisplay(isWithConceptAccess);
+                },
+                error: function (e, textState, errorThrown) {
+                    // NOTE: There are still issues with IE and aggresive caching here (exception response from Global.asax Application_Error() )...request gets 
+                    //           cached without content, so e.responseText is empty string in JS ajax error callback....issue stops if running fiddler and works fine in chome :)
+                    var resultObject = (e.responseText != "") ? JSON.parse(e.responseText) : null;
+
+                    // Show error message dialog (For DELETE validation exceptions and unhandled exceptions can be shown here as no other actions to perform)
+                    alert(resultObject ? resultObject.Message : "A system error has occurred.  Please contact your administrator. ");
+                }
+            });
+        }
+    }
+
+    function refreshDivisionsGrid(e) {
+        // Refresh the divisions grid
+        var divisionsGrid = $("#DivisionsGrid").data("tGrid");
+        if (divisionsGrid) {
+            divisionsGrid.ajaxRequest({ conceptTypeID: $('#ID').val() });
+        }
+    }
+
+    function refreshConceptDivisionsGrid(e) {
+        // Refresh the concept divisions grid
+        var conceptDivisionsGrid = $("#ConceptDivisionsGrid").data("tGrid");
+        conceptDivisionsGrid.ajaxRequest();
+    }
+
+    function refreshConceptDisplay(isUserWithAccess) {
+        if (isUserWithAccess) {
+            // Make 'Name' editable
+            $('#Name').removeAttr('disabled').removeClass('t-state-disabled');
+            $('.button-concept-edit').show();
+        }
+        else {
+            // Make 'Name' readonly
+            $('#Name').attr('disabled', 'disabled').addClass('t-state-disabled');
+            $('.button-concept-edit').hide();
+        }
+    }
+
+    function refreshDivisionsDisplay() {
+        // Enable Divisions Region if we are editing...
+        if ($('#ID').val() > 0) {
+            refreshDivisionsGrid();
+
+            // Show Divisions region
+            $('.form-fieldset-conceptdivisions').show();
+        }
+    }
+
+    function refreshDisplay(isUserWithConceptAccess) {
+        // Refresh the name input
+        refreshConceptDisplay(isUserWithConceptAccess);
+
+        // Refresh the underlying concepts grid
+        refreshConceptsGrid($('#ID').val());
+
+        // Refresh the grid
+        refreshDivisionsGrid();
+    }
+
+    function showAddConceptDivisionWindow($contentContainer) {
+        var name = 'conceptDivisionWindow';
+        var title = 'Add Divisions';
+        var contentAction = '/ConceptType/AddDivisions/' + $('#ID').val();
+
+        // Create 'Add Concept Divisions' window
+        var focusElementSelectorString = "." + name + ".t-window .form-fieldset .editor-input[type=text], " + "." + name + ".t-window .form-fieldset textarea.editor-input";
+        showWindow($contentContainer, name, title, contentAction, focusElementSelectorString);
+    }
+
+    function DivisionsGrid_RowDataBound(e) {
+        var divisionsGrid = $('#DivisionsGrid').data('tGrid');
+        var isUserWithAccess = divisionsGrid.dataItem(e.row).IsUserWithAccess;
+
+        if(isUserWithAccess) {
+            // Show 'Delete' button
+            $(e.row).find('.division-delete-button').show();
+        }
+    }
+
+    // On Document Ready...
+    $(function () {
+        // Enable Name input if user has access
+        var isWithAccess = @(Model.IsUserWithAccess.ToString().ToLower());
+        refreshConceptDisplay(isWithAccess);
+
+        // Enable Divisions Region if we are editing...
+        refreshDivisionsDisplay();
+    });
+</script>
+
+@*Header Info*@
+@Html.HiddenFor(m => m.ID, new { @class = "editor-input" })
+@Html.ValidationSummary(false)
+<fieldset class="form-fieldset form-fieldset-concept">
+    <div class="form-input-area-container-first">
+        @*Labels - Left*@
+        <div class="form-input-label-area">
+            <div class="form-input form-input-label" style="margin-top: 2px;">
+                @Html.LabelFor(m => m.Name, "Name: ")
+            </div>
+        </div>
+    
+        @*Input Controls - Left*@
+        <div class="form-input-value-area">
+            <div class="form-input" style="margin-top: 0px;">
+                @Html.TextBoxFor(m => m.Name, new { @style="width: 250px;", @class = "editor-input t-state-disabled", tabIndex = 1, disabled="disabled" })
+                @Html.ValidationMessageFor(m => m.Name, "*")
+
+                <button type="submit" class="button-concept-edit t-button t-button-icononly right-floated" style="display: none;" onclick="buttonOK_Click(event)">
+	                <span class="t-icon t-edit"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</fieldset>
+
+@*Divisions*@
+<fieldset class="form-fieldset form-fieldset-conceptdivisions" style="display: none;">
+    <div style="margin-top: 5px;">
+        <span>Divisions</span>
+        <button id="addDivisionButton" class="t-button t-button-icontext" style="float: right; margin-top: -8px;" onclick="addDivisionButton_Click(event);">
+           <span class="t-icon t-add"></span>
+           Add
+        </button> 
+    </div>
+
+    <div>
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.SecuredDivisionModel>()
+        .Name("DivisionsGrid")
+        .HtmlAttributes(new { style = "margin-top: 5px;" })
+        .Columns(columns =>
+        {
+            columns
+                .Template(@<text>
+                            <button class="t-button t-button-icon division-delete-button" style="display: none;" onclick='deleteConceptDivision(event, @item.DivCode)'>
+                                <span class="t-icon t-delete">Delete</span>
+                            </button>
+                        </text>)
+                .ClientTemplate("<button class='t-button t-button-icon division-delete-button' style='display: none;' onclick='deleteConceptDivision(event, <#= DivCode #>)'><span class='t-icon t-delete'>Delete</span></button>")
+                .HtmlAttributes(new { @class = "grid-action-column" })
+                .HeaderHtmlAttributes(new { @class = "grid-action-column-header" })
+                .Title("Delete")
+                .Visible(true)
+                .Width(5);
+            columns.Bound(o => o.DivCode).Width(50).Title("Code");
+            columns.Bound(o => o.DivisionName).Title("Name");
+            columns.Bound(o => o.IsUserWithAccess).Visible(false);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("Grid_DivisionsByConceptType", "ConceptType", new { conceptTypeID = Model.ID });
+        })
+        .ClientEvents(events => events.OnRowDataBound("DivisionsGrid_RowDataBound"))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true).PageSize(5))
+        .Filterable(filtering => filtering.Enabled(false))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+        )
+    </div>
+</fieldset>

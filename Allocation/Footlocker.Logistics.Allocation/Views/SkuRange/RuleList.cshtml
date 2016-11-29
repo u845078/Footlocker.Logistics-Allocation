@@ -1,0 +1,62 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.Rule>
+
+
+@(Html.Telerik().Grid(Model)
+        .Name("RuleGrid")
+        .DataKeys(keys =>
+        {
+            keys.Add(p => p.ID);
+        })
+        .Columns(columns =>
+        {
+            columns.Command(commands =>
+                {
+                    commands
+                        .Custom("up")
+                        .Text("<img style=\"outline:none;border:0;\" src = \"../../Content/Images/arrow_green_up.png\">")
+                        .HtmlAttributes(new { @class = "t-button-bare" })
+                        .Ajax(false)
+                        .Action("Up", "Rule");
+                    commands
+                    .Custom("down")
+                    .Text("<img style=\"outline:none;border:0;\" src = \"../../Content/Images/arrow_green_down.png\">")
+                    .HtmlAttributes(new { @class = "t-button-bare image-button" })
+                    .Ajax(false)
+                    .Action("Down", "Rule");
+                }
+            )
+                .Width(90);
+            columns.Bound(o => o.Field).Width(75);
+            columns.Bound(o => o.Compare).Width(100);
+            columns.Bound(o => o.Value).Width(100);
+            columns.Command(commands => commands
+                .Custom("delete")
+                .Text("Delete")
+                .Ajax(false)
+                .Action("_DeleteFromGrid", "Rule"))
+                .HtmlAttributes(new { style = "text-align: center" })
+                .Width(100);
+
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Server().Select("GridForPlan", "Rule", new { planID = ViewData["planID"], ruleType = ViewData["ruleType"] });
+            dataBinding.Ajax().Select("_GridForPlan", "Rule").Enabled(true);
+        })
+        .Scrollable(scrolling => scrolling.Enabled(true))
+        .Sortable(sorting => sorting.Enabled(false))
+        .Pageable(paging => paging.Enabled(false))
+        .Filterable(filtering => filtering.Enabled(false))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(false).HtmlAttributes(new { style = "width:500px;"})
+)
+<br />
+       @if (Model.Count() > 0)
+        {
+            @Html.ActionLink(" not ", "AddConjuction", new { value = "not", planID = ViewData["planID"], ruleType = ViewData["ruleType"] }, new { @class = "t-button" })@Html.Raw("&nbsp; &nbsp;")
+            @Html.ActionLink(" and ", "AddConjuction", new { value = "and", planID = ViewData["planID"], ruleType = ViewData["ruleType"] }, new { @class = "t-button" })@Html.Raw("&nbsp; &nbsp;")
+            @Html.ActionLink(" or ", "AddConjuction", new { value = "or", planID = ViewData["planID"], ruleType = ViewData["ruleType"] }, new { @class = "t-button" })@Html.Raw("&nbsp; &nbsp;")
+            @Html.ActionLink(" ( ", "AddConjuction", new { value = "(", planID = ViewData["planID"], ruleType = ViewData["ruleType"] }, new { @class = "t-button" })@Html.Raw("&nbsp; &nbsp;")
+            @Html.ActionLink(" ) ", "AddConjuction", new { value = ")", planID = ViewData["planID"], ruleType = ViewData["ruleType"] }, new { @class = "t-button" })@Html.Raw("&nbsp; &nbsp;")
+            @Html.ActionLink("Clear", "ClearRules", new { value = ")", planID = ViewData["planID"], ruleType = ViewData["ruleType"] }, new { @class = "t-button", onclick="return confirm('Are you sure you want to delete ALL rules?');"})@Html.Raw("&nbsp; &nbsp;")
+        }

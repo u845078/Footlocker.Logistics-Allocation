@@ -1,0 +1,67 @@
+﻿@model int
+
+@{
+    ViewBag.Title = "Add Divisions";
+    Layout = String.Empty;
+}
+
+<script type="text/javascript">
+    function buttonDivsOK_Click(e) {
+        e.preventDefault();
+
+        // Retain reference to the  window and grid
+        var windowElement = $(e.target).closest('.t-window');
+        var window = windowElement.data('tWindow');
+
+        // Get divisions to add
+        var divsGrid = $('#ConceptDivisionsGrid').data('tGrid');
+        var divsToAdd = [];
+        $.each($('#ConceptDivisionsGrid tr.t-state-selected'), function(index, value) {
+            divsToAdd.push(divsGrid.dataItem(value).DivCode);
+        });
+
+        // Post the form to the controller via ajax
+        //$(".window-content-container").ajax({
+        $.ajax({
+            type: "POST",
+            url: "ConceptType/AddDivisions",
+            data: JSON.stringify({ ID: @Model, divs: divsToAdd }),
+            contentType: "application/json; charset=utf-8",
+            success: function (e) {
+                // Close the window
+                window.close();
+
+                // Update the UI accordingly
+                var isWithConceptAccess = e.Data;
+                refreshDisplay(isWithConceptAccess);
+            },
+            error: function (e, textState, errorThrown) {
+
+                // NOTE: There are still issues with IE and aggresive caching here (exception response from Global.asax Application_Error()...request gets 
+                //           cached without content, so e.responseText is empty string in JS ajax error callback....issue stops if running fiddler and works fine in chome :)
+                var resultObject = (e.responseText != "") ? JSON.parse(e.responseText) : null;
+
+                // Show universal, unhandled exception error message dialog
+                alert(resultObject ? resultObject.Message : "A system error has occurred.  Please contact your administrator. ");
+            }
+        });
+
+        return false;
+    }
+</script>
+
+@*Concept Division Add Form*@
+<div class = "dialog-form">
+    <div id="conceptDivisionsFormContainer">
+        @Html.Partial("ConceptTypeDivisions")
+    </div>
+    
+    <button class="t-button t-button-icontext right-floated dialog-button dialog-cancel-button" onclick="buttonCancel_Click(event)">
+	    <span class="t-icon t-cancel"></span>
+	    Cancel
+    </button>
+    <button type="submit" class="t-button t-button-icontext right-floated dialog-button" onclick="buttonDivsOK_Click(event)">
+	    <span class="t-icon t-update"></span>
+	    OK
+    </button>
+</div>

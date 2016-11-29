@@ -1,0 +1,45 @@
+﻿@model Footlocker.Logistics.Allocation.Models.Rule
+
+<script src="~/Scripts/jquery-1.6.2.min.js"></script>
+<script src="~/Scripts/jquery.validate.min.js"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Rule</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Field)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Field)
+            @Html.ValidationMessageFor(model => model.Field)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Compare)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Compare)
+            @Html.ValidationMessageFor(model => model.Compare)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Value)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Value)
+            @Html.ValidationMessageFor(model => model.Value)
+        </div>
+
+        <p>
+            <input type="submit" value="Create" class="t-button"/>
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>

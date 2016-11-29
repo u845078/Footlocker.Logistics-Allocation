@@ -1,0 +1,65 @@
+﻿@model Footlocker.Logistics.Allocation.Models.CreateConfigModel
+
+@{
+    ViewBag.Title = "Create";
+}
+<script>
+    function showDescription(param) {
+        $('.desc').hide();
+
+        $('#paramDesc' + param).show();
+    }
+</script>
+<h2>Create Config</h2>
+
+<font color="red">@ViewData["Message"]</font>
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Config</legend>
+            @Html.HiddenFor(model => model.Config.InstanceID)
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Config.ParamID)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.Config.ParamID, new SelectList(Model.Params, "ParamID", "Name"))
+        </div>
+        @foreach (Footlocker.Logistics.Allocation.Models.ConfigParam p in Model.Params)
+        { 
+            @Html.Raw("<div class='desc' style=\"display:none;\" id=\"paramDesc" + @p.ParamID + "\">" + @p.Comment + "</div>")            
+        }
+        <script>
+            showDescription(1);
+            $(function () {
+                $("#Config_ParamID").change(function () {
+                    var selectedVal = $(this).val();
+                    showDescription(selectedVal);
+
+                });
+
+            });
+        </script>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Config.Value)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Config.Value)
+            @Html.ValidationMessageFor(model => model.Config.Value)
+        </div>
+
+
+        <p>
+            <input type="submit" value="Create" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", new { }, new { @class = "t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

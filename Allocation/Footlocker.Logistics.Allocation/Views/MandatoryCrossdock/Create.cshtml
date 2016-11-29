@@ -1,0 +1,33 @@
+﻿@model Footlocker.Logistics.Allocation.Models.EditMandatoryCrossdock
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Create Mandatory Crossdock Item</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Sku)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Sku)
+            @Html.ValidationMessageFor(model => model.Sku)
+        </div>
+        <font color="red">@Html.DisplayFor(model => model.Message)</font>
+        <p>
+            <input type="submit" value="Create" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

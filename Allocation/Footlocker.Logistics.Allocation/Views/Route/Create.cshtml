@@ -1,0 +1,53 @@
+﻿@model Footlocker.Logistics.Allocation.Models.Route
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Create Route</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Route</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Name)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Name)
+            @Html.ValidationMessageFor(model => model.Name)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Perspective)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.Perspective, new List<SelectListItem> { new SelectListItem { Text = "CrossDock", Value = "CrossDock" }, new SelectListItem { Text = "Bin", Value = "Bin" } })
+            @Html.ValidationMessageFor(model => model.Perspective)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Pass)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.Pass, new List<SelectListItem> { new SelectListItem { Text = "Primary", Value = "Primary" }, new SelectListItem { Text = "Secondary", Value = "Secondary" } })
+            @Html.ValidationMessageFor(model => model.Pass)
+        </div>
+
+            @Html.HiddenFor(model => model.InstanceID)
+
+        <p>
+            <input type="submit" value="Save" class="t-button"/>
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", new { instanceID = Model.InstanceID})
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

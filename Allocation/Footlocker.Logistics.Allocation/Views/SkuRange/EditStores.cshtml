@@ -1,0 +1,94 @@
+﻿@model Footlocker.Logistics.Allocation.Models.EditStoreModel
+@{
+    ViewBag.Title = "Edit Stores " + Model.plan.Sku;
+}
+<h2>
+<table><tr><td>
+<img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.plan.Sku)"/>
+</td><td>
+    @Html.Raw(Model.plan.Sku)
+     Add / Remove Stores
+     <br />
+    @Html.Raw(Model.plan.Description)
+    <br />
+    @if (Model.plan.ItemMaster != null)
+    {
+    @Html.Raw(Model.plan.ItemMaster.Description)
+    }
+</td></tr></table>
+</h2>
+<fieldset>
+    <b>Upload .xls: </b><span id="message">(Spreadsheet columns should be Div, Store)</span>
+    @Html.ActionLink("Template", "StoreTemplate", null, new { @class = "t-button" })   
+    @(Html.Telerik().Upload()
+        .Name("attachments")
+        .Multiple(true)
+        .Async(async => async
+            .Save("UploadStores", "SkuRange", new {planID = ViewData["planID"]})
+            .AutoUpload(true))
+            .ShowFileList(false)
+        .ClientEvents(events => events
+            .OnError("onError")
+            .OnSelect("onSelect")
+                    .OnSuccess("onSuccess")
+            ).HtmlAttributes(new {style="display:inline"})
+        )
+        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
+</fieldset>
+@if (ViewData["message"] != null)
+{
+<font color="red">@Html.Raw(ViewData["message"])</font>
+}
+     <script type="text/javascript">
+
+         function onSelect(e) {
+             var files = e.files;
+             if (files[0].extension != ".xls") {
+                 alert("Document must be a spreadsheet with a xls extension. ");
+                 e.preventDefault();
+             }
+             else {
+                 document.getElementById('spreadsheet').style.visibility = 'visible';
+             }
+             $('#message').empty();
+         }
+
+         function onError(e) {
+             var message = e.XMLHttpRequest.responseText;
+             $('#message').empty().append("<font color='red'>" + message + "</font>");
+
+             e.preventDefault();
+             var link = "@Url.Action("EditStores", "SkuRange", new { planID = ViewData["planID"], message = -1 })";
+             link = link.replace("-1", message);
+             window.location = link;
+         }
+
+         function RefreshPage() {
+             window.location = window.location;
+         }
+
+         function onSuccess(e) {
+             //window.location = window.location;
+             var message = e.XMLHttpRequest.responseText;
+             $('#message').empty().append("<font color='red'>Success</font><a class='t-button' href='#' onclick='RefreshPage();'>Refresh Grid</a>");
+
+             e.preventDefault();
+         }
+    </script>
+
+@Html.Partial(@Url.Content("~/Views/SkuRange/StoreLookupList.cshtml"), Model.AllStores, ViewData)
+<br />
+
+@*@Html.Partial(@Url.Content("~/Views/SkuRange/RemainingStores.cshtml"), Model.RemainingStores)*@
+
+<br />
+@Html.ActionLink("Add Stores By Rule", "AddStoresByRule",new {planID = Model.plan.Id}, new {@class="t-button"})
+&nbsp;
+@Html.ActionLink("Excel", "Excel",new {planID = Model.plan.Id}, new {@class="t-button"})
+&nbsp;
+@Html.ActionLink("Back to List", "Index",null, new {@class="t-button"})
+&nbsp;
+@Html.ActionLink("Remove All Stores", "RemoveAllStores", new { planID = Model.plan.Id }, new { @class = "t-button", onclick="return confirm('Are you sure you want to clear all stores from this sku range?  (there is no undo)')"})
+&nbsp;
+@Html.ActionLink("Details", "PresentationQuantities", new { planID = Model.plan.Id }, new { @class = "t-button" })
+

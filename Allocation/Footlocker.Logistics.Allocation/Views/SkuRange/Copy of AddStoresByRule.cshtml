@@ -1,0 +1,91 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RuleModel
+
+@{
+    ViewBag.Title = "Store Rule " + @Html.Raw(Model.Plan.Sku);
+}
+<script type="text/javascript">
+    function addCurrentRule(e) {
+        e.preventDefault();
+
+        var ruleset, field, compare, value, sort;
+        ruleset = $('#RuleToAdd_RuleSetID').val();
+        field = $('#RuleToAdd_Field').val();
+        compare = $('#RuleToAdd_Compare').val();
+        value = $('#RuleToAdd_Value').val();
+        sort = $('#RuleToAdd_Sort').val();
+
+        //alert(ruleset + ',' + field + ',' + compare + ',' + value + ',' + sort);
+        addRule(ruleset, field, compare, value, sort);
+    }
+
+    function addRule(ruleset, _field, _compare, _value, _sort) {
+        //make a call to server
+        var grid = $("#RuleGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+
+        $.ajax({
+            url: "/rule/AddRule",
+            data: "{'ruleSetID': '" + ruleset + "', 'field': '" + _field + "', 'compare':'" + _compare + "', 'value':'" + _value + "', 'sort':'" + _sort + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    window.location = window.location;
+                    //grid.ajaxRequest();
+                    //updateCount();
+                }
+                else {
+                    alert(result);
+                }
+            }
+        });
+    }
+
+</script>
+
+<h2>
+<table><tr><td>
+    <img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.Plan.Sku)"/>
+</td><td>
+@if (ViewData["ruleType"] == "Main")
+{
+    @Html.Raw(Model.Plan.Sku + " Add Stores By Rule")
+}
+else
+{ 
+    @Html.Raw("Filter Stores By Rule (sku " + Model.Plan.Sku + ", plan " + Model.PlanID + ")")
+}
+</td></tr></table>
+</h2>
+    
+
+@Html.EditorFor(model => Model.RuleToAdd)
+@if (ViewData["rulemessage"] != null)
+{
+<font color="red">@Html.Raw(ViewData["rulemessage"])</font>
+}
+else
+{
+    <br />
+}
+
+@Html.Partial(@Url.Content("~/Views/SkuRange/RuleList.cshtml"), Model.Rules)
+
+<br />
+<br />
+
+@Html.Partial(@Url.Content("~/Views/SkuRange/StoreLookupList.cshtml"), Model.NewStores, ViewData)
+@if (Model.NewStores.Count() > 0)
+{ 
+    <br />
+    @Html.ActionLink("Add All Stores for this Rule", "AddAllStores", new { planID = Model.NewStores.First().CurrentPlan }, new { @class = "t-button" })
+    @Html.Raw("&nbsp;")
+    
+    @*    @Html.Raw("<a class='t-button' onclick='AddFiltered(" + Model.First().CurrentPlan + ")'>Add Filtered Stores</a>")*@
+}
+@Html.ActionLink("Back to Store List", "EditStores", new { planID = Model.PlanID }, new { @class = "t-button" })

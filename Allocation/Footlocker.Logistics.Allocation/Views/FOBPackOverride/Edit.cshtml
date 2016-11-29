@@ -1,0 +1,159 @@
+﻿@model Footlocker.Logistics.Allocation.Models.FOBPackOverrideModel
+
+@{
+    ViewBag.Title = (Model.DomainObject.ID > 0) ? "Edit Override" : "Add Override";
+    Layout = String.Empty;
+}
+
+@*NOTE: COMMENT OUT TO TURN OFF CLIENT SIDE VALIDATION*@
+@*NOTE: It is imperitive (for Telerik) that the jquery validation scripts are reloaded on this partial view and handled, and default path reset...nice...*@
+@(Html.Telerik().ScriptRegistrar()
+        .DefaultGroup(group => group
+            .Add("~/Scripts/jquery.validate.min.js")
+            .Add("~/Scripts/jquery.validate.unobtrusive.min.js")
+            .DefaultPath("~/Scripts")
+            .Combined(false)
+            .Compress(false))
+        .jQuery(false)
+        .jQueryValidation(false))
+
+<script src="~/Scripts/form2js.js" type="text/javascript"></script>
+       
+<script type="text/javascript">
+
+    function initOverrideDisplay($windowElement) {
+        // Wire up enter key press to submit form
+        $windowElement.find('.dialog-form').keypress(function (e) {
+            if ((e.which && e.which == 13) || (e.keyCode && e.keyCode == 13)) {
+                $windowElement.find('.dialog-form button[type=submit]').click();
+                return false;
+            } else {
+                return true;
+            }
+        });
+
+        // Make it so that when a text box gets focus, its text is selected
+        $windowElement.find('.form-fieldset .editor-input[type=text], .form-fieldset textarea.editor-input')
+            .focus(function() { 
+                $(this).select(); 
+            })
+            .mouseup(function(e) {
+                e.preventDefault();
+            });
+    }
+
+    function overrideOKButton_Click(e) {
+        e.preventDefault();
+
+        // Retain reference to the resource's window and grid
+        var windowElement = $(e.target).closest('.overrideWindow.t-window');
+        var window = windowElement.data('tWindow');
+        var overridesWindowContainer = windowElement.find('.window-content-container');
+        var overridesForm = overridesWindowContainer.find('.dialog-form');
+
+        if (overridesForm.valid()) {
+            // Re-construct model from form inputs (to be posted to server)
+            var modelObject = form2js(overridesForm.find('.editor-input').toArray(), '.', true);
+            var serializedModelObject = JSON.stringify(modelObject);
+
+            // Post the form to the controller via ajax
+            //contactsWindowContainer.ajax({
+            $.ajax({
+                type: 'POST',
+                url: '/FOBPackOverride/Save',
+                data: serializedModelObject,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data, textState, e) {
+                    // Close the window
+                    window.close();
+
+                    // Update Pack Override's display
+                    refreshOverridesGrid();
+
+                    // Update Pack's display as well (showing overrides data)
+                    refreshPacksGrid();
+                },
+                error: function (e, textState, errorThrown) {
+
+                    // NOTE: There are still issues with IE and aggresive caching here (exception response from Global.asax Application_Error()...request gets 
+                    //           cached without content, so e.responseText is empty string in JS ajax error callback....issue stops if running fiddler and works fine in chome :)
+                    var resultObject = (e.responseText != "") ? JSON.parse(e.responseText) : null;
+
+                    // TODO: Use HttpResponse.StatusCode in conjunction with ErrorCode
+                    // Determine if this is a validation error
+                    if (resultObject && resultObject.ResultCode == @((int)Footlocker.Logistics.Allocation.Common.ActionResultCode.ValidationError)) {
+                        // Hit URL for view with validation markup summaries
+                        //contactsWindowContainer.ajax({
+                        $.ajax({
+                            type: "POST",
+                            url: resultObject.ResultURL,
+                            data: serializedModelObject,
+                            contentType: "application/json; charset=utf-8",
+                            success: function (data, textState, e) {
+                                // On success, update the window with this view with validation markup summaries
+                                $("#overrideFormContainer").html(data);
+
+                                // Initialize the UI
+                                initOverrideDisplay(windowElement);
+
+                                // Give focus to input element
+                                giveInputElementFocus();
+
+                                // Center the window
+                                window.center();
+                            },
+                            error: function (e, textState, errorThrown) {
+                                var valiationResultObj = (e.responseText != "") ? JSON.parse(e.responseText) : null;
+
+                                // Show universal, unhandled exception error message dialog
+                                alert(valiationResultObj ? valiationResultObj.Message : "A system error has occurred.  Please contact your administrator. ");
+                            }
+                        });
+                    }
+                    else {
+                        // Show universal, unhandled exception error message dialog
+                        alert(resultObject ? resultObject.Message : "A system error has occurred.  Please contact your administrator. ");
+                    }
+                }
+            });
+        }
+        else {
+            // Center the window
+            window.center();
+        }
+
+        return false;
+    }
+
+    // HACK: Unable to bind to cancel button from overrideWindow.js as unable to get callback for ajaxRequest made to load window content, so binding to cancel here...
+    function overrideCancelButton_Click(e) {
+        e.preventDefault();
+        
+        // Close the Add/Edit Override Window
+        $(e.target).closest('.t-window').data('tWindow').close();
+    }
+
+    $(function() {
+        // Initialize the UI
+        initOverrideDisplay($('.overrideWindow.t-window'));
+    });
+</script>
+
+@*FOB Pack Override Add/Edit Form*@
+@using (Html.BeginForm("Save", "FOBPackOverride", FormMethod.Post, new { @class = "dialog-form" }))
+{
+    // Contact Add/Edit Input Controls
+    <div id="overrideFormContainer">
+        @Html.Partial("Editor")
+    </div>
+    
+    // Dialog Button Tray
+    <button class="t-button t-button-icontext right-floated dialog-button dialog-cancel-button" onclick="overrideCancelButton_Click(event)">
+	    <span class="t-icon t-cancel"></span>
+	    Cancel
+    </button>
+    <button type="submit" class="t-button t-button-icontext right-floated dialog-button" onclick="overrideOKButton_Click(event)">
+	    <span class="t-icon t-update"></span>
+	    OK
+    </button>
+}

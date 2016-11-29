@@ -1,0 +1,57 @@
+﻿@model Footlocker.Logistics.Allocation.Models.NetworkZoneStoreModel
+
+@{
+    ViewBag.Title = "ViewStores";
+}
+
+@Html.Raw(Model.Instance.Name)
+<br />
+@*@Html.Raw("Lead Time:  " + Model.LeadTime.Name)
+<br />*@
+@Html.Raw("Zone:  " + Model.Zone.Name)
+
+@*@using (Html.BeginForm("AddStore", "Network", FormMethod.Post))
+{
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <div class="editor-label">
+        @Html.HiddenFor(model => model.ZoneID)
+        </div>
+
+
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.NewDivision, new SelectList(Model.Divisions, "DivCode", "DisplayName"))
+            @Html.ValidationMessageFor(model => model.NewDivision)&nbsp;
+            @Html.EditorFor(model => model.NewStore)
+            @Html.ValidationMessageFor(model => model.NewStore)&nbsp;
+            <input type="submit" value="Add Store" class="t-button" />
+        </div>
+    </fieldset>
+}
+*@
+@if ((Model.Message != null)&&(Model.Message != ""))
+{ 
+    <font color="red">
+    @Html.Raw(Model.Message)
+    </font>
+    <br /><br />
+    @Html.ActionLink("Move","MoveStore",new {div=Model.NewDivision, store=Model.NewStore, zoneID=Model.ZoneID}, new {@class="t-button"})
+    <br /><br />
+    
+}
+
+@Html.Partial(@Url.Content("~/Views/Network/PartialNetworkStoreList.cshtml"), Model.Stores)
+
+<br />
+<div>
+@if (ViewData["Route"] != null)
+{
+    @Html.ActionLink("Back to Route", "EditRouteZones", "Route", new { dcID = ViewData["dc"], routeID = ViewData["Route"] }, new { @class = "t-button" })
+
+}
+else
+{
+    @Html.ActionLink("Back to Zones", "ViewZones", new { instanceid = Model.Instance.ID }, new { @class = "t-button" })
+}
+</div>

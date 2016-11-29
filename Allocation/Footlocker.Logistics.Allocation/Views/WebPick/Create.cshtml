@@ -1,0 +1,90 @@
+﻿@model Footlocker.Logistics.Allocation.Models.WebPickModel
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Create</h2>
+<font color="red">@Html.Raw(Model.Message)</font>
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Web Pick</legend>
+@*        @if (Model.AllowPickAnyway)
+        {
+            <div class="editor-field">
+                @Html.CheckBoxFor(model => model.AllowPickAnyway)
+                @Html.LabelFor(model => model.AllowPickAnyway)
+            </div>
+        }*@
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RDQ.Division)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.RDQ.Division, new SelectList(Model.Divisions, "DivCode", "DivisionName"))
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RDQ.Store)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.RDQ.Store)
+            @Html.ValidationMessageFor(model => model.RDQ.Store)
+        </div>
+
+        <div class="editor-label">
+            Distribution Center
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.RDQ.DCID, new SelectList(Model.DCs, "ID", "Name"))
+            @Html.ValidationMessageFor(model => model.RDQ.DCID)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RDQ.Sku)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.RDQ.Sku)
+            @Html.ValidationMessageFor(model => model.RDQ.Sku)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RDQ.Size)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.RDQ.Size)
+            @Html.ValidationMessageFor(model => model.RDQ.Size)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RDQ.Qty)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.RDQ.Qty)
+            @Html.ValidationMessageFor(model => model.RDQ.Qty)
+        </div>
+
+        <div class="editor-label">
+            Pick
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.RDQ.Status, new List<SelectListItem> { new SelectListItem { Text = "Store's next pick day", Value = "WEB PICK" }, new SelectListItem { Text = "Pick tomorrow", Value = "FORCE PICK" } }, new { disabled = "true" })
+            @Html.HiddenFor(model => model.RDQ.Status, new { Value = "WEB PICK" })
+            @Html.ValidationMessageFor(model => model.RDQ.Status)
+        </div>
+
+        <p>
+            <input type="submit" value="Create" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

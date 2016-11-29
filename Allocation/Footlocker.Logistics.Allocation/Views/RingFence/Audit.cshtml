@@ -1,0 +1,49 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RingFenceModel
+
+@{
+    ViewBag.Title = "Audit";
+}
+
+<h2>RingFence Audit</h2>
+@Html.Raw("<table><tr><td><b>SKU:</b></td><td>" + Model.RingFence.Sku + "</td></tr>")
+@if ((Model.RingFence.Store != null) && (Model.RingFence.Store != ""))
+{
+    @Html.Raw("<tr><td><b>Store:</b></td><td>" + Model.RingFence.Division + "-" + Model.RingFence.Store + "</td></tr>")
+}
+else
+{ 
+    @Html.Raw("<tr><td><b>Store:</b></td><td>All" + "</td></tr>")
+}
+@Html.Raw("<tr><td><b>ID:</b></td><td>" + Model.RingFence.ID + "</td></tr></table>")
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFenceHistory>()
+        .Name("AuditGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Action);
+            columns.Bound(o => o.CreatedBy).Title("Updated By");
+            columns.Bound(o => o.CreateDate).Title("Last Updated");
+            columns.Bound(o => o.Division).Title("Div").Width(50);
+            columns.Bound(o => o.Store).Width(50);
+            columns.Bound(o => o.Size);
+            columns.Bound(o => o.Warehouse);
+            columns.Bound(o => o.PO);
+            columns.Bound(o => o.Qty);
+            columns.Bound(o => o.StartDate);
+            columns.Bound(o => o.EndDate);
+
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_Audit", "RingFence");
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+
+<p>
+    @Html.ActionLink("Back to List", "Index", null,new { @class="t-button" })
+</p>

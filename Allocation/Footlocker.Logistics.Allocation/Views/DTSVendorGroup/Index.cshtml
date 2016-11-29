@@ -1,0 +1,59 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.VendorGroup>
+
+@{
+    ViewBag.Title = "Direct to Store Vendor Groupings";
+}
+
+<h2>Direct to Store Vendor Groupings</h2>
+@if ((ViewData["message"] != null) && (ViewData["message"].ToString().Length > 0))
+{ 
+    @Html.Raw("<font color=\"Red\">" + ViewData["message"] + "</font><br>")
+}
+@using (Html.BeginForm("Create","DTSVendorGroup",FormMethod.Get)) {
+    <fieldset>
+        @Html.TextBox("Name")
+        <input type="submit" value="Create" class="t-button" />
+    </fieldset>
+}
+
+@(Html.Telerik().Grid(Model)
+        .Name("VendorGroups")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Name).Width(125);
+            columns.Bound(o => o.Comment).Width(125);
+            columns.Bound(o => o.Count);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(120);
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("Edit")
+                .Text("Edit")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                .Ajax(false)
+                .Action("Edit", "DTSVendorGroup");
+                commands
+                .Custom("Details")
+                .Text("Details")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                .Ajax(false)
+                .Action("Details", "DTSVendorGroup");
+                commands
+                .Custom("Delete")
+                .Text("Delete")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                .Ajax(false)
+                .Action("Delete", "DTSVendorGroup").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
+        })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Server();
+                //dataBinding.Ajax().Select("_RefreshBTSGrid", "StoreBTS").Enabled(true);
+            })
+        .Sortable()
+        .Pageable()
+        .Filterable()) 
+
+

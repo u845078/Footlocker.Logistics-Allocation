@@ -1,0 +1,53 @@
+﻿@model Footlocker.Logistics.Allocation.Models.Rule
+
+@{
+    ViewBag.Title = "Delete";
+}
+
+<h2>Delete</h2>
+
+<h3>Are you sure you want to delete this?</h3>
+<fieldset>
+    <legend>Rule</legend>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.Field)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Field)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.Compare)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Compare)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.Value)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Value)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.PlanID)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.PlanID)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.Sort)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Sort)
+    </div>
+</fieldset>
+@using (Html.BeginForm()) {
+    <p>
+        <input type="submit" value="Delete" class="t-button"/> |
+        @Html.ActionLink("Back", "AddStoresByRule", "SkuRange", new { planID = Model.PlanID }, new { @class="t-button" })
+    </p>
+}

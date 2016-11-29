@@ -1,0 +1,284 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{D63C6B8B-23A5-447D-A73D-05CD2AD30016}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Footlocker.Logistics.Allocation</RootNamespace>
+    <AssemblyName>AllocationLibrary</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Aspose.Excel">
+      <HintPath>C:\Footlocker\Aspose.Excel.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Footlocker\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="flcommon">
+      <HintPath>C:\Footlocker\flcommon.dll</HintPath>
+    </Reference>
+    <Reference Include="Footlocker.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Footlocker\Footlocker.Common 5.0\Footlocker.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.Data">
+      <HintPath>C:\Program Files (x86)\Microsoft Enterprise Library 5.0\Bin\Microsoft.Practices.EnterpriseLibrary.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Web.Helpers, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.Helpers.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Mvc, Version=4.0.0.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.Mvc.4.0.40804.0\lib\net40\System.Web.Mvc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.Razor.2.0.20710.0\lib\net40\System.Web.Razor.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.WebPages, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.WebPages.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Deployment, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.WebPages.Deployment.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.WebPages.Razor.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Factories\AllocationDriverFactory.cs" />
+    <Compile Include="Factories\DirectToStoreConstraintFactory.cs" />
+    <Compile Include="Factories\DirectToStoreSkuBIExtractFactory.cs" />
+    <Compile Include="Factories\EcommWeightFactory.cs" />
+    <Compile Include="Factories\ExistingPOFactory.cs" />
+    <Compile Include="Factories\ExpeditePOFactory.cs" />
+    <Compile Include="Factories\FamilyOfBusinessFactory.cs" />
+    <Compile Include="Factories\HoldFactory.cs" />
+    <Compile Include="Factories\IBiExtractFactory.cs" />
+    <Compile Include="Factories\InventorySummaryFactory.cs" />
+    <Compile Include="Factories\LegacyFutureInventoryFactory.cs" />
+    <Compile Include="Factories\LegacyInventoryFactory.cs" />
+    <Compile Include="Factories\MainframeLinkFactory.cs" />
+    <Compile Include="Factories\RangeFileItemFactory.cs" />
+    <Compile Include="Factories\RangePlanFactory.cs" />
+    <Compile Include="Factories\RDQExtractFactory.cs" />
+    <Compile Include="Factories\RingFenceFactory.cs" />
+    <Compile Include="Factories\RingFenceSummaryFactory.cs" />
+    <Compile Include="Factories\FoqExtractFactory.cs" />
+    <Compile Include="Factories\StoreBTSExtractFactory.cs" />
+    <Compile Include="Factories\StoreRangeFactory.cs" />
+    <Compile Include="Factories\StoreSeasonalityGroupFactory.cs" />
+    <Compile Include="Factories\VendorGroupDetailFactory.cs" />
+    <Compile Include="Factories\ProductTypeFactory.cs" />
+    <Compile Include="Factories\RDQFactory.cs" />
+    <Compile Include="Factories\SizeAllocationFactory.cs" />
+    <Compile Include="Factories\WarehouseInventoryFactory.cs" />
+    <Compile Include="Factories\WSMFactory.cs" />
+    <Compile Include="Models\AccessControl.cs" />
+    <Compile Include="Models\AllocationDriver.cs" />
+    <Compile Include="Models\BiExtract.cs" />
+    <Compile Include="Models\BiExtractRequest.cs" />
+    <Compile Include="Models\BulkRange.cs" />
+    <Compile Include="Models\ConceptType.cs" />
+    <Compile Include="Models\ConceptTypeDivision.cs" />
+    <Compile Include="Models\AuditRDQ.cs" />
+    <Compile Include="Models\Config.cs" />
+    <Compile Include="Models\ConfigParam.cs" />
+    <Compile Include="Models\ControlDate.cs" />
+    <Compile Include="Models\InstanceDistributionCenter.cs" />
+    <Compile Include="Models\CrossDockExclusion.cs" />
+    <Compile Include="Models\CustomerType.cs" />
+    <Compile Include="Models\DeliveryGroup.cs" />
+    <Compile Include="Models\EcommInventory.cs" />
+    <Compile Include="Models\EcommRingFence.cs" />
+    <Compile Include="Models\EcommWarehouse.cs" />
+    <Compile Include="Models\EcommWeight.cs" />
+    <Compile Include="Models\FamilyOfBusiness.cs" />
+    <Compile Include="Models\DirectToStoreSkuBIExtract.cs" />
+    <Compile Include="Models\FOB.cs" />
+    <Compile Include="Models\FOBDept.cs" />
+    <Compile Include="Models\FOBPack.cs" />
+    <Compile Include="Models\FOBPackOverride.cs" />
+    <Compile Include="Models\InterfaceFile.cs" />
+    <Compile Include="Models\InvalidTransaction.cs" />
+    <Compile Include="Models\InventorySummary.cs" />
+    <Compile Include="Models\LegacyFutureInventory.cs" />
+    <Compile Include="Models\LegacyInventory.cs" />
+    <Compile Include="Models\MainframeLink.cs" />
+    <Compile Include="Models\MainframeStore.cs" />
+    <Compile Include="Models\MandatoryCrossdock.cs" />
+    <Compile Include="Models\MandatoryCrossdockDefault.cs" />
+    <Compile Include="Models\MaxLeadTime.cs" />
+    <Compile Include="Models\OrderPlanningRequest.cs" />
+    <Compile Include="Models\Price.cs" />
+    <Compile Include="Models\QuantumInstance.cs" />
+    <Compile Include="Models\RangeFileItem.cs" />
+    <Compile Include="Models\RangeIssue.cs" />
+    <Compile Include="Models\RDQExtract.cs" />
+    <Compile Include="Models\RDQGroup.cs" />
+    <Compile Include="Models\RingFenceBIExtract.cs" />
+    <Compile Include="Models\RingFenceSizeSummary.cs" />
+    <Compile Include="Models\RingFenceSummary.cs" />
+    <Compile Include="Models\RingFenceType.cs" />
+    <Compile Include="Models\FoqExtract.cs" />
+    <Compile Include="Models\Size.cs" />
+    <Compile Include="Models\StoreAttribute.cs" />
+    <Compile Include="Models\StoreBase.cs" />
+    <Compile Include="Models\StoreBTSExtract.cs" />
+    <Compile Include="Models\StoreCluster.cs" />
+    <Compile Include="Models\StoreInventory.cs" />
+    <Compile Include="Models\StoreRange.cs" />
+    <Compile Include="Models\InstanceDivision.cs" />
+    <Compile Include="Models\ItemPack.cs" />
+    <Compile Include="Models\ItemPackDetail.cs" />
+    <Compile Include="Models\PriorityType.cs" />
+    <Compile Include="Models\RouteDistributionCenter.cs" />
+    <Compile Include="Models\StoreBTSControl.cs" />
+    <Compile Include="Models\DirectToStoreConstraint.cs" />
+    <Compile Include="Models\DirectToStoreSku.cs" />
+    <Compile Include="Models\RuleSelectedStore.cs" />
+    <Compile Include="Models\StoreBTS.cs" />
+    <Compile Include="Models\StoreBTSDetail.cs" />
+    <Compile Include="Models\ExistingPO.cs" />
+    <Compile Include="Models\ExpeditePO.cs" />
+    <Compile Include="Models\HierarchyItem.cs" />
+    <Compile Include="Models\NodeItem.cs" />
+    <Compile Include="Models\SkuAttributeDetail.cs" />
+    <Compile Include="Models\SkuAttributeHeader.cs" />
+    <Compile Include="Models\StoreExtension.cs" />
+    <Compile Include="Models\StoreLeadTime.cs" />
+    <Compile Include="Models\StoreSeasonalityDetail.cs" />
+    <Compile Include="Models\StoreSeasonality.cs" />
+    <Compile Include="Models\RDQ.cs" />
+    <Compile Include="Models\RingFenceHistory.cs" />
+    <Compile Include="Models\DistributionCenter.cs" />
+    <Compile Include="Models\Hold.cs" />
+    <Compile Include="Models\HoldRelease.cs" />
+    <Compile Include="Models\Instance.cs" />
+    <Compile Include="Models\ItemMaster.cs" />
+    <Compile Include="Models\NetworkLeadTime.cs" />
+    <Compile Include="Models\NetworkZone.cs" />
+    <Compile Include="Models\NetworkZoneStore.cs" />
+    <Compile Include="Models\ProductType.cs" />
+    <Compile Include="Models\RingFence.cs" />
+    <Compile Include="Models\RingFenceDetail.cs" />
+    <Compile Include="Models\Route.cs" />
+    <Compile Include="Models\RouteDetail.cs" />
+    <Compile Include="Models\RuleSet.cs" />
+    <Compile Include="Models\RangePlanDetail.cs" />
+    <Compile Include="Models\RangePlan.cs" />
+    <Compile Include="Models\Rule.cs" />
+    <Compile Include="Models\SizeAllocation.cs" />
+    <Compile Include="Models\StoreLookup.cs" />
+    <Compile Include="Factories\RuleFactory.cs" />
+    <Compile Include="Models\StorePlan.cs" />
+    <Compile Include="Models\StrategyType.cs" />
+    <Compile Include="Models\StoreSeasonalityGroup.cs" />
+    <Compile Include="Models\UploadRequest.cs" />
+    <Compile Include="Models\ValidationSession.cs" />
+    <Compile Include="Models\ValidStoreLookup.cs" />
+    <Compile Include="Models\VendorGroup.cs" />
+    <Compile Include="Models\VendorGroupDetail.cs" />
+    <Compile Include="Models\VendorGroupLeadTime.cs" />
+    <Compile Include="Models\WarehouseBlackout.cs" />
+    <Compile Include="Models\WarehouseInventory.cs" />
+    <Compile Include="Models\wsm.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\AllocationDriverDAO.cs" />
+    <Compile Include="Services\AllocationLibraryContext.cs" />
+    <Compile Include="Services\BiExtractDAO.cs" />
+    <Compile Include="Services\CategoryDAO.cs" />
+    <Compile Include="Services\ConfigService.cs" />
+    <Compile Include="Services\ConvertRangeDAO.cs" />
+    <Compile Include="Services\ItemDAO.cs" />
+    <Compile Include="Services\LegacyFutureInventoryDAO.cs" />
+    <Compile Include="Services\EcommWeightDAO.cs" />
+    <Compile Include="Services\LegacyInventoryDAO.cs" />
+    <Compile Include="Services\MainframeDAO.cs" />
+    <Compile Include="Services\MainframeStoreDAO.cs" />
+    <Compile Include="Services\InventorySummaryDAO.cs" />
+    <Compile Include="Services\Db2DAO.cs" />
+    <Compile Include="Services\DirectToStoreDAO.cs" />
+    <Compile Include="Services\ExistingPODAO.cs" />
+    <Compile Include="Services\FamilyOfBusinessDAO.cs" />
+    <Compile Include="Services\InterfaceLogDAO.cs" />
+    <Compile Include="Services\NetworkZoneStoreDAO.cs" />
+    <Compile Include="Services\PickService.cs" />
+    <Compile Include="Services\RangeFileItemDAO.cs" />
+    <Compile Include="Services\RangeReformat.cs" />
+    <Compile Include="Services\RingFenceDAO.cs" />
+    <Compile Include="Services\RingFenceSummaryDAO.cs" />
+    <Compile Include="Services\SizeDAO.cs" />
+    <Compile Include="Services\StoreInventoryDAO.cs" />
+    <Compile Include="Services\VendorGroupDetailDAO.cs" />
+    <Compile Include="Services\RDQDAO.cs" />
+    <Compile Include="Services\ProductTypeDAO.cs" />
+    <Compile Include="Services\RangePlanDetailDAO.cs" />
+    <Compile Include="Services\RuleDAO.cs" />
+    <Compile Include="Services\SizeAllocationDAO.cs" />
+    <Compile Include="Services\WarehouseInventoryDAO.cs" />
+    <Compile Include="Services\WSMDAO.cs" />
+    <Compile Include="Validation\ModelClientValidationRequiredIfRule.cs" />
+    <Compile Include="Validation\RequiredIfAttribute.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy  "$(TargetDir)AllocationLibrary.dll"   "c:\footlocker\AllocationLibrary.dll"</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

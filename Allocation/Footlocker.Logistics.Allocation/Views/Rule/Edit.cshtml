@@ -1,0 +1,52 @@
+﻿@model Footlocker.Logistics.Allocation.Models.Rule
+
+@{
+    ViewBag.Title = "Edit";
+}
+
+<h2>Edit</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Rule</legend>
+            @Html.HiddenFor(model =>model.ID)
+            @Html.HiddenFor(model =>model.PlanID)
+            @Html.HiddenFor(model =>model.Sort)
+            @Html.DropDownListFor(model => model.Field, new List<SelectListItem> { new SelectListItem{Text="Store",Value="Store"},
+                                                                                    new SelectListItem{Text="State",Value="State"},
+                                                                                    new SelectListItem{Text="League",Value="League"},
+                                                                                    new SelectListItem{Text="Mall",Value="Mall"},
+                                                                                    new SelectListItem{Text="Population",Value="Population"},
+                                                                                    new SelectListItem{Text="Volume Band",Value="Volume Band"},
+                                                                                    new SelectListItem{Text="Ad-Hoc Code",Value="AdHocCode"},
+                                                                                    new SelectListItem{Text="Climate",Value="Climate"},
+                                                                                    new SelectListItem{Text="Store Plan",Value="Store Plan"},
+                                                                                    new SelectListItem{Text="Range Plan",Value="Range Plan"}
+            })
+            @Html.ValidationMessageFor(model => model.Field)
+            &nbsp;&nbsp;
+            @Html.DropDownListFor(model => model.Compare, new List<SelectListItem> { new SelectListItem{Text="Equals",Value="Equals"},
+                                                                                    new SelectListItem{Text="Does Not Equal",Value="Does Not Equal"},
+                                                                                    new SelectListItem{Text="Is less than",Value="Is less than"},
+                                                                                    new SelectListItem{Text="Is greater than",Value="Is greater than"},
+                                                                                    new SelectListItem{Text="Contains",Value="Contains"},
+                                                                                    new SelectListItem{Text="Starts With",Value="StartsWith"},
+                                                                                    new SelectListItem{Text="Ends With",Value="EndsWith"}
+            })
+            @Html.ValidationMessageFor(model => model.Compare)
+            &nbsp;&nbsp;
+            @Html.EditorFor(model => model.Value)
+            @Html.ValidationMessageFor(model => model.Value)
+            <input type="submit" value="Update" class="t-button"/>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back", "AddStoresByRule", "SkuRange", new { planID = Model.PlanID }, new { @class="t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

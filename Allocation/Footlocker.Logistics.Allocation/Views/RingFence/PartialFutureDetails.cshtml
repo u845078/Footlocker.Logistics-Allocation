@@ -1,0 +1,81 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.RingFenceDetail>
+
+Future POs:<br />
+@if (Model.Count() > 0)
+{
+    @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFenceDetail>()
+        .Name("FutureRingFenceDetailGrid")
+        .DetailView(dv =>
+                dv.ClientTemplate(
+                    Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.ItemPackDetail>()
+                        .Name("PackDetails_<#= Size #>")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(det => det.ID).Title("ID").Visible(false);
+                            columns.Bound(det => det.PackID).Title("PackID").Visible(false);
+                            columns.Bound(det => det.Size).Title("Size").Width(50).Visible(true);
+                            columns.Bound(det => det.Quantity).Title("Qty").Visible(true);
+                        })
+                        .DataBinding(dataBinding => dataBinding.Ajax()
+                            .Select("Ajax_GetPackDetails", "RingFence", new { ringFenceID = "<#= RingFenceID #>", packName = "<#= Size #>" })
+                        )
+                        .ClientEvents(events =>
+                        {
+                            events.OnDataBound("function() { hack_setChildGridColumnWidth(1); }");
+                        })
+                        .Footer(false)
+                        .ToHtmlString()
+                    )
+        )
+        .ClientEvents(events =>
+        {
+            events.OnDataBound("function() { hack_removeTelerikExpandIconsForChildlessNodes($('#FutureRingFenceDetailGrid .caselot-input'), function($child) { return $child.text().length < 4 }); }");
+        })
+        .DataKeys(keys =>
+        {
+            keys.Add(p => p.RingFenceID);
+            keys.Add(p => p.DCID);
+            keys.Add(p => p.PO);
+            keys.Add(p => p.Size);
+        })
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.RingFenceID).Visible(false);
+            columns.Bound(o => o.Size).Title("Size/Caselot").HtmlAttributes(new { @class = "caselot-input" }).Width(120).ReadOnly().FooterTemplate(
+                        @<text>
+                            <input type="button" name="name" value="Save" class="t-button" onclick='saveQtyChangesPO()' />
+                        </text>
+                    );
+            columns.Bound(o => o.Warehouse).Width(100).ReadOnly();
+            columns.Bound(o => o.PO).Width(100).ReadOnly();
+            columns.Bound(o => o.PriorityCode).Width(50).ReadOnly();
+            columns.Bound(o => o.AvailableQty).Width(100).ReadOnly();
+            columns.Bound(o => o.DueIn).Width(100).ReadOnly();
+            columns.Bound(o => o.Qty).Width(100);
+            columns.Bound(o => o.Message).Title(String.Empty).ReadOnly().HtmlAttributes(new { @style = "color:red" });
+        })
+        .DataBinding(dataBinding =>
+            dataBinding.Ajax()
+                .Select("_SelectPOs", "RingFence", new { ringFenceID = ViewData["ringFenceID"], ajax = true })
+                .Update("_SaveBatchInsert", "RingFence")
+        )
+        .Scrollable(scrolling => scrolling.Enabled(true))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(false))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+        .Editable(editing => editing.Mode(GridEditMode.InCell))
+    )
+   
+    <br />
+    <script type="text/javascript">
+        function saveQtyChangesPO() {
+            $('#FutureRingFenceDetailGrid').data('tGrid').submitChanges();
+        }
+    </script>
+}
+else
+{ 
+    @Html.Raw("No Future POs")<br /><br />
+}
