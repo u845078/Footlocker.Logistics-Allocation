@@ -1,0 +1,28 @@
+﻿@model Footlocker.Logistics.Allocation.Models.ProductHierarchyOverrideModel
+
+@{
+    ViewBag.Title = "Edit Seasonality Override";
+}
+
+<h2>@ViewBag.Title</h2>
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+@using (Html.BeginForm("Edit", "ProductHierarchyOverride"))
+{
+    <script type="text/javascript">
+        $(function () {
+            $('#overrideLevelList').prop("disabled", true);
+         }).trigger('change')
+      </script>
+      @Html.HiddenFor(m => m.prodHierarchyOverride.productOverrideTypeCode)
+
+    @Html.Partial(@Url.Content("~/Views/ProductHierarchyOverride/FormLayout.cshtml"), Model, ViewData)
+
+    <div style="text-align: center;">
+        <button type="submit">Save</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button type="button" onclick="location.href = '/ProductHierarchyOverride/Index'">Cancel</button>
+    </div>
+}

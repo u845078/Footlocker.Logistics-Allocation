@@ -1,0 +1,91 @@
+﻿@model Footlocker.Logistics.Allocation.Models.ExpeditePOModel
+
+@{
+    ViewBag.Title = "Verify";
+}
+
+<h2>Verify</h2>
+
+@using (Html.BeginForm("CreateAfterVerify", "OverridePO")) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Expedite PO</legend>
+
+        <div class="editor-label"><b>
+            @Html.LabelFor(model => model.NewPO.Division)</b>
+        </div>
+        <div class="editor-field">
+            @Html.DisplayFor(model => model.NewPO.Division)
+            @Html.HiddenFor(model => model.NewPO.Division)
+        </div>
+        <div class="editor-label">
+            <b>@Html.LabelFor(model => model.NewPO.PO)</b>
+        </div>
+        <div class="editor-field">
+            @Html.DisplayFor(model => model.NewPO.PO)
+            @if ((Model.ExistingPOs.FirstOrDefault() != null) && (Model.ExistingPOs.FirstOrDefault().DirectToStore))
+            {
+                <b>@Html.Raw("<font color=\"red\">Direct to Store PO</font>")</b>
+            }
+            @Html.HiddenFor(model => model.NewPO.PO)
+            @Html.HiddenFor(model => model.NewPO.Sku)
+            @Html.ValidationMessageFor(model => model.NewPO.PO)
+        </div>
+
+        <div class="editor-label">
+            <b>@Html.LabelFor(model => model.TotalRetail)</b>
+        </div>
+        <div class="editor-field">
+            @Html.DisplayFor(model => model.TotalRetail)
+        </div>
+        <div class="editor-label">
+            <b>@Html.LabelFor(model => model.TotalUnits)</b>
+        </div>
+        <div class="editor-field">
+            @Html.DisplayFor(model => model.TotalUnits)
+        </div>
+
+        <div class="editor-label">
+            <b>@Html.LabelFor(model => model.NewPO.DeliveryDate)</b>
+        </div>
+        <div class="editor-field">
+            @Html.DisplayFor(model => model.NewPO.DeliveryDate)
+            @Html.HiddenFor(model => model.NewPO.DeliveryDate)
+        </div>
+
+
+        <div class="editor-label">
+            <b>@Html.LabelFor(model => model.NewPO.OverrideDate)</b>
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.NewPO.OverrideDate)
+        </div>
+        <div class="editor-label">
+            <b>@Html.Raw("SKU(s):")</b>
+        </div>
+        @foreach (Footlocker.Logistics.Allocation.Models.ExistingPO p in Model.ExistingPOs)
+        { 
+        <div class="editor-field">
+            @Html.DisplayFor(model => p.Sku) @Html.DisplayFor(model => p.Description)
+        </div>
+        }
+        @Html.HiddenFor(model => model.NewPO.Departments)
+
+        <p>
+        @if ((Model.Message != null)&&(Model.Message != ""))
+        {
+            <b>@Html.Raw("<font color=\"red\">" + Model.Message + "</font>")</b>            
+        }
+        else
+        {
+            <input type="submit" value="Create" />
+        }
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+</div>
+

@@ -1,0 +1,120 @@
+﻿@{
+    ViewBag.Title = "Non-Ranged Products";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="@Url.Content("~/Scripts/FootLocker/telerikShims_ComboBox.js")" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+    function divComboBox_OnLoad(e) {
+        // Pre-load combo-box, pre-select first item
+        comboBox_ajax_OnLoad(e, function () {
+
+            // Manually trigger change event (It is important to trigger event, rather than just calling 
+            // event handling logic..otherwise change event will still fire on next telerik ui interaction
+            var comboBox = $(e.target).data('tComboBox');
+            comboBox.trigger.change();
+
+            // Give focus to division drop down
+            $('#SelectedDivCode-input').focus();
+        });
+    }
+
+    function divComboBox_Changed(e) {
+        // Call base 'telerik shims' functionality
+        comboBox_Changed(e);
+
+        // Get newly selected division
+        var divCode = e.value;
+
+        // Refresh grid with newly selected division filter applied
+        loadProductGrid(divCode);
+    }
+
+    function loadProductGrid(divCode) {
+        // Ensure that product grid is fully initialized (with default, initial ajax requests having returned)...
+        if (!_isInitialProductLoad) {
+            var productGrid = $('#ProductGrid').data('tGrid');
+
+            // Capture division for request
+            // NOTE: Reformat select URL rather than just stuffing data in request call, so that a push of the 'refresh' button will include the latest applied filter
+            productGrid.ajax.selectUrl = 'NonRangedProduct/Grid_NonRangedProducts?divCode=' + divCode;
+
+            // Reset grid to page 1 (for now, not clearing grid settings (order by, filter, etc...))
+            productGrid.currentPage = 1;
+
+            // Refresh grid
+            productGrid.ajaxRequest();
+        }
+    }
+
+    var _isInitialProductLoad = true;
+    function productGrid_OnDataBinding(e) {
+        // Manage 'initialized' flag to determine when capable of loading grid from division selection
+        if (_isInitialProductLoad) {
+            e.preventDefault();
+            _isInitialProductLoad = false;
+        }
+    }
+</script>
+
+
+<div id="NonRangedProductContentContainer" class="content-container" style="margin-top: 20px;">
+    <div>
+        <h2 style="display: inline;">Non-Ranged Product Summary</h2>
+    </div>
+
+    <fieldset class="form-fieldset form-fieldset-grey rounded-corners">
+        <div class="form-input-area-container-first">
+            @*Labels - Left*@
+            <div class="form-input-label-area">
+                <div class="form-input form-input-label" style="margin-top: 2px;">
+                    @Html.Label("Division: ")
+                </div>
+            </div>
+    
+            @*Input Controls - Right*@
+            <div class="form-input-value-area">
+                <div class="form-input" style="margin-top: 0px;">
+                    @(Html.Telerik().ComboBox().Name("SelectedDivCode")
+                        .DataBinding(b => b.Ajax().Select("Ajax_Divisions", "NonRangedProduct"))
+                        .HtmlAttributes(new { @class = "editor-input ui-corner-all", tabIndex = 1, @style = "width: 220px;" })         
+                        .Filterable()            
+                        .HighlightFirstMatch(true)
+                        .ClientEvents(a => a.OnChange("divComboBox_Changed").OnLoad("divComboBox_OnLoad"))
+                        )
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="form-fieldset form-fieldset-grey rounded-corners">
+        <div>
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Controllers.ItemMasterDTO>()
+            .Name("ProductGrid")
+            .HtmlAttributes(new { style = "margin-top: 10px;" })
+            .Columns(columns =>
+            {
+                columns.Bound(pa => pa.ItemID).Visible(false);
+                columns.Bound(pa => pa.MerchantSku).Title("SKU").Visible(true);
+                columns.Bound(pa => pa.Description).Title("Description").Visible(true);
+            })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Ajax().Select("Grid_NonRangedProducts", "NonRangedProduct", new { divCode = "TEST" });
+            })
+            .ClientEvents(events => events.OnDataBinding("productGrid_OnDataBinding"))
+            .Sortable(s =>
+            {
+                s.SortMode(GridSortMode.MultipleColumn);
+                s.OrderBy(order => order.Add(pa => pa.MerchantSku).Ascending());
+            })
+            .Pageable(paging => paging.Enabled(true).PageSize(10))
+            .Filterable()
+            .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+             )
+            </div>
+        </fieldset>
+</div>

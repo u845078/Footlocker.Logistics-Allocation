@@ -1,0 +1,62 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.DirectToStoreConstraint>
+
+@{
+    ViewBag.Title = "AR Sku Constraints";
+}
+
+@Html.Raw("<h2>AR Sku Constraints for " + ViewData["Sku"] + "</h2>")
+
+@Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
+
+    @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.DirectToStoreConstraint>()
+        .Name("ConstraintGrid")
+        .DataKeys(keys =>
+        {
+            keys.Add(p => p.Sku);
+            keys.Add(p => p.Size);
+        })
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Sku).Visible(false);
+            columns.Bound(o => o.Size).ReadOnly().FooterTemplate(
+                        @<text>
+                            <input type="button" name="name" value="Save" class="t-button" onclick='saveChanges()' />
+                        </text>
+                    );
+            columns.Bound(o => o.MaxQty);
+            columns.Bound(o => o.StartDate);
+            columns.Bound(o => o.EndDate);
+        })
+                .DataBinding(dataBinding =>
+                    dataBinding.Ajax()
+                        .Select("_Details", "DTS", new { Sku = ViewData["Sku"], ajax = true })
+                        .Update("_SaveDetailBatchInsert", "DTS", new { Sku = ViewData["Sku"] })
+                )
+                .Scrollable(scrolling => scrolling.Enabled(true))
+                .Sortable(sorting => sorting.Enabled(true))
+                .Pageable(paging => paging.Enabled(false))
+                .Filterable(filtering => filtering.Enabled(true))
+                .Groupable(grouping => grouping.Enabled(false))
+                .Footer(true)
+                .Editable(editing => editing.Mode(GridEditMode.InCell))
+                .HtmlAttributes(new { style = "width: 450px" })
+                .ClientEvents(events => events.OnRowDataBound("hightlight"))
+    )
+    <script type="text/javascript">
+        function saveChanges() {
+            $('#ConstraintGrid').data('tGrid').submitChanges();
+        }
+        //grid on row data binding event
+        function hightlight(e) {
+            try {
+                if (e.dataItem.MaxQty != 99999) {
+                    e.row.className = e.row.className + ' highlight';
+                }
+            } catch (ex) { }
+        }
+
+    </script>
+    <br />
+<div>
+    @Html.ActionLink("Back to List", "Constraints", null, new {@class="t-button"})
+</div>

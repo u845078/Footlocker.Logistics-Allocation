@@ -1,0 +1,9 @@
+﻿@using Telerik.Web.Mvc.UI 
+
+
+@using Telerik.Web.Mvc;
+
+@model double?
+@(Html.Telerik().NumericTextBoxFor(m => m)      
+       .InputHtmlAttributes(new { style = "width:100%" })
+) 

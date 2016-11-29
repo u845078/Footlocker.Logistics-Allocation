@@ -1,0 +1,48 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.MandatoryCrossdock>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Mandatory Crossdock Items</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create",null,new {@class="t-button"})
+</p>
+
+@(Html.Telerik().Grid(Model)
+        .Name("MandatoryCrossdockGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.ItemMaster.MerchantSku).Width(150);
+            columns.Bound(o => o.ItemMaster.Description).Width(300).Title("Sku Description");
+            columns.Bound(o => o.CreatedBy).Width(150);
+            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(100);
+            columns.Command(commands => {
+                commands
+                .Custom("Edit")
+                .Text("Edit")
+                .Ajax(false)
+                .DataRouteValues(route => { route.Add(o => o.InstanceID).RouteKey("InstanceID"); route.Add(o => o.ItemID).RouteKey("ItemID"); })
+                .Action("Edit", "MandatoryCrossdock");
+                commands
+                .Custom("Delete")
+                .Text("Delete")
+                .Ajax(false)
+                .DataRouteValues(route => { route.Add(o => o.InstanceID).RouteKey("InstanceID"); route.Add(o => o.ItemID).RouteKey("ItemID"); })
+                .Action("Delete", "MandatoryCrossdock", new { message = "" });
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(200);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Server().Select("Index", "MandatoryCrossdock");
+            //dataBinding.Ajax().Select("_Index", "SkuRange"); //note, this breaks images
+        })
+        //.Scrollable(scrolling => scrolling.Enabled(true))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+

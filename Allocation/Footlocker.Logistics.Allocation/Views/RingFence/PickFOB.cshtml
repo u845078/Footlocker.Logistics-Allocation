@@ -1,0 +1,139 @@
+﻿@model Footlocker.Logistics.Allocation.Models.StoreLookup
+
+@{
+    ViewBag.Title = "PickFOB";
+}
+
+<script>
+    function confirmPick(store) {
+        if (store != '') {
+            return confirm('Are you sure you want to pick this ring fence?  This cannot be undone.  The ring fence will be removed, and inventory sent to THIS store.');
+        }
+        else {
+            return true;
+        }
+    }
+
+    var store = '@Model.Store';
+    var div = '@Model.Division';
+
+    function MassDeleteGrid(fob) {
+        if (confirm('Are you sure you want to delete this group of ring fences?')) {
+            window.location = "/Ringfence/MassDeleteRingfenceFOB?div=" + div + "&store=" + store + "&fob=" + fob;
+        }
+    }
+
+    function MassPickGrid(fob) {
+        //redirecting them to show them RDQs with ability to release them
+        if (confirm('Are you sure you want to create picks for this group of ring fences?')) {
+            window.location = "/Ringfence/MassPickRingfenceFOB?div=" + div + "&store=" + store + "&fob=" + fob;
+        }
+    }
+
+    function MassPickGridNoFuture(fob) {
+        //redirecting them to show them RDQs with ability to release them
+        if (confirm('Are you sure you want to create picks for this group of ring fences?')) {
+            window.location = "/Ringfence/MassPickRingfenceFOBNoFuture?div=" + div + "&store=" + store + "&fob=" + fob;
+        }
+    }
+
+    function MassEditGrid(fob) {
+        //redirecting them to show them RDQs with ability to release them
+        window.location = "/Ringfence/MassEditRingfenceStore?div=" + div + "&store=" + store + "&fob=" + fob;
+    }
+
+</script>
+
+
+<h2>Pick FOB for @Html.DisplayFor(m => m.Division) @Html.DisplayFor(m => m.Store) @Html.DisplayFor(m => m.Mall) @Html.DisplayFor(m => m.City) @Html.DisplayFor(m => m.State)</h2>
+
+@Html.Raw("<font color=red>" + ViewData["message"] + "</font>")
+    @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.FOB>()
+        .Name("RingFenceSummaryGrid")
+        .HtmlAttributes(new { @class = "summary-grid" })
+        .Columns(columns =>
+        {
+            columns.Bound(rf => rf.Name).Visible(true);
+            columns.Bound(rf => rf.Description).Visible(true);
+            columns.Template(@<text> 
+                                   @Html.Raw("<a class=\"t-button\" href='javascript:MassEditGrid(\"" + item.Name + "\");'>Edit</a>")
+                                   @Html.Raw("<a class=\"t-button\" href='javascript:MassDeleteGrid(\"" + item.Name + "\");'>Delete</a>")
+                                   @Html.Raw("<a class=\"t-button\" href='javascript:MassPickGrid(\"" + item.Name + "\");'>Pick</a>")
+                               </text>)
+            .ClientTemplate("<a class=\"t-button\" href='javascript:MassEditGrid(\"<#= Name #>\");'>Edit</a>"
+                + "<a class=\"t-button\" href='javascript:MassDeleteGrid(\"<#= Name #>\");'>Delete</a>"
+                + "<a class=\"t-button\" href='javascript:MassPickGrid(\"<#= Name #>\");'>Pick All</a>"
+                + "<a class=\"t-button\" href='javascript:MassPickGridNoFuture(\"<#= Name #>\");'>Pick Warehouse</a>"
+            ).Width(300);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_RingFenceFOB", "RingFence", new { div = Model.Division, store = Model.Store });
+        })
+
+        .Sortable(s =>
+        {
+            s.SortMode(GridSortMode.MultipleColumn);
+            //s.OrderBy(order => order.Add(rf => rf.CreateDate).Descending());
+        })
+        .Pageable(p => p.PageSize(10))
+        .Filterable()
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+                .DetailView(ordersDetailView => ordersDetailView.ClientTemplate(
+                    Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFence>()
+                            .Name("FOB" + "_<#= ID #>")
+                            .Columns(columns =>
+                            {
+                                columns.Bound(rf => rf.Division).Width(30).Title("Div").Visible(true);
+                                columns.Bound(rf => rf.Store).Width(30).Visible(true);
+                                columns.Bound(rf => rf.Sku).Width(150).Visible(true);
+                                columns.Bound(rf => rf.ItemDescription).Width(150).Visible(true).Title("Description");
+                                columns.Bound(rf => rf.Qty).Width(10).Visible(true).Aggregate(aggreages => aggreages.Sum())
+                                            .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
+                                columns.Bound(rf => rf.StartDate).Format("{0:MM/dd/yyyy}").Title("Start Date").Width(30).Visible(true);
+                                columns.Bound(rf => rf.EndDate).Format("{0:MM/dd/yyyy}").Title("End Date").Width(30).Visible(true);
+                                columns.Bound(rf => rf.RingFenceTypeDescription).Width(10).Visible(true).Title("Type");
+                                columns.Bound(rf => rf.Comments);
+                                columns.Bound(rf => rf.CreatedBy).Title("Updated By").Visible(true);
+                                columns.Bound(rf => rf.CreateDate).Format("{0:MM/dd/yyyy}").Title("Update Date").Width(30).Visible(true);
+                                columns.Template(@<text>
+                                            <span style="">
+                                                @Html.ActionLink("Edit", "Edit", new { id = item.ID }, new { @class = "t-button" })
+                                                @Html.ActionLink("Details", "SizeSummary", new { id = item.ID }, new { @class = "t-button" })
+                                                @Html.ActionLink("Delete", "Delete", new { id = item.ID }, new { @class = "t-button", onclick = "return confirm('Are you sure you want to delete this ring fence?  This cannot be undone.  The ring fence will be removed, and inventory released to ANY store.');" })
+                                                @Html.ActionLink("Pick", "Pick", new { id = item.ID }, new { @class = "t-button", onclick = "return confirmPick('" + item.Store + "')" })
+                                            </span>
+                                        </text>)
+                                    .Width(400)
+                                    .ClientTemplate(
+                                    "<a class='t-button' href='"
+                                        + Url.Content("~/Ringfence/Edit/<#= ID #>")
+                                        + "'>Edit</a>"
+                                        + "<a class='t-button' href='"
+                                        + Url.Content("~/Ringfence/SizeSummary/<#= ID #>")
+                                        + "'>Details</a>"
+
+                                        + "<a onclick=\"return confirm('Are you sure you want to delete this ring fence?  This cannot be undone.  The ring fence will be removed, and inventory released to ANY store.');\" class='t-button' href='"
+                                        + Url.Content("~/Ringfence/Delete/<#= ID #>")
+                                        + "'>Delete</a>"
+
+                                        + "<a onclick=\"return confirmPick('<#= ID #>')\" class='t-button' href='"
+                                        + Url.Content("~/Ringfence/Pick/<#= ID #>")
+                                        + "'>Pick</a>"
+                                    );
+
+                                    ;
+                            })
+                        .DataBinding(dataBinding => dataBinding.Ajax()
+                        .Select("_RingFencesForFOB", "RingFence", new { div = Model.Division, store = Model.Store, fob = "<#= Name #>" }))
+                        .Pageable()
+                        .Sortable()
+                        .Filterable()
+                        .ToHtmlString()
+                        ))
+        )
+        <br />
+    <div>
+        @Html.ActionLink("Back to List", "IndexByStore", null, new { @class = "t-button" })
+    </div>

@@ -1,0 +1,96 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RangePlan
+
+@{
+    ViewBag.Title = "DeleteConfirm";
+}
+
+<h2>Confirm Delete</h2>
+
+<h3>Are you sure you want to delete this?</h3>
+<fieldset>
+    <legend>RangePlan</legend>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.Sku)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Sku)
+    </div>
+
+    <div class="display-label">
+         Comment
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Description)
+    </div>
+
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.EndDate)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.EndDate)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.PlanType)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.PlanType)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.UpdatedBy)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.UpdatedBy)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.UpdateDate)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.UpdateDate)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.CreatedBy)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.CreatedBy)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.CreateDate)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.CreateDate)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.StoreCount)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.StoreCount)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.Launch)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Launch)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.LaunchDate)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.LaunchDate)
+    </div>
+
+</fieldset>
+    <p>
+    @Html.HiddenFor(model => model.Id)
+        @Html.ActionLink("Delete", "Delete", new {planID = Model.Id}, new { @class = "t-button" })
+        @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+    </p>

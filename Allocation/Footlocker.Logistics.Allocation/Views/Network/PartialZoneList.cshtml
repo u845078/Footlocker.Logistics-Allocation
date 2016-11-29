@@ -1,0 +1,35 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.NetworkZone>
+
+
+@(Html.Telerik().Grid(Model)
+        .Name("Zones")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Name).Width(125);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(120);
+            columns.Command(commands =>
+            {
+                //commands
+                //.Custom("Edit")
+                //.Text("Edit")
+                //.DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                //.Ajax(false)
+                //.Action("Edit", "StoreSeasonality");
+                commands
+                .Custom("ViewStores")
+                .Text("View Stores")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); 
+                                    route.Add(o => ViewData["instanceid"]).RouteKey("instanceid"); })
+                .Ajax(false)
+                .Action("ViewStores", "Network");
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
+        })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Server();
+                //dataBinding.Ajax().Select("_RefreshBTSGrid", "StoreBTS").Enabled(true);
+            })
+        .Sortable()
+        .Pageable()
+        .Filterable()) 

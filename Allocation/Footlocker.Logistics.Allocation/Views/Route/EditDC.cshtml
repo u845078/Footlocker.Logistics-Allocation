@@ -1,0 +1,54 @@
+﻿@model Footlocker.Logistics.Allocation.Models.DistributionCenter
+
+@{
+    ViewBag.Title = "EditDC";
+}
+
+<h2>EditDC</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>DistributionCenter</legend>
+
+        @Html.HiddenFor(model => model.ID)
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Name)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Name)
+            @Html.ValidationMessageFor(model => model.Name)
+        </div>
+
+            @Html.HiddenFor(model => model.InstanceID)
+        <div class="editor-label">
+            @Html.LabelFor(model => model.MFCode)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.MFCode)
+            @Html.ValidationMessageFor(model => model.MFCode)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Type)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.Type, new List<SelectListItem> { new SelectListItem { Text = "BOTH", Value = "BOTH" }, new SelectListItem { Text = "BIN", Value = "BIN" }, new SelectListItem { Text = "CROSSDOCK", Value = "CROSSDOCK" } })
+            @Html.ValidationMessageFor(model => model.Type)
+        </div>
+
+        <p>
+            <input type="submit" value="Save" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "DCIndex", new { instanceID = Model.InstanceID }, new { @class = "t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

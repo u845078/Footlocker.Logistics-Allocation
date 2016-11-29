@@ -1,0 +1,104 @@
+﻿@model Footlocker.Logistics.Allocation.Models.DCList
+
+@{
+    ViewBag.Title = "DCIndex";
+}
+<script>
+    function autopostback(dropdown) {
+        window.location = '/Route/DCIndex?instanceID=' + dropdown.value;
+    }
+</script>
+
+<h2>DCs</h2>
+<div class="editor-label">
+    @Html.LabelFor(model => model.InstanceID)&nbsp;
+    @Html.DropDownListFor(model => model.InstanceID, new SelectList(Model.AvailableInstances, "ID", "Name"), new { onchange = "autopostback(this);" })
+    @Html.ValidationMessageFor(model => model.InstanceID)
+</div>
+
+<p>
+    @Html.ActionLink("Create New", "CreateDC", new { instanceID = Model.InstanceID}, new { @class = "t-button" })
+</p>
+
+@if ((Model.DCs != null) && (Model.DCs.Count > 0))
+{
+    @(Html.Telerik().Grid(Model.DCs)
+        .Name("DCs")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Name);
+            columns.Bound(o => o.MFCode);
+            columns.Bound(o => o.Type);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate);
+            columns.Command(commands =>
+            {                
+                commands
+                .Custom("Edit")
+                .Text("Edit")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                .Ajax(false)
+                .Action("EditDC", "Route");
+
+            }).HtmlAttributes(new { style = "text-align: left" });
+        })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Server();
+                //dataBinding.Ajax().Select("_RefreshBTSGrid", "StoreBTS").Enabled(true);
+            })
+        .Sortable()
+        .Pageable()
+        .Filterable()) 
+}
+@*<table>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Name)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CreatedBy)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CreateDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.InstanceID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.MFCode)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Type)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Name)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CreatedBy)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CreateDate)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.InstanceID)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.MFCode)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Type)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "EditDC", new { id=item.ID }) 
+        </td>
+    </tr>
+}
+
+</table>
+*@

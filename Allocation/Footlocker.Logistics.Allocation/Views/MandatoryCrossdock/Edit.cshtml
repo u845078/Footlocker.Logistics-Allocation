@@ -1,0 +1,179 @@
+﻿@model Footlocker.Logistics.Allocation.Models.EditMandatoryCrossdock
+
+@{
+    ViewBag.Title = "Edit";
+}
+
+<h2>Default Stores for @Model.Sku</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Edit Default Stores</legend>
+        Store: <input id="txtStore" style="width:100px" /><br />
+        Percent:  <input id="txtPercent" style="width:100px" value="100"/><br />
+        <div onclick="submitAdd()" class="t-button">Add Store</div><br /><br />
+        <font color="red">
+        @Model.Message
+        <div id="message"></div>
+        </font>
+
+    @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.MandatoryCrossdockDefault>()
+        .Name("DefaultsGrid")
+        .DataKeys(keys =>
+        {
+            keys.Add(p => p.InstanceID);
+            keys.Add(p => p.ItemID);
+            keys.Add(p => p.Division);
+            keys.Add(p => p.Store);
+        })
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Store).ReadOnly().FooterTemplate(
+                        @<text>
+                            <input type="button" name="name" value="Save" class="t-button" onclick='saveChanges()' />
+                        </text>
+                    ).ReadOnly().Width(100);
+            columns.Bound(o => o.Division).Visible(false);
+            columns.Bound(o => o.PercentAsInt).Title("% of unallocated items").Width(100);
+            columns.Template(@<text>
+                    <a class='t-button' onclick="deleteStore('@item.Store')")>Delete</a>
+            </text>).ClientTemplate("<a class='t-button' onclick=\"deleteStore('<#= Store #>')\""
+                    + "'>Delete</a>"
+                    ).HtmlAttributes(new { style = "text-align: left" }).Width(100);
+        })
+                                                .DataBinding(dataBinding =>
+                                                    dataBinding.Ajax()
+                                                        .Select("_StoreDefaults", "MandatoryCrossdock", new { InstanceID = Model.MandatoryCrossdock.InstanceID, ItemID = Model.MandatoryCrossdock.ItemID })
+                                                        .Update("_SaveStoreDefaults", "MandatoryCrossdock")
+                                                )
+                                                .Groupable(grouping => grouping.Enabled(false))
+                                                .Footer(true)
+                                                .Editable(editing => editing.Mode(GridEditMode.InCell))
+                                                .HtmlAttributes(new { style = "width: 650px" })
+                                                .ClientEvents(events => events.OnComplete("hightlight"))
+
+                                            )
+    <script type="text/javascript">
+        function saveChanges() {
+            $('#DefaultsGrid').data('tGrid').submitChanges();
+        }
+
+        function submitAdd() {            
+            //alert($('#txtStore').val() + ' ' + $('#txtPercent').val() + ' ' + '@Model.MandatoryCrossdock.ItemID');
+            addStore('@Model.MandatoryCrossdock.InstanceID','@Model.MandatoryCrossdock.ItemID', $('#txtStore').val(), $('#txtPercent').val());
+        }
+
+        function updateMessageMain() {
+            updateMessage('@Model.MandatoryCrossdock.InstanceID', '@Model.MandatoryCrossdock.ItemID');
+        }
+
+        function updateMessage(instanceid, itemid) {
+            //make a call to server
+            var grid = $("#DefaultsGrid").data("tGrid");
+            //$('.t-status .t-icon', grid.element).addClass('t-loading');
+
+
+            $.ajax({
+                url: "/MandatoryCrossdock/GetMessage",
+                data: "{'instanceid': '" + instanceid + "','itemid': '" + itemid + "'}",
+                contentType: 'application/json; charset=utf-8',
+                type: 'POST',
+                dataType: 'json',
+                error: function (xhr, status) {
+                    alert(status);
+                    grid.ajaxRequest();
+                },
+                success: function (result) {
+                    if (result == 'Success') {
+                        $('#message').empty();
+                    }
+                    else {
+                        $('#message').empty().append(result);
+                        //alert(result);
+                    }
+                }
+            });
+        }
+
+        function addStore(instanceid, itemid, store, percent) {
+            //make a call to server
+            var grid = $("#DefaultsGrid").data("tGrid");
+            $('.t-status .t-icon', grid.element).addClass('t-loading');
+
+
+            $.ajax({
+                url: "/MandatoryCrossdock/AddStore",
+                data: "{'instanceid': '" + instanceid + "','itemid': '" + itemid + "', 'store': '" + store + "', 'percent':'" + percent + "'}",
+                contentType: 'application/json; charset=utf-8',
+                type: 'POST',
+                dataType: 'json',
+                error: function (xhr, status) {
+                    alert(status);
+                    grid.ajaxRequest();
+                },
+                success: function (result) {
+                    if (result == 'Success') {
+                        grid.ajaxRequest();
+                        updateMessage(instanceid, itemid);
+                    }
+                    else {
+                        alert(result);
+                        grid.ajaxRequest();
+                    }
+                }
+            });
+        }
+
+        function deleteStore(store) {
+            //make a call to server
+            var grid = $("#DefaultsGrid").data("tGrid");
+            $('.t-status .t-icon', grid.element).addClass('t-loading');
+            var instanceid = '@Model.MandatoryCrossdock.InstanceID';
+            var itemid = '@Model.MandatoryCrossdock.ItemID';
+
+            $.ajax({
+                url: "/MandatoryCrossdock/DeleteStore",
+                data: "{'instanceid': '" + instanceid + "','itemid': '" + itemid + "', 'store': '" + store + "'}",
+                contentType: 'application/json; charset=utf-8',
+                type: 'POST',
+                dataType: 'json',
+                error: function (xhr, status) {
+                    alert(status);
+                    grid.ajaxRequest();
+                },
+                success: function (result) {
+                    if (result == 'Success') {
+                        grid.ajaxRequest();
+                        updateMessage(instanceid, itemid);
+                    }
+                    else {
+                        alert(result);
+                        grid.ajaxRequest();
+                    }
+                }
+            });
+        }
+
+
+        function hightlight(e) {
+            updateMessageMain();
+        }
+
+    </script>
+
+
+        <p>
+            <input type="submit" value="Save" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

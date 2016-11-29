@@ -1,0 +1,148 @@
+﻿@model Footlocker.Logistics.Allocation.Models.VendorGroupDetailsModel
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details for @Html.Raw(Model.Header.Name)</h2>
+@if ((ViewData["message"] != null) && (ViewData["message"].ToString().Length > 0))
+{ 
+    @Html.Raw("<font color=\"Red\">" + ViewData["message"] + "</font><br>")
+}
+@using (Html.BeginForm("AddDetail", "DTSVendorGroup", FormMethod.Get))
+{
+    <fieldset>
+        @Html.Hidden("ID", ViewData["GroupID"])
+        @Html.TextBox("VendorNumber")
+        <input type="submit" value="Add" class="t-button" />
+    </fieldset>
+}
+@*<table>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.VendorNumber)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.VendorName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CreatedBy)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CreateDate)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.VendorNumber)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.VendorName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CreatedBy)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CreateDate)
+        </td>
+        <td>
+            @Html.ActionLink("Delete", "DeleteDetail", new { ID = item.GroupID, vendorNumber = item.VendorNumber }, new { onclick="return confirm('Are you sure?');"})
+        </td>
+    </tr>
+}
+
+</table>*@
+
+@if (Model.Details.Count() > 0)
+{
+@(Html.Telerik().Grid(Model.Details)
+        .Name("VendorGroupDetails")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.VendorNumber).Width(100);
+            columns.Bound(o => o.VendorName).Width(200);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(120);
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("Delete")
+                .Text("Delete")
+                .DataRouteValues(route => { route.Add(o => o.VendorNumber).RouteKey("vendorNumber"); route.Add(o => Model.Header.ID).RouteKey("ID"); })
+                .Ajax(false)
+                .Action("DeleteDetail", "DTSVendorGroup").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(100);
+
+        })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Ajax().Select("_RefreshGrid", "DTSVendorGroup", new { ID = ViewData["GroupID"] }).Enabled(true);
+            })
+        .Sortable()
+        .Pageable()
+        .Filterable()
+) 
+}
+<br />
+<fieldset>
+    <legend> Upload Spreadsheet </legend>
+    First Spreadsheet column should be Vendor.  <br />
+    @(Html.Telerik().Upload()
+        .Name("attachments")
+        .Multiple(true)
+        .Async(async => async
+            .Save("Save", "DTSVendorGroup", new { ID = ViewData["GroupID"] })
+            .AutoUpload(false))
+            .ShowFileList(true)
+        .ClientEvents(events => events
+            .OnError("onError")
+            .OnSelect("onSelect")
+                    .OnSuccess("onSuccess")
+            )
+        )
+        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
+        <br />
+        <h4> <div id="message"></div> </h4>
+</fieldset>
+     <script type="text/javascript">
+
+         function onSelect(e) {
+             var files = e.files;
+             if (files[0].extension != ".xls") {
+                 alert("Document must be a spreadsheet with a xls extension. ");
+                 e.preventDefault();
+             }
+             else {
+                 document.getElementById('spreadsheet').style.visibility = 'visible';
+             }
+             $('#message').empty();
+         }
+
+         function onError(e) {
+             var message = e.XMLHttpRequest.responseText;
+             $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='../SeasonalityErrors'>Download Errors</a>");
+
+             e.preventDefault();
+
+             var grid = $("#VendorGroupDetails").data("tGrid");
+             grid.ajaxRequest();
+         }
+
+         function onSuccess(e) {
+             var message = e.XMLHttpRequest.responseText;
+             $('#message').empty().append("<font color='red'>Success</font>");
+
+             e.preventDefault();
+
+             var grid = $("#VendorGroupDetails").data("tGrid");
+             grid.ajaxRequest();
+         }
+
+    </script>
+<br />
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new { @class="t-button"})
+</div>

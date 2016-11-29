@@ -1,0 +1,75 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RingFenceModel
+
+@{
+    ViewBag.Title = "Create RingFence";
+}
+
+<h2>Create RingFence</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+    if ((ViewData["message"] != "") && (ViewData["message"] != null))
+    { 
+        <font color="Red">
+        @Html.Raw(Convert.ToString(ViewData["message"]))
+        </font>
+    }
+
+    <fieldset>
+        <legend>Ring Fence</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RingFence.Division)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.RingFence.Division, new SelectList(Model.Divisions, "DivCode", "DisplayName"))
+            @Html.ValidationMessageFor(model => model.RingFence.Division)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RingFence.Store)&nbsp;(optional)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.RingFence.Store)
+            @Html.ValidationMessageFor(model => model.RingFence.Store)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RingFence.Sku) (##-##-#####-##)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.RingFence.Sku)
+            @Html.ValidationMessageFor(model => model.RingFence.Sku)
+        </div>
+
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RingFence.EndDate)
+            (optional, only put in if you know the date this must release)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.RingFence.EndDate)
+            @Html.ValidationMessageFor(model => model.RingFence.EndDate)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RingFence.Comments)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.RingFence.Comments)
+            @Html.ValidationMessageFor(model => model.RingFence.Comments)
+        </div>
+
+        <p>
+            <input type="submit" value="Create" class="t-button"/>
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

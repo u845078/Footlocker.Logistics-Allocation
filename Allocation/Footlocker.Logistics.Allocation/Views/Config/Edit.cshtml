@@ -1,0 +1,52 @@
+﻿@model Footlocker.Logistics.Allocation.Models.EditConfigModel
+
+@{
+    ViewBag.Title = "Edit";
+}
+
+<h2>Edit Configuration</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Config</legend>
+
+        @Html.HiddenFor(model => model.Config.InstanceID)
+
+        @Html.HiddenFor(model => model.Config.ParamID)
+        @Html.HiddenFor(model => model.Config.CreateDate)
+        @Html.HiddenFor(model => model.Config.CreatedBy)
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Param.Name)
+        </div>
+        <div class="editor-label">
+            @Html.DisplayFor(model => model.Param.Name)
+        </div>
+        <div class="editor-label">
+            @Html.DisplayFor(model => model.Param.Comment)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Config.Value) (@Html.DisplayFor(model => model.Param.Type))
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Config.Value)
+            @Html.ValidationMessageFor(model => model.Config.Value)
+        </div>
+
+
+        <p>
+            <input type="submit" value="Save" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", new { }, new { @class = "t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

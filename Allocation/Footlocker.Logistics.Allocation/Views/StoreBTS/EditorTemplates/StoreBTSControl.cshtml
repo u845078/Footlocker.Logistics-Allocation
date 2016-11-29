@@ -1,0 +1,15 @@
+﻿@model Footlocker.Logistics.Allocation.Models.StoreBTSControl
+
+@using (Html.BeginForm("SetYear", "StoreBTS", FormMethod.Post))
+{
+    @Html.ValidationSummary(true)
+    <fieldset>           
+        <legend> Set Current Year </legend>
+        @Html.LabelFor(m => m.TY)
+        @Html.EditorFor(m => m.TY)
+        @Html.LabelFor(m => m.LY)
+        @Html.EditorFor(m => m.LY)
+        @Html.HiddenFor(m => m.Division)
+        <input type="submit" value="Update" class="t-button" />
+    </fieldset>
+}

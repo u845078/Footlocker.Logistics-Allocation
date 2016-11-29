@@ -1,0 +1,49 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RuleModel
+
+@{
+    ViewBag.Title = "Store Rule " + @Html.Raw(Model.Plan.Sku);
+}
+
+<h2>
+<script type="text/javascript">
+
+    function hideStoreSelector()
+    {
+        window.location = 'EditStores?planID=' + @Html.Raw(Model.PlanID);
+    }
+</script>
+
+<table><tr><td>
+    <img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.Plan.Sku)"/>
+</td><td>
+@if (ViewData["ruleType"] == "Main")
+{
+    @Html.Raw(Model.Plan.Sku + " Add Stores By Rule")
+}
+else
+{ 
+    @Html.Raw("Filter Stores By Rule (sku " + Model.Plan.Sku + ", plan " + Model.PlanID + ")")
+}
+</td></tr></table>
+</h2>
+    
+
+@*@Html.EditorFor(model => Model.RuleToAdd)
+*@@if (ViewData["rulemessage"] != null)
+{
+<font color="red">@Html.Raw(ViewData["rulemessage"])</font>
+}
+else
+{
+    <br />
+}
+
+@Html.Partial(Url.Content("~/Views/Rule/RuleFilter.cshtml"), Model, ViewData)
+@*@Html.Partial(@Url.Content("~/Views/Hold/RuleFilter.cshtml"), Model.Rules)*@
+
+@*@Html.ActionLink("Back to Store List", "EditStores", new { planID = Model.PlanID }, new { @class = "t-button" })
+*@
+
+@Html.ActionLink("Back to List", "Index",null, new {@class="t-button"})
+&nbsp;
+@Html.ActionLink("Details", "PresentationQuantities", new { planID = Model.PlanID }, new { @class = "t-button" })

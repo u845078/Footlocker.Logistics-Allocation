@@ -1,0 +1,39 @@
+﻿@model Footlocker.Logistics.Allocation.Models.FOBPackOverrideModel
+
+@*Header Info*@
+@Html.HiddenFor(m => m.DomainObject.ID, new { @class = "editor-input" })
+@Html.HiddenFor(m => m.DomainObject.FOBPackID, new { @class = "editor-input" })
+@Html.HiddenFor(m => m.DomainObject.FOBDeptID, new { @class = "editor-input" })
+
+@Html.ValidationSummary(false)
+<fieldset class="form-fieldset form-fieldset-packoverride">
+    <div class="form-input-area-container-first">
+        @*Labels - Left*@
+        <div class="form-input-label-area">
+            <div class="form-input form-input-label" style="margin-top: 12px;">
+                @Html.LabelFor(m => m.DomainObject.FOBDept.Department, "Dept: ")
+            </div>
+            <div class="form-input form-input-label" style="margin-top: 12px;">
+                @Html.LabelFor(m => m.DomainObject.Cost, "Cost: ")
+            </div>
+        </div>
+    
+        @*Input Controls - Left*@
+        <div class="form-input-value-area">
+            <div class="form-input" style="margin-top: 10px;">
+                @(Html.Telerik().ComboBoxFor(m => m.DomainObject.FOBDept.Department)
+                    .BindTo(new SelectList(Model.Departments, "DeptNumber", "DisplayName"))
+                    .HtmlAttributes(new { @class = "editor-input", tabIndex = 1 })         
+                    .Filterable()            
+                    .HighlightFirstMatch(true)
+                    .SelectedIndex(0)
+                    )
+            </div>
+            <div class="form-input" style="margin-top: 10px;">
+                @(Html.Telerik().CurrencyTextBoxFor(m => m.DomainObject.Cost)
+                    .HtmlAttributes(new { @class = "editor-input", tabIndex = 2 }).MinValue(0))
+                @Html.ValidationMessageFor(m => m.DomainObject.Cost, "*")
+            </div>
+        </div>
+    </div>
+</fieldset>

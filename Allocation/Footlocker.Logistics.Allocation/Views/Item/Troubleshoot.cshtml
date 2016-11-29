@@ -1,0 +1,534 @@
+﻿@model Footlocker.Logistics.Allocation.Models.TroubleshootModel
+
+@{
+    ViewBag.Title = "Troubleshoot";
+}
+<script src="~/Scripts/FootLocker/telerikShims_ChildGrid.js" type="text/javascript"></script>
+<h2>Troubleshoot</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Troubleshoot</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Sku) (required)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Sku)
+            @Html.ValidationMessageFor(model => model.Sku)
+        </div>
+@*        <div class="editor-label">
+            @Html.LabelFor(model => model.Size)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Size)
+            @Html.ValidationMessageFor(model => model.Size)
+        </div>*@
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Store)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Store)
+            @Html.ValidationMessageFor(model => model.Store)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Warehouse)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.Warehouse, new SelectList(Model.AllDCs, "ID", "Name"))
+            @Html.ValidationMessageFor(model => model.Warehouse)
+        </div>
+
+        <p>
+            <input type="submit" value="Submit" />
+        </p>
+    </fieldset>
+}
+@if (ViewData["message"] != null)
+{ 
+    @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
+}
+
+@if (Model.ItemMaster != null)
+{    
+<fieldset>
+    <legend>Item</legend>
+    <table>
+    @if (Model.AllocationDriver == null)
+    {
+    <tr>
+    <td colspan=4><font color="red">This item is still on Mainframe Allocation</font></td>
+    </tr>
+    }   
+    else
+    {
+    <tr>
+        @if (Model.AllocationDriver.AllocateDate <= Model.ControlDate.RunDate)
+        {
+            <td colspan=4>This item is on Q Allocation</td>
+        }
+        else if (Model.AllocationDriver.ConvertDate <= Model.ControlDate.RunDate)
+        { 
+            <td colspan=4><font color="red">This item is converted, but not yet allocating from Q</font></td>
+        }
+        else
+        { 
+            <td colspan=4><font color="red">This item is still on Mainframe Allocation</font></td>
+        }
+    </tr>
+    <tr>
+        <td>@Html.LabelFor(m => Model.AllocationDriver.ConvertDate)</td>
+        <td>@Html.DisplayFor(m => Model.AllocationDriver.ConvertDate)</td>
+        <td>@Html.LabelFor(m => Model.AllocationDriver.AllocateDate)</td>
+        <td>@Html.DisplayFor(m => Model.AllocationDriver.AllocateDate)</td>
+    </tr>
+    }
+    <tr>
+        <td>@Html.LabelFor(m => Model.ItemMaster.ID)</td>
+        <td>@Html.DisplayFor(m => Model.ItemMaster.ID)</td>
+        <td>@Html.LabelFor(m => Model.ItemMaster.MerchantSku)</td>
+        <td>@Html.DisplayFor(m => Model.ItemMaster.MerchantSku)</td>
+    </tr>
+    <tr>
+        <td>@Html.LabelFor(m => Model.ItemMaster.ServiceCode)</td>
+        <td>@Html.DisplayFor(m => Model.ItemMaster.ServiceCode)</td>
+        <td>@Html.LabelFor(m => Model.ItemMaster.Category)</td>
+        <td>@Html.DisplayFor(m => Model.ItemMaster.Category)</td>
+    </tr>
+    <tr>
+        <td>@Html.LabelFor(m => Model.ItemMaster.Vendor)</td>
+        <td>@Html.DisplayFor(m => Model.ItemMaster.Vendor)</td>
+        <td>@Html.LabelFor(m => Model.ItemMaster.Brand)</td>
+        <td>@Html.DisplayFor(m => Model.ItemMaster.Brand)</td>
+    </tr>
+    <tr>
+        <td>@Html.LabelFor(m => Model.ItemMaster.TeamCode)</td>
+        <td>@Html.DisplayFor(m => Model.ItemMaster.TeamCode)</td>
+        <td>@Html.LabelFor(m => Model.ItemMaster.Description)</td>
+        <td>@Html.DisplayFor(m => Model.ItemMaster.Description)</td>
+    </tr>
+    <tr>
+        <td>@Html.LabelFor(m => Model.ItemMaster.Dept)</td>
+        <td>@Html.DisplayFor(m => Model.ItemMaster.Dept)</td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>@Html.LabelFor(m => Model.Sizes)</td>
+        <td colspan=3>
+            @foreach (Footlocker.Logistics.Allocation.Models.SizeObj s in Model.Sizes)
+            { 
+                @Html.Raw(s.Size + ",")   
+            }       
+        </td>
+    </tr>
+    @if (!(Model.ValidItem))
+    {
+        @Html.Raw("<tr><td colspan=2>");
+        @Html.Raw("<font color='red'>Item does not meet criteria to send to Q.<br>")
+        @Html.Raw("(Service Type must be 1,2.  Category not 098, 99#.)</font>")
+        @Html.Raw("</td></tr>")
+    }
+    @if (Model.ItemMaster.Deleted == 1)
+    {
+        @Html.Raw("<tr><td colspan=2>");
+        @Html.Raw("<font color='red'>Item has been deleted from mainframe.<br>")
+        @Html.Raw("</td></tr>")
+    }
+    </table>
+</fieldset>
+
+    <fieldset>
+        <legend>Inventory Information</legend>
+        <h3>Store Inventory</h3>
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreInventory>()
+        .Name("StoreInventory")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.storeInventorySize);
+            columns.Bound(o => o.onHandQuantity).Aggregate(totOHQty => totOHQty.Sum())
+                .ClientFooterTemplate("Filtered OH Qty: <#= Sum #>");
+            columns.Bound(o => o.binPickReserve).Aggregate(totBinPickReserve => totBinPickReserve.Sum())
+                .ClientFooterTemplate("Filtered Bin Pick Reserve: <#= Sum #>");
+            columns.Bound(o => o.caselotPickReserve).Aggregate(totCLPickReserve => totCLPickReserve.Sum())
+                .ClientFooterTemplate("Filtered Case Pick Reserve: <#= Sum #>");
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_StoreInventoryBySize", "Item", new { sku = Model.Sku, store = Model.Store });
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+        .DetailView(dv => dv.ClientTemplate(
+                    Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreInventory>()
+                        .Name("StoreInventory_<#= storeInventorySize #>")
+                            .Columns(columns =>
+                            {
+                                columns.Bound(o => o.store.Store);
+                                columns.Bound(o => o.store.Mall);
+                                columns.Bound(o => o.onHandQuantity);
+                                columns.Bound(o => o.binPickReserve);
+                                columns.Bound(o => o.caselotPickReserve);
+                            })
+                        .DataBinding(dataBinding => dataBinding.Ajax()
+                            .Select("_StoreInventoryForSize", "Item", new { sku = Model.Sku, store = Model.Store, packName = "<#= storeInventorySize #>" })
+                        )
+                        .Sortable(sorting => sorting.Enabled(true))
+                        .Pageable(paging => paging.Enabled(true))
+                        .Filterable(filtering => filtering.Enabled(true))
+                        .Groupable(grouping => grouping.Enabled(false))
+                        .Footer(true)
+                        .ToHtmlString()
+                        )
+                   )
+        )
+        <br />
+        <h3>Warehouse Inventory</h3>
+        <p>This data represents warehouse information found on the mainframe system. Summed values in the footer represent
+        selling unit quantities. The Whse Avail Qty is calculated as the Total Whse Avail Qty - Pick Reserve Qty - Ring Fence 
+        @@ Whse Qty.</p>
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.WarehouseInventory>()
+            .Name("WarehouseInventoryGrid")
+            .Columns(columns =>
+            {
+                columns.Bound(o => o.distributionCenter.MFCode).Title("Dist Ctr ID").Width(50).Visible(false);
+                columns.Bound(o => o.distributionCenter.displayValue).Title("Distribution Center").Width(100).Visible(true);
+                columns.Bound(o => o.size).Title("Bin Size / Caselot Sched #").Width(75).HtmlAttributes(new { @class = "caselot-input" });
+
+                columns.Bound(o => o.totalAvailableQuantity).Title("Whse Avail Qty").Width(80).Aggregate(totAvailable => totAvailable.Sum())
+                    .ClientFooterTemplate("<#= Sum #>");
+
+                columns.Bound(o => o.availableQuantity).Title("Whse Avail Pick Qty").Width(80);
+
+                columns.Bound(o => o.totalPickReserve).Width(75).Title("Pick Reserve Qty").Aggregate(totPickRsv => totPickRsv.Sum())
+                    .ClientFooterTemplate("<#= Sum #>");
+
+                columns.Bound(o => o.pickReserve).Width(75).Title("Pick Reserve Pick Qty");
+
+                columns.Bound(o => o.totalRingFenceQuantity).Title("Ring Fence @ Whse Qty").Width(80).Aggregate(totRF => totRF.Sum())
+                    .ClientFooterTemplate("<#= Sum #>");
+
+                columns.Bound(o => o.ringFenceQuantity).Title("Ring Fence @ Whse Pick Qty").Width(80);
+
+                columns.Bound(o => o.totalRDQQuantity).Title("Held RDQ @ Whse Qty").Width(80).Aggregate(totRDQ => totRDQ.Sum())
+                    .ClientFooterTemplate("<#= Sum #>");
+
+                columns.Bound(o => o.rdqQuantity).Title("Held RDQ @ Whse Pick Qty").Width(80);
+
+                columns.Bound(o => o.totalQuantity).Width(80).Title("Total Whse Avail Qty").Aggregate(availQty => availQty.Sum())
+                    .ClientFooterTemplate("<#= Sum #>");
+
+                columns.Bound(o => o.quantity).Width(80).Title("Total Whse Avail Pick Qty");
+            })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Ajax().Select("_WarehouseInventory", "Item", new { sku = Model.Sku, warehouseNum = Model.Warehouse });
+            })
+            .Sortable(sorting => sorting.Enabled(true)
+                .SortMode(GridSortMode.MultipleColumn)
+                .OrderBy(sortOrder =>
+                {
+                    sortOrder.Add(o => o.distributionCenter.ID);
+                    sortOrder.Add(o => o.sizeNumber);
+                })
+            )
+            .Pageable(paging => paging.Enabled(true))
+            .Filterable(filtering => filtering.Enabled(true))
+            .Groupable(grouping => grouping.Enabled(false))
+            .Scrollable()
+            .Footer(true)
+            .ClientEvents(events =>
+            {
+                events.OnRowDataBound("function() { hack_removeTelerikExpandIconsForChildlessNodes($('#WarehouseInventoryGrid .caselot-input'), function($child) { return $child.text().length < 4 }); }");
+            })
+            .DetailView(dv => dv.ClientTemplate(
+                        Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.ItemPackDetail>()
+                            .Name("PackDetails_<#= size #>")
+                                .Columns(columns =>
+                                {
+                                    columns.Bound(det => det.ID).Title("ID").Visible(false);
+                                    columns.Bound(det => det.PackID).Title("PackID").Visible(false);
+                                    columns.Bound(det => det.Size).Title("Size").Width(50).Visible(true);
+                                    columns.Bound(det => det.Quantity).Title("Quantity").Width(200).Visible(true).Aggregate(quant => quant.Sum())
+                                        .ClientFooterTemplate("Total Items in Caselot: <#= Sum #>");
+                                    columns.Bound(det => det.ComputedQuantity).Title("Total Quantity").Width(200).Visible(true).Aggregate(quant => quant.Sum())
+                                        .ClientFooterTemplate("Total Warehouse Sellable Items: <#= Sum #>");
+                                })
+
+                            .DataBinding(dataBinding => dataBinding.Ajax()
+                                .Select("Ajax_GetPackDetails", "Item", new { itemID = "<#= itemID #>", packName = "<#= size #>", totalQuantity = "<#= quantity #>" })
+                            )
+                            .Footer(true)
+                            .HtmlAttributes(new { @style = "width : 450px" })
+                            .ToHtmlString()
+                            )
+                       )
+         )
+    </fieldset>
+
+<fieldset>
+    <legend>Sku Range Plans</legend>
+
+@(Html.Telerik().Grid(Model.RangePlans)
+        .Name("SkuRangeGrid")
+        .DataKeys(keys =>
+        {
+            keys.Add(p => p.Id).RouteKey("planID");
+        })
+        .Columns(columns =>
+        {
+            columns.Template(
+                @<text>
+                    <img 
+                        src="@Url.Content("~/Image/ShowImage/?sku=" + item.Sku)"
+                      />
+                </text>
+            ).Title("Image").Width(25);
+            columns.Bound(o => o.Sku).Width(100);
+            columns.Bound(o => o.Description).Width(150);
+            columns.Bound(o => o.PlanType).Width(10);
+            columns.Bound(o => o.StoreCount).Width(10);
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("Stores")
+                .Text("Stores")
+                .Ajax(false)
+                .Action("EditStores", "SkuRange");
+                commands
+                .Custom("PresentationQuantities")
+                .Text("Details")
+                .Ajax(false)
+                .Action("PresentationQuantities", "SkuRange");
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(200);
+        })
+
+
+        //.DataBinding(dataBinding =>
+        //{
+        //    dataBinding.Server().Select("Index", "SkuRange");
+        //    //dataBinding.Ajax().Select("_Index", "SkuRange"); -- note, this breaks images
+        //})
+        //.Scrollable(scrolling => scrolling.Enabled(true))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+</fieldset>
+
+<fieldset>
+    <legend>POs</legend>
+    <p>@Html.ActionLink("Create PO Override", "Create", "OverridePO", new { div = Model.Division }, new { @class = "t-button" })
+    
+       @Html.ActionLink("Create SKU Override", "CreateAllPOsForSku", "OverridePO", new { div = Model.Division }, new { @class = "t-button" })
+    </p>
+    @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.ExistingPO>()
+        .Name("ExistingPO")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.PO);
+            columns.Bound(o => o.createDate).Format("{0:MM/dd/yyyy}");
+            columns.Bound(o => o.ExpectedDeliveryDate).Format("{0:MM/dd/yyyy}");
+            columns.Bound(o => o.OverrideDate).Format("{0:MM/dd/yyyy}");
+            columns.Bound(o => o.Retail).Title("Retail Value");
+            columns.Bound(o => o.Units);
+            columns.Bound(o => o.POStatusCode);
+            columns.Bound(o => o.receivedQuantity);
+            columns.Bound(o => o.WarehouseNumber);
+            columns.Bound(o => o.DirectToStore);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_POs", "item", new { sku = Model.Sku });
+        })
+        //.DataBinding(dataBinding =>
+        //{
+        //    //dataBinding.Server().Select("Index", "OverridePO");
+        //    dataBinding.Ajax().Select("_Index", "OverridePO");
+        //})
+        .Sortable(sorting => sorting.Enabled(true)
+            .OrderBy(sortOrder =>
+            {
+                sortOrder.Add(o => o.ExpectedDeliveryDate).Descending();
+            }))        
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+    )
+</fieldset>    
+    
+<fieldset>
+    <legend>Ring Fences</legend>
+    <p>@Html.ActionLink("Create Ring Fence", "Create", "RingFence", null, new { @class = "t-button" })</p>
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFence>()
+        .Name("RingFenceGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Division);
+            columns.Bound(o => o.Store);
+            columns.Bound(o => o.Sku);
+            columns.Bound(o => o.ringFenceStatus.ringFenceStatusDesc).Title("Ring Fence Status");
+            columns.Bound(o => o.Qty).Aggregate(aggreages => aggreages.Sum())
+                   .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
+            columns.Bound(o => o.StartDate);
+            columns.Bound(o => o.EndDate);
+            columns.Bound(o => o.PO);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate);
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("SizeSummary")
+                .Text("Details")
+                .Ajax(false)
+                .Action("SizeSummary", "RingFence")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); });
+
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(100);
+
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_ItemRingFences", "item", new { sku = Model.Sku, store = Model.Store });
+        })
+        //.DataBinding(dataBinding =>
+                                //{
+                                //    //dataBinding.Server().Select("Index", "OverridePO");
+                                //    dataBinding.Ajax().Select("_Index", "Hold");
+                                //})
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+
+
+</fieldset>
+<fieldset>
+    <legend>Holds</legend>
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.Hold>()
+        .Name("HoldGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Division).Width(200);
+            columns.Bound(o => o.Store).Width(50);
+            columns.Bound(o => o.Level);
+            columns.Bound(o => o.Value);
+            columns.Bound(o => o.StartDate);
+            columns.Bound(o => o.EndDate);
+            columns.Bound(o => o.HoldType);
+            columns.Bound(o => o.Comments);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate);
+
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_ItemHolds", "item", new { sku = Model.Sku, store = Model.Store });
+        })
+                                //.DataBinding(dataBinding =>
+                                //{
+                                //    //dataBinding.Server().Select("Index", "OverridePO");
+                                //    dataBinding.Ajax().Select("_Index", "Hold");
+                                //})
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+</fieldset>
+
+    <fieldset>
+    <legend>RDQs</legend>
+
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQ>()
+            .Name("RDQ")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.WarehouseName);
+            columns.Bound(o => o.Division);
+            columns.Bound(o => o.Store);
+            columns.Bound(o => o.Sku);
+            columns.Bound(o => o.Size);
+            columns.Bound(o => o.PO);
+            columns.Bound(o => o.Qty).Aggregate(aggreages => aggreages.Sum())
+                   .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
+            columns.Bound(o => o.Type);
+            columns.Bound(o => o.Status);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_ItemRDQs", "item", new { sku = Model.Sku, store = Model.Store });
+        })
+        .Sortable()
+        .Pageable()
+        .Filterable()
+            .Footer(true)
+)
+
+</fieldset>
+<fieldset>
+<legend>Caselots</legend>
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.ItemPack>()
+                        .Name("Packs")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(det => det.ID).Title("ID").Visible(false);
+                            columns.Bound(det => det.Name);
+                        })
+                        .DataBinding(dataBinding =>
+                        {
+                            dataBinding.Ajax().Select("_ItemPacks", "item", new { sku = Model.Sku, store = Model.Store });
+                        })
+                        .Footer(true)
+                        .DetailView(dv =>
+                            dv.ClientTemplate(
+                                Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.ItemPackDetail>()
+                                    .Name("PackDetails_<#= Name #>")
+                                    .Columns(columns =>
+                                    {
+                                        columns.Bound(det => det.ID).Title("ID").Visible(false);
+                                        columns.Bound(det => det.PackID).Title("PackID").Visible(false);
+                                        columns.Bound(det => det.Size).Title("Size").Width(50).Visible(true);
+                                        columns.Bound(det => det.Quantity).Title("Qty").Visible(true);
+                                    })
+                                    .DataBinding(dataBinding => dataBinding.Ajax()
+                                        .Select("_PackDetails", "Item", new { PackID = "<#= ID #>" })
+                                    )
+                                        //.ClientEvents(events =>
+                                        //{
+                                        //    events.OnDataBound("function() { hack_setChildGridColumnWidth(1); }");
+                                        //})
+                                    .Footer(false)
+                                    .ToHtmlString()
+                                )
+                    )
+                    //.ClientEvents(events =>
+                    //{
+                    //    events.OnDataBound("function() { hack_removeTelerikExpandIconsForChildlessNodes($('.caselot-input'), function($child) { return $child.text().length < 4 }); }");
+                    //})
+
+                    )
+
+</fieldset>
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

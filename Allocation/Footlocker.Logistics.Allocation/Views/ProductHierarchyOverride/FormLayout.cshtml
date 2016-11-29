@@ -1,0 +1,246 @@
+﻿@model Footlocker.Logistics.Allocation.Models.ProductHierarchyOverrideModel
+
+<script type="text/javascript">
+        $(function () {
+            $('#overrideLevelList').change(function () {
+                $('#overrideDivisionList').show();
+                $('#overrideDepartmentList').show();
+                $('#overrideCategoryList').show();
+                $('#overrideBrandIDList').show();
+
+                $('#overrideDivisionLabelDiv').hide();
+                $('#overrideDeptLabelDiv').hide();
+                $('#overrideCatLabelDiv').hide();
+                $('#overrideBrandIDLabelDiv').hide();
+
+
+                switch ($('#overrideLevelList').val()) {
+                    case 'DEPT':
+                        $('#overrideCategoryDiv').hide();
+                        $('#overrideBrandIDDiv').hide();
+                        $('#overrideSKUDiv').hide();
+                        break;
+                    case 'CAT':
+                        $('#overrideCategoryDiv').show();
+                        $('#overrideBrandIDDiv').hide();
+                        $('#overrideSKUDiv').hide();
+                        break;
+                    case 'LC_BRANDID':
+                        $('#overrideCategoryDiv').show();
+                        $('#overrideBrandIDDiv').show();
+                        $('#overrideSKUDiv').hide();
+                        break;
+                    case 'SKU':
+                        $('#overrideDivisionList').hide();
+                        $('#overrideDepartmentList').hide();
+                        $('#overrideCategoryList').hide();
+                        $('#overrideBrandIDList').hide();
+
+                        $('#overrideDivisionLabelDiv').show();
+                        $('#overrideDeptLabelDiv').show();
+                        $('#overrideCatLabelDiv').show();
+                        $('#overrideBrandIDLabelDiv').show();
+
+                        $('#overrideCategoryDiv').show();
+                        $('#overrideBrandIDDiv').show();
+                        $('#overrideSKUDiv').show();
+                        break;
+                }
+            }).trigger('change');
+
+            $('#newDivisionList').change(function () {
+                $.getJSON('/ProductHierarchyOverride/GetNewDeptsJson/' + $('#newDivisionList').val(), function (data) {
+                    var items = '';
+                    //var items = '<option>Select a District</option>';
+                    $.each(data, function (i, dept) {
+                        items += "<option value='" + dept.Value + "'>" + dept.Text + "</option>";
+                    });
+                    $('#newDepartmentList').html(items);
+                    $('#newDepartmentList').change();
+                });
+            });
+
+            $('#newDepartmentList').change(function () {
+                $.getJSON('/ProductHierarchyOverride/GetNewCatJson?div=' + $('#newDivisionList').val() +
+                    '&dept=' + $('#newDepartmentList').val(), function (data) {
+                        var items = '';
+                        //var items = '<option>Select a District</option>';
+                        $.each(data, function (i, cat) {
+                            items += "<option value='" + cat.Value + "'>" + cat.Text + "</option>";
+                        });
+                        $('#newCategoryList').html(items);
+                    });
+
+                $.getJSON('/ProductHierarchyOverride/GetNewBrandIDJson?div=' + $('#newDivisionList').val() +
+                    '&dept=' + $('#newDepartmentList').val(), function (data) {
+                        var items = '';
+                        //var items = '<option>Select a District</option>';
+                        $.each(data, function (i, brandid) {
+                            items += "<option value='" + brandid.Value + "'>" + brandid.Text + "</option>";
+                        });
+                        $('#newBrandIDList').html(items);
+                    });
+            });
+
+            $('#overrideDivisionList').change(function () {
+                $.getJSON('/ProductHierarchyOverride/GetNewDeptsJson/' + $('#overrideDivisionList').val(), function (data) {
+                    var items = '';
+                    //var items = '<option>Select a District</option>';
+                    $.each(data, function (i, dept) {
+                        items += "<option value='" + dept.Value + "'>" + dept.Text + "</option>";
+                    });
+                    $('#overrideDepartmentList').html(items);
+                    $('#overrideDepartmentList').change();
+                });
+            });
+
+            $('#overrideDepartmentList').change(function () {
+                $.getJSON('/ProductHierarchyOverride/GetNewCatJson?div=' + $('#overrideDivisionList').val() +
+                    '&dept=' + $('#overrideDepartmentList').val(), function (data) {
+                        var items = '';
+                        //var items = '<option>Select a District</option>';
+                        $.each(data, function (i, cat) {
+                            items += "<option value='" + cat.Value + "'>" + cat.Text + "</option>";
+                        });
+                        $('#overrideCategoryList').html(items);
+                    });
+
+                $.getJSON('/ProductHierarchyOverride/GetNewBrandIDJson?div=' + $('#overrideDivisionList').val() +
+                    '&dept=' + $('#overrideDepartmentList').val(), function (data) {
+                        var items = '';
+                        //var items = '<option>Select a District</option>';
+                        $.each(data, function (i, brandid) {
+                            items += "<option value='" + brandid.Value + "'>" + brandid.Text + "</option>";
+                        });
+                        $('#overrideBrandIDList').html(items);
+                    });
+            });
+        });
+</script>
+
+<div class="editor-label">
+    Override Level
+</div>
+<div class="editor-field">
+    @Html.DropDownListFor(m => m.prodHierarchyOverride.productOverrideTypeCode, Model.overrideTypes, new { id = "overrideLevelList" })
+</div>
+<br />
+<div class="editor-label">
+    Start Date
+</div>
+<div class="editor-field">
+    @Html.EditorFor(model => model.prodHierarchyOverride.effectiveFromDt)
+    @Html.ValidationMessageFor(model => model.prodHierarchyOverride.effectiveFromDt)
+</div>
+
+<div class="editor-label">
+    End Date (optional)
+</div>
+<div class="editor-field">
+    @Html.EditorFor(model => model.prodHierarchyOverride.effectiveToDt)
+    @Html.ValidationMessageFor(model => model.prodHierarchyOverride.effectiveToDt)
+</div>
+<br />
+
+<div>
+    <fieldset style="box-sizing: border-box; margin: 3px 3px 3px 3px; width: 40%; float: left">
+        <legend>Override all SKUs under this level</legend>
+        <div id="overrideDivisionDiv">
+            <div class="editor-label">
+                Division
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(m => m.prodHierarchyOverride.overrideDivision, Model.overrideDivisionList, new { id = "overrideDivisionList" })
+                <div id="overrideDivisionLabelDiv">
+                    @Html.DisplayFor(m => m.overrideDivisionLabel)
+                </div>
+            </div>
+        </div>
+        <div id="overrideDepartmentDiv">
+            <div class="editor-label">
+                Department
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(m => m.prodHierarchyOverride.overrideDepartment, Model.overrideDepartmentList, new { id = "overrideDepartmentList" })
+                <div id="overrideDeptLabelDiv">
+                    @Html.DisplayFor(m => m.overrideDepartmentLabel)
+                </div>
+            </div>
+        </div>
+        <div id="overrideCategoryDiv">
+            <div class="editor-label">
+                Category
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(m => m.prodHierarchyOverride.overrideCategory, Model.overrideCategoryList, new { id = "overrideCategoryList" })
+                <div id="overrideCatLabelDiv">
+                    @Html.DisplayFor(m => m.overrideCategoryLabel)
+                </div>
+            </div>
+        </div>
+        <div id="overrideBrandIDDiv">
+            <div class="editor-label">
+                Brand ID
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(m => m.prodHierarchyOverride.overrideBrandID, Model.overrideBrandIDList, new { id = "overrideBrandIDList" })
+                <div id="overrideBrandIDLabelDiv">
+                    @Html.DisplayFor(m => m.overrideBrandIDLabel)
+                </div>
+            </div>
+        </div>
+        <div id="overrideSKUDiv">
+            <div class="editor-label">
+                SKU (format xx-xx-xxxxx-xx)
+            </div>
+            <div class="editor-field">
+                <span>
+                    @Html.EditorFor(model => model.prodHierarchyOverride.overrideSKU)
+                    <button type="submit" name="submitAction" value="lookup">Lookup</button>
+                </span>
+                <br />
+                @Model.overrideSKUDescription
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset style="box-sizing: border-box; margin: 3px 3px 3px 3px; width: 40%; float: left">
+        <legend>To be under this Category and Brand ID</legend>
+        <div id="newDivisionDiv">
+            <div class="editor-label">
+                Division
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(m => m.prodHierarchyOverride.newDivision, Model.newDivisionList, new { id = "newDivisionList" })
+            </div>
+        </div>
+        <div id="newDepartmentDiv">
+            <div class="editor-label">
+                Department
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(f => f.prodHierarchyOverride.newDepartment, Model.newDepartmentList, new { id = "newDepartmentList" })
+            </div>
+        </div>
+        <div id="overrideCategoryDiv">
+            <div class="editor-label">
+                Category
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(f => f.prodHierarchyOverride.newCategory, Model.newCategoryList, new { id = "newCategoryList" })
+            </div>
+        </div>
+        <div id="newBrandIDDiv">
+            <div class="editor-label">
+                Brand ID
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(f => f.prodHierarchyOverride.newBrandID, Model.newBrandIDList, new { id = "newBrandIDList" })
+            </div>
+        </div>
+    </fieldset>
+</div>
+<div style="clear:both;"></div>
+<br />
+<br />
+<br />

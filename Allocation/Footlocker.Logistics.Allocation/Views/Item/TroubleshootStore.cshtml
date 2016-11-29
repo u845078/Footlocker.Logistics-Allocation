@@ -1,0 +1,321 @@
+﻿@model Footlocker.Logistics.Allocation.Models.TroubleshootStoreModel
+
+@{
+    ViewBag.Title = "TroubleshootStore";
+}
+
+<h2>Troubleshoot Store</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Troubleshoot Store</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Division)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.Division, new SelectList(Model.Divisions, "DivCode", "DivisionName"))
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Store)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Store)
+            @Html.ValidationMessageFor(model => model.Store)
+        </div>
+
+        <p>
+            <input type="submit" value="Submit" />
+        </p>
+    </fieldset>
+}
+<font color="red">@Model.Message</font>
+@if ((Model.StoreLookup != null)&&(Model.StoreLookup.Store != null))
+{
+  
+    
+<fieldset>
+    <legend>Store Info</legend>
+    <table width="80%">
+        <tr>
+            <td colspan="4">
+                @Html.DisplayFor(m => Model.StoreLookup.Mall), 
+                @Html.DisplayFor(m => Model.StoreLookup.City)
+                @Html.DisplayFor(m => Model.StoreLookup.State) 
+            </td>    
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(m => Model.StoreLookup.League)
+            </td>    
+            <td>
+                @Html.DisplayFor(m => Model.StoreLookup.League)
+            </td>    
+            <td>
+                @Html.LabelFor(m => Model.StoreLookup.Region)
+            </td>    
+            <td>
+                @Html.DisplayFor(m => Model.StoreLookup.Region)
+            </td>    
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(m => Model.StoreExtension.FirstReceipt)
+            </td>    
+            <td>
+                @Html.DisplayFor(m => Model.StoreExtension.FirstReceipt)
+            </td>    
+            <td>
+                @Html.LabelFor(m => Model.StoreExtension.ExcludeStore)
+            </td>    
+            <td>
+                @Html.DisplayFor(m => Model.StoreExtension.ExcludeStore)
+            </td>    
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(m => Model.StoreExtension.CustomerType)
+            </td>    
+            <td>
+                @Html.DisplayFor(m => Model.StoreExtension.CustomerType.Name)
+            </td>    
+            <td>
+                @Html.LabelFor(m => Model.StoreExtension.StrategyType)
+            </td>    
+            <td>
+                @Html.DisplayFor(m => Model.StoreExtension.StrategyType.Name)
+            </td>    
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(m => Model.StoreExtension.ConceptType)
+            </td>    
+            <td>
+                @Html.DisplayFor(m => Model.StoreExtension.ConceptType.Name)
+            </td>    
+            <td>
+                @Html.LabelFor(m => Model.StoreSeasonality)
+            </td>    
+            <td>
+                @Html.DisplayFor(m => Model.StoreSeasonality.Name)
+            </td>    
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(m => Model.Zone)
+            </td>    
+            <td>
+                @Html.DisplayFor(m => Model.Zone.Name)
+            </td>    
+            <td>
+                @Html.LabelFor(m => Model.StoreLookup.status)
+            </td>
+            <td>
+                @Html.DisplayFor(m => Model.StoreLookup.status)
+            </td>
+        </tr>
+        @if (!(Model.isValid))
+        { 
+        <tr>
+            <td colspan="4">
+                    <font color="red">Store is in invalid status.</font>
+            </td>    
+        </tr>
+        }
+
+    </table>
+
+</fieldset>
+
+<fieldset>
+    <legend>BTS Groups</legend>
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreBTS>()
+        .Name("BTS")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Name);
+            columns.Bound(o => o.Year);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_BTSGroups", "item", new { div = Model.Division, store = Model.Store});
+        })
+
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+    
+</fieldset>
+
+<fieldset>
+    <legend>Like Stores</legend>
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreAttribute>()
+        .Name("LikeStores")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.LikeDivision);
+            columns.Bound(o => o.LikeStore);
+            columns.Bound(o => o.Level);
+            columns.Bound(o => o.Value);
+            columns.Bound(o => o.Weight);
+            columns.Bound(o => o.StartDate);
+            columns.Bound(o => o.EndDate);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_LikeStores", "item", new { div = Model.Division, store = Model.Store });
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+
+</fieldset>
+
+<fieldset>
+    <legend>Store Lead Times</legend>
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreLeadTime>()
+                .Name("StoreLeadTimes")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Warehouse);
+            columns.Bound(o => o.LeadTime);
+            columns.Bound(o => o.Rank);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_StoreLeadTimes", "item", new { div = Model.Division, store = Model.Store });
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+
+</fieldset>
+
+
+<fieldset>
+    <legend>Ring Fences</legend>
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFence>()
+        .Name("RingFenceGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Sku);
+            columns.Bound(o => o.Qty).Aggregate(aggreages => aggreages.Sum())
+                   .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
+            columns.Bound(o => o.StartDate);
+            columns.Bound(o => o.EndDate);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate);
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("SizeSummary")
+                .Text("Details")
+                .Ajax(false)
+                .Action("SizeSummary", "RingFence")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); });
+
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(100);
+
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_StoreRingFences", "item", new { div = Model.Division, store = Model.Store });
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+
+
+</fieldset>
+<fieldset>
+    <legend>Holds</legend>
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.Hold>()
+        .Name("HoldGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Store).Width(50);
+            columns.Bound(o => o.Level);
+            columns.Bound(o => o.Value);
+            columns.Bound(o => o.StartDate);
+            columns.Bound(o => o.EndDate);
+            columns.Bound(o => o.HoldType);
+            columns.Bound(o => o.Comments);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate);
+
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_StoreHolds", "item", new { div = Model.Division, store = Model.Store });
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+</fieldset>
+
+    <fieldset>
+    <legend>RDQs</legend>
+
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQ>()
+        .Name("RDQs")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.WarehouseName);
+            columns.Bound(o => o.Sku);
+            columns.Bound(o => o.Size);
+            columns.Bound(o => o.PO);
+            columns.Bound(o => o.Qty).Aggregate(aggreages => aggreages.Sum())
+                   .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
+            columns.Bound(o => o.Type);
+            columns.Bound(o => o.Status);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_StoreRDQs", "item", new { div = Model.Division, store = Model.Store });
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+
+</fieldset>
+
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

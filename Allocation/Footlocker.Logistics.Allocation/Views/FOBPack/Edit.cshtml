@@ -1,0 +1,124 @@
+﻿@model Footlocker.Logistics.Allocation.Models.FOBPack
+
+@{
+    ViewBag.Title = "Edit FOB Pack";
+    Layout = String.Empty;
+}
+
+<script type="text/javascript">
+    function initDisplay() {
+        // Wire up enter key press to submit form
+        $(".t-window .dialog-form").keypress(function (e) {
+            if ((e.which && e.which == 13) || (e.keyCode && e.keyCode == 13)) {
+                $('.t-window .dialog-form button[type=submit]').click();
+                return false;
+            } else {
+                return true;
+            }
+        });
+
+        // Make it so that when a text box gets focus, its text is selected
+        $(".t-window .form-fieldset .editor-input[type=text], .t-window .form-fieldset textarea.editor-input")
+            .focus(function () {
+                $(this).select();
+            })
+            .mouseup(function (e) {
+                e.preventDefault();
+            });
+    }
+
+    function savePackButton_Click(e) {
+        e.preventDefault();
+
+        // Retain reference to the  window and grid
+        var windowElement = $(e.target).closest('.t-window');
+        var window = windowElement.data('tWindow');
+
+        if ($('.dialog-form').valid()) {
+            // Re-construct model from form inputs (to be posted to server)
+            var serializedModelObject = JSON.stringify(form2js($(".dialog-form .editor-input").toArray(), ".", true));
+
+            // Post the form to the controller via ajax
+            //$(".window-content-container").ajax({
+            $.ajax({
+                type: "POST",
+                url: "FOBPack/Save",
+                data: serializedModelObject,
+                contentType: "application/json; charset=utf-8",
+                success: function (data, textState, e) {
+                    // Refresh the underlying fob packs grid
+                    refreshPacksGrid();
+                    
+                    // HACK: Manually hide validation errors (triggered on server, but resolved by AJAX post without server side html rebuild)
+                    //$('#conceptFormContainer div.validation-summary-errors').removeClass('validation-summary-errors').addClass('validation-summary-valid');
+                    //$('#conceptFormContainer span.field-validation-error').removeClass('field-validation-error').addClass('field-validation-valid');
+                    //$('#conceptFormContainer input.input-validation-error').removeClass('input-validation-error');
+                },
+                error: function (e, textState, errorThrown) {
+
+                    // NOTE: There are still issues with IE and aggresive caching here (exception response from Global.asax Application_Error()...request gets 
+                    //           cached without content, so e.responseText is empty string in JS ajax error callback....issue stops if running fiddler and works fine in chome :)
+                    var resultObject = (e.responseText != "") ? JSON.parse(e.responseText) : null;
+
+                    // Show universal, unhandled exception error message dialog
+                    alert(resultObject ? resultObject.Message : "A system error has occurred.  Please contact your administrator. ");
+                }
+            });
+        }
+        else {
+            // Center the window
+            window.center();
+        }
+
+        return false;
+    }
+
+    function addOverrideButton_Click(e) {
+        e.preventDefault();
+
+        // Launch 'Add' window
+        showAddOverrideWindow($('#fobPackFormContainer'), @Model.ID);
+    }
+
+    function editOverrideButton_Click(e) {
+        e.preventDefault();
+
+        // Get selected Override
+        var selectedOverrideID = $('#OverridesGrid').data('tGrid').dataItem($('#OverridesGrid tbody tr.t-state-selected')[0]).ID;
+
+        // Launch 'Edit' window
+        showEditOverrideWindow($('#fobPackFormContainer'), selectedOverrideID);
+    }
+
+    function deleteOverrideButton_Click(e) {
+        e.preventDefault();
+
+        // Get selected Override
+        var selectedOverrideID = $('#OverridesGrid').data('tGrid').dataItem($('#OverridesGrid tbody tr.t-state-selected')[0]).ID;
+
+        // Launch 'Delete' window
+        deleteOverride(selectedOverrideID);
+    }
+
+    function overrideSelected(e) {
+        // Get the selected Override
+        var overridesGrid = $('#OverridesGrid').data('tGrid');
+        var selectedOverride = overridesGrid.dataItem(e.row);
+
+        // Enable 'Edit/Delete' buttons
+        setDisplayEnabled($('div.packWindow button.modify-button'), true);
+    }
+
+    function overridesGrid_OnComplete(e) {
+        // Disable 'Edit/Delete' buttons
+        setDisplayEnabled($('div.packWindow button.modify-button'), false);
+    }
+</script>
+
+@*FOB Pack Edit Form - NOTE: Only still using forms for form2js to scrape for ajax posts*@
+@using (Html.BeginForm("Save", "FOBPack", FormMethod.Post, new { @class = "dialog-form", @style="padding-bottom: 0px;" }))
+{
+    <div id="fobPackFormContainer">
+        @Html.Partial("Editor")
+    </div>
+}

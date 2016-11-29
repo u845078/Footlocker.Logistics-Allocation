@@ -1,0 +1,52 @@
+﻿@model Footlocker.Logistics.Allocation.Models.DistributionCenter
+
+@{
+    ViewBag.Title = "CreateDC";
+}
+
+<h2>Create DC</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Distribution Center</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Name)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Name)
+            @Html.ValidationMessageFor(model => model.Name)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.MFCode)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.MFCode)
+            @Html.ValidationMessageFor(model => model.MFCode)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Type)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.Type, new List<SelectListItem> { new SelectListItem { Text = "BOTH", Value = "BOTH" }, new SelectListItem { Text = "BIN", Value = "BIN" }, new SelectListItem { Text = "CROSSDOCK", Value = "CROSSDOCK" } })
+        </div>
+
+        @Html.HiddenFor(model => model.InstanceID)
+
+        <p>
+            <input type="submit" value="Create" class="t-button"/>
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "DCIndex", new { instanceID = Model.InstanceID }, new { @class = "t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

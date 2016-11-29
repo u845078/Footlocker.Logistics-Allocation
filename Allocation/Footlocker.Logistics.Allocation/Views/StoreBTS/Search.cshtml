@@ -1,0 +1,46 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.StoreBTSDetail>
+
+@{
+    ViewBag.Title = "Search Results";
+}
+
+<h2>Mutliple Search Results</h2>
+Please select the appropriate store below:
+<table>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Division)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Store)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CreatedBy)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CreateDate)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Division)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Store)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CreatedBy)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CreateDate)
+        </td>
+        <td>
+            @Html.ActionLink("Select","ShowSearchResult", new {store = item.Store, div = item.Division, year = item.Year}, new { @class="t-button"})
+        </td>
+    </tr>
+}
+
+</table>

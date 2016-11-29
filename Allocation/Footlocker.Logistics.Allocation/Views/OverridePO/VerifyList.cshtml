@@ -1,0 +1,72 @@
+﻿@model Footlocker.Logistics.Allocation.Models.ExpeditePOModel
+
+@{
+    ViewBag.Title = "Verify";
+}
+
+<h2>Verify</h2>
+
+<script type="text/javascript">
+    //grid refresh function
+    function AcceptPO(po, div, sku, date,button) {
+        //make a call to server
+        var grid = $("#VerifyGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+        $.ajax({
+            url: "/OverridePO/AcceptPO",
+            data: "{'po': '" + po + "', 'div': '" + div + "', 'sku': '" + sku + "', 'overrideDate': '" + date + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    //grid.ajaxRequest();
+                    button.style.display= 'none';
+
+                }
+                else {
+                    alert(result);
+                }
+            }
+        });
+    }
+
+</script>
+
+@(Html.Telerik().Grid(Model.POs)
+        .Name("VerifyGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.PO).Width(50);
+            columns.Bound(o => o.Sku);
+            columns.Bound(o => o.DeliveryDate);
+            columns.Bound(o => o.OverrideDate);
+            columns.Bound(o => o.TotalRetail).Title("Retail");
+            columns.Bound(o => o.TotalUnits).Title("Units");
+            columns.Bound(o => o.ErrorMessage).HtmlAttributes(new { style="color:Red"}).Title("Comments");
+            columns.Template(@<text> 
+                                   @Html.Raw("<div class=\"t-button\" onclick='AcceptPO(\"" + item.PO + "\",\"" + item.Division + "\",\"" + item.Sku + "\",\"" + item.OverrideDate + "\",this);'>Accept</div>")
+                               </text>)
+                .ClientTemplate("<div class=\"t-button\" onclick='AcceptPO(\"<#= PO #>\",\"<#= Division #>\",\"<#= Sku #>\",\"<#= OverrideDate #>\",this);'>Accept</div>"
+                ).Width(300);
+
+
+        })
+        .Footer(false)
+        //.DataBinding(dataBinding =>
+        //{
+        //    //dataBinding.Server().Select("Index", "OverridePO");
+        //    //dataBinding.Ajax().Select("_Index", "Hold");
+        //})
+)
+<br />
+<div>
+    @Html.ActionLink("Accept All", "AcceptAll", new { sku = Model.NewPO.Sku, overrideDate = Model.NewPO.OverrideDate }, new { @class = "t-button" })
+
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+</div>
+

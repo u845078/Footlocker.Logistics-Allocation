@@ -1,0 +1,10 @@
+@using Telerik.Web.Mvc.UI 
+
+
+@model int?
+
+@(Html.Telerik().IntegerTextBoxFor(m => m)
+      .InputHtmlAttributes(new { style = "width:100%" })
+      .MinValue(0)
+      .MaxValue(int.MaxValue)
+)

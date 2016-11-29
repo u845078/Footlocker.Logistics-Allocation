@@ -1,0 +1,41 @@
+﻿@model Footlocker.Logistics.Allocation.Models.VendorGroupLeadTime
+
+@{
+    ViewBag.Title = "EditLeadTime";
+}
+
+<h2>EditLeadTime</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>VendorGroupLeadTime</legend>
+
+        @Html.HiddenFor(model => model.VendorGroupID)
+
+        @Html.HiddenFor(model => model.ZoneID)
+        @Html.DisplayFor(model => model.GroupName)<br />
+        @Html.DisplayFor(model => model.ZoneName)
+        
+        <div class="editor-label">
+            @Html.LabelFor(model => model.LeadTime)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.LeadTime)
+            @Html.ValidationMessageFor(model => model.LeadTime)
+        </div>
+
+        <p>
+            <input type="submit" value="Save" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Details", new { ID = Model.VendorGroupID }, new { @class = "t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

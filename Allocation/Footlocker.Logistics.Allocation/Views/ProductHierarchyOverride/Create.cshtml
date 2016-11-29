@@ -1,0 +1,21 @@
+﻿@model Footlocker.Logistics.Allocation.Models.ProductHierarchyOverrideModel
+
+@{
+    ViewBag.Title = "Create Seasonality Override";
+}
+
+<h2>@ViewBag.Title</h2>
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+@using (Html.BeginForm("Create", "ProductHierarchyOverride"))
+{
+    @Html.Partial(@Url.Content("~/Views/ProductHierarchyOverride/FormLayout.cshtml"), Model, ViewData)
+
+    <div style="text-align: center;">
+        <button type="submit" name="submitAction" value="submit">Submit</button>
+    </div>
+}
+
+

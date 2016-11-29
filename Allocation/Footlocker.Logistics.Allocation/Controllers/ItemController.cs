@@ -1,0 +1,940 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using Aspose.Excel;
+using Footlocker.Logistics.Allocation.Models;
+using Footlocker.Logistics.Allocation.Services;
+using Footlocker.Logistics.Allocation.Models.Services;
+
+using Telerik.Web.Mvc;
+
+namespace Footlocker.Logistics.Allocation.Controllers
+{
+    public class ItemController : AppController
+    {
+        Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+
+        [CheckPermission(Roles = "Support,IT")]
+        public ActionResult Lookup()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [CheckPermission(Roles = "Support,IT")]
+        public ActionResult Lookup(ItemLookupModel model)
+        {
+            string item;
+            string[] tokens;
+            if (model.QItem != null)
+            {
+                tokens = model.QItem.Split('-');
+                item = tokens[0];
+                Int64 itemid = Convert.ToInt64(item);
+                model.noSizeItems = (from a in db.ItemMasters where (a.ID == itemid) select a).ToList();
+                try
+                {
+                    item = item.Substring(0, item.Length - 3);
+                    itemid = Convert.ToInt64(item);
+                }
+                catch { }
+            }
+            else if (model.MerchantSku != null)
+            {
+                item = model.MerchantSku;
+
+                model.noSizeItems = (from a in db.ItemMasters where (a.MerchantSku == item) select a).ToList();
+            }
+            return View(model);
+        }
+
+
+        [CheckPermission(Roles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning")]
+        public ActionResult Troubleshoot(string sku)
+        {
+            TroubleshootModel model = new TroubleshootModel();
+            SetDCs(model);
+            if (sku != null)
+            {
+                model.Sku = sku;
+                UpdateTroubleShootModel(model);
+            }
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult Troubleshoot(TroubleshootModel model)
+        {
+            UpdateTroubleShootModel(model);
+
+            SetDCs(model);
+            return View(model);
+        }
+
+        private void UpdateTroubleShootModel(TroubleshootModel model)
+        {
+            if (model.Size == null)
+            {
+                model.Size = "";
+            }
+            if (model.Store == null)
+            {
+                model.Store = "";
+            }
+            try
+            {
+                string div = model.Sku.Substring(0, 2);
+
+                DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).First();
+
+                //List<RingFence> ringFences = (from a in db.RingFences where ((a.StartDate < today) && ((a.EndDate > today) || (a.EndDate == null))) select a).ToList();
+
+
+                //model.RingFences = (from a in ringFences
+                //                    join b in db.RingFenceDetails on a.ID equals b.RingFenceID
+                //                    where ((a.Sku == model.Sku)
+                //                        //&& ((a.Size == model.Size)||(model.Size == ""))
+                //                        && ((a.Store == model.Store) || (model.Store == "") || (a.Store == null))
+                //                        && ((b.DCID == model.Warehouse) || (model.Warehouse == -1)))
+                //                    select a).Distinct().ToList();
+
+                model.RangePlans = (from a in db.RangePlans
+                                    join b in db.RangePlanDetails on a.Id equals b.ID
+                                    where
+                                    (a.Sku == model.Sku)
+                                    && ((b.Store == model.Store) || (model.Store == ""))
+                                    select a).Distinct().ToList();
+
+                //TODO, multisku POs aren't in here
+                //model.POOverrides = (from a in db.ExpeditePOs
+                //                     where
+                //                         a.Sku == model.Sku
+                //                     select a).ToList();
+            }
+            catch
+            {
+                model.ValidItem = false;
+                ViewData["message"] = "invalid item";
+            }
+
+            try
+            {
+                ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == model.Sku select a).First();
+                model.ItemMaster = item;
+                AllocationDriverDAO dao = new AllocationDriverDAO();
+                model.AllocationDriver = (from a in dao.GetAllocationDriverList(item.Div) where a.Department == item.Dept select a).FirstOrDefault();
+                model.ControlDate = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == item.Div select a).FirstOrDefault();
+
+                model.ValidItem = true;
+                if (item.Category.StartsWith("99"))
+                {
+                    model.ValidItem = false;
+                }
+                if (item.Category.Equals("098"))
+                {
+                    model.ValidItem = false;
+                }
+                if (Convert.ToInt32(item.ServiceCode) > 2)
+                {
+                    model.ValidItem = false;
+                }
+
+                //model.ItemPacks = (from a in db.ItemPacks where a.ItemID == item.ID select a).ToList();
+            }
+            catch (Exception ex)
+            {
+                ViewData["message"] = "invalid item";
+                //if (ex.Message.Contains("Sequence"))
+                //{
+                //    ViewData["message"] = "Error getting holds, item invalid";
+                //}
+                //else
+                //{
+                //    ViewData["message"] = "Error getting holds " + ex.Message;
+                //}
+            }
+
+            model.Sizes = (from a in db.Sizes where a.Sku == model.Sku select a).ToList();
+
+            //model.RDQs = (from a in db.RDQs where a.Sku == model.Sku select a).ToList();
+        }
+
+        [CheckPermission(Roles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning")]
+        public ActionResult TroubleshootStore()
+        {
+            TroubleshootStoreModel model = new TroubleshootStoreModel();
+            model.Divisions = this.Divisions();
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult TroubleshootStore(TroubleshootStoreModel model)
+        {
+            UpdateTroubleShootStoreModel(model);
+            return View(model);
+        }
+
+
+        private void UpdateTroubleShootStoreModel(TroubleshootStoreModel model)
+        {
+            if (model.Division == null)
+            {
+                model.Division = "";
+            }
+            if (model.Store == null)
+            {
+                model.Store = "";
+            }
+            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == model.Division select a.RunDate).First();
+
+            model.Divisions = this.Divisions();
+
+            //model.BTSGroups = (from a in db.StoreBTS join b in db.StoreBTSDetails on a.ID equals b.GroupID where ((b.Store == model.Store) && (b.Division == model.Division)) select a).ToList();
+
+            var validStoreQuery = (from a in db.vValidStores where ((a.Division == model.Division) && (a.Store == model.Store)) select a);
+            model.isValid = (validStoreQuery.Count() > 0);
+
+            //model.LikeStores = (from a in db.StoreAttributes where ((a.Division == model.Division) && (a.Store == model.Store)) select a).ToList();
+
+            model.StoreLookup = (from a in db.StoreLookups where ((a.Division == model.Division) && (a.Store == model.Store)) select a).FirstOrDefault();
+
+            if (model.StoreLookup == null)
+            {
+                model.Message = "Store not found";
+            }
+
+            model.StoreExtension = (from a in db.StoreExtensions.Include("ConceptType").Include("StrategyType").Include("CustomerType") where ((a.Division == model.Division) && (a.Store == model.Store)) select a).FirstOrDefault();
+
+            model.StoreSeasonality = (from a in db.StoreSeasonality join b in db.StoreSeasonalityDetails on a.ID equals b.GroupID where ((b.Division == model.Division) && (b.Store == model.Store)) select a).FirstOrDefault();
+
+            model.Zone = (from a in db.NetworkZones join b in db.NetworkZoneStores on a.ID equals b.ZoneID where ((b.Division == model.Division) && (b.Store == model.Store)) select a).FirstOrDefault();
+
+            //model.StoreLeadTimes = (from a in db.StoreLeadTimes where ((a.Division == model.Division) && (a.Store == model.Store)) select a).ToList();
+            //foreach (StoreLeadTime lt in model.StoreLeadTimes)
+            //{
+            //    lt.Warehouse = (from a in db.DistributionCenters where a.ID == lt.DCID select a.Name).FirstOrDefault();
+            //}
+
+            //model.RingFences = (from a in db.RingFenceDetails join b in db.RingFences on a.RingFenceID equals b.ID where ((b.Division == model.Division) && (b.Store == model.Store)) select b).ToList();
+            //model.RDQs = (from a in db.RDQs where ((a.Division == model.Division) && ((a.Store == model.Store))||(a.Store == null)) select a).ToList();
+        }
+
+        #region GridAction Methods
+        [GridAction]
+        public ActionResult _POOverrides(string sku)
+        {
+            List<ExpeditePO> model = (from a in db.ExpeditePOs
+                                      where
+                                          a.Sku == sku
+                                      select a).ToList();
+
+            return View(new GridModel(model));
+        }
+
+        [GridAction]
+        public ActionResult _POs(string sku)
+        {
+            string division = sku.Split('-')[0];
+            ExistingPODAO dao = new ExistingPODAO();
+            List<ExistingPO> model = dao.GetExistingPOsForSku(division, sku, false);
+
+            List<string> overridePOsForSku = (from a in db.ExpeditePOs
+                                              where a.Sku == sku
+                                              select a.PO).ToList();
+
+            foreach (string overridePO in overridePOsForSku)
+            {
+                bool isPresent = model.Any(po => po.PO == overridePO);
+                if (!isPresent)
+                {
+                    model.AddRange(dao.GetExistingPO(division, overridePO));
+                }
+            }
+
+            foreach (ExistingPO epo in model)
+            {
+                List<ExpeditePO> overridePOs = (from a in db.ExpeditePOs
+                                                where (a.Division == division) &&
+                                                      (a.PO == epo.PO)
+                                                select a).ToList();
+                if (overridePOs.Count > 0)
+                    epo.OverrideDate = overridePOs[0].OverrideDate;
+            }
+
+            return View(new GridModel(model));
+        }
+
+        [GridAction]
+        public ActionResult _StoreInventoryBySize(string sku, string store)
+        {
+            StoreInventoryDAO dao = new StoreInventoryDAO();
+            List<StoreInventory> model = dao.GetStoreInventoryBySize(sku, store);
+
+            return View(new GridModel(model));
+        }
+
+        [GridAction]
+        public ActionResult _StoreInventoryForSize(string sku, string store, string packName)
+        {
+
+            StoreInventoryDAO dao = new StoreInventoryDAO();
+            List<StoreInventory> model = dao.GetStoreInventoryForSize(sku, store, packName);
+
+            return View(new GridModel(model));
+        }
+
+        [GridAction]
+        public ActionResult _WarehouseInventory(string sku, int warehouseNum)
+        {
+            long itemID = (from a in db.ItemMasters
+                           where a.MerchantSku.Equals(sku)
+                           select a.ID).FirstOrDefault();
+
+            string warehouseID;
+            if (warehouseNum == -1)
+                warehouseID = "-1";
+            else
+                warehouseID = (from w in db.DistributionCenters
+                               where w.ID == warehouseNum
+                               select w.MFCode).First().ToString();
+
+            WarehouseInventoryDAO dao = new WarehouseInventoryDAO();
+
+            List<WarehouseInventory> warehouseInventoryList = dao.GetWarehouseInventory(sku, warehouseID);
+
+            return View(new GridModel(warehouseInventoryList));
+        }
+
+        [GridAction]
+        public ActionResult Ajax_GetPackDetails(long itemID, string packName, int totalQuantity)
+        {
+            var packDetails = new List<ItemPackDetail>();
+
+            //// Get pack's item
+            //var item = db.RingFences.Single(rf => rf.ID == ringFenceID).Sku;
+            //var itemID = db.ItemMasters.Single(i => i.MerchantSku == item).ID;
+
+            // Get pack by item/pack name
+            var pack = db.ItemPacks.Include("Details").FirstOrDefault(p => p.ItemID == itemID && p.Name == packName);
+            if (pack != null)
+            {
+                packDetails = pack.Details.OrderBy(p => p.Size).ToList();
+                foreach (ItemPackDetail det in packDetails)
+                {
+                    det.packAmount = totalQuantity;
+                }
+            }
+
+            return View(new GridModel(packDetails));
+        }
+
+        [GridAction]
+        public ActionResult _BTSGroups(string div, string store)
+        {
+            List<StoreBTS> model = (from a in db.StoreBTS join b in db.StoreBTSDetails on a.ID equals b.GroupID where ((b.Store == store) && (b.Division == div)) select a).ToList();
+
+            return View(new GridModel(model));
+
+        }
+
+        [GridAction]
+        public ActionResult _ItemPacks(string sku, string store)
+        {
+            long itemid = (from a in db.ItemMasters where a.MerchantSku == sku select a.ID).First();
+
+            List<ItemPack> model = (from a in db.ItemPacks where a.ItemID == itemid select a).ToList();
+
+            return View(new GridModel(model));
+
+        }
+
+        [GridAction]
+        public ActionResult _PackDetails(long packID)
+        {
+            List<ItemPackDetail> model = (from a in db.ItemPackDetails where a.PackID == packID select a).ToList();
+
+            return View(new GridModel(model));
+
+        }
+
+        [GridAction]
+        public ActionResult _LikeStores(string div, string store)
+        {
+            List<StoreAttribute> model = (from a in db.StoreAttributes where ((a.Division == div) && (a.Store == store)) select a).ToList();
+            return View(new GridModel(model));
+
+        }
+
+        [GridAction]
+        public ActionResult _StoreLeadTimes(string div, string store)
+        {
+            List<StoreLeadTime> model = (from a in db.StoreLeadTimes where ((a.Division == div) && (a.Store == store)) select a).ToList();
+            foreach (StoreLeadTime lt in model)
+            {
+                lt.Warehouse = (from a in db.DistributionCenters where a.ID == lt.DCID select a.Name).FirstOrDefault();
+            }
+            return View(new GridModel(model));
+
+        }
+
+        [GridAction]
+        public ActionResult _StoreRingfences(string div, string store)
+        {
+            //lazy loading was causing invalid circular references
+            db.Configuration.ProxyCreationEnabled = false;
+            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).First();
+
+            List<RingFence> model = (from a in db.RingFenceDetails
+                                     join b in db.RingFences 
+                                        on a.RingFenceID equals b.ID
+                                     where ((b.Division == div) && (b.Store == store)) &&
+                                           a.ActiveInd == "1"
+                                     select b).Distinct().ToList();
+
+            model = (from a in model
+                     where ((a.StartDate <= today) && ((a.EndDate >= today) || (a.EndDate == null)))
+                     select a).ToList();
+
+            return View(new GridModel(model));
+        }
+
+        [GridAction]
+        public ActionResult _ItemRingfences(string sku, string store)
+        {
+            string div = sku.Substring(0, 2);
+            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).First();
+
+            //lazy loading was causing invalid circular references
+            db.Configuration.ProxyCreationEnabled = false;
+
+            List<RingFenceStatusCodes> rfStatusCodes = (from rfs in db.RingFenceStatusCodes
+                                                        select rfs).ToList();
+
+            List<RingFence> ringFences = new List<RingFence>();
+
+            //List<RingFence> ringFences = (from a in db.RingFences where ((a.StartDate <= today) && ((a.EndDate >= today) || (a.EndDate == null))) select a).ToList();
+
+            //ringFences = (from a in ringFences
+            //                    join b in db.RingFenceDetails on a.ID equals b.RingFenceID
+            //                    where ((a.Sku == sku)
+            //                        //&& ((a.Size == model.Size)||(model.Size == ""))
+            //                        && ((a.Store == store) || (store == null) || (a.Store == null)))
+            //                    select a).Distinct().ToList();
+
+            var newRingFences = (from rf in db.RingFences
+                                 join rfd in db.RingFenceDetails
+                                  on rf.ID equals rfd.RingFenceID
+                                 where rf.Sku == sku &&
+                                       rfd.ActiveInd == "1" &&
+                                    ((rf.StartDate <= today) && ((rf.EndDate >= today) || (rf.EndDate == null))) &&
+                                       ((rf.Store == store) || (store == null) || (rf.Store == null))
+                                 select new { RingFence = rf, RingFenceDetail = rfd });
+            foreach (var rf in newRingFences)
+            {
+                RingFence newRF = new RingFence();
+                newRF.ID = rf.RingFence.ID;
+                newRF.Division = rf.RingFence.Division;
+                newRF.Store = rf.RingFence.Store;
+                newRF.Sku = rf.RingFence.Sku;
+                newRF.Qty = rf.RingFenceDetail.Qty;
+                newRF.StartDate = rf.RingFence.StartDate;
+                newRF.EndDate = rf.RingFence.EndDate;
+                newRF.PO = rf.RingFenceDetail.PO;
+                newRF.CreatedBy = rf.RingFence.CreatedBy;
+                newRF.CreateDate = rf.RingFence.CreateDate;
+                newRF.ringFenceStatusCode = rf.RingFenceDetail.ringFenceStatusCode;
+                newRF.ringFenceStatus = rfStatusCodes.Find(s => s.ringFenceStatusCode == newRF.ringFenceStatusCode);
+
+                ringFences.Add(newRF);
+            }
+
+            return View(new GridModel(ringFences));
+        }
+
+        [GridAction]
+        public ActionResult _StoreRDQs(string div, string store)
+        {
+            //lazy loading was causing invalid circular references
+            db.Configuration.ProxyCreationEnabled = false;
+            List<RDQ> model = (from a in
+                                   db.RDQs
+                                   .Include("DistributionCenter")
+                               where
+                               ((a.Division == div) && ((a.Store == store)) || (a.Store == null))
+                               select a).ToList();
+
+            foreach (RDQ r in model)
+            {
+                if (r.DistributionCenter != null)
+                {
+                    r.WarehouseName = r.DistributionCenter.Name;
+                }
+            }
+            return View(new GridModel(model));
+
+        }
+
+        [GridAction]
+        public ActionResult _ItemRDQs(string sku, string store, string orderBy)
+        {
+            //lazy loading was causing invalid circular references
+            db.Configuration.ProxyCreationEnabled = false;
+            List<RDQ> model = (from a in
+                                   db.RDQs
+                                   .Include("DistributionCenter")
+                               where
+                               a.Sku == sku
+                               select a).OrderBy(x => x.Store).ThenBy(x => x.Size).ThenBy(x => x.PO).ToList();
+
+            foreach (RDQ r in model)
+            {
+                if (r.DistributionCenter != null)
+                {
+                    r.WarehouseName = r.DistributionCenter.Name;
+                }
+            }
+
+            if ((store != null) && (store != ""))
+            {
+                model = (from a in model where a.Store == store select a).ToList();
+            }
+
+            return View(new GridModel(model));
+
+        }
+
+        [GridAction]
+        public ActionResult _StoreHolds(string div, string store)
+        {
+            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).First();
+
+            List<Hold> model = (from a in db.Holds where ((a.Division == div) && ((a.Store == store) || (a.Store == null))) select a).ToList();
+            model = (from a in model where ((a.StartDate <= today) && ((a.EndDate >= today) || (a.EndDate == null))) select a).ToList();
+
+            return View(new GridModel(model));
+
+        }
+
+        [GridAction]
+        public ActionResult _ItemHolds(string sku, string store)
+        {
+            string div = sku.Substring(0, 2);
+            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).First().AddDays(2);
+            //List<Hold> holds = (from a in db.Holds where ((a.StartDate <= today) && ((a.EndDate >= today) || (a.EndDate == null))) select a).ToList();
+            List<Hold> holds = (from a in db.Holds select a).ToList();
+
+            ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == sku select a).First();
+            AllocationDriverDAO dao = new AllocationDriverDAO();
+
+            holds = (from a in holds
+                     where (
+                         (a.Division == item.Div) &&
+                         ((a.Store == store) || (a.Store == null) || (store == "") || (store == null)) &&
+                         (
+                         (a.Level == "All") ||
+                         (a.Level == "Store") ||
+                         ((a.Level == "Dept") && (a.Value == item.Dept)) ||
+                         ((a.Level == "Category") && (a.Value == (item.Dept + "-" + item.Category))) ||
+                         ((a.Level == "VendorDept") && (a.Value == (item.Vendor + "-" + item.Dept))) ||
+                         ((a.Level == "VendorDeptCategory") && (a.Value == (item.Vendor + "-" + item.Dept + "-" + item.Category))) ||
+                         ((a.Level == "DivDeptBrand") && (a.Value == (item.Div + "-" + item.Dept + "-" + item.Brand))) ||
+                         ((a.Level == "Sku") && (a.Value == sku))
+                         )
+                         )
+                     select a).ToList();
+
+            return View(new GridModel(holds));
+        }
+
+        private void SetDCs(TroubleshootModel model)
+        {
+            model.AllDCs = (from a in db.DistributionCenters select a).ToList();
+            DistributionCenter dc = new DistributionCenter();
+            dc.ID = -1;
+            dc.Name = "Any";
+            model.AllDCs.Insert(0, dc);
+        }
+        #endregion
+
+        #region TroubleShoot Inventory
+        [CheckPermission(Roles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning")]
+        public ActionResult TroubleshootInventory()
+        {
+            TroubleshootInventory model = new TroubleshootInventory();
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult TroubleshootInventory(TroubleshootInventory model)
+        {
+            return View(model);
+        }
+
+        [GridAction]
+        public ActionResult _MainframeLinks(string sku)
+        {
+            MainframeDAO dao = new MainframeDAO();
+            List<MainframeLink> model;
+            model = dao.GetMainframeLinks(sku);
+
+            return View(new GridModel(model));
+        }
+
+        
+        [GridAction]
+        public ActionResult _LegacyInventory(string sku)
+        {
+
+            List<LegacyInventory> model;
+            if (sku != null)
+            {
+                model = (from a in db.LegacyInventory
+                         where
+                             ((a.Sku == sku) &&
+                             (a.LocationTypeCode == "W"))
+                         select a).ToList();
+            }
+            else
+            {
+                model = new List<LegacyInventory>();
+            }
+
+            return View(new GridModel(model));
+        }
+
+        [GridAction]
+        public ActionResult _LegacyFutureInventory(string sku)
+        {
+
+            List<LegacyFutureInventory> model;
+            if (sku != null)
+            {
+                model = (from a in db.LegacyFutureInventory
+                         where
+                             ((a.Sku == sku) )
+                         select a).ToList();
+            }
+            else
+            {
+                model = new List<LegacyFutureInventory>();
+            }
+
+            return View(new GridModel(model));
+        }
+
+
+        [GridAction]
+        public ActionResult _LegacyInventoryFinal(string sku)
+        {
+
+            List<LegacyInventory> model;
+            if (sku != null)
+            {
+                model = (new LegacyInventoryDAO()).GetLegacyInventoryForSku(sku);
+            }
+            else
+            {
+                model = new List<LegacyInventory>();
+            }
+
+            return View(new GridModel(model));
+        }
+
+        [GridAction]
+        public ActionResult _LegacyFutureInventoryFinal(string sku)
+        {
+
+            List<LegacyFutureInventory> model;
+            if (sku != null)
+            {
+                model = (new LegacyFutureInventoryDAO()).GetLegacyFutureInventoryForSku(sku);
+            }
+            else
+            {
+                model = new List<LegacyFutureInventory>();
+            }
+
+            return View(new GridModel(model));
+        }
+
+        #endregion
+
+        #region TroubleShoot RDQs
+        [CheckPermission(Roles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning")]
+        public ActionResult TroubleshootRDQ(string instanceID)
+        {
+            TroubleshootRDQModel model = new TroubleshootRDQModel();
+            model.AvailableInstances = (from a in db.Instances select a).ToList();
+            Instance inst = new Instance();
+            inst.Name = "";
+            model.AvailableInstances.Insert(0, inst);
+            model.InstanceID = Convert.ToInt32(instanceID);
+            model.ControlDate = (from a in db.ControlDates where a.InstanceID == model.InstanceID select a.RunDate).FirstOrDefault();
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult TroubleshootRDQ(TroubleshootRDQModel model)
+        {
+            model.AvailableInstances = (from a in db.Instances select a).ToList();
+            Instance inst = new Instance();
+            inst.Name = "";
+            model.AvailableInstances.Insert(0, inst);
+            return View(model);
+        }
+
+        [GridAction]
+        public ActionResult _TroubleshootRDQToMF(int instance, DateTime controldate)
+        {
+
+            List<RDQ> model;
+
+            RDQDAO dao = new RDQDAO();
+            if (instance > 0)
+            {
+                model = GetRDQExtractForDate(instance, controldate);
+            }
+            else
+            {
+                model = new List<RDQ>();
+            }
+            return View(new GridModel(model));
+        }
+
+        private List<RDQ> GetRDQExtractForDate(int instance, DateTime controldate)
+        {
+            List<RDQ> model;
+            if ((Session["rdqExtract"] != null) &&
+                ((String)Session["rdqdate"] == (instance + "-" + controldate.ToShortDateString())))
+            {
+                model = (List<RDQ>)Session["rdqExtract"];
+            }
+            else
+            {
+                RDQDAO dao = new RDQDAO();
+
+                model = dao.GetRDQExtractForDate(instance, controldate);
+
+                Session["rdqdate"] = (instance + "-" + controldate.ToShortDateString());
+                Session["rdqExtract"] = model;
+            }
+            return model;
+        }
+
+
+        #endregion  
+
+        #region TroubleShoot RDQs for Sku
+        [CheckPermission(Roles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning")]
+        public ActionResult TroubleshootRDQForSku(string sku)
+        {
+            TroubleshootRDQForSkuModel model = new TroubleshootRDQForSkuModel();
+            model.Sku = sku;
+            if ((sku != null)&&(sku != ""))
+            {
+                string div = sku.Substring(0, 2);
+                model.ControlDate = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).FirstOrDefault();
+            }
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult TroubleshootRDQForSku(TroubleshootRDQForSkuModel model)
+        {
+            if (model.ControlDate == null)
+            {
+                string div = model.Sku.Substring(0, 2);
+                model.ControlDate = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).FirstOrDefault();
+            }
+            return View(model);
+        }
+
+        [GridAction]
+        public ActionResult _TroubleshootRDQForSkuToMF(string sku, DateTime? controldate)
+        {
+            List<RDQ> model;
+
+            RDQDAO dao = new RDQDAO();
+            if ((sku != null)&&(sku != ""))
+            {
+                model = GetRDQExtractForSkuDate(sku, controldate);
+            }
+            else
+            {
+                model = new List<RDQ>();
+            }
+            return View(new GridModel(model));
+        }
+
+        private List<RDQ> GetRDQExtractForSkuDate(string sku, DateTime? controldate)
+        {
+
+            RDQDAO dao = new RDQDAO();
+
+            List<RDQ> model = dao.GetRDQExtractForSkuDate(sku, Convert.ToDateTime(controldate));
+
+            return model;
+        }
+
+
+        #endregion  
+
+
+        #region WMS Request
+
+        [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes")]
+        public ActionResult RequestWSM()
+        {
+            WSMRequestModel model = new WSMRequestModel();
+            //model.Instances = db.Instances.ToList();
+            return View(model);
+        }
+
+        [HttpPost]
+        [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes")]
+        public ActionResult RequestWSM(WSMRequestModel model, string submitAction)
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+            Excel excelDocument = new Excel();
+
+            WSMDAO dao = new WSMDAO();
+
+            if (submitAction == "WSM")
+            {
+                List<WSM> list = dao.GetWSM(model.Sku);
+
+                int row = 1;
+                int page = 0;
+                Worksheet mySheet = InitializeNewSheet(excelDocument, 0);
+
+                for (int i = 0; i < 12; i++)
+                {
+                    mySheet.Cells[0, i].Style.Font.IsBold = true;
+                }
+
+                foreach (WSM w in list)
+                {
+                    mySheet.Cells[row, 0].PutValue(w.RunDate);
+                    mySheet.Cells[row, 1].PutValue(w.TargetProduct);
+                    mySheet.Cells[row, 2].PutValue(w.TargetProductId);
+                    mySheet.Cells[row, 3].PutValue(w.TargetLocation);
+                    mySheet.Cells[row, 4].PutValue(w.MatchProduct);
+                    mySheet.Cells[row, 5].PutValue(w.MatchProductId);
+                    mySheet.Cells[row, 6].PutValue(w.ProductWeight);
+                    mySheet.Cells[row, 7].PutValue(w.MatchLocation);
+                    mySheet.Cells[row, 8].PutValue(w.LocationWeight);
+                    mySheet.Cells[row, 9].PutValue(w.FinalMatchWeight);
+                    mySheet.Cells[row, 10].PutValue(w.FinalMatchDemand);
+                    mySheet.Cells[row, 11].PutValue(w.LastCapturedDemand);
+                    mySheet.Cells[row, 12].PutValue(w.StatusCode);
+                    row++;
+                    if (row > 60000)
+                    {
+                        //new page
+                        row = 1;
+                        page++;
+                        for (int i = 0; i < 12; i++)
+                        {
+                            mySheet.AutoFitColumn(i);
+                        }
+                        mySheet = InitializeNewSheet(excelDocument, page);
+                    }
+                }
+
+                for (int i = 0; i < 12; i++)
+                {
+                    mySheet.AutoFitColumn(i);
+                }
+                excelDocument.Save(model.Sku + "-WSM.xls", SaveType.OpenInExcel, FileFormatType.Default,
+                    System.Web.HttpContext.Current.Response);
+            }
+            else if (submitAction == "LocClus")
+            {
+                List<QuantumSeasonalityData> results = dao.getQuantumSeasonalityData(model.Sku);
+
+                int row = 1;
+                int page = 0;
+                Worksheet mySheet = InitializeNewSheetForSeasonalDownload(excelDocument, 0);
+
+                for (int i = 0; i < 3; i++)
+                {
+                    mySheet.Cells[0, i].Style.Font.IsBold = true;
+                }
+
+                foreach (QuantumSeasonalityData qsd in results)
+                {
+                    mySheet.Cells[row, 0].PutValue(qsd.locationFinalNodeID);
+                    mySheet.Cells[row, 1].PutValue(qsd.weekBeginDate);
+                    mySheet.Cells[row, 1].Style.Number = 14;
+                    mySheet.Cells[row, 2].PutValue(qsd.indexValue);
+                    mySheet.Cells[row, 2].Style.Number = 2;
+
+                    row++;
+                    if (row > 60000)
+                    {
+                        //new page
+                        row = 1;
+                        page++;
+                        for (int i = 0; i < 3; i++)
+                        {
+                            mySheet.AutoFitColumn(i);
+                        }
+                        mySheet = InitializeNewSheetForSeasonalDownload(excelDocument, page);
+                    }
+                }
+
+                for (int i = 0; i < 3; i++)
+                {
+                    mySheet.AutoFitColumn(i);
+                }
+                excelDocument.Save(model.Sku + "-LocClus.xls", SaveType.OpenInExcel, FileFormatType.Default,
+                    System.Web.HttpContext.Current.Response);
+            }
+            //model.Instances = db.Instances.ToList();
+            return View(model);
+        }
+
+        private Worksheet InitializeNewSheet(Excel excelDocument, int page)
+        {
+            if (page > 0)
+            {
+                excelDocument.Worksheets.Add();
+            }
+            Worksheet mySheet = excelDocument.Worksheets[page];
+            mySheet.Cells[0, 0].PutValue("RunDate");
+            mySheet.Cells[0, 1].PutValue("TargetProduct");
+            mySheet.Cells[0, 2].PutValue("TargetProductID");
+            mySheet.Cells[0, 3].PutValue("TargetLocation");
+            mySheet.Cells[0, 4].PutValue("MatchProduct");
+            mySheet.Cells[0, 5].PutValue("MatchProductID");
+            mySheet.Cells[0, 6].PutValue("ProductWeight");
+            mySheet.Cells[0, 7].PutValue("MatchLocation");
+            mySheet.Cells[0, 8].PutValue("LocationWeight");
+            mySheet.Cells[0, 9].PutValue("FinalMatchWeight");
+            mySheet.Cells[0, 10].PutValue("FinalMatchDemand");
+            mySheet.Cells[0, 11].PutValue("LastCapturedDemand");
+            mySheet.Cells[0, 12].PutValue("StatusCode");
+            return mySheet;
+        }
+
+        private Worksheet InitializeNewSheetForSeasonalDownload(Excel excelDocument, int page)
+        {
+            if (page > 0)
+            {
+                excelDocument.Worksheets.Add();
+            }
+            Worksheet mySheet = excelDocument.Worksheets[page];
+            mySheet.Cells[0, 0].PutValue("Location Node ID");
+            mySheet.Cells[0, 1].PutValue("Week Begin Date");
+            mySheet.Cells[0, 2].PutValue("Index Value");
+            return mySheet;
+        }
+        #endregion
+
+    }
+}

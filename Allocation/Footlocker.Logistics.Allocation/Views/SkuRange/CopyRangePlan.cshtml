@@ -1,0 +1,114 @@
+﻿@model Footlocker.Logistics.Allocation.Models.CopyRangePlanModel
+
+@{
+    ViewBag.Title = "CopyRangePlan";
+}
+
+<h2>CopyRangePlan</h2>
+<script type="text/javascript">
+
+        function changeSkuValue(e) {
+            $('#FromSku').val(e.value);
+        }
+        function changeDescValue(e) {
+            $('#FromDescription').val(e.value);
+        }
+</script>
+
+@if (Model != null)
+{
+@Html.Raw("<font color='red'>" + Model.Message + "</font>")
+}
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>CopyRangePlanModel</legend>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.PlanType)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.PlanType, new List<SelectListItem> { new SelectListItem{Text="ALR",Value="ALR"},
+                                                                                    new SelectListItem{Text="FOP",Value="FOP"}})
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.FromSku)
+        </div>
+        <div class="editor-field">
+        @Html.HiddenFor(model => model.FromSku)
+                @(Html.Telerik().AutoComplete()
+                    .Name("AjaxSku")
+                    .AutoFill(true)
+                    .DataBinding(binding => binding.Ajax()
+                                                   .Select("_AutoCompleteSku", "SkuRange")
+                                                   .Delay(400)
+                                                   .Cache(true)
+                    )
+                    .Filterable(filtering =>
+                    {
+                        filtering.FilterMode((AutoCompleteFilterMode)Enum.Parse(typeof(AutoCompleteFilterMode),
+                            "StartsWith"));
+                        filtering.MinimumChars(1);
+                    })
+                    .Multiple(multi => multi.Enabled(false))
+                    .HighlightFirstMatch(true)
+                    .ClientEvents(events => events.OnChange("changeSkuValue"))
+
+                )
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.FromDescription)
+        </div>
+        <div class="editor-field">
+        @Html.HiddenFor(model => model.FromDescription)
+                @(Html.Telerik().AutoComplete()
+                    .Name("AjaxDescription")
+                    .AutoFill(true)
+                    .DataBinding(binding => binding.Ajax()
+                    .Select("_AutoCompleteDescription", "SkuRange")
+                    .Delay(400)
+                    .Cache(true)
+                    )
+                    .Filterable(filtering =>
+                    {
+                        filtering.FilterMode((AutoCompleteFilterMode)Enum.Parse(typeof(AutoCompleteFilterMode),
+                            "StartsWith"));
+                        filtering.MinimumChars(1);
+                    })
+                    .Multiple(multi => multi.Enabled(false))
+                    .HighlightFirstMatch(true)
+                    .ClientEvents(events => events.OnChange("changeDescValue"))
+                )
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.ToSku)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.ToSku)
+            @Html.ValidationMessageFor(model => model.ToSku)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.ToDescription)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.ToDescription)
+            @Html.ValidationMessageFor(model => model.ToDescription)
+        </div>
+
+        <p>
+            <input type="submit" value="Create" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
