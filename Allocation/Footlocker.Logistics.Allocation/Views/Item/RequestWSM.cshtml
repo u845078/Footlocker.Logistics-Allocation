@@ -1,17 +1,17 @@
 ﻿@model Footlocker.Logistics.Allocation.Models.WSMRequestModel
 
 @{
-    ViewBag.Title = "Request WSM";
+    ViewBag.Title = "Download Quantum Data";
 }
 
-<h2>Request WSM</h2>
+<h2>@ViewBag.Title</h2>
 
 @using (Html.BeginForm()) {
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
 
     <fieldset>
-        <legend>WSM Request</legend>
+        <legend>Download Data For</legend>
 
         <div class="editor-label">
             @Html.LabelFor(model => model.Sku)
@@ -22,8 +22,12 @@
         </div>
 
         <p>
-            <input type="submit" value="Download" />
+            <button type="submit" name="submitAction" value="WSM">Download WSM Data</button>            
+            &nbsp;&nbsp;&nbsp;
+            <button type="submit" name="submitAction" value="LocClus">Download Seasonality Data</button>
         </p>
+
+
     </fieldset>
 }
 

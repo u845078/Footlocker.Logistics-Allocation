@@ -12,6 +12,7 @@ namespace Footlocker.Logistics.Allocation.Models
         {
         }
 
+        [Required(ErrorMessage ="SKU is a required field")]
         [RegularExpression(@"^\d{2}-\d{2}-\d{5}-\d{2}$", ErrorMessage = "SKU must be in the format ##-##-#####-##")]
         public string Sku { get; set; }
 

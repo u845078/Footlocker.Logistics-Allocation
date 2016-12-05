@@ -1,0 +1,71 @@
+﻿@using Telerik.Web.Mvc;
+@{
+    ViewBag.Title = "ARConstraintsUpload";
+}
+
+<fieldset>
+    <legend> AR Constraints Upload </legend>
+    <br />
+    @Html.ActionLink("Download Template","ExcelARConstraintsUploadTemplate",new {}, new {@class = "t-button"})
+    <br />
+    <br />
+    <b>This upload will create new AR constraints or override existing AR constraints data.</b>
+    <br />
+    <b>The following validations must pass before the upload:</b>
+    <br/>
+    <ul>
+        <li>All required columns must have data</li>
+        <li>Skus must be in a division you have permissions to</li>
+        <li>Skus must exist in ItemMaster</li>
+        <li>Skus must exist in AR Skus</li>
+    </ul>
+    <b>Please select spreadsheet with AR Constraints to upload: </b>
+        <br />
+        <br />
+    @(Html.Telerik().Upload()
+        .Name("attachments")
+        .Multiple(false)
+        .Async(async => async
+            .Save("SaveARConstraints", "Upload")
+            .AutoUpload(false))
+            .ShowFileList(true)
+        .ClientEvents(events => events
+            .OnError("onError")
+            .OnSelect("onSelect")
+                    .OnSuccess("onSuccess")
+            )
+        )
+        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
+        <br />
+        <h4> <div id="message"></div> </h4>
+</fieldset>
+ 
+     <script type="text/javascript">
+
+        function onSelect(e) {
+            var files = e.files;
+            if (files[0].extension != ".xls") {
+                alert("Document must be a spreadsheet with a xls extension. ");
+                e.preventDefault();
+            }
+            else{
+                 document.getElementById('spreadsheet').style.visibility = 'visible';
+             }
+             $('#message').empty();
+        }
+
+        function onError(e) {
+            var message = e.XMLHttpRequest.responseText;
+            $('#message').empty().append("<font color='red'>"+message+"</font>");
+
+             e.preventDefault();
+         }
+
+         function onSuccess(e) {
+             var message = e.XMLHttpRequest.responseText;
+             $('#message').empty().append("<font color='red'>Success</font>");
+
+             e.preventDefault();
+         }
+    </script>
+    

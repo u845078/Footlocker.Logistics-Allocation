@@ -34,6 +34,7 @@
         .Name("StoreBTS")
         .Columns(columns =>
         {
+            columns.Bound(o => o.ClusterID).Title("Cluster ID").Width(75);
             columns.Bound(o => o.Year).Width(100);
             columns.Bound(o => o.Name).Width(150);
             columns.Bound(o => o.Count);

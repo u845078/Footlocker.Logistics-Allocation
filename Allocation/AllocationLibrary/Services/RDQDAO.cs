@@ -148,7 +148,7 @@ namespace Footlocker.Logistics.Allocation.Services
             _que = new List<RDQ>();
 
             DbCommand SQLCommand;
-            string SQL = "dbo.[getUniqueRDQsForHold]";
+            string SQL = "dbo.[getUniqueRDQsForHoldXml]";
 
             string holdXml = Hold.ToXml(holds);
 
@@ -156,6 +156,7 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.AddInParameter(SQLCommand, "@Xml", DbType.Xml, holdXml);
 
             DataSet data = new DataSet();
+            SQLCommand.CommandTimeout = 0;
             data = _database.ExecuteDataSet(SQLCommand);
 
             RDQFactory factory = new RDQFactory();

@@ -86,6 +86,12 @@ namespace Footlocker.Logistics.Allocation.DAO
         public DbSet<Config> Configs { get; set; }
         public DbSet<ConfigParam> ConfigParams { get; set; }
         public DbSet<OrderPlanningRequest> OrderPlanningRequests { get; set; }
+        public DbSet<ProductOverrideTypes> ProductOverrideTypes { get; set; }
+        public DbSet<ProductHierarchyOverrides> ProductHierarchyOverrides { get; set; }
+        public DbSet<Departments> Departments { get; set; }
+        public DbSet<Categories> Categories { get; set; }
+        public DbSet<BrandIDs> BrandIDs { get; set; }
+        public DbSet<RingFenceStatusCodes> RingFenceStatusCodes { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -175,9 +181,9 @@ namespace Footlocker.Logistics.Allocation.DAO
             int qty=0;
             var details = (from a in this.RingFenceDetails
                            where ((a.RingFenceID == det.RingFenceID) &&
-                               (a.Size.Length == 3)
-                               && ((a.Size != det.Size) || (a.PO != det.PO) || (a.DCID != det.DCID))
-                               )
+                               (a.Size.Length == 3) &&
+                               (a.ActiveInd == "1") &&
+                               ((a.Size != det.Size) || (a.PO != det.PO) || (a.DCID != det.DCID)))
                            select a.Qty);
             if (details.Count() > 0)
             {
@@ -189,8 +195,10 @@ namespace Footlocker.Logistics.Allocation.DAO
             }
 
             var caselots = (from a in this.RingFenceDetails
-                            where ((a.RingFenceID == det.RingFenceID) && (a.Size.Length == 5))
-                                && ((a.Size != det.Size) || (a.PO != det.PO) || (a.DCID != det.DCID))
+                            where ((a.RingFenceID == det.RingFenceID) && 
+                                   (a.Size.Length == 5)) &&
+                                   a.ActiveInd == "1" &&
+                                  ((a.Size != det.Size) || (a.PO != det.PO) || (a.DCID != det.DCID))
                             select a).ToList();
             foreach (RingFenceDetail cs in caselots)
             {

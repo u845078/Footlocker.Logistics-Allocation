@@ -40,7 +40,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [GridAction]
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,Admin,Support")]
         public ActionResult _StoreDefaults(int InstanceID, Int64 ItemID)
         {
             List<MandatoryCrossdockDefault> model = (from a in db.MandatoryCrossdockDefaults where ((a.InstanceID == InstanceID) && (a.ItemID == ItemID)) select a).ToList();

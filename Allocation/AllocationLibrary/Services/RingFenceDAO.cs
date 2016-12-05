@@ -122,7 +122,11 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                     det.PriorityCode = Convert.ToString(dr["PRIORITY_CODE"]);
                     existingRingFenceQty = (from a in list where ((a.Sku == rf.Sku) && (a.Size == det.Size) && (a.DC == warehouse) && (a.PO == det.PO)) select a.Qty).Sum();
 
-                    var currQtyQuery = (from a in db.RingFenceDetails where ((a.RingFenceID == det.RingFenceID) && (a.Size == det.Size)) select a.Qty);
+                    var currQtyQuery = (from a in db.RingFenceDetails
+                                        where ((a.RingFenceID == det.RingFenceID) && 
+                                               (a.Size == det.Size) &&
+                                               (a.ActiveInd == "1"))
+                                        select a.Qty);
                     if (currQtyQuery.Count() > 0)
                     {
                         currentRingFenceQty = currQtyQuery.Sum();
@@ -185,7 +189,11 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                     det.PriorityCode = "";
                     existingRingFenceQty = (from a in list where ((a.Sku == rf.Sku) && (a.Size == det.Size) && (a.DC == warehouse) && (a.PO == det.PO)) select a.Qty).Sum();
 
-                    var currQtyQuery = (from a in db.RingFenceDetails where ((a.RingFenceID == det.RingFenceID) && (a.Size == det.Size)) select a.Qty);
+                    var currQtyQuery = (from a in db.RingFenceDetails
+                                        where ((a.RingFenceID == det.RingFenceID) && 
+                                               (a.Size == det.Size) &&
+                                               (a.ActiveInd == "1"))
+                                        select a.Qty);
                     if (currQtyQuery.Count() > 0)
                     {
                         currentRingFenceQty = currQtyQuery.Sum();
@@ -232,7 +240,9 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             int existingRingFenceQty = 0;
             int currentRingFenceQty = 0;
 
-            Int32 instanceid = (from a in db.InstanceDivisions where a.Division == div select a.InstanceID).First();
+            Int32 instanceid = (from a in db.InstanceDivisions
+                                where a.Division == div
+                                select a.InstanceID).First();
 
             RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
             List<RingFenceSummary> list = summaryDAO.GetRingFenceSummaries(Convert.ToString(instanceid));
@@ -289,7 +299,13 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                         }
                         det.PO = "";
                         existingRingFenceQty = (from a in list where ((a.Sku == sku) && (a.Size == det.Size) && (a.DC == tempWarehouse) && ((a.PO == "N\\A") || (a.PO == ""))) select a.Qty).Sum();
-                        var currQtyQuery = (from a in db.RingFenceDetails where ((a.RingFenceID == det.RingFenceID) && (a.Size == det.Size) && (a.DCID == dc.ID) && ((a.PO == "N\\A") || (a.PO == ""))) select a.Qty);
+                        var currQtyQuery = (from a in db.RingFenceDetails
+                                            where ((a.RingFenceID == det.RingFenceID) && 
+                                                   (a.Size == det.Size) && 
+                                                   (a.DCID == dc.ID) && 
+                                                   (a.ActiveInd == "1") &&
+                                                   ((a.PO == "N\\A") || (a.PO == "")))
+                                            select a.Qty);
                         if (currQtyQuery.Count() > 0)
                         {
                             currentRingFenceQty = currQtyQuery.Sum();
@@ -343,7 +359,13 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                         }
                         det.PO = "";
                         existingRingFenceQty = (from a in list where ((a.Sku == sku) && (a.Size == det.Size) && (a.DC == tempWarehouse) && ((a.PO == "N\\A") || (a.PO == ""))) select a.Qty).Sum();
-                        var currQtyQuery = (from a in db.RingFenceDetails where ((a.RingFenceID == det.RingFenceID) && (a.Size == det.Size) && (a.DCID == dc.ID) && ((a.PO == "N\\A") || (a.PO == ""))) select a.Qty);
+                        var currQtyQuery = (from a in db.RingFenceDetails
+                                            where ((a.RingFenceID == det.RingFenceID) && 
+                                                   (a.Size == det.Size) && 
+                                                   (a.DCID == dc.ID) && 
+                                                   (a.ActiveInd == "1") &&
+                                                   ((a.PO == "N\\A") || (a.PO == "")))
+                                            select a.Qty);
                         if (currQtyQuery.Count() > 0)
                         {
                             currentRingFenceQty = currQtyQuery.Sum();
@@ -405,7 +427,10 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             db.SaveChanges();
 
             RingFence rf = (from a in db.RingFences where a.ID == det.RingFenceID select a).First();            
-            rf.Qty = (from a in db.RingFenceDetails where a.RingFenceID == det.RingFenceID select a.Qty).Sum();
+            rf.Qty = (from a in db.RingFenceDetails
+                      where a.RingFenceID == det.RingFenceID &&
+                            a.ActiveInd == "1"
+                      select a.Qty).Sum();
             rf.CreateDate = DateTime.Now;
             rf.CreatedBy = user;
             db.Entry(rf).State = EntityState.Modified;

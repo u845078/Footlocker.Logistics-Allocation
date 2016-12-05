@@ -2,11 +2,47 @@
 
 @{
     ViewBag.Title = "Edit";
+    bool hasEditRole = Convert.ToBoolean(ViewData["hasEditRole"]);
 }
 <script>
-    function popupDepartment(checkbox) {
-        checkbox.checked = "true";
-        alert("Department MUST be mandatory");
+    function onLoadSlider() {
+        var weightActive = $('#WeightActive').data('tSlider'); // get slider object
+        weightActive.value(@Model.WeightActive);
+    }
+
+    function enableCheckbox(cb, attr) {
+   
+        if (cb.checked) {
+            $('#Attributes_' + attr + '__WeightInt').val(0);
+            $('#Attributes_' + attr + '__WeightInt').attr("disabled", "disabled");
+            return true;
+        }
+        else
+        {
+            var isEnabled = true;
+
+            if (attr == 0) {
+                isEnabled = false;
+                alert("Department attribute is Mandatory!");
+            } 
+            else if (attr == 1 && $('#Category').val() != "") {
+                isEnabled = false;
+                alert("Category attribute is Mandatory when a Category is selected!");
+            }
+            else if (attr == 3 && $('#BrandID').val() != "") {
+                isEnabled = false;
+                alert("BrandID attribute is Mandatory when a BrandID is selected!");
+            } 
+
+            if (isEnabled == true) {
+                $('#Attributes_' + attr + '__WeightInt').removeAttr("disabled");
+                return true;
+            } else {
+                $('#Attributes_' + attr + '__WeightInt').val(0);
+                $('#Attributes_' + attr + '__WeightInt').attr("disabled", "disabled");
+                return false;
+            }
+        }
     }
 
     function updateSum() {
@@ -40,27 +76,58 @@
     })
 
 </script>
-<h2>Edit Quantum Attribute Matching</h2>
+    @if (hasEditRole)
+    {
+        <h2>Edit Quantum Attribute Matching</h2>
+    }
+    else
+    {
+        <h2>View Quantum Attribute Matching</h2>
+    }
+
 @using (Html.BeginForm("Edit", "SkuAttribute"))
 {
+    @Html.HiddenFor(model => model.HeaderID)
+
 <fieldset>
 <div class="editor-field">
+    @Html.LabelFor(model => model.Division)
+    <br/>
     @Html.DropDownListFor(model => model.Division, new SelectList(Model.Divisions, "DivCode", "DivisionName"), new { disabled = true })
     @Html.HiddenFor(model => model.Division)
 </div>
 
 <div class="editor-field">
+    @Html.LabelFor(model => model.Department)
+    <br/>
     @Html.DropDownListFor(model => model.Department, new SelectList(Model.Departments, "DeptNumber", "DisplayName"), new { disabled = true })
     @Html.HiddenFor(model => model.Department)
 </div>
 <div class="editor-field">
-    @Html.LabelFor(model => model.Category)
-    @Html.DisplayFor(model => model.Category) 
     @if (Model.Category == null)
     { 
-        @Html.Raw("default")
+        @Html.Raw("Category: default")
+    }
+    else
+    {
+        @Html.LabelFor(model => model.Category) 
+        <br/>
+        @Html.DropDownListFor(model => model.Category, new SelectList(Model.Categories, "categoryCode", "categoryDisplay"), new { disabled = true })
     }
     @Html.HiddenFor(model => model.Category)
+</div>
+<div class="editor-field">
+    @if (Model.BrandID == null)
+    { 
+        @Html.Raw("BrandID: default")
+    }
+    else
+    {
+        @Html.LabelFor(model => model.BrandID)
+        <br/>
+        @Html.DropDownListFor(model => model.BrandID, new SelectList(Model.Brands, "brandIDCode", "brandIDDisplay"), new { disabled = true })
+    }
+    @Html.HiddenFor(model => model.BrandID)
 </div>
 <div class="editor-field">
     @Html.LabelFor(model => model.WeightActive) 
@@ -76,6 +143,8 @@
               .SmallStep(1)
               .LargeStep(10)
               .Value(Model.WeightActive)
+              .ClientEvents(events => events
+            .OnLoad("onLoadSlider"))
         )
     Active
     </div>
@@ -100,18 +169,18 @@
     </td>
     <td>
         @Html.LabelFor(model => Model.Attributes[count].Mandatory)
-        @if (Model.Attributes[count].AttributeType == "Department")
-        {
-            @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory, new { onclick = "popupDepartment(this)" })
-        }
-        else
-        {
-            @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory)
-        }
+        @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory, new { onclick = "return enableCheckbox(this," + count + ");" })
     </td>
     <td>
         @Html.LabelFor(model => Model.Attributes[count].Weight)
+        @if (Model.Attributes[count].Mandatory)
+        {
+        @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { disabled = "disabled", style = "width: 3em;", onblur = "updateSum();" })
+        }
+        else
+        {           
         @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { style = "width: 3em;", onblur = "updateSum();" })
+        }
     </td>
     </tr>
 
@@ -125,9 +194,13 @@
     </tr>    
 </table>
 
+    @if (hasEditRole)
+    {
         <p>
             <input type="submit" value="Save" />
         </p>
+    }
+
     </fieldset>
     
 }

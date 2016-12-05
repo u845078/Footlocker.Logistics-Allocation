@@ -18,7 +18,7 @@ using System.Text.RegularExpressions;
 namespace Footlocker.Logistics.Allocation.Controllers
 {
 
-    [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,VP of Allocation,Admin,Support")]
+    [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,Admin,Support")]
     public class SkuRangeController : AppController
     {
         public const int _DEFAULT_MAX_LEADTIME = 5;
@@ -3492,7 +3492,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #endregion
 
 
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Planner,Director of Planning,VP of Planning,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult UploadRange()
         {
             return View();
@@ -3503,7 +3503,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// </summary>
         /// <param name="attachments"></param>
         /// <returns></returns>
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Planner,Director of Planning,VP of Planning,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult BulkSave(IEnumerable<HttpPostedFileBase> attachments)
         {
             return BulkSaveRange(attachments, false);
@@ -3514,7 +3514,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// </summary>
         /// <param name="attachments"></param>
         /// <returns></returns>
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Planner,Director of Planning,VP of Planning,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult BulkSaveWithPurge(IEnumerable<HttpPostedFileBase> attachments2)
         {
             return BulkSaveRange(attachments2, true);

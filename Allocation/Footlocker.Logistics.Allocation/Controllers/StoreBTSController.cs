@@ -11,7 +11,7 @@ using Footlocker.Logistics.Allocation.Services;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
-    [CheckPermission(Roles = "Director of Allocation,VP of Allocation,Admin,Support")]
+    [CheckPermission(Roles = "Director of Allocation,Admin,Support")]
     public class StoreBTSController : AppController
     {
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
@@ -41,6 +41,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 model.CurrentDivision = div;
                 model.List = (from a in db.StoreBTS where a.Division == div select a).ToList();
+                foreach (var storeBTSRec in model.List)
+                {
+                    storeBTSRec.ClusterID = (from a in db.StoreClusters
+                                             where a.Division == storeBTSRec.Division &&
+                                                   a.Name == storeBTSRec.Name
+                                             select a.ID).FirstOrDefault();
+                }
                 var query = (from a in db.StoreBTSControls where a.Division == div select a);
                 if (query.Count() > 0)
                 {

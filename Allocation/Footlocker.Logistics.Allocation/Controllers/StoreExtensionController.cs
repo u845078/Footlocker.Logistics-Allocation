@@ -11,7 +11,7 @@ using Footlocker.Logistics.Allocation.Common;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
-    [CheckPermission(Roles = "Space Planning,Director of Allocation,VP of Allocation,Admin,Support,Advanced Merchandiser Processes")]
+    [CheckPermission(Roles = "Space Planning,Director of Allocation,Admin,Support,Advanced Merchandiser Processes")]
     public class StoreExtensionController : AppController
     {
         #region Initializations

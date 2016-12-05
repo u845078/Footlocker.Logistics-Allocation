@@ -15,7 +15,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     {
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
 
-        [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support")]
         public ActionResult Index(string message)
         {
             List<DirectToStoreSku> model;
@@ -26,7 +26,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,Admin,Support")]
         public ActionResult Constraints()
         {
             List<DTSConstraintModel> model;
@@ -38,28 +38,38 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,Admin,Support")]
         public ActionResult OneSizeConstraints()
         {
             return View();
         }
 
         [GridAction]
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,Admin,Support")]
         public ActionResult _OneSizeConstraints()
         {
-            DirectToStoreDAO dao = new DirectToStoreDAO();
             List<DirectToStoreConstraint> model;
-            List<DirectToStoreConstraint> allDTS = dao.GetDTSConstraintsOneSize();
 
-            model = (from a in allDTS join b in this.Departments() on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } orderby a.Sku select a).ToList();
+            if (Session["OneSizeConstraintsList"] == null)
+            {
+                DirectToStoreDAO dao = new DirectToStoreDAO();
+                List<DirectToStoreConstraint> allDTS = dao.GetDTSConstraintsOneSize();
+                model = (from a in allDTS join b in this.Departments() on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } orderby a.Sku select a).ToList();
+                Session["OneSizeConstraintsList"] = model;
+            }
+            else
+            {
+                model = (List<DirectToStoreConstraint>)Session["OneSizeConstraintsList"];
+            }
+
             return View(new GridModel(model));
         }
 
         [GridAction]
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,Admin,Support")]
         public ActionResult _SaveOneSizeDetail([Bind(Prefix = "updated")]IEnumerable<DirectToStoreConstraint> updated)
         {
+            Session["OneSizeConstraintsList"] = null;
             if (updated != null)
             {
                 foreach (DirectToStoreConstraint update in updated)
@@ -83,17 +93,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 // Persist constraint changes
                 db.SaveChanges();
             }
-            
-            DirectToStoreDAO dao = new DirectToStoreDAO();
-            List<DirectToStoreConstraint> model;
-            List<DirectToStoreConstraint> allDTS = dao.GetDTSConstraintsOneSize();
 
-            model = (from a in allDTS join b in this.Departments() on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } orderby a.Sku select a).ToList();
-            return View(new GridModel(model));
+            //DirectToStoreDAO dao = new DirectToStoreDAO();
+            //List<DirectToStoreConstraint> model;
+            //List<DirectToStoreConstraint> allDTS = dao.GetDTSConstraintsOneSize();
+
+            //model = (from a in allDTS join b in this.Departments() on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } orderby a.Sku select a).ToList();
+            return View(new GridModel(new List<DirectToStoreConstraint>()));
         }
 
+
         [GridAction]
-        //[CheckPermission(Roles = "Head Merchandiser,Div Logistics,Logistics,Director of Allocation,VP of Allocation,Admin,Support")]
+        //[CheckPermission(Roles = "Head Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support")]
         public ActionResult _Index()
         {
             List<DirectToStoreSku> model;
@@ -106,7 +117,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [GridAction]
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,VP of Allocation,Admin,Support,")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult _Constraints()
         {
             List<DirectToStoreSku> model;
@@ -115,7 +126,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(new GridModel(model));
         }
 
-        [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,VP of Allocation,Admin,Support,")]
+        [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult Create()
         {
             DirectToStoreSku model = new DirectToStoreSku();
@@ -125,7 +136,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
-        [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,VP of Allocation,Admin,Support,")]
+        [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult Create(DirectToStoreSku model)
         {
 
@@ -199,7 +210,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
 
-        [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,VP of Allocation,Admin,Support,")]
+        [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult Edit(string Sku)
         {
             DirectToStoreSku model = (from a in db.DirectToStoreSkus where a.Sku == Sku select a).First();
@@ -209,7 +220,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
-        [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,VP of Allocation,Admin,Support,")]
+        [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult Edit(DirectToStoreSku model)
         {
             DirectToStoreDAO vendorDao = new DirectToStoreDAO();
@@ -263,7 +274,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
 
-        [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,VP of Allocation,Admin,Support,")]
+        [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult Delete(string Sku)
         {
             DirectToStoreSku model = (from a in db.DirectToStoreSkus where a.Sku == Sku select a).First();
@@ -284,7 +295,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         }
 
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Logistics,Director of Allocation,VP of Allocation,Admin,Support,")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult Details(string Sku)
         {
             string temp = Sku;
@@ -316,7 +327,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [GridAction]
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Logistics,Director of Allocation,VP of Allocation,Admin,Support,")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult _Details(string Sku)
         {
             List<DirectToStoreConstraint> model = GetConstraintsForSku(Sku);
@@ -383,7 +394,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
 
         [HttpPost]
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,VP of Allocation,Admin,Support,")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult SaveDetail(FormCollection fc)
         {
             DirectToStoreConstraint model= new DirectToStoreConstraint();
@@ -424,7 +435,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,VP of Allocation,Admin,Support,")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult SaveOneSizeDetail(FormCollection fc)
         {
 

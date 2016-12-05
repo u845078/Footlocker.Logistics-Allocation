@@ -125,6 +125,12 @@ namespace Footlocker.Logistics.Allocation.Models
             set { _type = value; }
         }
 
+        [NotMapped]
+        public string ringFenceStatusCode { get; set; }
+
+        [NotMapped]
+        public RingFenceStatusCodes ringFenceStatus { get; set; }
+
         /// <summary>
         /// Initializes a new instance of the RingFence class.
         /// </summary>

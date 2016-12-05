@@ -5,7 +5,7 @@ using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using System.IO;
-
+using System.Text.RegularExpressions;
 using Aspose.Excel;
 
 using Footlocker.Common;
@@ -13,10 +13,13 @@ using Footlocker.Common.Utilities.File;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Common.Services;
+using System.Data.Common;
+using System.Data.Entity;
+using System.Xml.Serialization;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
-    public class UploadController : Controller
+    public class UploadController : AppController
     {
         #region Fields
 
@@ -90,7 +93,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         //}
         //#endregion
 
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,Admin,Support")]
         public ActionResult SkuTypeUpload()
         {
             return View();
@@ -102,7 +105,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// </summary>
         /// <param name="attachments"></param>
         /// <returns></returns>
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,Admin,Support")]
         public ActionResult Save(IEnumerable<HttpPostedFileBase> attachments)
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -308,7 +311,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
 
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Planner,Director of Planning,VP of Planning,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult ProductTypeUpload()
         {
             return View();
@@ -339,7 +342,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// </summary>
         /// <param name="attachments"></param>
         /// <returns></returns>
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Planner,Director of Planning,VP of Planning,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult SaveProductType(IEnumerable<HttpPostedFileBase> attachments)
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -1616,7 +1619,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         #region Sku Id Upload
 
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Planner,Director of Planning,VP of Planning,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult ExcelSkuIdUploadTemplate()
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -1635,7 +1638,45 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View("SkuIdUpload");
         }
 
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Planner,Director of Planning,VP of Planning,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
+        public ActionResult ExcelARSkusUploadTemplate()
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+            Excel excelDocument = new Excel();
+            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ARSkusUploadTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
+            Byte[] data1 = new Byte[file.Length];
+            file.Read(data1, 0, data1.Length);
+            file.Close();
+            MemoryStream memoryStream1 = new MemoryStream(data1);
+            excelDocument.Open(memoryStream1);
+            excelDocument.Save("ARSkusUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            //return View();
+            return View("ARSkusUpload");
+        }
+
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
+        public ActionResult ExcelARConstraintsUploadTemplate()
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+            Excel excelDocument = new Excel();
+            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ARConstraintsUploadTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
+            Byte[] data1 = new Byte[file.Length];
+            file.Read(data1, 0, data1.Length);
+            file.Close();
+            MemoryStream memoryStream1 = new MemoryStream(data1);
+            excelDocument.Open(memoryStream1);
+            excelDocument.Save("ARConstraintsUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            //return View();
+            return View("ARConstraintsUpload");
+        }
+
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult SaveSkuId(IEnumerable<HttpPostedFileBase> attachments)
         {
             string divCodeOfCurrentSpreadsheet = String.Empty;
@@ -1742,8 +1783,225 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Planner,Director of Planning,VP of Planning,Director of Allocation,VP of Allocation,Admin,Support")]
+        [CheckPermission(
+            Roles =
+                "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support"
+            )]
+        public ActionResult SaveARSkus(IEnumerable<HttpPostedFileBase> attachments)
+        {
+            Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+            string message = string.Empty;
+            bool errorsFound = false;
+            List<DirectToStoreSku> list = new List<DirectToStoreSku>();
+
+            foreach (HttpPostedFileBase file in attachments)
+            {
+                //Instantiate a Workbook object that represents an Excel file
+                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+                Byte[] data1 = new Byte[file.InputStream.Length];
+                file.InputStream.Read(data1, 0, data1.Length);
+                file.InputStream.Close();
+                MemoryStream memoryStream1 = new MemoryStream(data1);
+                workbook.Open(memoryStream1);
+                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+
+                // Determine if the spreadsheet contains a valid header row
+                var hasValidHeaderRow = ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("SKU"))
+                    && (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Start Date"))
+                    && (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("End Date"))
+                    && (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Buying Multiple"))
+                    && (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Order Sunday"))
+                    && (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Order Monday"))
+                    && (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Order Tuesday"))
+                    && (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Order Wednesday"))
+                    && (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Order Thursday")));
+
+                // Validate that the template's header row exists... (else error out)
+                if (!hasValidHeaderRow)
+                {
+                    errorsFound = true;
+                    message = "Upload failed: Incorrect header - please use template.";
+                }
+                else
+                {
+                    int row = 1;
+                    try
+                    {
+                        while (mySheet.Cells[row, 0].Value != null)
+                        {
+                            DirectToStoreSku item = new DirectToStoreSku();
+                            item.Sku = Convert.ToString(mySheet.Cells[row, 0].Value).Trim();
+                            item.StartDate = Convert.ToDateTime(mySheet.Cells[row, 1].Value);
+                            item.EndDate = Convert.ToDateTime(mySheet.Cells[row, 2].Value);
+                            item.VendorPackQty = Convert.ToInt32(mySheet.Cells[row, 3].Value);
+                            item.OrderSun = Convert.ToBoolean(mySheet.Cells[row, 4].Value);
+                            item.OrderMon = Convert.ToBoolean(mySheet.Cells[row, 5].Value);
+                            item.OrderTue = Convert.ToBoolean(mySheet.Cells[row, 6].Value);
+                            item.OrderWed = Convert.ToBoolean(mySheet.Cells[row, 7].Value);
+                            item.OrderThur = Convert.ToBoolean(mySheet.Cells[row, 8].Value);
+
+                            item.CreateDate = DateTime.Now;
+                            item.CreatedBy = this.UserName;
+
+                            list.Add(item);
+                            row++;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        errorsFound = true;
+                        message = "Upload failed: One ore more columns has missing or invalid data.";
+                    }                    
+                }
+            }
+
+            // Validate divisions 
+            if (!errorsFound)
+            {
+                var invalidList = (from a in list
+                    where !this.Divisions().Any(p => p.DivCode == a.Division)
+                    select a);
+
+                if (invalidList.Any())
+                {
+                    errorsFound = true;
+                    message = "Upload failed: One ore more Skus are in a division you do not have permissions for.";
+                }
+            }
+            
+            // Upload if spreadsheet has valid data
+            if (!errorsFound)
+            {
+                try
+                {
+                    var dao = new DirectToStoreDAO();
+                    dao.SaveARSkusUpload(list);
+                }
+                catch (Exception ex)
+                {
+                    message = "Upload failed: " + ex.Message;               
+                }
+            }
+
+            return Content(message);
+        }
+
+        [CheckPermission(
+            Roles =
+                "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support"
+            )]
+        public ActionResult SaveARConstraints(IEnumerable<HttpPostedFileBase> attachments)
+        {
+            Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+            string message = string.Empty;
+            bool errorsFound = false;
+            List<DirectToStoreConstraint> list = new List<DirectToStoreConstraint>();
+
+            foreach (HttpPostedFileBase file in attachments)
+            {
+                //Instantiate a Workbook object that represents an Excel file
+                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+                Byte[] data1 = new Byte[file.InputStream.Length];
+                file.InputStream.Read(data1, 0, data1.Length);
+                file.InputStream.Close();
+                MemoryStream memoryStream1 = new MemoryStream(data1);
+                workbook.Open(memoryStream1);
+                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+
+                // Determine if the spreadsheet contains a valid header row
+                var hasValidHeaderRow = ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("SKU"))
+                    && (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Size"))
+                    && (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Start Date"))
+                    && (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("End Date"))
+                    && (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Max Qty")));
+
+                // Validate that the template's header row exists... (else error out)
+                if (!hasValidHeaderRow)
+                {
+                    errorsFound = true;
+                    message = "Upload failed: Incorrect header - please use template.";
+                }
+
+                int row = 1;
+                try
+                {
+                    while (mySheet.Cells[row, 0].Value != null)
+                    {
+                        DirectToStoreConstraint item = new DirectToStoreConstraint();
+                        item.Sku = Convert.ToString(mySheet.Cells[row, 0].Value).Trim();
+                        item.Size = Convert.ToString(mySheet.Cells[row, 1].Value).Trim();
+                        item.StartDate = Convert.ToDateTime(mySheet.Cells[row, 2].Value);
+                        item.EndDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value);
+                        item.MaxQty = Convert.ToInt32(mySheet.Cells[row, 4].Value);
+
+                        item.CreateDate = DateTime.Now;
+                        item.CreatedBy = "ARConstraintsUpload";
+
+                        list.Add(item);
+                        row++;
+                    }
+                }
+                catch (Exception)
+                {
+                    errorsFound = true;
+                    message = "Upload failed: One ore more columns has missing or invalid data.";
+                }
+            }
+
+
+            // Validate divisions 
+            if (!errorsFound)
+            {
+                var invalidList = (from a in list
+                                   where !this.Divisions().Any(p => p.DivCode == a.Division)
+                                   select a);
+
+                if (invalidList.Any())
+                {
+                    errorsFound = true;
+                    message = "Upload failed: One ore more Skus are in a division you do not have permissions for.";
+                }
+            }
+
+            // Upload if spreadsheet has valid data
+            if (!errorsFound)
+            {
+                try
+                {
+                    var dao = new DirectToStoreDAO();
+                    dao.SaveARConstraintsUpload(list);
+                }
+                catch (Exception ex)
+                {
+                    message = "Upload failed: " + ex.Message;
+                }
+            }
+
+            return Content(message);
+        }
+
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult SkuIdUpload()
+        {
+            return View();
+        }
+
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
+        public ActionResult ARSkusUpload()
+        {
+            return View();
+        }
+
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
+        public ActionResult ARConstraintsUpload()
         {
             return View();
         }

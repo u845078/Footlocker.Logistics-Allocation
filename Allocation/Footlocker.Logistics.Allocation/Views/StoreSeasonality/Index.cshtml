@@ -27,6 +27,7 @@
         .Name("StoreSeasonality")
         .Columns(columns =>
         {
+            columns.Bound(o => o.ID).Title("Cluster ID").Width(75);
             columns.Bound(o => o.Name).Width(125);
             columns.Bound(o => o.ValidDetailsCount).Title("Count");
             columns.Bound(o => o.CreatedBy);

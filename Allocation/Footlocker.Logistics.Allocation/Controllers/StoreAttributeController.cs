@@ -8,7 +8,7 @@ using Footlocker.Logistics.Allocation.Services;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
-    [CheckPermission(Roles = "Space Planning,Director of Allocation,VP of Allocation,Admin,Support,Advanced Merchandiser Processes")]
+    [CheckPermission(Roles = "Space Planning,Director of Allocation,Admin,Support,Advanced Merchandiser Processes")]
     public class StoreAttributeController : AppController
     {
         //

@@ -14,11 +14,11 @@
 
 <h2>Sku Setup</h2>
 <p>
-    @Html.ActionLink("Create New", "CreateRangePlan", null, new { @class="t-button"})
+    @Html.ActionLink("Create New", "CreateRangePlan", null, new { @class = "t-button" })
 
-    @Html.ActionLink("Copy From", "CopyRangePlan", null, new { @class="t-button"})
+    @Html.ActionLink("Copy From", "CopyRangePlan", null, new { @class = "t-button" })
 
-    @Html.ActionLink("Refresh Grid", "Refresh", null, new { @class="t-button"})
+    @Html.ActionLink("Refresh Grid", "Refresh", null, new { @class = "t-button" })
 
 @*@if (Footlocker.Common.WebSecurityService.UserHasRole(User.Identity.Name.Split('\\')[1],"Allocation","ManageRange"))
 {
@@ -64,32 +64,44 @@
             columns.Bound(o => o.ActiveAR).Width(10);
             columns.Bound(o => o.StartDate).Format("{0:MM/dd/yyyy}").Width(100);
             columns.Bound(o => o.EndDate).Format("{0:MM/dd/yyyy}").Width(100);
-            columns.Bound(o => o.UpdatedBy).Width(100);
+            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(100);
             columns.Bound(o => o.UpdateDate).Format("{0:MM/dd/yyyy}").Width(100);
-            columns.Command(commands =>
-            {
-                commands
-                .Custom("Stores")
-                .Text("Stores")
-                .Ajax(false)
-                .Action("EditStores", "SkuRange", new { message = "" });
-                commands
-                .Custom("PresentationQuantities")
-                .Text("Details")
-                .Ajax(false)
-                .Action("PresentationQuantities", "SkuRange");
-                commands
-                .Custom("Edit")
-                .Text("Edit")
-                .Ajax(false)
-                .Action("Edit", "SkuRange", new { message = "" });
-                commands.Custom("Delete")
-                    .Text("Delete")
-                    .Ajax(false)
-                    .Action("DeleteConfirm", "SkuRange", new { message = "" });
-            }).HtmlAttributes(new { style = "text-align: left" }).Width(250);
+            columns.Bound(o => o.UpdatedBy).Width(100);
+            columns.Template(
+                @<text>
+                    @Html.ActionLink("Stores", "EditStores", new { planID = item.Id }, new { @class = "t-button", @style = "width:50px" })
+                    <br/>
+                    @Html.ActionLink("Details", "PresentationQuantities", new { planID = item.Id }, new { @class = "t-button", @style = "width:50px" })
+                    <br/>
+                    @Html.ActionLink("Edit", "Edit", new { planID = item.Id }, new { @class = "t-button", @style="width:50px" })
+                    <br/>
+                    @Html.ActionLink("Delete", "DeleteConfirm", new { planID = item.Id }, new { @class = "t-button", @style = "width:50px" })
+                 </text>
+                ).Title("").HtmlAttributes(new { style = "text-align: center" }).Width(100);
+            ////columns.Command(commands =>
+            ////{
+            ////    commands
+            ////    .Custom("Stores")
+            ////    .Text("Stores")
+            ////    .Ajax(false)
+            ////    .Action("EditStores", "SkuRange", new { message = "" });
+            ////    commands
+            ////    .Custom("PresentationQuantities")
+            ////    .Text("Details")
+            ////    .Ajax(false)
+            ////    .Action("PresentationQuantities", "SkuRange");
+            ////    commands
+            ////    .Custom("Edit")
+            ////    .Text("Edit")
+            ////    .Ajax(false)
+            ////    .Action("Edit", "SkuRange", new { message = "" });
+            ////    commands.Custom("Delete")
+            ////        .Text("Delete")
+            ////        .Ajax(false)
+            ////        .Action("DeleteConfirm", "SkuRange", new { message = "" });
+            ////}).HtmlAttributes(new { style = "text-align: left" }).Width(250);
         })
-          
+
 
         .DataBinding(dataBinding =>
         {

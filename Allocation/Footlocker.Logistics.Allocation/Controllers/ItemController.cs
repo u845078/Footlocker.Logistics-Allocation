@@ -113,7 +113,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 //                         a.Sku == model.Sku
                 //                     select a).ToList();
             }
-            catch            
+            catch
             {
                 model.ValidItem = false;
                 ViewData["message"] = "invalid item";
@@ -193,7 +193,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             //model.BTSGroups = (from a in db.StoreBTS join b in db.StoreBTSDetails on a.ID equals b.GroupID where ((b.Store == model.Store) && (b.Division == model.Division)) select a).ToList();
 
-            var validStoreQuery = (from a in db.vValidStores where ((a.Division == model.Division) &&(a.Store == model.Store)) select a);
+            var validStoreQuery = (from a in db.vValidStores where ((a.Division == model.Division) && (a.Store == model.Store)) select a);
             model.isValid = (validStoreQuery.Count() > 0);
 
             //model.LikeStores = (from a in db.StoreAttributes where ((a.Division == model.Division) && (a.Store == model.Store)) select a).ToList();
@@ -226,9 +226,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _POOverrides(string sku)
         {
             List<ExpeditePO> model = (from a in db.ExpeditePOs
-                                 where
-                                     a.Sku == sku
-                                 select a).ToList();
+                                      where
+                                          a.Sku == sku
+                                      select a).ToList();
 
             return View(new GridModel(model));
         }
@@ -255,10 +255,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             foreach (ExistingPO epo in model)
             {
-                List<ExpeditePO> overridePOs =  (from a in db.ExpeditePOs 
+                List<ExpeditePO> overridePOs = (from a in db.ExpeditePOs
                                                 where (a.Division == division) &&
                                                       (a.PO == epo.PO)
-                                               select a).ToList();
+                                                select a).ToList();
                 if (overridePOs.Count > 0)
                     epo.OverrideDate = overridePOs[0].OverrideDate;
             }
@@ -370,7 +370,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _StoreLeadTimes(string div, string store)
         {
-            List < StoreLeadTime> model = (from a in db.StoreLeadTimes where ((a.Division == div) && (a.Store == store)) select a).ToList();
+            List<StoreLeadTime> model = (from a in db.StoreLeadTimes where ((a.Division == div) && (a.Store == store)) select a).ToList();
             foreach (StoreLeadTime lt in model)
             {
                 lt.Warehouse = (from a in db.DistributionCenters where a.ID == lt.DCID select a.Name).FirstOrDefault();
@@ -386,10 +386,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.Configuration.ProxyCreationEnabled = false;
             DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).First();
 
-            List<RingFence> model = (from a in db.RingFenceDetails join b in db.RingFences on a.RingFenceID equals b.ID where ((b.Division == div) && (b.Store == store)) select b).Distinct().ToList();
-            model = (from a in model where ((a.StartDate <= today) && ((a.EndDate >= today) || (a.EndDate == null))) select a).ToList();
-            return View(new GridModel(model));
+            List<RingFence> model = (from a in db.RingFenceDetails
+                                     join b in db.RingFences 
+                                        on a.RingFenceID equals b.ID
+                                     where ((b.Division == div) && (b.Store == store)) &&
+                                           a.ActiveInd == "1"
+                                     select b).Distinct().ToList();
 
+            model = (from a in model
+                     where ((a.StartDate <= today) && ((a.EndDate >= today) || (a.EndDate == null)))
+                     select a).ToList();
+
+            return View(new GridModel(model));
         }
 
         [GridAction]
@@ -400,6 +408,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             //lazy loading was causing invalid circular references
             db.Configuration.ProxyCreationEnabled = false;
+
+            List<RingFenceStatusCodes> rfStatusCodes = (from rfs in db.RingFenceStatusCodes
+                                                        select rfs).ToList();
 
             List<RingFence> ringFences = new List<RingFence>();
 
@@ -416,6 +427,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                  join rfd in db.RingFenceDetails
                                   on rf.ID equals rfd.RingFenceID
                                  where rf.Sku == sku &&
+                                       rfd.ActiveInd == "1" &&
                                     ((rf.StartDate <= today) && ((rf.EndDate >= today) || (rf.EndDate == null))) &&
                                        ((rf.Store == store) || (store == null) || (rf.Store == null))
                                  select new { RingFence = rf, RingFenceDetail = rfd });
@@ -432,6 +444,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 newRF.PO = rf.RingFenceDetail.PO;
                 newRF.CreatedBy = rf.RingFence.CreatedBy;
                 newRF.CreateDate = rf.RingFence.CreateDate;
+                newRF.ringFenceStatusCode = rf.RingFenceDetail.ringFenceStatusCode;
+                newRF.ringFenceStatus = rfStatusCodes.Find(s => s.ringFenceStatusCode == newRF.ringFenceStatusCode);
 
                 ringFences.Add(newRF);
             }
@@ -444,11 +458,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             //lazy loading was causing invalid circular references
             db.Configuration.ProxyCreationEnabled = false;
-            List<RDQ> model = (from a in 
+            List<RDQ> model = (from a in
                                    db.RDQs
-                                   .Include("DistributionCenter") 
-                               where 
-                               ((a.Division == div) && ((a.Store == store)) || (a.Store == null)) 
+                                   .Include("DistributionCenter")
+                               where
+                               ((a.Division == div) && ((a.Store == store)) || (a.Store == null))
                                select a).ToList();
 
             foreach (RDQ r in model)
@@ -467,11 +481,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             //lazy loading was causing invalid circular references
             db.Configuration.ProxyCreationEnabled = false;
-            List<RDQ> model = (from a in 
+            List<RDQ> model = (from a in
                                    db.RDQs
                                    .Include("DistributionCenter")
-                               where 
-                               a.Sku ==sku select a).OrderBy(x => x.Store).ThenBy(x => x.Size).ThenBy(x => x.PO).ToList();
+                               where
+                               a.Sku == sku
+                               select a).OrderBy(x => x.Store).ThenBy(x => x.Size).ThenBy(x => x.PO).ToList();
 
             foreach (RDQ r in model)
             {
@@ -481,7 +496,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
-            if ((store != null)&&(store != ""))
+            if ((store != null) && (store != ""))
             {
                 model = (from a in model where a.Store == store select a).ToList();
             }
@@ -492,7 +507,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         [GridAction]
         public ActionResult _StoreHolds(string div, string store)
-        {        
+        {
             DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).First();
 
             List<Hold> model = (from a in db.Holds where ((a.Division == div) && ((a.Store == store) || (a.Store == null))) select a).ToList();
@@ -769,7 +784,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         #region WMS Request
 
-        [CheckPermission(Roles = "Support,IT")]
+        [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes")]
         public ActionResult RequestWSM()
         {
             WSMRequestModel model = new WSMRequestModel();
@@ -778,8 +793,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
-        [CheckPermission(Roles = "Support,IT")]
-        public ActionResult RequestWSM(WSMRequestModel model)
+        [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes")]
+        public ActionResult RequestWSM(WSMRequestModel model, string submitAction)
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
             //Set the license 
@@ -789,52 +804,97 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             WSMDAO dao = new WSMDAO();
 
-            List<WSM> list = dao.GetWSM(model.Sku);
-
-            int row = 1;
-            int page = 0;
-            Worksheet mySheet = InitializeNewSheet(excelDocument,0);
-
-            for (int i = 0; i < 12; i++)
+            if (submitAction == "WSM")
             {
-                mySheet.Cells[0, i].Style.Font.IsBold = true;
-            }
+                List<WSM> list = dao.GetWSM(model.Sku);
 
-            foreach (WSM w in list)
-            {
-                mySheet.Cells[row, 0].PutValue(w.RunDate);
-                mySheet.Cells[row, 1].PutValue(w.TargetProduct);
-                mySheet.Cells[row, 2].PutValue(w.TargetProductId);
-                mySheet.Cells[row, 3].PutValue(w.MatchProduct);
-                mySheet.Cells[row, 4].PutValue(w.MatchProductId);
-                mySheet.Cells[row, 5].PutValue(w.ProductWeight);
-                mySheet.Cells[row, 6].PutValue(w.MatchLocation);
-                mySheet.Cells[row, 7].PutValue(w.LocationWeight);
-                mySheet.Cells[row, 8].PutValue(w.FinalMatchWeight);
-                mySheet.Cells[row, 9].PutValue(w.FinalMatchDemand);
-                mySheet.Cells[row, 10].PutValue(w.LastCapturedDemand);
-                mySheet.Cells[row, 11].PutValue(w.StatusCode);
-                row++;
-                if (row > 60000)
+                int row = 1;
+                int page = 0;
+                Worksheet mySheet = InitializeNewSheet(excelDocument, 0);
+
+                for (int i = 0; i < 12; i++)
                 {
-                    //new page
-                    row = 1;
-                    page++;
-                    for (int i = 0; i < 12; i++)
-                    {
-                        mySheet.AutoFitColumn(i);
-                    }
-                    mySheet = InitializeNewSheet(excelDocument, page);
+                    mySheet.Cells[0, i].Style.Font.IsBold = true;
                 }
-            }
 
-            for (int i = 0; i < 12; i++)
+                foreach (WSM w in list)
+                {
+                    mySheet.Cells[row, 0].PutValue(w.RunDate);
+                    mySheet.Cells[row, 1].PutValue(w.TargetProduct);
+                    mySheet.Cells[row, 2].PutValue(w.TargetProductId);
+                    mySheet.Cells[row, 3].PutValue(w.TargetLocation);
+                    mySheet.Cells[row, 4].PutValue(w.MatchProduct);
+                    mySheet.Cells[row, 5].PutValue(w.MatchProductId);
+                    mySheet.Cells[row, 6].PutValue(w.ProductWeight);
+                    mySheet.Cells[row, 7].PutValue(w.MatchLocation);
+                    mySheet.Cells[row, 8].PutValue(w.LocationWeight);
+                    mySheet.Cells[row, 9].PutValue(w.FinalMatchWeight);
+                    mySheet.Cells[row, 10].PutValue(w.FinalMatchDemand);
+                    mySheet.Cells[row, 11].PutValue(w.LastCapturedDemand);
+                    mySheet.Cells[row, 12].PutValue(w.StatusCode);
+                    row++;
+                    if (row > 60000)
+                    {
+                        //new page
+                        row = 1;
+                        page++;
+                        for (int i = 0; i < 12; i++)
+                        {
+                            mySheet.AutoFitColumn(i);
+                        }
+                        mySheet = InitializeNewSheet(excelDocument, page);
+                    }
+                }
+
+                for (int i = 0; i < 12; i++)
+                {
+                    mySheet.AutoFitColumn(i);
+                }
+                excelDocument.Save(model.Sku + "-WSM.xls", SaveType.OpenInExcel, FileFormatType.Default,
+                    System.Web.HttpContext.Current.Response);
+            }
+            else if (submitAction == "LocClus")
             {
-                mySheet.AutoFitColumn(i);
-            }
-            excelDocument.Save(model.Sku + "-WSM.xls", SaveType.OpenInExcel, FileFormatType.Default,
-                System.Web.HttpContext.Current.Response);
+                List<QuantumSeasonalityData> results = dao.getQuantumSeasonalityData(model.Sku);
 
+                int row = 1;
+                int page = 0;
+                Worksheet mySheet = InitializeNewSheetForSeasonalDownload(excelDocument, 0);
+
+                for (int i = 0; i < 3; i++)
+                {
+                    mySheet.Cells[0, i].Style.Font.IsBold = true;
+                }
+
+                foreach (QuantumSeasonalityData qsd in results)
+                {
+                    mySheet.Cells[row, 0].PutValue(qsd.locationFinalNodeID);
+                    mySheet.Cells[row, 1].PutValue(qsd.weekBeginDate);
+                    mySheet.Cells[row, 1].Style.Number = 14;
+                    mySheet.Cells[row, 2].PutValue(qsd.indexValue);
+                    mySheet.Cells[row, 2].Style.Number = 2;
+
+                    row++;
+                    if (row > 60000)
+                    {
+                        //new page
+                        row = 1;
+                        page++;
+                        for (int i = 0; i < 3; i++)
+                        {
+                            mySheet.AutoFitColumn(i);
+                        }
+                        mySheet = InitializeNewSheetForSeasonalDownload(excelDocument, page);
+                    }
+                }
+
+                for (int i = 0; i < 3; i++)
+                {
+                    mySheet.AutoFitColumn(i);
+                }
+                excelDocument.Save(model.Sku + "-LocClus.xls", SaveType.OpenInExcel, FileFormatType.Default,
+                    System.Web.HttpContext.Current.Response);
+            }
             //model.Instances = db.Instances.ToList();
             return View(model);
         }
@@ -849,18 +909,31 @@ namespace Footlocker.Logistics.Allocation.Controllers
             mySheet.Cells[0, 0].PutValue("RunDate");
             mySheet.Cells[0, 1].PutValue("TargetProduct");
             mySheet.Cells[0, 2].PutValue("TargetProductID");
-            mySheet.Cells[0, 3].PutValue("MatchProduct");
-            mySheet.Cells[0, 4].PutValue("MatchProductID");
-            mySheet.Cells[0, 5].PutValue("ProductWeight");
-            mySheet.Cells[0, 6].PutValue("MatchLocation");
-            mySheet.Cells[0, 7].PutValue("LocationWeight");
-            mySheet.Cells[0, 8].PutValue("FinalMatchWeight");
-            mySheet.Cells[0, 9].PutValue("FinalMatchDemand");
-            mySheet.Cells[0, 10].PutValue("LastCapturedDemand");
-            mySheet.Cells[0, 11].PutValue("StatusCode");
+            mySheet.Cells[0, 3].PutValue("TargetLocation");
+            mySheet.Cells[0, 4].PutValue("MatchProduct");
+            mySheet.Cells[0, 5].PutValue("MatchProductID");
+            mySheet.Cells[0, 6].PutValue("ProductWeight");
+            mySheet.Cells[0, 7].PutValue("MatchLocation");
+            mySheet.Cells[0, 8].PutValue("LocationWeight");
+            mySheet.Cells[0, 9].PutValue("FinalMatchWeight");
+            mySheet.Cells[0, 10].PutValue("FinalMatchDemand");
+            mySheet.Cells[0, 11].PutValue("LastCapturedDemand");
+            mySheet.Cells[0, 12].PutValue("StatusCode");
             return mySheet;
         }
 
+        private Worksheet InitializeNewSheetForSeasonalDownload(Excel excelDocument, int page)
+        {
+            if (page > 0)
+            {
+                excelDocument.Worksheets.Add();
+            }
+            Worksheet mySheet = excelDocument.Worksheets[page];
+            mySheet.Cells[0, 0].PutValue("Location Node ID");
+            mySheet.Cells[0, 1].PutValue("Week Begin Date");
+            mySheet.Cells[0, 2].PutValue("Index Value");
+            return mySheet;
+        }
         #endregion
 
     }

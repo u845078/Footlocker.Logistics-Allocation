@@ -24,6 +24,7 @@
     <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
     <IISExpressWindowsAuthentication>enabled</IISExpressWindowsAuthentication>
     <IISExpressUseClassicPipelineMode />
+    <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -214,6 +215,7 @@
     <Compile Include="Controllers\InvalidTransactionController.cs" />
     <Compile Include="Controllers\MandatoryCrossdockController.cs" />
     <Compile Include="Controllers\NonRangedProductController.cs" />
+    <Compile Include="Controllers\ProductHierarchyOverrideController.cs" />
     <Compile Include="Controllers\StoreExtensionController.cs" />
     <Compile Include="Controllers\StoreAttributeController.cs" />
     <Compile Include="Controllers\StoreBTSController.cs" />
@@ -246,6 +248,7 @@
     </Compile>
     <Compile Include="Models\AuditRDQModel.cs" />
     <Compile Include="Models\BulkRDQModel.cs" />
+    <Compile Include="Models\ProductHierarchyOverrideModel.cs" />
     <Compile Include="Models\TroubleshootRDQForSkuModel.cs" />
     <Compile Include="Models\CreateConfigParamModel.cs" />
     <Compile Include="Models\CreateConfigModel.cs" />
@@ -479,6 +482,12 @@
     <Content Include="Views\Web.config" />
     <Content Include="packages.config" />
     <Content Include="Content\Templates\BulkRangeTemplate.xls" />
+    <None Include="Content\Templates\ARConstraintsUploadTemplate.xls">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Templates\ARSkusUploadTemplate.xls">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Content\Templates\ProductTypeTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -554,6 +563,10 @@
     <Content Include="Views\SkuRange\CreateOrderPlanningRequest.cshtml" />
     <Content Include="Views\SkuRange\EditOrderPlanningRequest.cshtml" />
     <Content Include="Views\Item\RequestWSM.cshtml" />
+    <Content Include="Views\ProductHierarchyOverride\Index.cshtml" />
+    <Content Include="Views\ProductHierarchyOverride\Create.cshtml" />
+    <Content Include="Views\ProductHierarchyOverride\Edit.cshtml" />
+    <Content Include="Views\ProductHierarchyOverride\FormLayout.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />
@@ -692,6 +705,8 @@
     <Content Include="Views\WarehouseBlackout\Index.cshtml" />
     <Content Include="Views\WebPick\BulkAdmin.cshtml" />
     <Content Include="Views\SkuRange\UploadRange.cshtml" />
+    <Content Include="Views\Upload\ARConstraintsUpload.cshtml" />
+    <Content Include="Views\Upload\ARSkusUpload.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -12,7 +12,7 @@ using System.IO;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
-    [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Buyer Planner,Planner,Director of Planning,VP of Planning,Director of Allocation,VP of Allocation,Admin,Support")]
+    [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Buyer Planner,Director of Allocation,Admin,Support")]
     public class OverridePOController : AppController
     {
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();

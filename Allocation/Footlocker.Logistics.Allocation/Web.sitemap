@@ -3,10 +3,11 @@
   <siteMapNode title="Home" controller="Home" action="Overview">
 	  <siteMapNode title="Admin">
 		  <siteMapNode title="Control Date" controller="Driver" action="Control" />
-      <siteMapNode title="Download WSM" controller="Item" action="RequestWSM" />
+      <siteMapNode title="Quantum Data Download" controller="Item" action="RequestWSM" />
       <siteMapNode title="Instance Config" controller="Config" action="Index" />
       <siteMapNode title="Item Lookup" controller="Item" action="Lookup" />
 		  <siteMapNode title="Setup Dept" controller="Driver" action="Index" />
+      <siteMapNode title="Seasonality Overrides" controller="ProductHierarchyOverride" action="Index" />
     </siteMapNode>
 
 	  <siteMapNode title="Location">
@@ -56,7 +57,9 @@
     </siteMapNode>
 
 	  <siteMapNode title="Uploads">
-		  <siteMapNode title="Life Of Sku" controller="Upload" action="ProductTypeUpload" />
+      <siteMapNode title="AR Skus" controller="Upload" action="ARSkusUpload" />
+      <siteMapNode title="AR Constraints" controller="Upload" action="ARConstraintsUpload" />
+      <siteMapNode title="Life Of Sku" controller="Upload" action="ProductTypeUpload" />
 		  <siteMapNode title="Service Type" controller="Upload" action="SkuTypeUpload" />
       <siteMapNode title="Sku Id" controller="Upload" action="SkuIdUpload" />
       <siteMapNode title="Sku Setup Upload" controller="SkuRange" action="UploadRange" />

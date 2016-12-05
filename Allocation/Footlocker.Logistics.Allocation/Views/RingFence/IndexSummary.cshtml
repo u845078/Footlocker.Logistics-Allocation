@@ -82,7 +82,7 @@
                 + "<a class=\"t-button\" href='javascript:MassDeleteGrid(\"<#= Sku #>\");'>Delete</a>"
                 + "<a class=\"t-button\" href='javascript:MassPickGrid(\"<#= Sku #>\");'>Pick All</a>"
                 + "<a class=\"t-button\" href='javascript:MassPickGridNoFuture(\"<#= Sku #>\");'>Pick Warehouse</a>"
-            ).Width(300);
+            ).Width(350);
 
         })
         .DataBinding(dataBinding =>
@@ -106,7 +106,7 @@
                             {
                                 columns.Bound(rf => rf.Division).Width(30).Title("Div").Visible(true);
                                 columns.Bound(rf => rf.Store).Width(30).Visible(true);
-                                columns.Bound(rf => rf.Sku).Width(150).Visible(true);
+                                columns.Bound(rf => rf.Sku).Width(150).Visible(false);
                                 columns.Bound(rf => rf.ItemDescription).Width(150).Visible(true).Title("Description");
                                 columns.Bound(rf => rf.Qty).Width(10).Visible(true);
                                 columns.Bound(rf => rf.StartDate).Format("{0:MM/dd/yyyy}").Title("Start Date").Width(30).Visible(true);
@@ -123,7 +123,7 @@
                                                 @Html.ActionLink("Pick", "Pick", new { id = item.ID }, new { @class = "t-button", onclick = "return confirmPick('" + item.Store + "')" })
                                             </span>
                                         </text>)
-                                    .Width(400)
+                                    .Width(350)
                                     .ClientTemplate(
                                     "<a class='t-button' href='"
                                         + Url.Content("~/Ringfence/Edit/<#= ID #>")

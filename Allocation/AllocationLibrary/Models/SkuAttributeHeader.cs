@@ -12,6 +12,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Division { get; set; }
         public string Dept { get; set; }
         public string Category { get; set; }
+        public string Brand { get; set; }
 
         [Display(Name="Category")]
         [NotMapped]
@@ -23,6 +24,20 @@ namespace Footlocker.Logistics.Allocation.Models
                     return "default";
                 else
                     return Category;
+            }
+            set { }
+        }
+
+        [Display(Name = "BrandID")]
+        [NotMapped]
+        public string BrandForDisplay
+        {
+            get
+            {
+                if ((Brand == null) || (Brand == ""))
+                    return "default";
+                else
+                    return Brand;
             }
             set { }
         }

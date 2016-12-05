@@ -7,6 +7,8 @@ using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Factories;
 using System.Data.Common;
 using System.Data;
+using System.IO;
+using System.Xml.Serialization;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
@@ -145,6 +147,42 @@ namespace Footlocker.Logistics.Allocation.Services
                 }
             }
             return _que;
+        }
+
+        public void SaveARSkusUpload(List<DirectToStoreSku> list)
+        {
+            //Database _database;
+            DbCommand SQLCommand;
+            string SQL;
+            SQL = "dbo.[SaveARSkusUpload]";
+
+            SQLCommand = _databaseAllocation.GetStoredProcCommand(SQL);
+            SQLCommand.CommandTimeout = 300;
+            StringWriter sw = new StringWriter();
+            XmlSerializer xs = new XmlSerializer(list.GetType());
+            xs.Serialize(sw, list);
+            String xout = sw.ToString();
+
+            _databaseAllocation.AddInParameter(SQLCommand, "@xml", DbType.Xml, xout);
+            _databaseAllocation.ExecuteNonQuery(SQLCommand);
+        }
+
+        public void SaveARConstraintsUpload(List<DirectToStoreConstraint> list)
+        {
+            //Database _database;
+            DbCommand SQLCommand;
+            string SQL;
+            SQL = "dbo.[SaveARConstraintsUpload]";
+
+            SQLCommand = _databaseAllocation.GetStoredProcCommand(SQL);
+            SQLCommand.CommandTimeout = 300;
+            StringWriter sw = new StringWriter();
+            XmlSerializer xs = new XmlSerializer(list.GetType());
+            xs.Serialize(sw, list);
+            String xout = sw.ToString();
+
+            _databaseAllocation.AddInParameter(SQLCommand, "@xml", DbType.Xml, xout);
+            _databaseAllocation.ExecuteNonQuery(SQLCommand);
         }
     }
 }

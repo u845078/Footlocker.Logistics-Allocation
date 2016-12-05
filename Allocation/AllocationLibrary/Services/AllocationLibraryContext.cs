@@ -59,6 +59,7 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<Config> Configs { get; set; }
         public DbSet<ConfigParam> ConfigParams { get; set; }
         public DbSet<OrderPlanningRequest> OrderPlanningRequests { get; set; }
+        public DbSet<RingFenceStatusCodes> RingFenceStatusCodes { get; set; }
 
         public AllocationLibraryContext()
             : base("AllocationContext")
@@ -150,8 +151,8 @@ namespace Footlocker.Logistics.Allocation.Services
             var details = (from a in this.RingFenceDetails
                            where ((a.RingFenceID == det.RingFenceID) &&
                                (a.Size.Length == 3)
-                               && ((a.Size != det.Size) || (a.PO != det.PO) || (a.DCID != det.DCID))
-                               )
+                               && ((a.Size != det.Size) || (a.PO != det.PO) || (a.DCID != det.DCID)) &&
+                               a.ActiveInd == "1")
                            select a);
 
             //var details = (from a in this.RingFenceDetails
@@ -175,7 +176,8 @@ namespace Footlocker.Logistics.Allocation.Services
 
             var caselots = (from a in this.RingFenceDetails
                             where ((a.RingFenceID == det.RingFenceID) && (a.Size.Length == 5))
-                                && ((a.Size != det.Size) || (a.PO != det.PO) || (a.DCID != det.DCID))
+                                && ((a.Size != det.Size) || (a.PO != det.PO) || (a.DCID != det.DCID)) &&
+                                a.ActiveInd == "1"
                             select a).ToList();
             foreach (RingFenceDetail cs in caselots)
             {

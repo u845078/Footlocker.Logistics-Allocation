@@ -377,6 +377,7 @@
             columns.Bound(o => o.Division);
             columns.Bound(o => o.Store);
             columns.Bound(o => o.Sku);
+            //columns.Bound(o => o.ringFenceStatus.ringFenceStatusDesc).Title("Ring Fence Status");
             columns.Bound(o => o.Qty).Aggregate(aggreages => aggreages.Sum())
                    .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
             columns.Bound(o => o.StartDate);

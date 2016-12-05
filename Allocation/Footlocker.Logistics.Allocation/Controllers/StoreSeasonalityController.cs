@@ -10,7 +10,7 @@ using Telerik.Web.Mvc;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
-    [CheckPermission(Roles = "Director of Allocation,VP of Allocation,Advanced Merchandiser Processes,Admin,Support")]
+    [CheckPermission(Roles = "Director of Allocation,Advanced Merchandiser Processes,Admin,Support")]
     public class StoreSeasonalityController : AppController
     {
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();

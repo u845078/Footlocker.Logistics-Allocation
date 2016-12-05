@@ -9,9 +9,65 @@
         window.location = '/SkuAttribute/Create?div=' + dropdown.value;
     }
 
-    function popupDepartment(checkbox) {
-        checkbox.checked = "true";
-        alert("Department MUST be mandatory");
+    function validate() {
+        if ($('#Category').val() == "" && $('#BrandID').val() != "") {
+            alert("Category selection is required when a BrandID is selected!");
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    //check Category or Brand attributes
+    function checkAttribute(attr) {
+        var isChecked = false;
+
+        if (attr == 1 && $('#Category').val() != "") {
+            isChecked = true;
+        }
+        else if (attr == 3 && $('#BrandID').val() != "") {
+            isChecked = true;
+        }
+
+        if (isChecked) {
+            $('#Attributes_' + attr + '__Mandatory').attr("checked", "true");
+            $('#Attributes_' + attr + '__WeightInt').val(0);
+            $('#Attributes_' + attr + '__WeightInt').attr("disabled", "disabled");
+        }
+    }
+
+    function enableCheckbox(cb, attr) {
+
+        if (cb.checked) {
+            $('#Attributes_' + attr + '__WeightInt').val(0);
+            $('#Attributes_' + attr + '__WeightInt').attr("disabled", "disabled");
+            return true;
+        }
+        else {
+            var isEnabled = true;
+
+            if (attr == 0) {
+                isEnabled = false;
+                alert("Department attribute is Mandatory!");
+            }
+            else if (attr == 1 && $('#Category').val() != "") {
+                isEnabled = false;
+                alert("Category attribute is Mandatory when a Category is selected!");
+            }
+            else if (attr == 3 && $('#BrandID').val() != "") {
+                isEnabled = false;
+                alert("BrandID attribute is Mandatory when a BrandID is selected!");
+            }
+
+            if (isEnabled == true) {
+                $('#Attributes_' + attr + '__WeightInt').removeAttr("disabled");
+                return true;
+            } else {
+                $('#Attributes_' + attr + '__WeightInt').val(0);
+                $('#Attributes_' + attr + '__WeightInt').attr("disabled", "disabled");
+                return false;
+            }
+        }
     }
 
     function mandatoryScreenUpdate(cb, attr) {
@@ -19,7 +75,8 @@
             $('#Attributes_' + attr + '__WeightInt').val(0);
             $('#Attributes_' + attr + '__WeightInt').attr("disabled", "disabled");
         }
-        else {
+        else
+        {
             $('#Attributes_' + attr + '__WeightInt').removeAttr("disabled");
         }
     }
@@ -50,23 +107,45 @@
 
 </script>
 <h2>Create Quantum Attribute Matching</h2>
-@using (Html.BeginForm("Create", "SkuAttribute"))
-{
+
 <fieldset>
 @if (ViewData["message"] != null)
 { 
     @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
 }
+
+@using (Html.BeginForm("DivisionSelected", "SkuAttribute"))
+{
 <div class="editor-field">
-    @Html.DropDownListFor(model => model.Division, new SelectList(Model.Divisions, "DivCode", "DivisionName"), new { onchange = "autopostback(this);" })
+    @Html.LabelFor(model => model.Division)
+    <br/>
+    @Html.DropDownListFor(model => model.Division, new SelectList(Model.Divisions, "DivCode", "DivisionName"), new { onchange = "this.form.submit();" })
 </div>
+}
+
+@using (Html.BeginForm("DepartmentSelected", "SkuAttribute"))
+{
+    @Html.HiddenFor(model => model.Division)
+<div class="editor-field">
+    @Html.LabelFor(model => model.Department)
+    <br/>
+    @Html.DropDownListFor(model => model.Department, new SelectList(Model.Departments, "DeptNumber", "DisplayName"), new { onchange = "this.form.submit();" })
+</div>
+}
+
+@using (Html.BeginForm("Create", "SkuAttribute"))
+{
+    @Html.HiddenFor(model => model.Division)
+    @Html.HiddenFor(model => model.Department)
 
 <div class="editor-field">
-    @Html.DropDownListFor(model => model.Department, new SelectList(Model.Departments, "DeptNumber", "DisplayName"))
+    @Html.LabelFor(model => model.Category) [*** Optional ***] <br/>
+    @Html.DropDownListFor(model => model.Category, new SelectList(Model.Categories, "categoryCode", "categoryDisplay"), "", new { onchange = "checkAttribute(1);" })
+
 </div>
 <div class="editor-field">
-    @Html.LabelFor(model => model.Category)
-    @Html.EditorFor(model => model.Category) * Optional
+    @Html.LabelFor(model => model.BrandID) [*** Optional ***] <br/>
+    @Html.DropDownListFor(model => model.BrandID, new SelectList(Model.Brands, "brandIDCode", "brandIDDisplay"), "", new { onchange = "checkAttribute(3);" })
 </div>
 <div class="editor-field">
     @Html.LabelFor(model => model.WeightActive) 
@@ -87,10 +166,10 @@
     </div>
 </div>
 <br />
-@if (Model.Message != null)
-{ 
+    if (Model.Message != null)
+    { 
     @Html.Raw("<font color='red'>" + Model.Message + "</font>")
-}
+    }
 <table>
 @for (var count = 0; count < Model.Attributes.Count(); count++)
 {
@@ -105,16 +184,17 @@
     </td>
     <td>
         @Html.LabelFor(model => Model.Attributes[count].Mandatory)
+        @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory, new { onclick = "return enableCheckbox(this," + count + ");" })
 
-        @if (Model.Attributes[count].AttributeType == "Department")
+@*        @if (Model.Attributes[count].AttributeType == "Department")
         {
-            @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory, new { onclick="popupDepartment(this)" })
+           @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory, new { disabled = true })
         }
         else
         {
             @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory, new { onclick = "mandatoryScreenUpdate(this," + count + ");" })
         }
-    </td>
+*@    </td>
     <td>
         @Html.LabelFor(model => Model.Attributes[count].Weight)
         @if (Model.Attributes[count].Mandatory)
@@ -138,11 +218,11 @@
     </tr>
 </table>
 
-        <p>
-            <input type="submit" value="Save" />
-        </p>
-    </fieldset>
-    
+    <p>
+        <input type="submit" value="Save" onclick="return validate();"/>
+    </p>
 }
+    </fieldset>
+
 <br />
 @Html.ActionLink("Back to List", "Index",null, new {@class="t-button"})

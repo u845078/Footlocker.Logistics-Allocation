@@ -12,7 +12,7 @@ using Footlocker.Logistics.Allocation.DAO;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
-    [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,VP of Allocation,Admin,Support,Space Planning,FLE Advanced Merchandiser Processes")]
+    [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,Admin,Support,Space Planning")]
     public class HoldController : AppController
     {
         #region Fields
@@ -48,13 +48,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
             switch (holdType)
             {
                 case "Sku":
-                    roles = "Merchandiser,Head Merchandiser,Director of Allocation,VP of Allocation,Admin,Support";
+                    roles = "Merchandiser,Head Merchandiser,Director of Allocation,Admin,Support";
                     break;
                 case "Dept":
-                    roles = "Head Merchandiser,Space Planning,Director of Allocation,VP of Allocation,Admin,Support";
+                    roles = "Head Merchandiser,Space Planning,Director of Allocation,Admin,Support";
                     break;
                 case "Location":
-                    roles = "Space Planning,Director of Allocation,VP of Allocation,Admin,Support,Advanced Merchandiser Processes";
+                    roles = "Space Planning,Director of Allocation,Admin,Support,Advanced Merchandiser Processes";
                     break;
                 default:
                     roles = "Support";

@@ -14,7 +14,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     [LogError(Order = 2)]
     [HandleAjaxError(Order = 1)]
     [HandleError(Order = 0)]
-    [CheckPermission(Roles = "Director of Allocation,VP of Allocation,Admin,Support")]
+    [CheckPermission(Roles = "Director of Allocation,Admin,Support")]
     public class UtilityIndexController : AppController
     {
         #region HTTP GET Actions

@@ -15,6 +15,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public String RunDate { get; set; }
         public String TargetProduct { get; set; }
         public String TargetProductId { get; set; }
+        public String TargetLocation { get; set; }
         public String MatchProduct { get; set; }
         public String MatchProductId { get; set; }
         public String ProductWeight { get; set; }

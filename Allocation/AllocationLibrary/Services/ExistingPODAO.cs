@@ -100,7 +100,8 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 //so we'll run that query without the division linked to get that record.
                 //left the original query because we didn't want duplicates
                 SQL = " select d.WHSE_ID_NUM, a.PO_NUM, a.EXPECTED_DELV_DATE, b.RETL_OPER_DIV_CODE, b.stk_dept_num, b.stk_num, b.WDTH_COLOR_NUM, b.TOT_WC_RETL_AMT, c.GENL_STK_DESC";
-                SQL = SQL + " ,sum(d.order_qty * (STK_SIZE_QTY_1 +STK_SIZE_QTY_2 +STK_SIZE_QTY_3 +STK_SIZE_QTY_4 +STK_SIZE_QTY_5 +STK_SIZE_QTY_6 +STK_SIZE_QTY_7 +STK_SIZE_QTY_8 +STK_SIZE_QTY_9 +STK_SIZE_QTY_10 +STK_SIZE_QTY_11 +STK_SIZE_QTY_12 +STK_SIZE_QTY_13 +STK_SIZE_QTY_14 +STK_SIZE_QTY_15 +STK_SIZE_QTY_16 +STK_SIZE_QTY_17 +STK_SIZE_QTY_18)) as qty";
+                SQL = SQL + " ,sum(d.order_qty * (STK_SIZE_QTY_1 +STK_SIZE_QTY_2 +STK_SIZE_QTY_3 +STK_SIZE_QTY_4 +STK_SIZE_QTY_5 +STK_SIZE_QTY_6 +STK_SIZE_QTY_7 +STK_SIZE_QTY_8 +STK_SIZE_QTY_9 +STK_SIZE_QTY_10 +STK_SIZE_QTY_11 +STK_SIZE_QTY_12 +STK_SIZE_QTY_13 +STK_SIZE_QTY_14 +STK_SIZE_QTY_15 +STK_SIZE_QTY_16 +STK_SIZE_QTY_17 +STK_SIZE_QTY_18)) as qty,";
+                SQL = SQL + " a.po_status_code, a.vend_num, a.crte_date, sum(d.received_qty) as receive_qty";
                 SQL = SQL + " from TKPOD001 a, TKPOD003 b, TKPOD002 c, TKPOD007 d, TCFIL038 e ";
                 SQL = SQL + " where a.RETL_OPER_DIV_CODE = b.RETL_OPER_DIV_CODE";
                 SQL = SQL + " and a.PO_NUM = b.PO_NUM and a.PO_NUM = c.PO_NUM";
@@ -113,7 +114,9 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 SQL = SQL + " and a.RETL_OPER_DIV_CODE = '" + div + "'";
                 SQL = SQL + " and e.CASELOT_NUM = d.CASELOT_NUMBER";
                 //SQL = SQL + " and e.RETL_OPER_DIV_CODE = d.RETL_OPER_DIV_CODE";
-                SQL = SQL + " group by d.WHSE_ID_NUM, a.PO_NUM, a.EXPECTED_DELV_DATE, b.RETL_OPER_DIV_CODE, b.stk_dept_num, b.stk_num, b.WDTH_COLOR_NUM, b.TOT_WC_RETL_AMT, c.GENL_STK_DESC";
+                SQL = SQL + " group by d.WHSE_ID_NUM, a.PO_NUM, a.EXPECTED_DELV_DATE, b.RETL_OPER_DIV_CODE, b.stk_dept_num, ";
+                SQL = SQL + " b.stk_num, b.WDTH_COLOR_NUM, b.TOT_WC_RETL_AMT, c.GENL_STK_DESC, ";
+                SQL = SQL + " a.po_status_code, a.vend_num, a.crte_date";
 
                 using (var SQLCommand = database.GetSqlStringCommand(SQL))
                 {

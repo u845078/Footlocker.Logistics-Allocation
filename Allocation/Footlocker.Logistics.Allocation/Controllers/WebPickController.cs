@@ -14,7 +14,7 @@ using Footlocker.Logistics.Allocation.Common;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
-    [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,VP of Allocation,Admin,Support")]
+    [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,Admin,Support")]
     public class WebPickController : AppController
     {
         //
@@ -35,23 +35,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             BulkRDQModel model = new BulkRDQModel();
 
-            List<Division> divs = Divisions();
-            var allInstances = (from a in db.Instances join b in db.InstanceDivisions on a.ID equals b.InstanceID select new { instance = a, Division = b.Division }).ToList();
-            model.Instances = (from a in allInstances join b in divs on a.Division equals b.DivCode select a.instance).Distinct().ToList();
-            Division d = new Division();
-            d.DivCode = "00";
-            d.DivisionName = "All divisions";
-            divs.Insert(0, d);
-            model.Divisions = divs;
-
-            model.StatusList = (from a in db.RDQs select a.Status).Distinct().ToList();
-            model.StatusList.Sort();
-            model.StatusList.Insert(0, "All");
-
+            InitializeDivisions(model);
+            InitializeDepartmets(model, false);
             ViewData["message"] = message;
             ViewData["ruleSetID"] = model.RuleSetID;
             ViewData["ruleType"] = "rdq";
-
             Session["searchresult"] = -1;
 
             return View(model);
@@ -62,7 +50,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ViewData["ruleSetID"] = model.RuleSetID;
             ViewData["ruleType"] = "rdq";
-            InitializeForm(model);
+            InitializeDivisions(model);
+            InitializeDepartmets(model, false);
+            model.HaveResults = true;
 
             if (model.ShowStoreSelector == "yes")
             {
@@ -89,22 +79,91 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        private void InitializeForm(BulkRDQModel model)
+        [HttpPost]
+        public ActionResult RefreshDivisions(BulkRDQModel model)
         {
+            InitializeDivisions(model);
+            InitializeDepartmets(model, true);
+            return View("BulkAdmin", model);
+        }
+
+        [HttpPost]
+        public ActionResult RefreshDepartments(BulkRDQModel model)
+        {
+            InitializeDivisions(model);
+            InitializeDepartmets(model, false);
+            return View("BulkAdmin", model);
+        }
+
+        private void InitializeDivisions(BulkRDQModel model)
+        {
+            //model.Instances = new List<Instance>();
+            //model.Divisions = new List<Division>();
+            //model.Departments = new List<Department>();
+            //model.StatusList = new List<string>();
+
             List<Division> divs = Divisions();
             var allInstances = (from a in db.Instances join b in db.InstanceDivisions on a.ID equals b.InstanceID select new { instance = a, Division = b.Division }).ToList();
             model.Instances = (from a in allInstances join b in divs on a.Division equals b.DivCode select a.instance).Distinct().ToList();
-            Division d = new Division();
-            d.DivCode = "00";
-            d.DivisionName = "All divisions";
-            divs.Insert(0, d);
-            model.Divisions = divs;
+
+            if (model.Instances.Any())
+            {
+                //if no selected instance, default to first one in the list
+                if (model.Instance == 0)
+                    model.Instance = model.Instances.First().ID;
+
+                model.Divisions =
+                   (from a in allInstances
+                    join b in divs on a.Division equals b.DivCode
+                    where a.instance.ID == model.Instance
+                    select b).ToList();
+            }
+            else
+            {
+                Instance instance = new Instance();
+                instance.ID = -1;
+                instance.Name = "No division permissions enabled";
+                model.Instances.Insert(0, instance);
+            }
 
             model.StatusList = (from a in db.RDQs select a.Status).Distinct().ToList();
+            model.StatusList.Sort();
             model.StatusList.Insert(0, "All");
-            model.HaveResults = true;
         }
 
+        private void InitializeDepartmets(BulkRDQModel model, bool resetDivision)
+        {
+            if (model.Divisions.Any())
+            {
+                if (resetDivision)
+                {
+                    //default to first one in the list
+                    model.Division = model.Divisions.First().DivCode;
+                }
+                else
+                {
+                    //default to first one in the list if not selected
+                    if (string.IsNullOrEmpty(model.Division))
+                        model.Division = model.Divisions.First().DivCode;
+                }
+
+                model.Departments = WebSecurityService.ListUserDepartments(UserName, "Allocation", model.Division);
+                if (model.Departments.Any())
+                {
+                    Department dept = new Department();
+                    dept.DeptNumber = "00";
+                    dept.DepartmentName = "All departments";
+                    model.Departments.Insert(0, dept);
+                }
+                else
+                {
+                    Department dept = new Department();
+                    dept.DeptNumber = "-1";
+                    dept.DepartmentName = "No department permissions enabled";
+                    model.Departments.Insert(0, dept);
+                }
+            }
+        }
 
         [HttpPost]
         public ActionResult ReleaseAll(BulkRDQModel model)
@@ -138,7 +197,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.SaveChanges(User.Identity.Name);
 
             Session["searchresult"] = -1;
-            InitializeForm(model);
+            InitializeDivisions(model);
+            InitializeDepartmets(model, false);
             return View("BulkAdmin", model);
         }
 
@@ -156,7 +216,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.SaveChanges(User.Identity.Name);
 
             Session["searchresult"] = -1;
-            InitializeForm(model);
+            InitializeDivisions(model);
+            InitializeDepartmets(model, false);
             return View("BulkAdmin", model);
         }
 
@@ -219,10 +280,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private List<RDQ> GetRDQsForSession(int instance, string div, string department, string category, string sku, string status, string po, string store, Int64 ruleset)
         {
             List<RDQ> model;
-            if (div == "00")
-            {
-                div = null;
-            }
+            //if (div == "00")
+            //{
+            //    div = null;
+            //}
+
             if ((Session["searchresult"] != null) &&
                 ((Int32)Session["searchresult"] > 0))
             {
@@ -230,27 +292,68 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                if ((department != null)&&(department.Contains("-")))
-                { 
-                    string[] tokens = department.Split('-');
-                    div = tokens[0];
-                    department = tokens[1];
+                //if ((department != null)&&(department.Contains("-")))
+                //{ 
+                //    string[] tokens = department.Split('-');
+                //    div = tokens[0];
+                //    department = tokens[1];
+                //}
+
+                //List<RDQ> list = (from a in db.RDQs
+                //                  join b in db.InstanceDivisions on a.Division equals b.Division
+                //                  join c in db.ItemMasters on a.ItemID equals c.ID
+                //                  where ((b.InstanceID == instance)
+                //                    && ((c.Div == div) || (div == null))
+                //                    && ((c.Dept == department) || (department == null))
+                //                    && ((c.Category == category) || (category == null))
+                //                    && ((a.Sku == sku) || (sku == null))
+                //                    && ((a.PO == po) || (po == null))
+                //                    && ((a.Store == store) || (store == null))
+                //                    && ((a.Status == status) || (status == "All"))
+                //                    )
+                //                  select a).ToList();
+
+                List<RDQ> list = new List<RDQ>();
+
+                if (department == "00")
+                {
+                    List<Department> depts = WebSecurityService.ListUserDepartments(UserName, "Allocation", div);
+
+                    var templist = (from a in db.RDQs
+                            join b in db.InstanceDivisions on a.Division equals b.Division
+                            join c in db.ItemMasters on a.ItemID equals c.ID
+                            where ((b.InstanceID == instance)
+                            && (c.Div == div)
+                            && ((c.Category == category) || (category == null))
+                            && ((a.Sku == sku) || (sku == null))
+                            && ((a.PO == po) || (po == null))
+                            && ((a.Store == store) || (store == null))
+                            && ((a.Status == status) || (status == "All"))
+                            )
+                            select new { rdq = a, dept = c.Dept} ).ToList();
+
+                    //filter by valid departments
+                    list = (from a in templist
+                            join d in depts on a.dept equals d.DeptNumber
+                            select a.rdq).ToList();
                 }
-
-                List<RDQ> list = (from a in db.RDQs
-                                  join b in db.InstanceDivisions on a.Division equals b.Division
-                                  join c in db.ItemMasters on a.ItemID equals c.ID
-                                  where ((b.InstanceID == instance)
-                                    && ((c.Div == div) || (div == null))
-                                    && ((c.Dept == department) || (department == null))
-                                    && ((c.Category == category) || (category == null))
-                                    && ((a.Sku == sku) || (sku == null))
-                                    && ((a.PO == po) || (po == null))
-                                    && ((a.Store == store) || (store == null))
-                                    && ((a.Status == status) || (status == "All"))
-                                    )
-                                  select a).ToList();
-
+                else
+                {
+                    list = (from a in db.RDQs
+                            join b in db.InstanceDivisions on a.Division equals b.Division
+                            join c in db.ItemMasters on a.ItemID equals c.ID
+                            where ((b.InstanceID == instance)
+                            && (c.Div == div)
+                            && (c.Dept == department)
+                            && ((c.Category == category) || (category == null))
+                            && ((a.Sku == sku) || (sku == null))
+                            && ((a.PO == po) || (po == null))
+                            && ((a.Store == store) || (store == null))
+                            && ((a.Status == status) || (status == "All"))
+                            )
+                            select a).ToList();
+                }
+                
                 RuleDAO dao = new RuleDAO();
                 if (ruleset > 0)
                 {

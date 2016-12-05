@@ -2,12 +2,16 @@
 
 @{
     ViewBag.Title = "Quantum Attribute Matching";
+    bool hasEditRole = Convert.ToBoolean(ViewData["hasEditRole"]);
 }
 
 <h2>Quantum Attribute Matching</h2>
 
 <p>
-    @Html.ActionLink("Create New", "Create", null, new { @class = "t-button" })
+    @if (hasEditRole)
+    {
+        @Html.ActionLink("Create New", "Create", null, new {@class = "t-button"})
+    }
 </p>
 @*<table>
     <tr>
@@ -70,38 +74,76 @@
     }
 </script>
 
-@(Html.Telerik().Grid(Model)
-        .Name("SkuAttributeGrid")
-        .Columns(columns =>
-        {
-            columns.Bound(o => o.Division).Width(50);
-            columns.Bound(o => o.Dept).Width(50);
-            columns.Bound(o => o.CategoryForDisplay);
-            columns.Bound(o => o.WeightActiveInt).Title("Weight for Active");
-            columns.Bound(o => o.CreatedBy).Title("UpdatedBy");
-            columns.Bound(o => o.CreateDate).Title("UpdateDate");
-            columns.Template(@<text>
-                    <a class='t-button' href="@Url.Content("~/SkuAttribute/Edit/" + @item.ID)">Edit</a>
-                    @*<a class='t-button' href="@Url.Content("~/SkuAttribute/Delete/"+@item.ID)">Delete</a>*@
-                    @Html.Raw("<a class=\"t-button\" href='javascript:Delete(\"" + item.ID + "\");'>Delete</a>")
-            </text>).ClientTemplate("<a class='t-button' href='"
-                    + Url.Content("~/SkuAttribute/Edit/<#= ID #>")
-                    + "'>Edit</a>"
-                    + "<a class='t-button' href='"
-                    + Url.Content("~/SkuAttribute/Delete/<#= ID #>")
-                    + "'>Delete</a>"
-                    ).HtmlAttributes(new { style = "text-align: left" }).Width(300);
-        })
-        .DataBinding(dataBinding =>
-        {
-            //dataBinding.Server().Select("Index", "OverridePO");
-            dataBinding.Ajax().Select("_Index", "SkuAttribute");
-        })
-        .Sortable(sorting => sorting.Enabled(true))
-        .Pageable(paging => paging.Enabled(true))
-        .Filterable(filtering => filtering.Enabled(true))
-        .Groupable(grouping => grouping.Enabled(false))
-            .Footer(true)
-)
+@if (ViewData["message"] != null)
+{ 
+    @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
+}
+
+    @if (hasEditRole)
+    {
+        @(Html.Telerik().Grid(Model)
+            .Name("SkuAttributeGrid")
+            .Columns(columns =>
+            {
+                columns.Bound(o => o.Division).Width(50);
+                columns.Bound(o => o.Dept).Width(50);
+                columns.Bound(o => o.CategoryForDisplay);
+                columns.Bound(o => o.BrandForDisplay);
+                columns.Bound(o => o.WeightActiveInt).Title("Weight for Active");
+                columns.Bound(o => o.CreatedBy).Title("UpdatedBy");
+                columns.Bound(o => o.CreateDate).Title("UpdateDate");
+                columns.Template(@<text>
+                        <a class='t-button' href="@Url.Content("~/SkuAttribute/Edit/" + @item.ID)">Edit</a>
+                        @Html.Raw("<a class=\"t-button\" href='javascript:Delete(\"" + item.ID + "\");'>Delete</a>")
+                </text>).ClientTemplate("<a class='t-button' href='"
+                        + Url.Content("~/SkuAttribute/Edit/<#= ID #>")
+                        + "'>Edit</a>"
+                        + "<a class='t-button' href='"
+                        + Url.Content("~/SkuAttribute/Delete/<#= ID #>")
+                        + "'>Delete</a>"
+                        ).HtmlAttributes(new { style = "text-align: left" }).Width(300);
+            })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Ajax().Select("_Index", "SkuAttribute");
+            })
+            .Sortable(sorting => sorting.Enabled(true))
+            .Pageable(paging => paging.Enabled(true))
+            .Filterable(filtering => filtering.Enabled(true))
+            .Groupable(grouping => grouping.Enabled(false))
+                .Footer(true)
+          )
+        }
+    else
+    {
+        @(Html.Telerik().Grid(Model)
+                .Name("SkuAttributeGrid")
+                .Columns(columns =>
+                {
+                    columns.Bound(o => o.Division).Width(50);
+                    columns.Bound(o => o.Dept).Width(50);
+                    columns.Bound(o => o.CategoryForDisplay);
+                    columns.Bound(o => o.BrandForDisplay);
+                    columns.Bound(o => o.WeightActiveInt).Title("Weight for Active");
+                    columns.Bound(o => o.CreatedBy).Title("UpdatedBy");
+                    columns.Bound(o => o.CreateDate).Title("UpdateDate");
+                    columns.Template(@<text>
+                            <a class='t-button' href="@Url.Content("~/SkuAttribute/Edit/" + @item.ID)">View</a>
+                    </text>).ClientTemplate("<a class='t-button' href='"
+                            + Url.Content("~/SkuAttribute/Edit/<#= ID #>")
+                            + "'>View</a>"
+                            ).HtmlAttributes(new { style = "text-align: left" }).Width(300);
+                })
+                .DataBinding(dataBinding =>
+                {
+                    dataBinding.Ajax().Select("_Index", "SkuAttribute");
+                })
+                .Sortable(sorting => sorting.Enabled(true))
+                .Pageable(paging => paging.Enabled(true))
+                .Filterable(filtering => filtering.Enabled(true))
+                .Groupable(grouping => grouping.Enabled(false))
+                    .Footer(true)
+        )  
+    }
 
 </table>

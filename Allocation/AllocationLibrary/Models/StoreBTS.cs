@@ -24,5 +24,8 @@ namespace Footlocker.Logistics.Allocation.Models
         public string CreatedBy { get; set; }
         public DateTime CreateDate { get; set; }
         public string Division { get; set; }
+
+        [NotMapped]
+        public int ClusterID { get; set; }
     }
 }
