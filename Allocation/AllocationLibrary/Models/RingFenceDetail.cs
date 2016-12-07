@@ -10,6 +10,7 @@ namespace Footlocker.Logistics.Allocation.Models
     {
         public RingFenceDetail()
         {
+            ActiveInd = "1";
             PackDetails = new List<ItemPackDetail>();
         }
 
@@ -37,9 +38,9 @@ namespace Footlocker.Logistics.Allocation.Models
             {
                 return _PO;
                 //to avoid the "N/A" vs "" logic everywhere, return "" for N/A.
-                if ((_PO != null)&&(_PO != ""))
-                    return _PO;
-                return "N/A";
+                //if ((_PO != null)&&(_PO != ""))
+                //    return _PO;
+                //return "N/A";
             }
             set 
             { 
@@ -50,7 +51,7 @@ namespace Footlocker.Logistics.Allocation.Models
         [NotMapped]
         public string PriorityCode { get; set; }
 
-        [Range(0, double.MaxValue,ErrorMessage="must be > 0")]
+        [Range(0, double.MaxValue, ErrorMessage = "Must be greater than 0")]
         public int Qty { get; set; }
 
         [NotMapped]
