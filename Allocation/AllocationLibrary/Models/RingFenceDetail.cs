@@ -25,9 +25,21 @@ namespace Footlocker.Logistics.Allocation.Models
         [NotMapped]
         public string Warehouse { get; set; }
 
+        private string _size;
+
         [Key]
         [Column(Order = 2)]
-        public string Size { get; set; }
+        public string Size
+        {
+            get
+            {
+                return _size;
+            }
+            set
+            {
+                _size = value.Trim();
+            }
+        }
 
         private string _PO;
         [Key]
@@ -43,8 +55,11 @@ namespace Footlocker.Logistics.Allocation.Models
                 //return "N/A";
             }
             set 
-            { 
-                _PO = value; 
+            {
+                if (value == null)
+                    _PO = "";
+                else
+                    _PO = value; 
             }
         }
 

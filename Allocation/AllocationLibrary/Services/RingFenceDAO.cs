@@ -408,6 +408,21 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             return result;
         }
 
+        public bool isEcommWarehouse(string division, string store)
+        {
+            if (store == "00800")
+                return true;
+            else if (store == "00900" && division == "31")
+                return true;
+            else
+            {
+                return (from a in db.EcommWarehouses
+                        where ((a.Division == division) &&
+                               (a.Store == store))
+                        select a).Count() > 0;
+            }
+        }
+
         public bool isValidRingFence(RingFence rf, string userName, out string errorMessage)
         {
             bool result = true;
