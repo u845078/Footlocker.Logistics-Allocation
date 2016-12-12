@@ -66,7 +66,7 @@ namespace Footlocker.Logistics.Allocation.Models
         [NotMapped]
         public string PriorityCode { get; set; }
 
-        [Range(0, double.MaxValue, ErrorMessage = "Must be greater than 0")]
+        [Range(0, double.MaxValue, ErrorMessage = "Must be > 0")]
         public int Qty { get; set; }
 
         [NotMapped]

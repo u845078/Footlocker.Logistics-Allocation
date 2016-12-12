@@ -91,7 +91,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     return "Qty must be less than ring fence Qty.";
                 }
-
             }
             return "";
         }
@@ -1954,7 +1953,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 //ringFenceID = ringFence.ID;
 
                 //if ((ringFence.PO != "") && (ringFence.PO != null))
-                if (!string.IsNullOrEmpty(ringFence.PO))
+                if (!string.IsNullOrEmpty(updated.First().PO))
                 {
                     available = GetFutureAvailable(ringFence);
                 }
@@ -2009,7 +2008,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                         det.Message = "This PO is expected for delivery today. If it does, this ringfence will NOT be enforced (it will be deleted).";
                                     }
                                 }
-                                available.Insert(0, det);
+                                //available.Insert(0, det);
                             }
 
                             db.SaveChanges(User.Identity.Name);
@@ -2089,7 +2088,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     if (ringFence.Store == "00800")
                     {
-
                         List<RingFenceUploadModel> list = new List<RingFenceUploadModel>();
                         List<RingFenceUploadModel> errorlist = new List<RingFenceUploadModel>();
                         RingFenceUploadModel model = new RingFenceUploadModel();
@@ -2103,16 +2101,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             model.Warehouse = det.Warehouse;
                             model.PO = det.PO;
                             model.Division = ringFence.Division;
+                            
                             list.Add(model);
                         }
                         if (list.Count() > 0)
                         {
                             CreateOrUpdateRingFence(ringFence.Division, ringFence.Store, ringFence.Sku, list, errorlist, warehouse, futures);
-                            errorlist = (from a in errorlist where (!(a.ErrorMessage.StartsWith("Warning"))) select a).ToList();
+                            errorlist = (from a in errorlist
+                                         where (!(a.ErrorMessage.StartsWith("Warning")))
+                                         select a).ToList();
                         }
 
                         return View(new GridModel(errorlist));
-
                     }
                     else
                     {
@@ -2123,24 +2123,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         weight.Division = ringFence.Division;
                         weight.Store = ringFence.Store;
                         weight.Weight = 1;
-                        bool save = true;
                         weights.Add(weight);
                         Boolean addDetail;
                         foreach (EcommWeight w in weights)
                         {
-                            RingFence rf = (from a in db.RingFences where ((a.Sku == ringFence.Sku) && (a.Store == w.Store)) select a).First();
-                            save = false;
+                            RingFence rf = (from a in db.RingFences
+                                            where ((a.Sku == ringFence.Sku) && (a.Store == w.Store))
+                                            select a).First();
                             foreach (RingFenceDetail det in updated)
                             {
                                 availableQty = 0;
                                 try
                                 {
-                                    availableQty += (from a in futures where ((a.PO == det.PO) && (a.Size == det.Size) && (a.DCID == det.DCID)) select a.AvailableQty).Sum();
+                                    availableQty += (from a in futures
+                                                     where ((a.PO == det.PO) && 
+                                                            (a.Size == det.Size) && 
+                                                            (a.DCID == det.DCID))
+                                                     select a.AvailableQty).Sum();
                                 }
                                 catch { }
                                 try
                                 {
-                                    availableQty += (from a in warehouse where ((a.Size == det.Size) && (a.DCID == det.DCID)) select a.AvailableQty).Sum();
+                                    availableQty += (from a in warehouse
+                                                     where ((a.Size == det.Size) && (a.DCID == det.DCID))
+                                                     select a.AvailableQty).Sum();
                                 }
                                 catch { }
 
@@ -2445,31 +2451,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             {
                                 ringFence = new RingFence();
                                 ringFence.Sku = sku;
-                                ringFence.ItemID = item.ID;
-                                ringFence.Qty = 0;
                                 newRingFence = true;
                             }
                             ringFence.Comments = model.Comments;
-                            ringFence.CreateDate = DateTime.Now;
-                            ringFence.StartDate = (from a in db.ControlDates join b in db.InstanceDivisions 
-                                                       on a.InstanceID equals b.InstanceID
-                                                   where b.Division == division
-                                                   select a.RunDate).First().AddDays(1);
-                            ringFence.CreatedBy = UserName;
                             ringFence.Division = division;
                             ringFence.Store = weight.Store;
-                            Boolean ecommwarehouse = ((from a in db.EcommWarehouses
-                                                       where ((a.Division == division) && 
-                                                              (a.Store == store))
-                                                       select a).Count() > 0);
-                            if (ecommwarehouse)
-                            {
-                                ringFence.Type = 2;
-                            }
-                            else
-                            {
-                                ringFence.Type = 1;
-                            }
+
+                            SetUpRingFenceHeader(ringFence);
 
                             if (newRingFence)
                             {
@@ -2501,7 +2489,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                           select a).FirstOrDefault();
                             }
                             Boolean newDetail = false;
-                            detail.ActiveInd = "1";
 
                             if (detail == null)
                             {
@@ -2523,12 +2510,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 newDetail = true;
                             }
 
+                            detail.ActiveInd = "1";
                             detail.PO = model.PO;
                             detail.Qty = Convert.ToInt32(Convert.ToInt32(model.Qty) * weight.Weight);
                             int availableQty;
                             if (detail.PO != "")
                             {
-                                var query = (from a in FuturePOs where ((a.PO == detail.PO) && (a.Size == detail.Size) && (a.DCID == detail.DCID)) select a.AvailableQty);
+                                detail.ringFenceStatusCode = "1";
+                                var query = (from a in FuturePOs
+                                             where ((a.PO == detail.PO) && 
+                                                    (a.Size == detail.Size) && 
+                                                    (a.DCID == detail.DCID))
+                                             select a.AvailableQty);
                                 availableQty = 0;
 
                                 if (query.Count() > 0)
@@ -2559,7 +2552,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             }
                             else
                             {
-                                var query = (from a in Available where ((a.Size == detail.Size) && (a.DCID == detail.DCID)) select a.AvailableQty);
+                                detail.ringFenceStatusCode = "4";
+                                var query = (from a in Available
+                                             where ((a.Size == detail.Size) && 
+                                                    (a.DCID == detail.DCID))
+                                             select a.AvailableQty);
                                 availableQty = 0;
 
                                 if (query.Count() > 0)
