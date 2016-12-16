@@ -1899,6 +1899,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<RingFenceDetail> available = null;
             RingFenceDAO rfDAO = new RingFenceDAO();
+            string PO;
 
             if (updated != null)
             {
@@ -1907,12 +1908,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 int availableQty;
                 long ringFenceID = updated.First().RingFenceID;
+                PO = updated.First().PO;
 
                 ringFence = (from a in db.RingFences
                              where a.ID == ringFenceID
                              select a).First();
 
-                if (string.IsNullOrEmpty(updated.First().PO))
+                if (string.IsNullOrEmpty(PO))
                 {
                     available = GetWarehouseAvailable(ringFence);
                 }
@@ -2014,10 +2016,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     return View(new GridModel(final));
                 }
                 else
-                { 
+                {
                     //Ecomm RingFence we need to create ecomm inventory
-                    RingFenceDetail newDet = new RingFenceDetail();
-                    List<EcommWeight> weights;
                     List<RingFenceDetail> futures = GetFutureAvailable(ringFence);
                     List<RingFenceDetail> warehouse = GetWarehouseAvailable(ringFence);
 
@@ -2025,6 +2025,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         List<RingFenceUploadModel> list = new List<RingFenceUploadModel>();
                         List<RingFenceUploadModel> errorlist = new List<RingFenceUploadModel>();
+                        List<RingFenceDetail> outputList = new List<RingFenceDetail>();
                         RingFenceUploadModel model = new RingFenceUploadModel();
                         foreach (RingFenceDetail det in updated)
                         {
@@ -2035,12 +2036,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     model = new RingFenceUploadModel();
                                     model.SKU = ringFence.Sku;
                                     model.Size = det.Size;
+                                    model.PO = det.PO;
+                                    model.Comments = ringFence.Comments;
                                     model.Qty = Convert.ToString(det.Qty);
+
                                     model.Store = ringFence.Store;
                                     model.Warehouse = det.Warehouse;
-                                    model.PO = det.PO;
                                     model.Division = ringFence.Division;
-                                    model.Comments = ringFence.Comments;
                                     model.EndDate = Convert.ToString(ringFence.EndDate);
 
                                     list.Add(model);
@@ -2051,17 +2053,36 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         if (list.Count() > 0)
                         {
                             CreateOrUpdateRingFence(ringFence.Division, ringFence.Store, ringFence.Sku, list, errorlist, warehouse, futures);
-                            errorlist = (from a in errorlist
-                                         where (!(a.ErrorMessage.StartsWith("Warning")))
-                                         select a).ToList();
+                            List<string> errors = (from a in errorlist
+                                          where (!(a.ErrorMessage.StartsWith("Warning")))
+                                          select a.ErrorMessage).ToList();
+
+                            if (errors.Count() == 0)
+                            {
+                                RingFenceDetail finishMsg = new RingFenceDetail();
+
+                                finishMsg.Qty = ringFence.Qty;  
+                                finishMsg.Message = "This data has been processed.";
+                                outputList.Add(finishMsg);
+                            }
+                            else
+                            {
+                                RingFenceDetail finishMsg = new RingFenceDetail();
+                                
+                                finishMsg.Message = errors.ToString();
+                                outputList.Add(finishMsg);
+                            }
                         }
 
-                        return View(new GridModel(errorlist));
+                        return View(new GridModel(outputList));
                     }
                     else
                     {
                         //ecomm all countries store
                         //EcommInventory ecommInv = new EcommInventory();
+                        RingFenceDetail newDet = new RingFenceDetail();
+                        List<EcommWeight> weights;
+
                         weights = new List<EcommWeight>();
                         EcommWeight weight = new EcommWeight();
                         weight.Division = ringFence.Division;
@@ -2115,13 +2136,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                         newDet.Size = det.Size;
                                     }
                                     newDet.DCID = det.DCID;
+                                    newDet.ActiveInd = "1";
+                                    newDet.LastModifiedDate = DateTime.Now;
+                                    newDet.LastModifiedUser = User.Identity.Name;
                                     if (det.PO == null)
                                     {
                                         newDet.PO = "";
+                                        newDet.ringFenceStatusCode = "4";
                                     }
                                     else
                                     {
                                         newDet.PO = det.PO;
+                                        newDet.ringFenceStatusCode = "1";
                                     }
                                     newDet.Qty = Convert.ToInt32(det.Qty * w.Weight);
 
