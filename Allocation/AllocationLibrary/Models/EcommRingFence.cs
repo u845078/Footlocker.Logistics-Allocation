@@ -20,6 +20,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Size { get; set; }
         public string PO { get; set; }
         public Int32 Qty { get; set; }
-
+        public string EndDate { get; set; }
+        public string Comments { get; set; }
     }
 }

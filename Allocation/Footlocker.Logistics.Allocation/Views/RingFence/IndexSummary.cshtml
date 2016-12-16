@@ -69,7 +69,7 @@
         .Columns(columns =>
         {
             columns.Bound(rf => rf.Sku).Visible(true);
-            columns.Bound(rf => rf.Qty).Visible(true).Aggregate(aggreages => aggreages.Sum()).Width(10)
+            columns.Bound(rf => rf.Qty).Title("Total Units").Visible(true).Aggregate(aggreages => aggreages.Sum()).Width(10)
                    .ClientFooterTemplate("<#= Sum #>").FooterTemplate(@<text>
                             @Html.Raw(item.Sum)
                     </text>);;

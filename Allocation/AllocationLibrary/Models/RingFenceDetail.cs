@@ -89,6 +89,10 @@ namespace Footlocker.Logistics.Allocation.Models
         [NotMapped]
         public List<ItemPackDetail> PackDetails { get; set; }
 
+        public string LastModifiedUser { get; set; }
+
+        public DateTime LastModifiedDate { get; set; }
+
         public string ActiveInd { get; set; }
 
         public string ringFenceStatusCode { get; set; }
