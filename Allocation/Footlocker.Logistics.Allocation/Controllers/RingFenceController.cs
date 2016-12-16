@@ -2505,8 +2505,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                  (a.PO == model.PO))
                                           select a).FirstOrDefault();
                             }
-                            Boolean newDetail = false;
-                            detail.ActiveInd = "1";
+                            Boolean newDetail = false;                            
 
                             if (detail == null)
                             {
@@ -2528,11 +2527,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 newDetail = true;
                             }
 
+                            detail.ActiveInd = "1";
                             detail.PO = model.PO;
                             detail.Qty = Convert.ToInt32(Convert.ToInt32(model.Qty) * weight.Weight);
                             int availableQty;
                             if (detail.PO != "")
                             {
+                                detail.ringFenceStatusCode = "4";
                                 var query = (from a in FuturePOs where ((a.PO == detail.PO) && (a.Size == detail.Size) && (a.DCID == detail.DCID)) select a.AvailableQty);
                                 availableQty = 0;
 
@@ -2549,7 +2550,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                                 (b.ActiveInd == "1"))
                                                          select b.Qty).Sum();
                                     }
-                                    catch { }
+                                    catch (Exception ex)
+                                    { }
                                 }
                                 if (detail.Qty > availableQty)
                                 {
@@ -2564,6 +2566,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             }
                             else
                             {
+                                detail.ringFenceStatusCode = "1";
                                 var query = (from a in Available where ((a.Size == detail.Size) && (a.DCID == detail.DCID)) select a.AvailableQty);
                                 availableQty = 0;
 
