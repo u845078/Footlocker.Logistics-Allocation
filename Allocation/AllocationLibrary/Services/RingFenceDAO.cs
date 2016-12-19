@@ -80,6 +80,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                 where ((a.RingFenceID == det.RingFenceID) &&
                                         (a.Size == det.Size) &&
                                         (a.DCID == dc.ID) &&
+                                        (a.PO == det.PO) &&
                                         (a.ActiveInd == "1"))
                                 select a.Qty);
             if (currQtyQuery.Count() > 0)
