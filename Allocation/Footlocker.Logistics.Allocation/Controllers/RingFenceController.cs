@@ -2485,6 +2485,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                             detail.ActiveInd = "1";
                             detail.PO = model.PO;
+                            detail.LastModifiedDate = DateTime.Now;
+                            detail.LastModifiedUser = User.Identity.Name;
                             detail.Qty = Convert.ToInt32(Convert.ToInt32(model.Qty) * weight.Weight);
                             int availableQty;
                             if (detail.PO != "")
