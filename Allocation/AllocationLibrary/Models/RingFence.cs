@@ -11,6 +11,9 @@ namespace Footlocker.Logistics.Allocation.Models
 {
     public class RingFence : BiExtract
     {
+        private string _store;
+        private string _sku;
+
         public override bool IsValid()
         {
             return true;
@@ -23,10 +26,37 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Division { get; set; }
 
         [StringLayoutDelimited(2)]
-        public string Store { get; set; }
+        public string Store
+        {
+            get
+            {
+                return _store;
+            }
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _store = value.PadLeft(5, '0');
+                }
+                else
+                    _store = value;
+            }
+        }
 
         [StringLayoutDelimited(3)]
-        public string Sku { get; set; }
+        [Required(ErrorMessage ="SKU is required")]
+        [RegularExpression(@"^\d{2}-\d{2}-\d{5}-\d{2}$", ErrorMessage = "Invalid Sku, format should be ##-##-#####-##")]
+        public string Sku
+        {
+            get
+            {
+                return _sku;
+            }
+            set
+            {
+                _sku = value.Trim();
+            }
+        }
 
         [NotMapped]
         public string Department
@@ -61,7 +91,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public Int32 CaseQty { get; set; }
 
         //[StringLayoutDelimited(7)]
-        [Display(Name="Units")]
+        [Display(Name="Total Units")]
         public Int32 Qty { get; set; }
 
         [DataType(DataType.Date)]
@@ -77,6 +107,10 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [StringLayoutDelimited(12, "yyyy-MM-dd h:mm:ss tt")]
         public DateTime? CreateDate { get; set; }
+
+        public string LastModifiedUser { get; set; }
+
+        public DateTime LastModifiedDate { get; set; }
 
         public string Comments { get; set; }
 
