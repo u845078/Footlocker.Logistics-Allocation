@@ -1,0 +1,45 @@
+﻿
+@{
+    ViewBag.Title = "Purge Criteria";
+}
+
+<h2>Purge Criteria</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create", null, new { @class = "t-button" })
+</p>
+    @Html.Raw("<font color=red" + ViewData["message"] + "</font>")
+    @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.Instance>()
+    .Name("InstanceGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(i => i.Name);
+    })
+    .DataBinding(dataBinding => dataBinding.Ajax().Select("Index", "PurgeArchive"))
+    .Sortable(sorting => sorting.Enabled(true))
+    .Pageable(paging => paging.Enabled(true))
+    .Filterable(filtering => filtering.Enabled(true))
+    .Groupable(grouping => grouping.Enabled(false))
+    .Footer(true)
+    .DetailView(purgeDetailView => purgeDetailView.ClientTemplate(
+            Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.PurgeArchiveType>()
+                .Name("purgeArchiveGrid_" + "<#= ID #>")
+                .Columns(columns =>
+                {
+                columns.Bound(pat => pat.ArchiveType).ReadOnly(true);
+                columns.Bound(pat => pat.ArchiveTypeDescription).ReadOnly(true);
+                columns.Bound(pat => pat.DaysUntilPurge).Width("90");
+                columns.Bound(pat => pat.ActiveInd).Title("Active").ClientTemplate(" <input type='checkbox' <#= ActiveInd ? checked='checked' : '' #> disabled />");
+                    columns.Command(c => c.Edit());
+
+                })
+                .DataKeys(dataKeys => dataKeys.Add(pat => pat.PurgeArchiveTypeID))
+                .DataBinding(dataBinding => dataBinding.Ajax().Select("PurgeArchiveTypesByInstance", "PurgeArchive", new { id = "<#= ID #>" })
+                                                                .Update("UpdatePurgeArchiveTypes", "PurgeArchive", new { id = (string)ViewData["PurgeArchiveTypeID"] }))
+                .Sortable(sorting => sorting.Enabled(true))
+                .Pageable(paging => paging.PageSize(10))
+                .Filterable(filtering => filtering.Enabled(true))
+                .Groupable(grouping => grouping.Enabled(false))
+                .ToHtmlString()
+    ))
+    )

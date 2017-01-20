@@ -50,7 +50,7 @@
       <HintPath>C:\Footlocker\Footlocker.Common 5.0\Footlocker.Common.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Practices.EnterpriseLibrary.Data">
-      <HintPath>C:\Program Files (x86)\Microsoft Enterprise Library 5.0\Bin\Microsoft.Practices.EnterpriseLibrary.Data.dll</HintPath>
+      <HintPath>..\..\..\..\..\FootLocker\Microsoft.Practices.EnterpriseLibrary.Data.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
@@ -162,6 +162,7 @@
     <Compile Include="Models\Price.cs" />
     <Compile Include="Models\ProductHierarchyOverrides.cs" />
     <Compile Include="Models\ProductOverrideTypes.cs" />
+    <Compile Include="Models\PurgeArchiveType.cs" />
     <Compile Include="Models\QuantumInstance.cs" />
     <Compile Include="Models\QuantumSeasonalityData.cs" />
     <Compile Include="Models\RangeFileItem.cs" />
@@ -257,6 +258,7 @@
     <Compile Include="Services\InterfaceLogDAO.cs" />
     <Compile Include="Services\NetworkZoneStoreDAO.cs" />
     <Compile Include="Services\PickService.cs" />
+    <Compile Include="Services\PurgeArchiveDAO.cs" />
     <Compile Include="Services\RangeFileItemDAO.cs" />
     <Compile Include="Services\RangeReformat.cs" />
     <Compile Include="Services\RingFenceDAO.cs" />
