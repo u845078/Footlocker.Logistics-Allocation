@@ -50,9 +50,10 @@ namespace Footlocker.Logistics.Allocation.Services
         public List<PurgeArchiveType> GetPurgeArchiveTypesByInstance(int instanceID)
         {
             List<PurgeArchiveType> purgeArchiveTypes = new List<PurgeArchiveType>();
-            purgeArchiveTypes = (  from a in db.PurgeArchiveTypes
-                                  where a.InstanceID == instanceID
-                                 select a ).ToList();
+            //default order should be archive type
+            purgeArchiveTypes = (from a in db.PurgeArchiveTypes
+                                 where a.InstanceID == instanceID
+                                 select a).OrderBy(model => model.ArchiveType).ToList();
             return purgeArchiveTypes;
         }
 

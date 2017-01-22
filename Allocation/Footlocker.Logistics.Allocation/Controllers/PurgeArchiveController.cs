@@ -160,7 +160,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 List<PurgeArchiveType> list = patDAO.GetPurgeArchiveTypes().Where
                                               (model =>
-                                                model.ArchiveType == pat.ArchiveType &&
+                                                model.ArchiveType.ToLower() == pat.ArchiveType.ToLower() &&
                                                 model.InstanceID == i.Instance.ID
                                               ).ToList();
                 if (list.Count > 0)
