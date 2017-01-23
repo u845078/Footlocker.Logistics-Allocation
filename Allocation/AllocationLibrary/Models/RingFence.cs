@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Footlocker.Logistics.Allocation.Services;
 
 using Footlocker.Common.Utilities.File;
 
@@ -20,7 +21,9 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         [StringLayoutDelimited(0)]
-        public Int64 ID { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long ID { get; set; }
 
         [StringLayoutDelimited(1)]
         public string Division { get; set; }
@@ -164,6 +167,50 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [NotMapped]
         public RingFenceStatusCodes ringFenceStatus { get; set; }
+
+        public virtual List<RingFenceDetail> ringFenceDetails { get; set; }
+
+        public void calculateTotalRingFenceQuantity()
+        {
+            int tempQuantity = 0;
+
+            if (this.ringFenceDetails != null)
+            {
+                tempQuantity = (from a in this.ringFenceDetails
+                                where ((a.Size.Length == 3) &&
+                                    (a.ActiveInd == "1"))
+                                select a.Qty).Sum();
+
+                var caselotRFD = (from a in this.ringFenceDetails
+                                where (a.Size.Length == 5 &&
+                                       a.ActiveInd == "1")                                      
+                                select a).ToList();
+
+                if (caselotRFD.Count() > 0)
+                {
+                    AllocationLibraryContext alc = new AllocationLibraryContext();
+                   
+                    foreach (RingFenceDetail cs in caselotRFD)
+                    {
+                        try
+                        {                                                        
+                            var clQty = (from a in alc.ItemPacks
+                                          where a.Name == cs.Size                                                
+                                          select a.TotalQty).FirstOrDefault();
+
+                            tempQuantity += (cs.Qty * clQty);
+                        }
+                        catch
+                        {
+                            //don't have details, leave qty without caselots
+                        }
+                    }
+                }
+            }
+
+            Qty = tempQuantity;
+        }
+
 
         /// <summary>
         /// Initializes a new instance of the RingFence class.
