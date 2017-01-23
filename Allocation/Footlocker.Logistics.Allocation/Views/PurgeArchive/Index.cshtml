@@ -36,7 +36,7 @@
                 .DataKeys(dataKeys => dataKeys.Add(pat => pat.PurgeArchiveTypeID))
                 .DataBinding(dataBinding => dataBinding.Ajax().Select("PurgeArchiveTypesByInstance", "PurgeArchive", new { id = "<#= ID #>" })
                                                                 .Update("UpdatePurgeArchiveTypes", "PurgeArchive", new { id = (string)ViewData["PurgeArchiveTypeID"] }))
-                .Sortable(sorting => sorting.Enabled(true))
+                .Sortable(sorting => sorting.OrderBy(sortOrder => sortOrder.Add(model => model.ArchiveType)))
                 .Pageable(paging => paging.PageSize(10))
                 .Filterable(filtering => filtering.Enabled(true))
                 .Groupable(grouping => grouping.Enabled(false))
