@@ -216,6 +216,7 @@
     <Compile Include="Controllers\MandatoryCrossdockController.cs" />
     <Compile Include="Controllers\NonRangedProductController.cs" />
     <Compile Include="Controllers\ProductHierarchyOverrideController.cs" />
+    <Compile Include="Controllers\PurgeArchiveController.cs" />
     <Compile Include="Controllers\StoreExtensionController.cs" />
     <Compile Include="Controllers\StoreAttributeController.cs" />
     <Compile Include="Controllers\StoreBTSController.cs" />
@@ -248,7 +249,9 @@
     </Compile>
     <Compile Include="Models\AuditRDQModel.cs" />
     <Compile Include="Models\BulkRDQModel.cs" />
+    <Compile Include="Models\InstanceModel.cs" />
     <Compile Include="Models\ProductHierarchyOverrideModel.cs" />
+    <Compile Include="Models\PurgeArchiveTypeModel.cs" />
     <Compile Include="Models\TroubleshootRDQForSkuModel.cs" />
     <Compile Include="Models\CreateConfigParamModel.cs" />
     <Compile Include="Models\CreateConfigModel.cs" />
@@ -567,6 +570,8 @@
     <Content Include="Views\ProductHierarchyOverride\Create.cshtml" />
     <Content Include="Views\ProductHierarchyOverride\Edit.cshtml" />
     <Content Include="Views\ProductHierarchyOverride\FormLayout.cshtml" />
+    <Content Include="Views\PurgeArchive\Index.cshtml" />
+    <Content Include="Views\PurgeArchive\Create.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />

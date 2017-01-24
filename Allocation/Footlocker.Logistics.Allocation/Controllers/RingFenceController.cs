@@ -419,6 +419,66 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View("AssignInventory", model);
         }
 
+        //            //RingFence rf = (from a in db.RingFences where a.ID == model.RingFence.ID select a).First();
+        //            //rf.Qty = (from a in futures select a.Qty).Sum();
+        //            //rf.Qty = rf.Qty + (from a in warehouses select a.Qty).Sum();
+        //            //db.SaveChanges(User.Identity.Name);
+
+        //            return RedirectToAction("Index");
+        //        }
+        //        else
+        //        { 
+        //            //ecomm store for all countries, break it out
+
+        //            RingFenceDetail newDet = new RingFenceDetail();
+        //            List<EcommWeight> weights = (new EcommWeightDAO()).GetEcommWeightList(model.RingFence.Department);
+
+        //            foreach (EcommWeight w in weights)
+        //            {
+        //                RingFence rf = (from a in db.RingFences
+        //                                where ((a.Sku == model.RingFence.Sku)&&(a.Store == w.Store))
+        //                                select a).First();
+
+        //                foreach (RingFenceDetail det in warehouses)
+        //                {
+        //                    newDet = new RingFenceDetail();
+        //                    newDet.DCID = det.DCID;
+        //                    newDet.PO = det.PO;
+        //                    newDet.Qty = Convert.ToInt32(det.Qty*w.Weight);
+        //                    newDet.Size = det.Size.Trim();
+
+        //                    newDet.RingFenceID = rf.ID;
+        //                    db.RingFenceDetails.Add(newDet);
+        //                    //db.SaveChanges(User.Identity.Name);
+        //                }
+        //                foreach (RingFenceDetail det in futures)
+        //                {
+        //                    newDet = new RingFenceDetail();
+        //                    newDet.DCID = det.DCID;
+        //                    newDet.PO = det.PO;
+        //                    newDet.Qty = Convert.ToInt32(det.Qty * w.Weight);
+        //                    newDet.Size = det.Size.Trim();
+        //                    newDet.RingFenceID = rf.ID;
+        //                    db.RingFenceDetails.Add(newDet);
+        //                    //db.SaveChanges(User.Identity.Name);
+        //                }
+
+        //                rf.Qty = (from a in futures select a.Qty).Sum();
+        //                rf.Qty = rf.Qty + (from a in warehouses select a.Qty).Sum();
+        //                db.SaveChanges(User.Identity.Name);
+        //            }
+
+        //            return RedirectToAction("Index");
+        //        }
+        //    }
+        //    else
+        //    {
+        //        model.RingFence = (from a in db.RingFences where a.ID == model.RingFence.ID select a).First();
+        //        ViewData["message"] = message;
+        //        return View("AssignInventory", model);
+        //    }
+        //}
+
         public ActionResult Details(int ID)
         {
             RingFenceModel model = new RingFenceModel();
@@ -1832,7 +1892,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                         if (list.Count() > 0)
                         {
-                            CreateOrUpdateRingFence(ringFence.Division, ringFence.Store, ringFence.Sku, list, errorlist, warehouse, futures);
+                            processEcommRingFences(list, errorlist);
+                            //CreateOrUpdateRingFence(ringFence.Division, ringFence.Store, ringFence.Sku, list, errorlist, warehouse, futures);
                             List<string> errors = (from a in errorlist
                                           where (!(a.ErrorMessage.StartsWith("Warning")))
                                           select a.ErrorMessage).ToList();
@@ -2077,8 +2138,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     Division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0');
 
-                    string sku,prevsku;
-                    prevsku = "FIRST";                    
+                    string sku, prevsku;
+                    prevsku = "FIRST";                   
 
                     List<RingFenceUploadModel> ProcessList = new List<RingFenceUploadModel>();
                     List<RingFenceUploadModel> Errors = new List<RingFenceUploadModel>();
@@ -2091,7 +2152,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         model = createModelFromSpreadsheet(mySheet.Cells, row);
 
-                        sku = Convert.ToString(mySheet.Cells[row, 2].Value);
+                        sku = Convert.ToString(mySheet.Cells[row, 2].Value);                        
 
                         if (sku != prevsku)
                         {
@@ -2103,7 +2164,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 skipError = model.ErrorMessage;
                                 skipSKU = true;
                             }
-
+                            
                             prevsku = sku;
                         }
                         else
@@ -2134,11 +2195,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         //now we have a list to process
                         prevsku = "";
+                        string prevStore = "";
                         List<RingFenceUploadModel> processListBySku = new List<RingFenceUploadModel>();
 
                         foreach (RingFenceUploadModel rfum in ProcessList)
                         {
-                            if (rfum.SKU != prevsku)
+                            if ((rfum.SKU != prevsku) || (rfum.Store != prevStore))
                             {
                                 if (processListBySku.Count > 0)
                                 {
@@ -2148,6 +2210,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                                 processListBySku.Add(rfum);
                                 prevsku = rfum.SKU;
+                                prevStore = rfum.Store;
                             }
                             else
                                 processListBySku.Add(rfum);
@@ -2185,9 +2248,44 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return Content("");
         }
 
-        public void CreateOrUpdateRingFence(string division, string store, string sku, List<RingFenceUploadModel> ProcessList, List<RingFenceUploadModel> Errors, List<RingFenceDetail> Available, List<RingFenceDetail> FuturePOs)
+        public void processEcommRingFences(List<RingFenceUploadModel> ProcessList, List<RingFenceUploadModel> Errors)
         {
             List<EcommRingFence> EcommAllStoresList = new List<EcommRingFence>();
+
+            foreach (RingFenceUploadModel model in ProcessList)
+            {
+                //Europe ecomm store that needs to be broken out
+                EcommRingFence ecomm = new EcommRingFence();
+                ecomm.Sku = model.SKU;
+                ecomm.Size = model.Size;
+                ecomm.PO = model.PO;
+                ecomm.Comments = model.Comments;
+
+                try
+                {
+                    ecomm.Qty = Convert.ToInt32(model.Qty);
+                    if (ecomm.Qty < 0)
+                        throw new Exception("Qty < 0");
+
+                    EcommAllStoresList.Add(ecomm);
+                }
+                catch (Exception ex)
+                {
+                    model.ErrorMessage = ex.Message;
+                    Errors.Add(model);
+                }
+            }
+
+            if (EcommAllStoresList.Count() > 0)
+            {
+                ConvertRangeDAO crDAO = new ConvertRangeDAO();
+                crDAO.SaveEcommRingFences(EcommAllStoresList, User.Identity.Name);
+            }
+        }
+
+        public void CreateOrUpdateRingFence(string division, string store, string sku, List<RingFenceUploadModel> ProcessList, List<RingFenceUploadModel> Errors, List<RingFenceDetail> Available, List<RingFenceDetail> FuturePOs)
+        {
+            List<RingFenceUploadModel> EcommRingFenceList = new List<RingFenceUploadModel>();
 
             ItemMaster item = (from a in db.ItemMasters
                                where a.MerchantSku == sku
@@ -2197,29 +2295,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             Boolean newRingFence = false;
 
             foreach (RingFenceUploadModel model in ProcessList)
-            {
+            {                
                 if (model.Store == "00800")
                 {
                     //Europe ecomm store that needs to be broken out
-                    EcommRingFence ecomm = new EcommRingFence();
-                    ecomm.Sku = model.SKU;
-                    ecomm.Size = model.Size;
-                    ecomm.PO = model.PO;
-                    ecomm.Comments = model.Comments;
-
-                    try
-                    {
-                        ecomm.Qty = Convert.ToInt32(model.Qty);
-                        if (ecomm.Qty < 0)
-                            throw new Exception("Qty < 0");
-
-                        EcommAllStoresList.Add(ecomm);
-                    }
-                    catch (Exception ex)
-                    {
-                        model.ErrorMessage = ex.Message;
-                        Errors.Add(model);
-                    }
+                    EcommRingFenceList.Add(model);                    
                 }
                 else
                 {
@@ -2242,18 +2322,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         if (ringFence == null)
                         {
                             ringFence = (from a in db.RingFences
-                                         where ((a.Division == division) &&
-                                                 (a.Store == store) &&
-                                                 (a.Sku == sku))
+                                         where ((a.Division == model.Division) &&
+                                                 (a.Store == model.Store) &&
+                                                 (a.Sku == model.SKU))
                                          select a).FirstOrDefault();
 
                             if (ringFence == null)
                             {
                                 ringFence = new RingFence();
-                                ringFence.Sku = sku;
+                                ringFence.Sku = model.SKU;
                                 newRingFence = true;
-                                ringFence.Division = division;
-                                ringFence.Store = store;
+                                ringFence.Division = model.Division;
+                                ringFence.Store = model.Store;
                             }
                             ringFence.Comments = model.Comments;
 
@@ -2372,10 +2452,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             db.SaveChanges(UserName);
 
-            if (EcommAllStoresList.Count > 0)
+            if (EcommRingFenceList.Count > 0)
             {
-                ConvertRangeDAO crDAO = new ConvertRangeDAO();
-                crDAO.SaveEcommRingFences(EcommAllStoresList, User.Identity.Name);
+                processEcommRingFences(EcommRingFenceList, Errors);
             }
         }
 
