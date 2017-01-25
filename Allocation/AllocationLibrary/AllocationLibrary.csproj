@@ -150,6 +150,7 @@
     <Compile Include="Models\FOBPackOverride.cs" />
     <Compile Include="Models\InterfaceFile.cs" />
     <Compile Include="Models\InvalidTransaction.cs" />
+    <Compile Include="Models\InventoryReductions.cs" />
     <Compile Include="Models\InventorySummary.cs" />
     <Compile Include="Models\LegacyFutureInventory.cs" />
     <Compile Include="Models\LegacyInventory.cs" />

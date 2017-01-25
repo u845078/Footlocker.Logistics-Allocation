@@ -68,16 +68,25 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             det.ActiveInd = "1";
             det.ringFenceStatusCode = "1";
             det.PriorityCode = priorityCode;
-            existingRingFenceQty = (from a in rfSummaryList
-                                    where ((a.Sku == sku) &&
-                                            (a.Size == det.Size) &&
-                                            (a.DC == warehouseCode) &&
-                                            (a.PO == det.PO))
-                                    select a.Qty).Sum();
+            //existingRingFenceQty = (from a in rfSummaryList
+            //                        where ((a.Sku == sku) &&
+            //                                (a.Size == det.Size) &&
+            //                                (a.DC == warehouseCode) &&
+            //                                (a.PO == det.PO))
+            //                        select a.Qty).Sum();
+
+            existingRingFenceQty = (from a in db.InventoryReductions
+                                      where ((a.Sku == sku) &&
+                                             (a.Size == det.Size) &&
+                                             (a.MFCode == warehouseCode) &&
+                                             (a.PO == det.PO))
+                                      select a.Qty).DefaultIfEmpty(0).Sum();
+
+            //if (existingRingFenceQty != myNewExistingRFQty)
+            //    myNewExistingRFQty = 0;
 
             currentRingFenceQty = 0;
 
-            // in the original transload code, it didn't use the DCID, but that may be a bug. It's in now.
             currentRingFenceQty = (from a in db.RingFenceDetails
                                     where ((a.RingFenceID == det.RingFenceID) &&
                                             (a.Size == det.Size) &&
@@ -166,14 +175,30 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             RingFenceDetail det;
             if (data.Tables.Count > 0)
             {
-                RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
-                List<RingFenceSummary> list = summaryDAO.GetRingFenceSummaries(Convert.ToString(instanceid));
+                List<DataRow> futureInventory = data.Tables[0].AsEnumerable().ToList();
+                List<DataRow> newFutureInventory = new List<DataRow>();
 
-                foreach (DataRow dr in data.Tables[0].Rows)
+                if (rf.ringFenceDetails.Count() > 0)
+                {
+                    foreach (RingFenceDetail rfd in rf.ringFenceDetails)
+                    {
+                        var newRow = data.Tables[0].AsEnumerable().Where(r => ((string)r["STK_SIZE_NUM"]) == rfd.Size &&
+                                                                              ((string)r["PO_NUM"]) == rfd.PO &&
+                                                                              ((string)r["WHSE_ID_NUM"]) == rfd.Warehouse);
+                        newFutureInventory.AddRange(newRow);
+                    }
+
+                    futureInventory = newFutureInventory;
+                }
+
+                //RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
+                //List<RingFenceSummary> list = summaryDAO.GetRingFenceSummaries(Convert.ToString(instanceid));
+
+                foreach (DataRow dr in futureInventory)
                 {
                     det = BuildFutureRingFenceDetail(rf.Sku, Convert.ToString(dr["STK_SIZE_NUM"]),
                                  Convert.ToString(dr["WHSE_ID_NUM"]), rf.ID, Convert.ToString(dr["PO_NUM"]),
-                                 Convert.ToString(dr["PRIORITY_CODE"]), list, Convert.ToInt32(dr["due_in"]),
+                                 Convert.ToString(dr["PRIORITY_CODE"]), null, Convert.ToInt32(dr["due_in"]),
                                  Convert.ToDateTime(dr["EXPECTED_DELV_DATE"]));
 
                     _que.Add(det);
@@ -204,10 +229,26 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             RingFenceDetail det;
             if (data.Tables.Count > 0)
             {
-                RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
-                List<RingFenceSummary> list = summaryDAO.GetRingFenceSummaries(Convert.ToString(instanceid));
+                List<DataRow> futureInventory = data.Tables[0].AsEnumerable().ToList();
+                List<DataRow> newFutureInventory = new List<DataRow>();
 
-                foreach (DataRow dr in data.Tables[0].Rows)
+                if (rf.ringFenceDetails.Count() > 0)
+                {
+                    foreach (RingFenceDetail rfd in rf.ringFenceDetails)
+                    {
+                        var newRow = data.Tables[0].AsEnumerable().Where(r => ((string)r["STK_SIZE_NUM"]) == rfd.Size &&
+                                                                              ((string)r["PO_NUM"]) == rfd.PO &&
+                                                                              ((string)r["WHSE_ID_NUM"]) == rfd.Warehouse);
+                        newFutureInventory.AddRange(newRow);
+                    }
+
+                    futureInventory = newFutureInventory;
+                }
+
+                //RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
+                //List<RingFenceSummary> list = summaryDAO.GetRingFenceSummaries(Convert.ToString(instanceid));
+
+                foreach (DataRow dr in futureInventory)
                 {
                     string availableDateString = Convert.ToString(dr["AvailableDate"]);
                     DateTime availableDate = Convert.ToDateTime(availableDateString.Substring(4, 2) + "-" +
@@ -215,7 +256,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
                     det = BuildFutureRingFenceDetail(rf.Sku, Convert.ToString(dr["Size"]),
                                     Convert.ToString(dr["Store"]), rf.ID, 
-                                    Convert.ToString(dr["InventoryID"]).Split('-')[0], "", list,
+                                    Convert.ToString(dr["InventoryID"]).Split('-')[0], "", null,
                                     Convert.ToInt32(dr["StockQty"]), availableDate);
                     _que.Add(det);
                 }

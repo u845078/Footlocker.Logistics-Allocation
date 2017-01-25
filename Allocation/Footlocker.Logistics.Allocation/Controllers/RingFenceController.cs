@@ -2099,6 +2099,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             foreach (RingFenceUploadModel rfum in ProcessList)
             {
+                RingFenceDetail det = new RingFenceDetail();
+                det.Size = rfum.Size;
+                det.PO = rfum.PO;
+                det.Warehouse = rfum.Warehouse;
+
+                tempRingFence.ringFenceDetails.Add(det);
+            }
+
+            foreach (RingFenceUploadModel rfum in ProcessList)
+            {
                 if ((rfum.PO == "") && (Available == null))
                     Available = dao.GetWarehouseAvailable(tempRingFence);
 

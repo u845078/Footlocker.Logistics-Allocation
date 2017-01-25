@@ -72,7 +72,7 @@ namespace Footlocker.Logistics.Allocation.Services
             string SQL = "dbo.GetRangeExtract";
 
             SQLCommand = _database.GetStoredProcCommand(SQL);
-            SQLCommand.CommandTimeout = 60;
+            SQLCommand.CommandTimeout = 6000;
             _database.AddInParameter(SQLCommand, "@div", DbType.String, div);
             _database.AddInParameter(SQLCommand, "@dept", DbType.String, dept);
             _database.AddInParameter(SQLCommand, "@sku", DbType.String, sku);

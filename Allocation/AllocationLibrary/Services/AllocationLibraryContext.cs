@@ -61,6 +61,7 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<OrderPlanningRequest> OrderPlanningRequests { get; set; }
         public DbSet<RingFenceStatusCodes> RingFenceStatusCodes { get; set; }
         public DbSet<PurgeArchiveType> PurgeArchiveTypes { get; set; }
+        public DbSet<InventoryReductions> InventoryReductions { get; set; }
 
         public AllocationLibraryContext()
             : base("AllocationContext")
