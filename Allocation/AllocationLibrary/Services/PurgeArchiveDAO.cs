@@ -83,7 +83,7 @@ namespace Footlocker.Logistics.Allocation.Services
         }
 
         /// <summary>
-        /// Create numerous PurgeArchiveTypes.
+        /// Create numerous PurgeArchiveTypes
         /// </summary>
         /// <param name="pats">List of PurgeArchiveTypes to create.</param>
         /// <param name="user">User creating the PurgeArchiveType</param>
