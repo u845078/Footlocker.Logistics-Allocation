@@ -59,6 +59,7 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.AddInParameter(SQLCommand, "@div", DbType.String, div);
             _database.AddInParameter(SQLCommand, "@dept", DbType.String, dept);
             _database.AddInParameter(SQLCommand, "@sku", DbType.String, sku);
+            SQLCommand.CommandTimeout = 0;
 
             return _database.ExecuteReader(SQLCommand);
         }
@@ -72,10 +73,10 @@ namespace Footlocker.Logistics.Allocation.Services
             string SQL = "dbo.GetRangeExtract";
 
             SQLCommand = _database.GetStoredProcCommand(SQL);
-            SQLCommand.CommandTimeout = 6000;
             _database.AddInParameter(SQLCommand, "@div", DbType.String, div);
             _database.AddInParameter(SQLCommand, "@dept", DbType.String, dept);
             _database.AddInParameter(SQLCommand, "@sku", DbType.String, sku);
+            SQLCommand.CommandTimeout = 0;
 
             IDataReader datareader = _database.ExecuteReader(SQLCommand);
 

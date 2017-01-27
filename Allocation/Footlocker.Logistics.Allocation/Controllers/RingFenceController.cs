@@ -419,66 +419,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View("AssignInventory", model);
         }
 
-        //            //RingFence rf = (from a in db.RingFences where a.ID == model.RingFence.ID select a).First();
-        //            //rf.Qty = (from a in futures select a.Qty).Sum();
-        //            //rf.Qty = rf.Qty + (from a in warehouses select a.Qty).Sum();
-        //            //db.SaveChanges(User.Identity.Name);
-
-        //            return RedirectToAction("Index");
-        //        }
-        //        else
-        //        { 
-        //            //ecomm store for all countries, break it out
-
-        //            RingFenceDetail newDet = new RingFenceDetail();
-        //            List<EcommWeight> weights = (new EcommWeightDAO()).GetEcommWeightList(model.RingFence.Department);
-
-        //            foreach (EcommWeight w in weights)
-        //            {
-        //                RingFence rf = (from a in db.RingFences
-        //                                where ((a.Sku == model.RingFence.Sku)&&(a.Store == w.Store))
-        //                                select a).First();
-
-        //                foreach (RingFenceDetail det in warehouses)
-        //                {
-        //                    newDet = new RingFenceDetail();
-        //                    newDet.DCID = det.DCID;
-        //                    newDet.PO = det.PO;
-        //                    newDet.Qty = Convert.ToInt32(det.Qty*w.Weight);
-        //                    newDet.Size = det.Size.Trim();
-
-        //                    newDet.RingFenceID = rf.ID;
-        //                    db.RingFenceDetails.Add(newDet);
-        //                    //db.SaveChanges(User.Identity.Name);
-        //                }
-        //                foreach (RingFenceDetail det in futures)
-        //                {
-        //                    newDet = new RingFenceDetail();
-        //                    newDet.DCID = det.DCID;
-        //                    newDet.PO = det.PO;
-        //                    newDet.Qty = Convert.ToInt32(det.Qty * w.Weight);
-        //                    newDet.Size = det.Size.Trim();
-        //                    newDet.RingFenceID = rf.ID;
-        //                    db.RingFenceDetails.Add(newDet);
-        //                    //db.SaveChanges(User.Identity.Name);
-        //                }
-
-        //                rf.Qty = (from a in futures select a.Qty).Sum();
-        //                rf.Qty = rf.Qty + (from a in warehouses select a.Qty).Sum();
-        //                db.SaveChanges(User.Identity.Name);
-        //            }
-
-        //            return RedirectToAction("Index");
-        //        }
-        //    }
-        //    else
-        //    {
-        //        model.RingFence = (from a in db.RingFences where a.ID == model.RingFence.ID select a).First();
-        //        ViewData["message"] = message;
-        //        return View("AssignInventory", model);
-        //    }
-        //}
-
         public ActionResult Details(int ID)
         {
             RingFenceModel model = new RingFenceModel();

@@ -104,9 +104,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //ensure at least one instance is selected
             if (selectedInstances.Count() > 0)
             {
-                //trim archivetype and archivetypedescription before possibly creating numerous models
-                model.purgeArchiveType.ArchiveType = model.purgeArchiveType.ArchiveType.Trim();
-                model.purgeArchiveType.ArchiveTypeDescription = model.purgeArchiveType.ArchiveTypeDescription.Trim();
 
                 //ensure archivetype is unique and does not already exist for the selected instances
                 if (ValidateNonExistentType(model.purgeArchiveType, selectedInstances))
