@@ -236,9 +236,9 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 {
                     foreach (RingFenceDetail rfd in rf.ringFenceDetails)
                     {
-                        var newRow = data.Tables[0].AsEnumerable().Where(r => ((string)r["Size"]) == rfd.Size &&
-                                                                              ((string)r["PO_NUM"]) == rfd.PO &&
-                                                                              ((string)r["InventoryID"]).Split('-')[0] == rfd.Warehouse);
+                        var newRow = data.Tables[0].AsEnumerable().Where(r => Convert.ToString(r["Size"]) == rfd.Size &&
+                                                                              Convert.ToString(r["InventoryID"]).Split('-')[0] == rfd.PO &&
+                                                                              Convert.ToString(r["Store"]) == rfd.Warehouse);
                         newFutureInventory.AddRange(newRow);
                     }
 
