@@ -178,17 +178,21 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 List<DataRow> futureInventory = data.Tables[0].AsEnumerable().ToList();
                 List<DataRow> newFutureInventory = new List<DataRow>();
 
-                if (rf.ringFenceDetails.Count() > 0)
+                // if RFID = 0 then this is not a RF that is already in the DB
+                if (rf.ID == 0)
                 {
-                    foreach (RingFenceDetail rfd in rf.ringFenceDetails)
+                    if (rf.ringFenceDetails.Count() > 0)
                     {
-                        var newRow = data.Tables[0].AsEnumerable().Where(r => ((string)r["STK_SIZE_NUM"]) == rfd.Size &&
-                                                                              ((string)r["PO_NUM"]) == rfd.PO &&
-                                                                              ((string)r["WHSE_ID_NUM"]) == rfd.Warehouse);
-                        newFutureInventory.AddRange(newRow);
-                    }
+                        foreach (RingFenceDetail rfd in rf.ringFenceDetails)
+                        {
+                            var newRow = data.Tables[0].AsEnumerable().Where(r => ((string)r["STK_SIZE_NUM"]) == rfd.Size &&
+                                                                                  ((string)r["PO_NUM"]) == rfd.PO &&
+                                                                                  ((string)r["WHSE_ID_NUM"]) == rfd.Warehouse);
+                            newFutureInventory.AddRange(newRow);
+                        }
 
-                    futureInventory = newFutureInventory;
+                        futureInventory = newFutureInventory;
+                    }
                 }
 
                 //RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
@@ -232,17 +236,21 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 List<DataRow> futureInventory = data.Tables[0].AsEnumerable().ToList();
                 List<DataRow> newFutureInventory = new List<DataRow>();
 
-                if (rf.ringFenceDetails.Count() > 0)
+                // if RFID = 0 then this is not a RF that is already in the DB
+                if (rf.ID != 0)
                 {
-                    foreach (RingFenceDetail rfd in rf.ringFenceDetails)
+                    if (rf.ringFenceDetails.Count() > 0)
                     {
-                        var newRow = data.Tables[0].AsEnumerable().Where(r => Convert.ToString(r["Size"]) == rfd.Size &&
-                                                                              Convert.ToString(r["InventoryID"]).Split('-')[0] == rfd.PO &&
-                                                                              Convert.ToString(r["Store"]) == rfd.Warehouse);
-                        newFutureInventory.AddRange(newRow);
-                    }
+                        foreach (RingFenceDetail rfd in rf.ringFenceDetails)
+                        {
+                            var newRow = data.Tables[0].AsEnumerable().Where(r => Convert.ToString(r["Size"]) == rfd.Size &&
+                                                                                  Convert.ToString(r["InventoryID"]).Split('-')[0] == rfd.PO &&
+                                                                                  Convert.ToString(r["Store"]) == rfd.Warehouse);
+                            newFutureInventory.AddRange(newRow);
+                        }
 
-                    futureInventory = newFutureInventory;
+                        futureInventory = newFutureInventory;
+                    }
                 }
 
                 //RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
