@@ -1673,6 +1673,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return true;
         }
 
+        private RingFenceUploadModel CreateUploadModelFromDetail(RingFenceDetail rfd, RingFence rf)
+        {
+            RingFenceUploadModel model = new RingFenceUploadModel();
+
+            model.SKU = rf.Sku;
+            model.Size = rfd.Size;
+            model.PO = rfd.PO;
+            model.Comments = rf.Comments;
+            model.Qty = Convert.ToString(rfd.Qty);
+
+            model.Store = rf.Store;
+            model.Warehouse = rfd.Warehouse;
+            model.Division = rf.Division;
+            model.EndDate = Convert.ToString(rf.EndDate);
+
+            return model;
+        }
+
         [AcceptVerbs(HttpVerbs.Post)]
         [GridAction]
         public ActionResult _SaveBatchInsert([Bind(Prefix = "updated")]IEnumerable<RingFenceDetail> updated)
@@ -1797,43 +1815,31 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 else
                 {
-                    //Ecomm RingFence we need to create ecomm inventory
-                    List<RingFenceDetail> futures = GetFutureAvailable(ringFence);
-                    List<RingFenceDetail> warehouse = GetWarehouseAvailable(ringFence);
-
-                    if (ringFence.Store == "00800")
+                    if ((ringFence.Store == "00800") && (ringFence.Division == "31"))
                     {
                         List<RingFenceUploadModel> list = new List<RingFenceUploadModel>();
                         List<RingFenceUploadModel> errorlist = new List<RingFenceUploadModel>();
                         List<RingFenceDetail> outputList = new List<RingFenceDetail>();
-                        RingFenceUploadModel model = new RingFenceUploadModel();
+                        RingFenceUploadModel model;
+
                         foreach (RingFenceDetail det in updated)
                         {
-                            if (isRingFenceDetailValid(det))
+                            // took out the validation since we're allowing 31/00800 to ring fence against 0 qty
+                            //if (isRingFenceDetailValid(det))
+                            //{
+                            if (det.Qty > 0)
                             {
-                                if (det.Qty > 0)
-                                {
-                                    model = new RingFenceUploadModel();
-                                    model.SKU = ringFence.Sku;
-                                    model.Size = det.Size;
-                                    model.PO = det.PO;
-                                    model.Comments = ringFence.Comments;
-                                    model.Qty = Convert.ToString(det.Qty);
+                                model = CreateUploadModelFromDetail(det, ringFence);
 
-                                    model.Store = ringFence.Store;
-                                    model.Warehouse = det.Warehouse;
-                                    model.Division = ringFence.Division;
-                                    model.EndDate = Convert.ToString(ringFence.EndDate);
-
-                                    list.Add(model);
-                                }
+                                list.Add(model);
                             }
+                            //}
                         }
 
                         if (list.Count() > 0)
                         {
                             processEcommRingFences(list, errorlist);
-                            //CreateOrUpdateRingFence(ringFence.Division, ringFence.Store, ringFence.Sku, list, errorlist, warehouse, futures);
+
                             List<string> errors = (from a in errorlist
                                           where (!(a.ErrorMessage.StartsWith("Warning")))
                                           select a.ErrorMessage).ToList();
@@ -1859,6 +1865,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                     else
                     {
+                        //Ecomm RingFence we need to create ecomm inventory
+                        List<RingFenceDetail> futures = GetFutureAvailable(ringFence);
+                        List<RingFenceDetail> warehouse = GetWarehouseAvailable(ringFence);
+
                         //ecomm all countries store
                         //EcommInventory ecommInv = new EcommInventory();
                         RingFenceDetail newDet = new RingFenceDetail();
