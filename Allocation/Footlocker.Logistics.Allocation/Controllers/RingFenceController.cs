@@ -628,7 +628,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             // Build up a RingFence view model
             RingFenceModel model = new RingFenceModel();
-            var ringfenceQuery = (from a in db.RingFences where a.ID == ID select a);
+            var ringfenceQuery = (from a in db.RingFences
+                                  where a.ID == ID select a);
             if (ringfenceQuery.Count() == 0)
             {
                 return RedirectToAction("Index", new { message = "Ring fence no longer exists.  " });
@@ -661,12 +662,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     return View(model);
                 }
 
-            model.RingFence.CreatedBy = User.Identity.Name;
-            model.RingFence.CreateDate = DateTime.Now;
+                model.RingFence.CreatedBy = User.Identity.Name;
+                model.RingFence.CreateDate = DateTime.Now;
+                model.RingFence.LastModifiedDate = DateTime.Now;
+                model.RingFence.LastModifiedUser = User.Identity.Name;
 
-            db.Entry(model.RingFence).State = System.Data.EntityState.Modified;
+                db.Entry(model.RingFence).State = System.Data.EntityState.Modified;
 
-            db.SaveChanges(User.Identity.Name);
+                db.SaveChanges(User.Identity.Name);
 
                 return RedirectToAction("Index");
             }
