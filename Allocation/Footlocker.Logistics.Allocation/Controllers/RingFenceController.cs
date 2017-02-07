@@ -1564,7 +1564,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          where a.ID == ringFenceID
                          select a).First();
 
-
             available = GetWarehouseAvailable(ringFence);
             available.AddRange(GetFutureAvailable(ringFence));
             
@@ -1596,14 +1595,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             else
                                 det.ringFenceStatusCode = "1";
 
-                            if ((from a in db.RingFenceDetails
-                                 where ((a.RingFenceID == det.RingFenceID) &&
-                                        (a.DCID == det.DCID) &&
-                                        (a.Size == det.Size) &&
-                                        (a.PO == det.PO))
-                                 select a).Count() > 0)
+                            var detailRec = (from a in ringFence.ringFenceDetails
+                                             where ((a.RingFenceID == det.RingFenceID) &&
+                                                     (a.DCID == det.DCID) &&
+                                                     (a.Size == det.Size) &&
+                                                     (a.PO == det.PO))
+                                             select a).FirstOrDefault();
+
+                            if (detailRec != null)
+                            //if ((from a in ringFence.ringFenceDetails
+                            //    where ((a.RingFenceID == det.RingFenceID) &&
+                            //            (a.DCID == det.DCID) &&
+                            //            (a.Size == det.Size) &&
+                            //            (a.PO == det.PO))
+                            //     select a).Count() > 0)
+                            //if ((from a in db.RingFenceDetails
+                            //     where ((a.RingFenceID == det.RingFenceID) &&
+                            //            (a.DCID == det.DCID) &&
+                            //            (a.Size == det.Size) &&
+                            //            (a.PO == det.PO))
+                            //     select a).Count() > 0)
                             {
-                                db.Entry(det).State = System.Data.EntityState.Modified;
+                                detailRec.Qty = det.Qty;
+                                db.Entry(detailRec).State = System.Data.EntityState.Modified;
+                                //db.Entry(det).State = System.Data.EntityState.Modified;
                             }
                             else
                             {
@@ -1620,9 +1635,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             // Build up viewmodel to be returned, (add errors if necessary)
-            List<RingFenceDetail> details = (from a in db.RingFenceDetails
-                                             where a.RingFenceID == ringFenceID &&
-                                                   a.ActiveInd == "1"
+            //List<RingFenceDetail> details = (from a in db.RingFenceDetails
+            //                                 where a.RingFenceID == ringFenceID &&
+            //                                       a.ActiveInd == "1"
+            //                                 select a).ToList();
+            List<RingFenceDetail> details = (from a in ringFence.ringFenceDetails
+                                             where a.ActiveInd == "1"
                                              select a).ToList();
 
             List<RingFenceDetail> final = new List<RingFenceDetail>();
