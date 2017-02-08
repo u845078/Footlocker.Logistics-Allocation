@@ -1603,20 +1603,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                              select a).FirstOrDefault();
 
                             if (detailRec != null)
-                            //if ((from a in ringFence.ringFenceDetails
-                            //    where ((a.RingFenceID == det.RingFenceID) &&
-                            //            (a.DCID == det.DCID) &&
-                            //            (a.Size == det.Size) &&
-                            //            (a.PO == det.PO))
-                            //     select a).Count() > 0)
-                            //if ((from a in db.RingFenceDetails
-                            //     where ((a.RingFenceID == det.RingFenceID) &&
-                            //            (a.DCID == det.DCID) &&
-                            //            (a.Size == det.Size) &&
-                            //            (a.PO == det.PO))
-                            //     select a).Count() > 0)
-                            {
-                                detailRec.Qty = det.Qty;
+                            {                                
+                                detailRec.Qty = det.Qty;                                
                                 db.Entry(detailRec).State = System.Data.EntityState.Modified;
                                 //db.Entry(det).State = System.Data.EntityState.Modified;
                             }
@@ -1635,10 +1623,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             // Build up viewmodel to be returned, (add errors if necessary)
-            //List<RingFenceDetail> details = (from a in db.RingFenceDetails
-            //                                 where a.RingFenceID == ringFenceID &&
-            //                                       a.ActiveInd == "1"
-            //                                 select a).ToList();
             List<RingFenceDetail> details = (from a in ringFence.ringFenceDetails
                                              where a.ActiveInd == "1"
                                              select a).ToList();
@@ -1660,14 +1644,60 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     select a).FirstOrDefault();
 
                 if (updateRecord != null)
-                    final.Add(updateRecord);
+                {
+                    //final.Add(updateRecord);
+                    final.Add(new RingFenceDetail
+                    {
+                        Size = updateRecord.Size,
+                        PackDetails = updateRecord.PackDetails,
+                        RingFenceID = updateRecord.RingFenceID,
+                        Warehouse = updateRecord.Warehouse,
+                        PO = updateRecord.PO,
+                        Qty = updateRecord.Qty,
+                        AvailableQty = updateRecord.AvailableQty,
+                        AssignedQty = updateRecord.AssignedQty,
+                        Message = updateRecord.Message,
+                        DCID = updateRecord.DCID,
+                        ringFenceStatusCode = updateRecord.ringFenceStatusCode
+                    });
+                }
                 else if (detailRecord != null)
                 {
                     det.Qty = detailRecord.Qty;
-                    final.Add(det);
+                    //final.Add(det);
+                    final.Add(new RingFenceDetail
+                    {
+                        Size = det.Size,
+                        PackDetails = det.PackDetails,
+                        RingFenceID = det.RingFenceID,
+                        Warehouse = det.Warehouse,
+                        PO = det.PO,
+                        Qty = det.Qty,
+                        AvailableQty = det.AvailableQty,
+                        AssignedQty = det.AssignedQty,
+                        Message = det.Message,
+                        DCID = det.DCID,
+                        ringFenceStatusCode = det.ringFenceStatusCode
+                    });
                 }
                 else
-                    final.Add(det);
+                {
+                    //final.Add(det);
+                    final.Add(new RingFenceDetail
+                    {
+                        Size = det.Size,
+                        PackDetails = det.PackDetails,
+                        RingFenceID = det.RingFenceID,
+                        Warehouse = det.Warehouse,
+                        PO = det.PO,
+                        Qty = det.Qty,
+                        AvailableQty = det.AvailableQty,
+                        AssignedQty = det.AssignedQty,
+                        Message = det.Message,
+                        DCID = det.DCID,
+                        ringFenceStatusCode = det.ringFenceStatusCode
+                    });
+                }
             }
 
             return View(new GridModel(final));
@@ -1823,14 +1853,61 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                             select a).FirstOrDefault();
 
                         if (updateRecord != null)
-                            final.Add(updateRecord);
+                        {
+                            //final.Add(updateRecord);
+                            final.Add(new RingFenceDetail
+                            {
+                                Size = updateRecord.Size,
+                                PackDetails = updateRecord.PackDetails,
+                                RingFenceID = updateRecord.RingFenceID,
+                                Warehouse = updateRecord.Warehouse,
+                                PO = updateRecord.PO,
+                                Qty = updateRecord.Qty,
+                                AvailableQty = updateRecord.AvailableQty,
+                                AssignedQty = updateRecord.AssignedQty,
+                                Message = updateRecord.Message,
+                                DCID = updateRecord.DCID,
+                                ringFenceStatusCode = updateRecord.ringFenceStatusCode
+                            });
+                        }
                         else if (detailRecord != null)
                         {
                             det.Qty = detailRecord.Qty;
-                            final.Add(det);
-                        }                            
+                            //final.Add(det);
+                            final.Add(new RingFenceDetail
+                            {
+                                Size = det.Size,
+                                PackDetails = det.PackDetails,
+                                RingFenceID = det.RingFenceID,
+                                Warehouse = det.Warehouse,
+                                PO = det.PO,
+                                Qty = det.Qty,
+                                AvailableQty = det.AvailableQty,
+                                AssignedQty = det.AssignedQty,
+                                Message = det.Message,
+                                DCID = det.DCID,
+                                ringFenceStatusCode = det.ringFenceStatusCode
+                            });
+                        }
                         else
-                            final.Add(det);
+                        {
+                            //final.Add(det);
+                            final.Add(new RingFenceDetail
+                            {
+                                Size = det.Size,
+                                PackDetails = det.PackDetails,
+                                RingFenceID = det.RingFenceID,
+                                Warehouse = det.Warehouse,
+                                PO = det.PO,
+                                Qty = det.Qty,
+                                AvailableQty = det.AvailableQty,
+                                AssignedQty = det.AssignedQty,
+                                Message = det.Message,
+                                DCID = det.DCID,
+                                ringFenceStatusCode = det.ringFenceStatusCode
+                            });
+                        }
+                            
                     }
                     return View(new GridModel(final));
                 }
