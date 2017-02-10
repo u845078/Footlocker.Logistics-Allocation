@@ -1586,6 +1586,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     if (isRingFenceDetailValid(det))
                     {
+                        var detailRec = (from a in ringFence.ringFenceDetails
+                                         where ((a.RingFenceID == det.RingFenceID) &&
+                                                 (a.DCID == det.DCID) &&
+                                                 (a.Size == det.Size) &&
+                                                 (a.PO == det.PO))
+                                         select a).FirstOrDefault();
+
                         if (det.Qty > 0)
                         {
                             det.ActiveInd = "1";
@@ -1594,13 +1601,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 det.ringFenceStatusCode = "4";
                             else
                                 det.ringFenceStatusCode = "1";
-
-                            var detailRec = (from a in ringFence.ringFenceDetails
-                                             where ((a.RingFenceID == det.RingFenceID) &&
-                                                     (a.DCID == det.DCID) &&
-                                                     (a.Size == det.Size) &&
-                                                     (a.PO == det.PO))
-                                             select a).FirstOrDefault();
 
                             if (detailRec != null)
                             {                                
@@ -1614,10 +1614,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             }
 
                             det.LastModifiedDate = DateTime.Now;
-                            det.LastModifiedUser = User.Identity.Name;
-
-                            db.SaveChanges(User.Identity.Name);
+                            det.LastModifiedUser = User.Identity.Name;                            
                         }
+                        else if (det.Qty == 0)
+                        {
+                            if (detailRec != null)
+                            {
+                                db.Entry(detailRec).State = EntityState.Deleted;
+                            }
+                        }
+
+                        db.SaveChanges(User.Identity.Name);
                     }
                 }
             }
