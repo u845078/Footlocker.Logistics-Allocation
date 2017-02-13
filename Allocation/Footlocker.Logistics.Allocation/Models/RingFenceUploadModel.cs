@@ -10,6 +10,7 @@ namespace Footlocker.Logistics.Allocation.Models
     {
         private string _store;
         private string _division;
+        private string _po;
 
         public string Division
         {
@@ -45,9 +46,26 @@ namespace Footlocker.Logistics.Allocation.Models
             }
         }
 
+        public string PO
+        {
+            get
+            {
+                if (_po == null)
+                    return "";
+                else
+                    return _po;
+            }
+            set
+            {
+                if (value == null)
+                    _po = "";
+                else
+                    _po = value;
+            }
+        }
+
         public string SKU {get;set;}
         public string EndDate {get;set;}
-        public string PO {get;set;}
         public string Warehouse {get;set;}
         public string Size {get;set;}
         public string Qty {get;set;}

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 
+
 namespace Footlocker.Logistics.Allocation.Models
 {
     public class RingFenceDetail
@@ -16,7 +17,8 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [Key]
         [Column(Order=0)]
-        public Int64 RingFenceID { get; set; }
+        [ForeignKey("RingFence")]
+        public long RingFenceID { get; set; }
         
         [Key]
         [Column(Order = 1)]
@@ -99,5 +101,7 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [NotMapped]
         public RingFenceStatusCodes ringFenceStatus { get; set; }
+
+        public virtual RingFence RingFence { get; set; }
     }
 }

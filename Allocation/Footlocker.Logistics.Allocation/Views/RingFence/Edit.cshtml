@@ -20,21 +20,24 @@
         <br />
 <table><tr>
 <td><img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.RingFence.Sku)" /></td>
-<td>
-<b>@Html.LabelFor(model => model.RingFence.Sku)</b>
-@Html.DisplayFor(model => model.RingFence.Sku)
-<br />
-            @Html.Raw("<input name=\"RingFence.ID\" type=\"hidden\" value=\"" + Model.RingFence.ID + "\"/>")
-            @Html.Raw("<input name=\"RingFence.ItemID\" type=\"hidden\" value=\"" + Model.RingFence.ItemID + "\"/>")
-            @Html.Raw("<input name=\"RingFence.Qty\" type=\"hidden\" value=\"" + Model.RingFence.Qty + "\"/>")
-            @Html.Raw("<input name=\"RingFence.Division\" type=\"hidden\" value=\"" + Model.RingFence.Division + "\"/>")
-            @Html.Raw("<input name=\"RingFence.Sku\" type=\"hidden\" value=\"" + Model.RingFence.Sku + "\"/>")
-            @Html.Raw("<input name=\"RingFence.Size\" type=\"hidden\" value=\"" + Model.RingFence.Size + "\"/>")
-            @Html.Raw("<b>Store:  </b><input name=\"RingFence.Store\" type=\"text\" value=\"" + Model.RingFence.Store + "\"/>")
-            <br />
-            <b>From:  </b>@Html.DisplayFor(model => model.RingFence.StartDate)@Html.HiddenFor(model => model.RingFence.StartDate)&nbsp;&nbsp;
-            <b>To:  </b>@Html.EditorFor(model => model.RingFence.EndDate, null, new { id = "RingFence.EndDate" })
-</td><td><br /><input type="submit" value="Save" class="t-button" /></td></tr>
+           <td>
+               <b>@Html.LabelFor(model => model.RingFence.Sku)</b>
+               @Html.DisplayFor(model => model.RingFence.Sku)
+               <br />
+               @Html.Raw("<input name=\"RingFence.ID\" type=\"hidden\" value=\"" + Model.RingFence.ID + "\"/>")
+               @Html.Raw("<input name=\"RingFence.ItemID\" type=\"hidden\" value=\"" + Model.RingFence.ItemID + "\"/>")
+               @Html.Raw("<input name=\"RingFence.Qty\" type=\"hidden\" value=\"" + Model.RingFence.Qty + "\"/>")
+               @Html.Raw("<input name=\"RingFence.Division\" type=\"hidden\" value=\"" + Model.RingFence.Division + "\"/>")
+               @Html.Raw("<input name=\"RingFence.Sku\" type=\"hidden\" value=\"" + Model.RingFence.Sku + "\"/>")
+               @Html.Raw("<input name=\"RingFence.Size\" type=\"hidden\" value=\"" + Model.RingFence.Size + "\"/>")
+               @Html.Raw("<input name=\"RingFence.Comments\" type=\"hidden\" value=\"" + Model.RingFence.Comments + "\"/>")
+               @Html.Raw("<input name=\"RingFence.CreatedBy\" type=\"hidden\" value=\"" + Model.RingFence.CreatedBy + "\"/>")
+               @Html.Raw("<input name=\"RingFence.CreateDate\" type=\"hidden\" value=\"" + Model.RingFence.CreateDate + "\"/>")
+               @Html.Raw("<b>Store:  </b><input name=\"RingFence.Store\" type=\"text\" value=\"" + Model.RingFence.Store + "\"/>")
+               <br />
+               <b>From:  </b>@Html.DisplayFor(model => model.RingFence.StartDate)@Html.HiddenFor(model => model.RingFence.StartDate)&nbsp;&nbsp;
+               <b>To:  </b>@Html.EditorFor(model => model.RingFence.EndDate, null, new { id = "RingFence.EndDate" })
+           </td><td><br /><input type="submit" value="Save" class="t-button" /></td></tr>
 </table>
     </fieldset>
 }
