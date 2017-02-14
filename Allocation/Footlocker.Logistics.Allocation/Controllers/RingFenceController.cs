@@ -568,19 +568,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             foreach (RingFenceDetail det in list)
             {
+                RingFenceDetail newDetail = new RingFenceDetail
+                {
+                    RingFenceID = det.RingFenceID,
+                    Size = det.Size, 
+                    PO = det.PO, 
+                    Qty = det.Qty,
+                    Units = det.Units,
+                    DCID = det.DCID
+                };
                 includeDetail = false;
-                if (det.Size.Length > _CASELOT_SIZE_INDICATOR_VALUE_LENGTH)
+                if (newDetail.Size.Length > _CASELOT_SIZE_INDICATOR_VALUE_LENGTH)
                 {
                     try
                     {
-                        var itemPack = db.ItemPacks.Include("Details").Single(p => p.ItemID == ringFenceItemID && p.Name == det.Size);
-                        det.PackDetails = itemPack.Details.ToList();
+                        var itemPack = db.ItemPacks.Include("Details").Single(p => p.ItemID == ringFenceItemID && 
+                                                                                    p.Name == newDetail.Size);
+                        newDetail.PackDetails = itemPack.Details.ToList();
 
-                        foreach (ItemPackDetail pd in det.PackDetails)
+                        foreach (ItemPackDetail pd in newDetail.PackDetails)
                         {
                             if (pd.Size == size)
                             {
-                                det.Units += det.Qty * pd.Quantity;
+                                newDetail.Units += det.Qty * pd.Quantity;
                                 includeDetail = true;
                             }
                         }
@@ -593,14 +603,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 else
                 {
                     includeDetail = true;
-                    det.Units = det.Qty;
+                    newDetail.Units = newDetail.Qty;
                 }
 
-                det.Warehouse = (from a in dcs where a.ID == det.DCID select a).First().Name;
+                newDetail.Warehouse = (from a in dcs
+                                       where a.ID == newDetail.DCID
+                                       select a).First().Name;
 
                 if (includeDetail)
                 {
-                    model.Add(det);
+                    model.Add(newDetail);
                 }
             }
 
@@ -613,6 +625,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.RingFence = (from a in db.RingFences
                                where a.ID == ID
                                select a).First();
+
             model.FutureAvailable = new List<RingFenceDetail>();
 
             model.Divisions = this.Divisions();
