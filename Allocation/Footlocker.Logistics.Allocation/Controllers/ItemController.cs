@@ -785,7 +785,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         #region WMS Request
 
-        [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes")]
+        [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes, Head Merchandiser")]
         public ActionResult RequestWSM()
         {
             WSMRequestModel model = new WSMRequestModel();
@@ -794,7 +794,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
-        [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes")]
+        [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes, Head Merchandiser")]
         public ActionResult RequestWSM(WSMRequestModel model, string submitAction)
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
