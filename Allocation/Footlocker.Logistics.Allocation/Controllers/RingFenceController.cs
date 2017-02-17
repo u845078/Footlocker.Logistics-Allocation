@@ -2128,11 +2128,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.ErrorMessage = "Division doesn't match";
                 return false;
             }
-            else if (model.Store.Length == 0)
-            {
-                model.ErrorMessage = "Store is required";
-                return false;
-            }
+            //else if (model.Store.Length == 0)
+            //{
+            //    model.ErrorMessage = "Store is required";
+            //    return false;
+            //}
             else if (model.SKU.Length == 0)
             {
                 model.ErrorMessage = "Sku is required";
