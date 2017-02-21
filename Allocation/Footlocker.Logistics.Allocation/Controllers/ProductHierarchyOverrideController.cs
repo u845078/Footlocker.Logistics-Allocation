@@ -63,6 +63,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Create(ProductHierarchyOverrideModel model, string submitAction)
         {
+            string errorMessage = "";
             try
             {
                 if (submitAction.Equals("lookup"))
@@ -78,6 +79,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     ProductHierarchyOverrides newRec = PopulateFields(model.prodHierarchyOverride);
 
+                    if (!ValidateOverride(model.prodHierarchyOverride, out errorMessage))
+                    {
+                        model = FillModelLists(model);
+                        ViewData["message"] = errorMessage;
+                        return View(model);
+                    }
+
                     db.ProductHierarchyOverrides.Add(newRec);
                     db.SaveChanges();
 
@@ -86,7 +94,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             catch
             {
-                return View();
+                model = FillModelLists(model);
+                return View(model);
             }
         }
 
@@ -94,6 +103,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ProductHierarchyOverrideModel model = new ProductHierarchyOverrideModel();
             model.prodHierarchyOverride = LoadTransaction(id);
+
+            // will deny access to user from editing a non-existing (invalid) override.
+            if (!ValidateExistingOverride(model.prodHierarchyOverride))
+            {
+                string errMessage = "The override you have selected is no longer valid within the system.  Please delete this override and create a new one.";
+                return RedirectToAction("Index", new { message = errMessage });
+            }
 
             if (model.prodHierarchyOverride.productOverrideTypeCode == "SKU")
                 model = Lookup(model);
@@ -107,6 +123,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Edit(ProductHierarchyOverrideModel model, int id)
         {
+            string errorMessage = "";
             try
             {
                 if (model.prodHierarchyOverride.productOverrideTypeCode == "SKU")
@@ -114,6 +131,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 ProductHierarchyOverrides editedRec = PopulateFields(model.prodHierarchyOverride);
                 editedRec.productHierarchyOverrideID = id;
+
+                if (!ValidateOverride(model.prodHierarchyOverride, out errorMessage))
+                {
+                    model = FillModelLists(model);
+                    ViewData["message"] = errorMessage;
+                    return View(model);
+                }
 
                 db.ProductHierarchyOverrides.Attach(editedRec);
                 db.Entry(editedRec).State = System.Data.EntityState.Modified;
@@ -123,7 +147,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             catch
             {
-                return View();
+                model = FillModelLists(model);
+                return View(model);
             }
         }
 
@@ -181,50 +206,51 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public List<SelectListItem> GetDepartmentList(string divisionFilter)
         {
             List<SelectListItem> departmentList = new List<SelectListItem>();
-            var query = (from a in db.Departments
-                         where a.divisionCode == divisionFilter
-                         select a).ToList();
-            if (query.Count() > 0)
+            List<Departments> departments = new List<Departments>();
+
+            departments = GetValidDepartments(divisionFilter);
+
+            if (departments.Count() > 0)
             {
-                foreach (var rec in query)
+                foreach (var rec in departments)
                 {
                     departmentList.Add(new SelectListItem { Text = rec.departmentDisplay, Value = rec.departmentCode });
                 }
             }
 
-            return departmentList;
+            return departmentList.OrderBy(o => o.Text).ToList();
         }
 
         public List<SelectListItem> GetCategoryList(string divisionFilter, string departmentFilter)
         {
             List<SelectListItem> categoryList = new List<SelectListItem>();
-            var query = (from a in db.Categories
-                         where a.divisionCode == divisionFilter &&
-                               a.departmentCode == departmentFilter
-                         select a).ToList();
+            List<Categories> categories = new List<Categories>();
 
-            if (query.Count() > 0)
+            // retrieve distinct categories from ItemMaster in order to populate active categoryids
+            categories = GetValidCategories(divisionFilter, departmentFilter);
+
+            if (categories.Count() > 0)
             {
-                foreach (var rec in query)
+                foreach (var rec in categories)
                 {
                     categoryList.Add(new SelectListItem { Text = rec.categoryDisplay, Value = rec.categoryCode });
                 }
             }
 
-            return categoryList;
+            return categoryList.OrderBy(o => o.Text).ToList();
         }
 
-        public List<SelectListItem> GetBrandIDList(string divisionFilter, string departmentFilter)
+        public List<SelectListItem> GetBrandIDList(string divisionFilter, string departmentFilter, string categoryFilter)
         {
             List<SelectListItem> brandIDList = new List<SelectListItem>();
-            var query = (from a in db.BrandIDs
-                         where a.divisionCode == divisionFilter &&
-                               a.departmentCode == departmentFilter
-                         select a).ToList();
+            List<BrandIDs> brands = new List<BrandIDs>();
 
-            if (query.Count() > 0)
+            // retrieve distinct brands from ItemMaster in order to populate in use brandids
+            brands = GetValidBrands(divisionFilter, departmentFilter, categoryFilter);
+
+            if (brands.Count() > 0)
             {
-                foreach (var rec in query)
+                foreach (var rec in brands)
                 {
                     brandIDList.Add(new SelectListItem { Text = rec.brandIDDisplay, Value = rec.brandIDCode });
                 }
@@ -232,6 +258,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return brandIDList;
         }
+
         #endregion
 
         #region JSON Result routines
@@ -247,9 +274,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return Json(new SelectList(newCategoryList.ToArray(), "Value", "Text"), JsonRequestBehavior.AllowGet);
         }
 
-        public JsonResult GetNewBrandIDJson(string div, string dept)
+        public JsonResult GetNewBrandIDJson(string div, string dept, string cat)
         {
-            List<SelectListItem> newBrandIDList = GetBrandIDList(div, dept);
+            List<SelectListItem> newBrandIDList = GetBrandIDList(div, dept, cat);
             return Json(new SelectList(newBrandIDList.ToArray(), "Value", "Text"), JsonRequestBehavior.AllowGet);
         }
         #endregion
@@ -312,51 +339,52 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private ProductHierarchyOverrideModel FillModelLists(ProductHierarchyOverrideModel model)
         {
             model.overrideTypes = GetOverrideTypes();
+            ProductHierarchyOverrides pho = model.prodHierarchyOverride;
 
-            if (string.IsNullOrEmpty(model.prodHierarchyOverride.productOverrideTypeCode))
-                model.prodHierarchyOverride.productOverrideTypeCode = model.overrideTypes[0].Value;
+            if (string.IsNullOrEmpty(pho.productOverrideTypeCode))
+                pho.productOverrideTypeCode = model.overrideTypes[0].Value;
 
             model.overrideDivisionList = GetDivisionList();
 
-            if (string.IsNullOrEmpty(model.prodHierarchyOverride.overrideDivision))
-                model.prodHierarchyOverride.overrideDivision = model.overrideDivisionList[0].Value;
+            if (string.IsNullOrEmpty(pho.overrideDivision))
+                pho.overrideDivision = model.overrideDivisionList[0].Value;
             //else
-            //    model.overrideDivisionList[model.overrideDivisionList.FindIndex(m => m.Value == model.prodHierarchyOverride.overrideDivision)].Selected = true;
+            //    model.overrideDivisionList[model.overrideDivisionList.FindIndex(m => m.Value == pho.overrideDivision)].Selected = true;
 
-            model.overrideDepartmentList = GetDepartmentList(model.prodHierarchyOverride.overrideDivision);
+            model.overrideDepartmentList = GetDepartmentList(pho.overrideDivision);
 
-            if (string.IsNullOrEmpty(model.prodHierarchyOverride.overrideDepartment))
-                model.prodHierarchyOverride.overrideDepartment = model.overrideDepartmentList[0].Value;
+            if (string.IsNullOrEmpty(pho.overrideDepartment))
+                pho.overrideDepartment = model.overrideDepartmentList[0].Value;
 
-            model.overrideCategoryList = GetCategoryList(model.prodHierarchyOverride.overrideDivision, model.prodHierarchyOverride.overrideDepartment);
+            model.overrideCategoryList = GetCategoryList(pho.overrideDivision, pho.overrideDepartment);
 
-            if (string.IsNullOrEmpty(model.prodHierarchyOverride.overrideCategory))
-                model.prodHierarchyOverride.overrideCategory = model.overrideCategoryList[0].Value;
+            if (string.IsNullOrEmpty(pho.overrideCategory))
+                pho.overrideCategory = model.overrideCategoryList[0].Value;
 
-            model.overrideBrandIDList = GetBrandIDList(model.prodHierarchyOverride.overrideDivision, model.prodHierarchyOverride.overrideDepartment);
+            model.overrideBrandIDList = GetBrandIDList(pho.overrideDivision, pho.overrideDepartment, pho.overrideCategory);
 
-            if (string.IsNullOrEmpty(model.prodHierarchyOverride.overrideBrandID))
-                model.prodHierarchyOverride.overrideBrandID = model.overrideBrandIDList[0].Value;
+            if (string.IsNullOrEmpty(pho.overrideBrandID))
+                pho.overrideBrandID = model.overrideBrandIDList[0].Value;
 
             model.newDivisionList = GetDivisionList();
 
-            if (string.IsNullOrEmpty(model.prodHierarchyOverride.newDivision))
-                model.prodHierarchyOverride.newDivision = model.newDivisionList[0].Value;
+            if (string.IsNullOrEmpty(pho.newDivision))
+                pho.newDivision = model.newDivisionList[0].Value;
 
-            model.newDepartmentList = GetDepartmentList(model.prodHierarchyOverride.newDivision);
+            model.newDepartmentList = GetDepartmentList(pho.newDivision);
 
-            if (string.IsNullOrEmpty(model.prodHierarchyOverride.newDepartment))
-                model.prodHierarchyOverride.newDepartment = model.newDepartmentList[0].Value;
+            if (string.IsNullOrEmpty(pho.newDepartment))
+                pho.newDepartment = model.newDepartmentList[0].Value;
 
-            model.newCategoryList = GetCategoryList(model.prodHierarchyOverride.newDivision, model.prodHierarchyOverride.newDepartment);
+            model.newCategoryList = GetCategoryList(pho.newDivision, pho.newDepartment);
 
-            if (string.IsNullOrEmpty(model.prodHierarchyOverride.newCategory))
-                model.prodHierarchyOverride.newCategory = model.newCategoryList[0].Value;
+            if (string.IsNullOrEmpty(pho.newCategory))
+                pho.newCategory = model.newCategoryList[0].Value;
 
-            model.newBrandIDList = GetBrandIDList(model.prodHierarchyOverride.newDivision, model.prodHierarchyOverride.newDepartment);
+            model.newBrandIDList = GetBrandIDList(pho.newDivision, pho.newDepartment, pho.newCategory);
 
-            if (string.IsNullOrEmpty(model.prodHierarchyOverride.newBrandID))
-                model.prodHierarchyOverride.newBrandID = model.newBrandIDList[0].Value;
+            if (string.IsNullOrEmpty(pho.newBrandID))
+                pho.newBrandID = model.newBrandIDList[0].Value;
 
             return model;
         }
@@ -416,6 +444,207 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                select a).FirstOrDefault();
             return trans;
         }
+
+        /// <summary>
+        /// Will validate the created producthierarchyoverride
+        /// </summary>
+        /// <param name="pho">ProductHierarchyOverride</param>
+        /// <param name="errorMessage">Specific error message</param>
+        /// <returns>boolean dependent on if the producthierarchyoverride is valid</returns>
+        private bool ValidateOverride(ProductHierarchyOverrides pho, out string errorMessage)
+        {
+            bool result = true;
+            errorMessage = "";
+
+            if (pho.productOverrideTypeCode.Equals("DEPT"))
+            {
+                if (pho.overrideDivision == null || pho.overrideDepartment == null)
+                {
+                    result = false;
+                    errorMessage += "The override division and department must all have values";
+                }
+
+            }
+
+            if (pho.productOverrideTypeCode.Equals("CAT"))
+            {
+                if (pho.overrideDivision == null ||
+                    pho.overrideDepartment == null ||
+                    pho.overrideCategory == null)
+                {
+                    result = false;
+                    errorMessage += "The override division, department, and category must all have values";
+                }
+
+            }
+
+            if (pho.productOverrideTypeCode.Equals("LC_BRANDID"))
+            {
+                if (pho.overrideDivision == null ||
+                    pho.overrideDepartment == null ||
+                    pho.overrideCategory == null ||
+                    pho.overrideBrandID == null)
+                {
+                    result = false;
+                    errorMessage += "The override division, department, category and brand must all have values";
+                }
+            }
+
+            if (pho.productOverrideTypeCode.Equals("SKU"))
+            {
+                if (string.IsNullOrEmpty(pho.overrideDivision) ||
+                    string.IsNullOrEmpty(pho.overrideDepartment) ||
+                    string.IsNullOrEmpty(pho.overrideCategory) ||
+                    string.IsNullOrEmpty(pho.overrideBrandID))
+                {
+                    result = false;
+                    errorMessage += "Invalid override SKU";
+                }
+            }
+
+            // validate new division, department, category, and brand list
+            if (pho.newDivision == null ||
+                pho.newDepartment == null ||
+                pho.newCategory == null ||
+                pho.newBrandID == null)
+            {
+                result = false;
+                errorMessage += "The new division, department, category and brand must all have values";
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Will validate the existing override to ensure the user is not trying to edit an invalid product
+        /// hierarchy combination.  This is problematic because the population of the dropdowns on the edit
+        /// screen depend on a valid combination or else it will throw an exception that will not be
+        /// handled.
+        /// </summary>
+        /// <param name="pho">ProductHierarchyOverride</param>
+        /// <returns></returns>
+        private bool ValidateExistingOverride(ProductHierarchyOverrides pho)
+        {
+            bool result = true;
+
+            if (pho.productOverrideTypeCode.Equals("DEPT"))
+            {
+                var departments = GetValidDepartments(pho.overrideDivision);
+                int departmentCount = departments.Where(d => d.departmentCode == pho.overrideDepartment).Count();
+                if (departmentCount == 0)
+                {
+                    result = false;
+                }
+            }
+
+            if (pho.productOverrideTypeCode.Equals("CAT"))
+            {
+                var categories = GetValidCategories(pho.overrideDivision, pho.overrideDepartment);
+                int categoryCount = categories.Where(category => category.categoryCode.ToString() == pho.overrideCategory).Count();
+                if (categoryCount == 0)
+                {
+                    result = false;
+                }
+            }
+
+            if (pho.productOverrideTypeCode.Equals("LC_BRANDID"))
+            {
+                var brands = GetValidBrands(pho.overrideDivision, pho.overrideDepartment, pho.overrideCategory);
+                int brandCount = brands.Where(brand => brand.brandIDCode == pho.overrideBrandID).Count();
+                if (brandCount == 0)
+                {
+                    result = false;
+                }
+            }
+
+            // validate new list
+            var newBrands = GetValidBrands(pho.newDivision, pho.newDepartment, pho.newCategory);
+            int newBrandCount = newBrands.Where(brand => brand.brandIDCode == pho.newBrandID).Count();
+            if (newBrandCount == 0)
+            {
+                result = false;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Retrieve all valid departments from the ItemMaster table given the specified division
+        /// </summary>
+        /// <param name="divisionFilter">specified division</param>
+        /// <returns>List of valid departments</returns>
+        private List<Departments> GetValidDepartments(string divisionFilter)
+        {
+            List<Departments> departments = new List<Departments>();
+
+            departments = (from im in db.ItemMasters
+                           join d in db.Departments
+                             on new { Division = im.Div, Department = im.Dept } equals
+                                new { Division = d.divisionCode, Department = d.departmentCode }
+                          where im.Div == divisionFilter &&
+                                 // ensure that the brandid associated with ItemMaster record exists in the Brands table.
+                                 (from b in db.BrandIDs
+                                 where b.brandIDCode == im.Brand &&
+                                       b.divisionCode == im.Div &&
+                                       b.departmentCode == im.Dept
+                                select b.brandIDCode).Distinct().Contains(im.Brand)
+                         select d).Distinct().ToList();
+
+            return departments;
+        }
+
+        /// <summary>
+        /// Retrieve all valid categories from the ItemMaster table given the specified division
+        /// and department
+        /// </summary>
+        /// <param name="divisionFilter">specified division</param>
+        /// <param name="departmentFilter">specified department</param>
+        /// <returns>List of valid categories</returns>
+        private List<Categories> GetValidCategories(string divisionFilter, string departmentFilter)
+        {
+            List<Categories> categories = new List<Categories>();
+
+            categories = (from im in db.ItemMasters
+                          join c in db.Categories
+                            on new { Category = im.Category, Division = im.Div, Department = im.Dept } equals
+                               new { Category = c.categoryCode, Division = c.divisionCode, Department = c.departmentCode }
+                         where im.Div == divisionFilter &&
+                               im.Dept == departmentFilter &&
+                                // ensure that the brandid associated with ItemMaster record exists in the Brands table.
+                                (from b in db.BrandIDs
+                                where b.brandIDCode == im.Brand &&
+                                      b.divisionCode == im.Div &&
+                                      b.departmentCode == im.Dept
+                               select b.brandIDCode).Distinct().Contains(im.Brand)
+                        select c).Distinct().ToList();
+
+            return categories;
+        }
+
+        /// <summary>
+        /// Retrieve all valid brands from the ItemMaster table given the specified division,
+        /// department, and category
+        /// </summary>
+        /// <param name="divisionFilter">specified division</param>
+        /// <param name="departmentFilter">specified department</param>
+        /// <param name="categoryFilter">specified category</param>
+        /// <returns>List of valid brands</returns>
+        private List<BrandIDs> GetValidBrands(string divisionFilter, string departmentFilter, string categoryFilter)
+        {
+            List<BrandIDs> brands = new List<BrandIDs>();
+
+            brands = (from im in db.ItemMasters
+                      join b in db.BrandIDs
+                        on new { Brand = im.Brand, Division = im.Div, Department = im.Dept } equals
+                           new { Brand = b.brandIDCode, Division = b.divisionCode, Department = b.departmentCode }
+                     where im.Div == divisionFilter &&
+                           im.Dept == departmentFilter &&
+                           im.Category == categoryFilter
+                    select b).Distinct().ToList();
+
+            return brands;
+        }
+
         #endregion
     }
 }
