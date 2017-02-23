@@ -61,6 +61,9 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<OrderPlanningRequest> OrderPlanningRequests { get; set; }
         public DbSet<RingFenceStatusCodes> RingFenceStatusCodes { get; set; }
         public DbSet<PurgeArchiveType> PurgeArchiveTypes { get; set; }
+        public DbSet<Departments> Departments { get; set; }
+        public DbSet<Categories> Categories { get; set; }
+        public DbSet<BrandIDs> BrandIDs { get; set; }
         public DbSet<InventoryReductions> InventoryReductions { get; set; }
 
         public AllocationLibraryContext()
@@ -71,7 +74,6 @@ namespace Footlocker.Logistics.Allocation.Services
 
             // Sets the command timeout for all the commands
             objectContext.CommandTimeout = 300;
-
         }
 
 
