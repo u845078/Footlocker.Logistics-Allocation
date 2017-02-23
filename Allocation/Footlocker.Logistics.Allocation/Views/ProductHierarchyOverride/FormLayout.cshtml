@@ -2,8 +2,6 @@
 
 <script type="text/javascript">
         $(function () {
-            var loading = '<option>Loading...</option>';
-
             $('#overrideLevelList').change(function () {
                 $('#overrideDivisionList').show();
                 $('#overrideDepartmentList').show();
@@ -51,9 +49,6 @@
             }).trigger('change');
 
             $('#newDivisionList').change(function () {
-                $('#newDepartmentList').html(loading);
-                $('#newCategoryList').html(loading);
-                $('#newBrandIDList').html(loading);
                 $.getJSON('/ProductHierarchyOverride/GetNewDeptsJson/' + $('#newDivisionList').val(), function (data) {
                     var items = '';
                     //var items = '<option>Select a District</option>';
@@ -66,8 +61,6 @@
             });
 
             $('#newDepartmentList').change(function () {
-                $('#newCategoryList').html(loading);
-                $('#newBrandIDList').html(loading);
                 $.getJSON('/ProductHierarchyOverride/GetNewCatJson?div=' + $('#newDivisionList').val() +
                     '&dept=' + $('#newDepartmentList').val(), function (data) {
                         var items = '';
@@ -76,26 +69,20 @@
                             items += "<option value='" + cat.Value + "'>" + cat.Text + "</option>";
                         });
                         $('#newCategoryList').html(items);
-                        $('#newCategoryList').change();
                     });
-            });
 
-            $('#newCategoryList').change(function () {
-                $('#newBrandIDList').html(loading);
                 $.getJSON('/ProductHierarchyOverride/GetNewBrandIDJson?div=' + $('#newDivisionList').val() +
-                    '&dept=' + $('#newDepartmentList').val() + '&cat=' + $('#newCategoryList').val(), function (data) {
+                    '&dept=' + $('#newDepartmentList').val(), function (data) {
                         var items = '';
+                        //var items = '<option>Select a District</option>';
                         $.each(data, function (i, brandid) {
                             items += "<option value='" + brandid.Value + "'>" + brandid.Text + "</option>";
                         });
                         $('#newBrandIDList').html(items);
-                    }); 
+                    });
             });
 
             $('#overrideDivisionList').change(function () {
-                $('#overrideDepartmentList').html(loading);
-                $('#overrideCategoryList').html(loading);
-                $('#overrideBrandIDList').html(loading);
                 $.getJSON('/ProductHierarchyOverride/GetNewDeptsJson/' + $('#overrideDivisionList').val(), function (data) {
                     var items = '';
                     //var items = '<option>Select a District</option>';
@@ -108,8 +95,6 @@
             });
 
             $('#overrideDepartmentList').change(function () {
-                $('#overrideCategoryList').html(loading);
-                $('#overrideBrandIDList').html(loading);
                 $.getJSON('/ProductHierarchyOverride/GetNewCatJson?div=' + $('#overrideDivisionList').val() +
                     '&dept=' + $('#overrideDepartmentList').val(), function (data) {
                         var items = '';
@@ -118,29 +103,20 @@
                             items += "<option value='" + cat.Value + "'>" + cat.Text + "</option>";
                         });
                         $('#overrideCategoryList').html(items);
-                        $('#overrideCategoryList').change();
                     });
-            });
 
-            $('#overrideCategoryList').change(function () {
-                $('#overrideBrandIDList').html(loading);
                 $.getJSON('/ProductHierarchyOverride/GetNewBrandIDJson?div=' + $('#overrideDivisionList').val() +
-                    '&dept=' + $('#overrideDepartmentList').val() + '&cat=' + $('#overrideCategoryList').val(), function (data) {
+                    '&dept=' + $('#overrideDepartmentList').val(), function (data) {
                         var items = '';
+                        //var items = '<option>Select a District</option>';
                         $.each(data, function (i, brandid) {
                             items += "<option value='" + brandid.Value + "'>" + brandid.Text + "</option>";
                         });
                         $('#overrideBrandIDList').html(items);
                     });
-            }); 
+            });
         });
 </script>
-
-@if (ViewData["message"] != null && ViewData["message"] != "")
-{
-    <font color="Red">@Html.Raw(Convert.ToString(ViewData["message"]))</font>
-    <br /><br />
-}
 
 <div class="editor-label">
     Override Level
@@ -206,7 +182,6 @@
             <div class="editor-label">
                 Brand ID
             </div>
-            
             <div class="editor-field">
                 @Html.DropDownListFor(m => m.prodHierarchyOverride.overrideBrandID, Model.overrideBrandIDList, new { id = "overrideBrandIDList" })
                 <div id="overrideBrandIDLabelDiv">
