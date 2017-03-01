@@ -1,4 +1,4 @@
-﻿
+﻿@model Footlocker.Logistics.Allocation.Models.PurgeArchiveTypeModel
 @{
     ViewBag.Title = "Purge Criteria";
 }
@@ -15,7 +15,7 @@
     {
         columns.Bound(i => i.Name);
     })
-    .DataBinding(dataBinding => dataBinding.Ajax().Select("Index", "PurgeArchive"))
+    .DataBinding(dataBinding => dataBinding.Ajax().Select("_Index", "PurgeArchive"))
     .Sortable(sorting => sorting.Enabled(true))
     .Pageable(paging => paging.Enabled(true))
     .Filterable(filtering => filtering.Enabled(true))
@@ -26,12 +26,14 @@
                 .Name("purgeArchiveGrid_" + "<#= ID #>")
                 .Columns(columns =>
                 {
-                columns.Bound(pat => pat.ArchiveType).ReadOnly(true);
-                columns.Bound(pat => pat.ArchiveTypeDescription).ReadOnly(true);
-                columns.Bound(pat => pat.DaysUntilPurge).Width("90");
-                columns.Bound(pat => pat.ActiveInd).Title("Active").ClientTemplate(" <input type='checkbox' <#= ActiveInd ? checked='checked' : '' #> disabled />");
-                    columns.Command(c => c.Edit());
-
+                    columns.Bound(pat => pat.ArchiveType).ReadOnly(true);
+                    columns.Bound(pat => pat.ArchiveTypeDescription).ReadOnly(true);
+                    columns.Bound(pat => pat.DaysUntilPurge).Width("90");
+                    columns.Bound(pat => pat.ActiveInd).Title("Active").ClientTemplate(" <input type='checkbox' <#= ActiveInd ? checked='checked' : '' #> disabled />");
+                    if (Model.CanEdit)
+                    {
+                        columns.Command(c => c.Edit());
+                    }
                 })
                 .DataKeys(dataKeys => dataKeys.Add(pat => pat.PurgeArchiveTypeID))
                 .DataBinding(dataBinding => dataBinding.Ajax().Select("PurgeArchiveTypesByInstance", "PurgeArchive", new { id = "<#= ID #>" })

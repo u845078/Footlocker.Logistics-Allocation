@@ -14,14 +14,14 @@
     <script type="text/javascript">
         $(function () {
             $('#overrideLevelList').prop("disabled", true);
-         }).trigger('change')
+        }).trigger('change')        
       </script>
       @Html.HiddenFor(m => m.prodHierarchyOverride.productOverrideTypeCode)
 
     @Html.Partial(@Url.Content("~/Views/ProductHierarchyOverride/FormLayout.cshtml"), Model, ViewData)
 
     <div style="text-align: center;">
-        <button type="submit">Save</button>
+        <button id="saveButton" name="submitAction" type="submit" value="submit">Save</button>
         &nbsp;&nbsp;&nbsp;&nbsp;
         <button type="button" onclick="location.href = '/ProductHierarchyOverride/Index'">Cancel</button>
     </div>

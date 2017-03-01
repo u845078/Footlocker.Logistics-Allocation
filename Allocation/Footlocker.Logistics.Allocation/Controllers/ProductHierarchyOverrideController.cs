@@ -103,12 +103,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ProductHierarchyOverrideModel model = new ProductHierarchyOverrideModel();
             model.prodHierarchyOverride = LoadTransaction(id);
+            string errorMessage = "";
 
-            // will deny access to user from editing a non-existing (invalid) override.
-            if (!ValidateExistingOverride(model.prodHierarchyOverride))
+            if (!ValidateExistingOverride(model, out errorMessage))
             {
-                string errMessage = "The override you have selected is no longer valid within the system.  Please delete this override and create a new one.";
-                return RedirectToAction("Index", new { message = errMessage });
+                //display error message 
+                ViewData["message"] = errorMessage;
+                //populate fields
+                model = FillModelLists(model);
+
+                return View(model);
             }
 
             if (model.prodHierarchyOverride.productOverrideTypeCode == "SKU")
@@ -121,10 +125,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
         //
         // POST: /ProductHierarchyOverride/Edit/5
         [HttpPost]
-        public ActionResult Edit(ProductHierarchyOverrideModel model, int id)
+        public ActionResult Edit(ProductHierarchyOverrideModel model, int id, string submitAction)
         {
             string errorMessage = "";
-            try
+            if (submitAction.Equals("lookup"))
+            {
+                model = Lookup(model);
+                model = FillModelLists(model);
+                if (!ValidateOverride(model.prodHierarchyOverride, out errorMessage))
+                {
+                    ViewData["message"] = errorMessage;  
+                }
+                return View(model);
+            }
+            else
             {
                 if (model.prodHierarchyOverride.productOverrideTypeCode == "SKU")
                     model = Lookup(model);
@@ -144,11 +158,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 db.SaveChanges();
 
                 return RedirectToAction("Index");
-            }
-            catch
-            {
-                model = FillModelLists(model);
-                return View(model);
             }
         }
 
@@ -292,9 +301,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             string lookupSKU = model.prodHierarchyOverride.overrideSKU;
 
-            var itemRec = (from a in db.ItemMasters
-                           where a.MerchantSku == lookupSKU
-                           select a).FirstOrDefault();
+            var itemRec = validSku(lookupSKU);
+
             if (itemRec == null)
             {
                 model.prodHierarchyOverride.overrideCategory = "";
@@ -338,53 +346,73 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private ProductHierarchyOverrideModel FillModelLists(ProductHierarchyOverrideModel model)
         {
-            model.overrideTypes = GetOverrideTypes();
             ProductHierarchyOverrides pho = model.prodHierarchyOverride;
 
-            if (string.IsNullOrEmpty(pho.productOverrideTypeCode))
+            model.overrideTypes = GetOverrideTypes();
+            var existentOverrideTypes = model.overrideTypes.Where(o => o.Value == pho.productOverrideTypeCode).Count();
+            if (existentOverrideTypes == 0 && model.overrideTypes.Count() > 0)
+            {
                 pho.productOverrideTypeCode = model.overrideTypes[0].Value;
+            }
 
             model.overrideDivisionList = GetDivisionList();
-
-            if (string.IsNullOrEmpty(pho.overrideDivision))
+            var existentOverrideDivision = model.overrideDivisionList.Where(div => div.Value == pho.overrideDivision).Count();
+            if (existentOverrideDivision == 0 && model.overrideDivisionList.Count() > 0)
+            {
                 pho.overrideDivision = model.overrideDivisionList[0].Value;
+            }
+                
             //else
             //    model.overrideDivisionList[model.overrideDivisionList.FindIndex(m => m.Value == pho.overrideDivision)].Selected = true;
 
             model.overrideDepartmentList = GetDepartmentList(pho.overrideDivision);
-
-            if (string.IsNullOrEmpty(pho.overrideDepartment))
+            var existentOverrideDepartment = model.overrideDepartmentList.Where(dept => dept.Value == pho.overrideDepartment).Count();
+            if (existentOverrideDepartment == 0 && model.overrideDepartmentList.Count() > 0 )
+            {
                 pho.overrideDepartment = model.overrideDepartmentList[0].Value;
+            }
 
             model.overrideCategoryList = GetCategoryList(pho.overrideDivision, pho.overrideDepartment);
-
-            if (string.IsNullOrEmpty(pho.overrideCategory))
+            var existentOverrideCategory = model.overrideCategoryList.Where(cat => cat.Value == pho.overrideCategory).Count();
+            if (existentOverrideCategory == 0 && model.overrideCategoryList.Count() > 0)
+            {
                 pho.overrideCategory = model.overrideCategoryList[0].Value;
+            }
 
             model.overrideBrandIDList = GetBrandIDList(pho.overrideDivision, pho.overrideDepartment, pho.overrideCategory);
-
-            if (string.IsNullOrEmpty(pho.overrideBrandID))
+            var existentOverrideBrand = model.overrideBrandIDList.Where(brand => brand.Value == pho.overrideBrandID).Count();
+            if (existentOverrideBrand == 0 && model.overrideBrandIDList.Count() > 0)
+            {
                 pho.overrideBrandID = model.overrideBrandIDList[0].Value;
+            }
 
             model.newDivisionList = GetDivisionList();
-
-            if (string.IsNullOrEmpty(pho.newDivision))
+            var existentNewDivision = model.newDivisionList.Where(div => div.Value == pho.newDivision).Count();
+            if (existentNewDivision == 0 && model.newDivisionList.Count() > 0)
+            {
                 pho.newDivision = model.newDivisionList[0].Value;
+            }
 
             model.newDepartmentList = GetDepartmentList(pho.newDivision);
-
-            if (string.IsNullOrEmpty(pho.newDepartment))
+            var existentNewDepartment = model.newDepartmentList.Where(dept => dept.Value == pho.newDepartment).Count();
+            if (existentNewDepartment == 0 && model.newDepartmentList.Count() > 0)
+            {
                 pho.newDepartment = model.newDepartmentList[0].Value;
+            }
 
             model.newCategoryList = GetCategoryList(pho.newDivision, pho.newDepartment);
-
-            if (string.IsNullOrEmpty(pho.newCategory))
+            var existentNewCategory = model.newCategoryList.Where(cat => cat.Value == pho.newCategory).Count();
+            if (existentNewCategory == 0 && model.newCategoryList.Count() > 0)
+            {
                 pho.newCategory = model.newCategoryList[0].Value;
+            }
 
             model.newBrandIDList = GetBrandIDList(pho.newDivision, pho.newDepartment, pho.newCategory);
-
-            if (string.IsNullOrEmpty(pho.newBrandID))
+            var existentNewBrandID = model.newBrandIDList.Where(brand => brand.Value == pho.newBrandID).Count();
+            if (existentNewBrandID == 0 && model.newBrandIDList.Count() > 0)
+            {
                 pho.newBrandID = model.newBrandIDList[0].Value;
+            }
 
             return model;
         }
@@ -454,52 +482,47 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private bool ValidateOverride(ProductHierarchyOverrides pho, out string errorMessage)
         {
             bool result = true;
-            errorMessage = "";
-
-            if (pho.productOverrideTypeCode.Equals("DEPT"))
+            string lineBreak = @"<br />", message = "";
+            errorMessage = null;
+            
+            switch (pho.productOverrideTypeCode)
             {
-                if (pho.overrideDivision == null || pho.overrideDepartment == null)
-                {
-                    result = false;
-                    errorMessage += "The override division and department must all have values";
-                }
-
-            }
-
-            if (pho.productOverrideTypeCode.Equals("CAT"))
-            {
-                if (pho.overrideDivision == null ||
+                case "DEPT":
+                    if (pho.overrideDivision == null || pho.overrideDepartment == null)
+                    {
+                        result = false;
+                        errorMessage = "The override division and department must all have values";
+                    }
+                    break;
+                case "CAT":
+                    if (pho.overrideDivision == null ||
                     pho.overrideDepartment == null ||
                     pho.overrideCategory == null)
-                {
-                    result = false;
-                    errorMessage += "The override division, department, and category must all have values";
-                }
-
-            }
-
-            if (pho.productOverrideTypeCode.Equals("LC_BRANDID"))
-            {
-                if (pho.overrideDivision == null ||
-                    pho.overrideDepartment == null ||
-                    pho.overrideCategory == null ||
-                    pho.overrideBrandID == null)
-                {
-                    result = false;
-                    errorMessage += "The override division, department, category and brand must all have values";
-                }
-            }
-
-            if (pho.productOverrideTypeCode.Equals("SKU"))
-            {
-                if (string.IsNullOrEmpty(pho.overrideDivision) ||
-                    string.IsNullOrEmpty(pho.overrideDepartment) ||
-                    string.IsNullOrEmpty(pho.overrideCategory) ||
-                    string.IsNullOrEmpty(pho.overrideBrandID))
-                {
-                    result = false;
-                    errorMessage += "Invalid override SKU";
-                }
+                    {
+                        result = false;
+                        message = "The override division, department, and category must all have values";
+                        errorMessage += (errorMessage == null) ? message : lineBreak + message;
+                    }
+                    break;
+                case "LC_BRANDID":
+                    if (pho.overrideDivision == null ||
+                        pho.overrideDepartment == null ||
+                        pho.overrideCategory == null ||
+                        pho.overrideBrandID == null)
+                    {
+                        result = false;
+                        message = "The override division, department, category and brand must all have values";
+                        errorMessage += (errorMessage == null) ? message : lineBreak + message;
+                    }
+                    break;
+                case "SKU":
+                    if (validSku(pho.overrideSKU) == null)
+                    {
+                        result = false;
+                        message = "Invalid override SKU";
+                        errorMessage += (errorMessage == null) ? message : lineBreak + message;
+                    }
+                    break;
             }
 
             // validate new division, department, category, and brand list
@@ -509,59 +532,79 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 pho.newBrandID == null)
             {
                 result = false;
-                errorMessage += "The new division, department, category and brand must all have values";
+                message = "The new division, department, category and brand must all have values";
+                errorMessage += (errorMessage == null) ? message : lineBreak + message;
             }
 
             return result;
         }
 
         /// <summary>
-        /// Will validate the existing override to ensure the user is not trying to edit an invalid product
-        /// hierarchy combination.  This is problematic because the population of the dropdowns on the edit
-        /// screen depend on a valid combination or else it will throw an exception that will not be
-        /// handled.
+        /// Will validate the existing override
         /// </summary>
         /// <param name="pho">ProductHierarchyOverride</param>
         /// <returns></returns>
-        private bool ValidateExistingOverride(ProductHierarchyOverrides pho)
+        private bool ValidateExistingOverride(ProductHierarchyOverrideModel model, out string errorMessage)
         {
             bool result = true;
+            ProductHierarchyOverrides pho = model.prodHierarchyOverride;
+            // line break for view
+            string lineBreak = @"<br />";
+            // override sku error message
+            string skuErrMessage = "Override SKU '" + pho.overrideSKU + "' no longer exists.";
+            // override combination error message
+            string oErrMessage = "The override division, department, category, and brand combination '" + pho.displayOverrideValue +"' no longer exists.";
+            // new combination error message
+            string nErrMessage = "The new division, department, category, and brand combination '" + pho.displayNewValue + "' no longer exists.";
+            errorMessage = null;
 
-            if (pho.productOverrideTypeCode.Equals("DEPT"))
-            {
-                var departments = GetValidDepartments(pho.overrideDivision);
-                int departmentCount = departments.Where(d => d.departmentCode == pho.overrideDepartment).Count();
-                if (departmentCount == 0)
-                {
-                    result = false;
-                }
-            }
+            // 'o' denotes override
+            var oDepartmentExists = GetValidDepartments(pho.overrideDivision).Select(dept => dept.departmentCode).Contains(pho.overrideDepartment);
+            var oCategoryExists = GetValidCategories(pho.overrideDivision, pho.overrideDepartment).Select(cat => cat.categoryCode).Contains(pho.overrideCategory);
+            var oBrandExists = GetValidBrands(pho.overrideDivision, pho.overrideDepartment, pho.overrideCategory).Select(b => b.brandIDCode).Contains(pho.overrideBrandID);
 
-            if (pho.productOverrideTypeCode.Equals("CAT"))
+            // validate override list dependent on override level
+            switch (pho.productOverrideTypeCode)
             {
-                var categories = GetValidCategories(pho.overrideDivision, pho.overrideDepartment);
-                int categoryCount = categories.Where(category => category.categoryCode.ToString() == pho.overrideCategory).Count();
-                if (categoryCount == 0)
-                {
-                    result = false;
-                }
-            }
-
-            if (pho.productOverrideTypeCode.Equals("LC_BRANDID"))
-            {
-                var brands = GetValidBrands(pho.overrideDivision, pho.overrideDepartment, pho.overrideCategory);
-                int brandCount = brands.Where(brand => brand.brandIDCode == pho.overrideBrandID).Count();
-                if (brandCount == 0)
-                {
-                    result = false;
-                }
+                case "DEPT":
+                    if (!oDepartmentExists)
+                    {
+                        errorMessage = oErrMessage;
+                        result = false;
+                    }
+                    break;
+                case "CAT":
+                    if (!oDepartmentExists || !oCategoryExists)
+                    {
+                        errorMessage = oErrMessage;
+                        result = false;
+                    }
+                    break;
+                case "LC_BRANDID":
+                    if (!oDepartmentExists || !oCategoryExists || !oBrandExists)
+                    {
+                        errorMessage = oErrMessage;
+                        result = false;
+                    }
+                    break;
+                case "SKU":
+                    if (validSku(pho.overrideSKU) == null)
+                    {
+                        errorMessage = skuErrMessage;
+                        model.overrideSKUDescription = "The Sku was not found";
+                        result = false;
+                    }
+                    break;
             }
 
             // validate new list
-            var newBrands = GetValidBrands(pho.newDivision, pho.newDepartment, pho.newCategory);
-            int newBrandCount = newBrands.Where(brand => brand.brandIDCode == pho.newBrandID).Count();
-            if (newBrandCount == 0)
+            var nDepartmentExists = GetValidDepartments(pho.newDivision).Select(dept => dept.departmentCode).Contains(pho.newDepartment);
+            var nCategoryExists = GetValidCategories(pho.newDivision, pho.newDepartment).Select(cat => cat.categoryCode).Contains(pho.newCategory);
+            var nBrandExists = GetValidBrands(pho.newDivision, pho.newDepartment, pho.newCategory).Select(b => b.brandIDCode).Contains(pho.newBrandID);
+
+            if (!nDepartmentExists || !nCategoryExists || !nBrandExists)
             {
+                errorMessage += (errorMessage == null) ? nErrMessage : lineBreak + nErrMessage;
                 result = false;
             }
 
@@ -643,6 +686,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     select b).Distinct().ToList();
 
             return brands;
+        }
+
+        /// <summary>
+        /// Will determine if the sku specified is valid within the ItemMaster table.
+        /// </summary>
+        /// <param name="sku">Override SKU</param>
+        /// <returns>The item if valid, null if it does not exist</returns>
+        private ItemMaster validSku(string sku)
+        {
+            var result = (from im in db.ItemMasters
+                         where im.MerchantSku == sku
+                        select im).FirstOrDefault();
+
+            return result;
         }
 
         #endregion
