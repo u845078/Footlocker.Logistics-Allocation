@@ -94,7 +94,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public Int32 CaseQty { get; set; }
 
         //[StringLayoutDelimited(7)]
-        [Display(Name="Total Units")]
+        [Display(Name="Quantity")]
         public Int32 Qty { get; set; }
 
         [DataType(DataType.Date)]
