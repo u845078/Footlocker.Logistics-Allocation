@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Common;
 using Telerik.Web.Mvc;
+using System.Data.Objects;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -92,7 +93,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     return RedirectToAction("Index");
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 model = FillModelLists(model);
                 return View(model);
@@ -482,22 +483,61 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private bool ValidateOverride(ProductHierarchyOverrides pho, out string errorMessage)
         {
             bool result = true;
+            // line break for formatting
             string lineBreak = @"<br />", message = "";
+            // error message for override combinations that are already existent within the system
+            string existingMessage = "The override combination, " + pho.displayOverrideValue + ", is already existent and active within the system.  Please modify the original override or change this combination.";
             errorMessage = null;
             
             switch (pho.productOverrideTypeCode)
             {
                 case "DEPT":
-                    if (pho.overrideDivision == null || pho.overrideDepartment == null)
+                    if (pho.overrideDivision != null && pho.overrideDepartment != null)
+                    {
+                        // ensure the override combination does not already exist
+                        var query = (from p in db.ProductHierarchyOverrides
+                                     where p.overrideDivision == pho.overrideDivision &&
+                                           p.overrideDepartment == pho.overrideDepartment &&
+                                           p.productOverrideTypeCode == pho.productOverrideTypeCode &&
+                                           (p.effectiveToDt >= EntityFunctions.TruncateTime(DateTime.Now) || p.effectiveToDt == null) &&
+                                           p.productHierarchyOverrideID != pho.productHierarchyOverrideID
+                                     select p).SingleOrDefault();
+                        if (query != null)
+                        {
+                            result = false;
+                            message = existingMessage;
+                            errorMessage += (errorMessage == null) ? message : lineBreak + message;
+                        }
+                    }
+                    else
                     {
                         result = false;
                         errorMessage = "The override division and department must all have values";
+
                     }
                     break;
                 case "CAT":
-                    if (pho.overrideDivision == null ||
-                    pho.overrideDepartment == null ||
-                    pho.overrideCategory == null)
+                    if (pho.overrideDivision != null &&
+                        pho.overrideDepartment != null &&
+                        pho.overrideCategory != null)
+                    {
+                        // ensure the override combination does not already exist (and is active)
+                        var query = (from p in db.ProductHierarchyOverrides
+                                     where p.overrideDivision == pho.overrideDivision &&
+                                           p.overrideDepartment == pho.overrideDepartment &&
+                                           p.overrideCategory == pho.overrideCategory &&
+                                           p.productOverrideTypeCode == pho.productOverrideTypeCode &&
+                                           (p.effectiveToDt >= EntityFunctions.TruncateTime(DateTime.Now) || p.effectiveToDt == null) &&
+                                           p.productHierarchyOverrideID != pho.productHierarchyOverrideID
+                                     select p).SingleOrDefault();
+                        if (query != null)
+                        {
+                            result = false;
+                            message = existingMessage;
+                            errorMessage = (errorMessage == null) ? message : lineBreak + message;
+                        }
+                    }
+                    else
                     {
                         result = false;
                         message = "The override division, department, and category must all have values";
@@ -505,10 +545,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                     break;
                 case "LC_BRANDID":
-                    if (pho.overrideDivision == null ||
-                        pho.overrideDepartment == null ||
-                        pho.overrideCategory == null ||
-                        pho.overrideBrandID == null)
+                    // ensure the override combination does not already exist
+                    if (pho.overrideDivision != null &&
+                        pho.overrideDepartment != null &&
+                        pho.overrideCategory != null &&
+                        pho.overrideBrandID != null)
+                    {
+                        var query = (from p in db.ProductHierarchyOverrides
+                                     where p.overrideDivision == pho.overrideDivision &&
+                                           p.overrideDepartment == pho.overrideDepartment &&
+                                           p.overrideCategory == pho.overrideCategory &&
+                                           p.overrideBrandID == pho.overrideBrandID &&
+                                           p.productOverrideTypeCode == pho.productOverrideTypeCode &&
+                                           (p.effectiveToDt >= EntityFunctions.TruncateTime(DateTime.Now) || p.effectiveToDt == null) &&
+                                           p.productHierarchyOverrideID != pho.productHierarchyOverrideID
+                                     select p).SingleOrDefault();
+                        if (query != null)
+                        {
+                            result = false;
+                            message = existingMessage;
+                            errorMessage = (errorMessage == null) ? message : lineBreak + message;
+                        }
+                    }
+                    else
                     {
                         result = false;
                         message = "The override division, department, category and brand must all have values";
@@ -516,7 +575,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                     break;
                 case "SKU":
-                    if (validSku(pho.overrideSKU) == null)
+                    if (validSku(pho.overrideSKU) != null)
+                    {
+                        var query = (from p in db.ProductHierarchyOverrides
+                                     where p.overrideSKU == pho.overrideSKU &&
+                                           p.productOverrideTypeCode == pho.productOverrideTypeCode &&
+                                           (p.effectiveToDt >= EntityFunctions.TruncateTime(DateTime.Now) || p.effectiveToDt == null) &&
+                                           p.productHierarchyOverrideID != pho.productHierarchyOverrideID
+                                     select p).SingleOrDefault();
+                        if (query != null)
+                        {
+                            result = false;
+                            message = existingMessage;
+                            errorMessage = (errorMessage == null) ? message : lineBreak + message;
+                        }
+                    }
+                    else
                     {
                         result = false;
                         message = "Invalid override SKU";

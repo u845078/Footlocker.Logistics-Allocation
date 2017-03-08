@@ -51,9 +51,12 @@
             }).trigger('change');
 
             $('#newDivisionList').change(function () {
+                // loading messages
                 $('#newDepartmentList').html(loading);
                 $('#newCategoryList').html(loading);
                 $('#newBrandIDList').html(loading);
+                // disable submit button while lists are loading
+                $('#saveButton').prop("disabled", true);
                 $.getJSON('/ProductHierarchyOverride/GetNewDeptsJson/' + $('#newDivisionList').val(), function (data) {
                     var items = '';
                     //var items = '<option>Select a District</option>';
@@ -89,13 +92,17 @@
                             items += "<option value='" + brandid.Value + "'>" + brandid.Text + "</option>";
                         });
                         $('#newBrandIDList').html(items);
+                        $('#saveButton').prop("disabled", false);
                     }); 
             });
 
             $('#overrideDivisionList').change(function () {
+                // loading messages
                 $('#overrideDepartmentList').html(loading);
                 $('#overrideCategoryList').html(loading);
                 $('#overrideBrandIDList').html(loading);
+                // disable submit button while lists are loading
+                $('#saveButton').prop("disabled", true);
                 $.getJSON('/ProductHierarchyOverride/GetNewDeptsJson/' + $('#overrideDivisionList').val(), function (data) {
                     var items = '';
                     //var items = '<option>Select a District</option>';
@@ -131,6 +138,8 @@
                             items += "<option value='" + brandid.Value + "'>" + brandid.Text + "</option>";
                         });
                         $('#overrideBrandIDList').html(items);
+                        // enable submit button
+                        $('#saveButton').prop("disabled", false);
                     });
             }); 
         });

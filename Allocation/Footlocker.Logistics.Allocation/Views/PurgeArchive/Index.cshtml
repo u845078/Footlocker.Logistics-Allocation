@@ -5,9 +5,12 @@
 
 <h2>Purge Criteria</h2>
 
-<p>
-    @Html.ActionLink("Create New", "Create", null, new { @class = "t-button" })
-</p>
+@if (Model.CanEdit)
+{
+    <p>
+        @Html.ActionLink("Create New", "Create", null, new { @class = "t-button" })
+    </p>
+}
     @Html.Raw("<font color=red" + ViewData["message"] + "</font>")
     @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.Instance>()
     .Name("InstanceGrid")
