@@ -93,8 +93,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     return RedirectToAction("Index");
                 }
             }
-            catch (Exception ex)
+            catch
             {
+                ViewData["message"] = "An unexpected error has occured.";
                 model = FillModelLists(model);
                 return View(model);
             }
@@ -486,7 +487,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // line break for formatting
             string lineBreak = @"<br />", message = "";
             // error message for override combinations that are already existent within the system
-            string existingMessage = "The override combination, " + pho.displayOverrideValue + ", is already existent and active within the system.  Please modify the original override or change this combination.";
+            string existingMessage = "The override combination '" + pho.displayOverrideValue + "' is already existent and active within the system.  Please modify the original override or change this combination.";
             errorMessage = null;
             
             switch (pho.productOverrideTypeCode)
@@ -630,6 +631,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             string oErrMessage = "The override division, department, category, and brand combination '" + pho.displayOverrideValue +"' no longer exists.";
             // new combination error message
             string nErrMessage = "The new division, department, category, and brand combination '" + pho.displayNewValue + "' no longer exists.";
+            // common appending statement for invalid combinations
+            string commonMessage = "  Please choose a valid combination from the lists below.";
             errorMessage = null;
 
             // 'o' denotes override
@@ -643,21 +646,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 case "DEPT":
                     if (!oDepartmentExists)
                     {
-                        errorMessage = oErrMessage;
+                        errorMessage = oErrMessage + commonMessage;
                         result = false;
                     }
                     break;
                 case "CAT":
                     if (!oDepartmentExists || !oCategoryExists)
                     {
-                        errorMessage = oErrMessage;
+                        errorMessage = oErrMessage + commonMessage;
                         result = false;
                     }
                     break;
                 case "LC_BRANDID":
                     if (!oDepartmentExists || !oCategoryExists || !oBrandExists)
                     {
-                        errorMessage = oErrMessage;
+                        errorMessage = oErrMessage + commonMessage;
                         result = false;
                     }
                     break;
@@ -678,7 +681,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (!nDepartmentExists || !nCategoryExists || !nBrandExists)
             {
-                errorMessage += (errorMessage == null) ? nErrMessage : lineBreak + nErrMessage;
+                errorMessage += (errorMessage == null) ? nErrMessage + commonMessage : lineBreak + nErrMessage + commonMessage;
                 result = false;
             }
 

@@ -69,8 +69,11 @@
             });
 
             $('#newDepartmentList').change(function () {
+                // loading messages
                 $('#newCategoryList').html(loading);
                 $('#newBrandIDList').html(loading);
+                // disable submit button while list(s) are loading
+                $('#saveButton').prop("disabled", true);
                 $.getJSON('/ProductHierarchyOverride/GetNewCatJson?div=' + $('#newDivisionList').val() +
                     '&dept=' + $('#newDepartmentList').val(), function (data) {
                         var items = '';
@@ -84,7 +87,10 @@
             });
 
             $('#newCategoryList').change(function () {
+                // loading messages
                 $('#newBrandIDList').html(loading);
+                // disable submit button while list(s) are loading
+                $('#saveButton').prop("disabled", true);
                 $.getJSON('/ProductHierarchyOverride/GetNewBrandIDJson?div=' + $('#newDivisionList').val() +
                     '&dept=' + $('#newDepartmentList').val() + '&cat=' + $('#newCategoryList').val(), function (data) {
                         var items = '';
@@ -115,8 +121,11 @@
             });
 
             $('#overrideDepartmentList').change(function () {
+                // loading messages
                 $('#overrideCategoryList').html(loading);
                 $('#overrideBrandIDList').html(loading);
+                // disable submit button while lists are loading
+                $('#saveButton').prop("disabled", true);
                 $.getJSON('/ProductHierarchyOverride/GetNewCatJson?div=' + $('#overrideDivisionList').val() +
                     '&dept=' + $('#overrideDepartmentList').val(), function (data) {
                         var items = '';
@@ -130,7 +139,10 @@
             });
 
             $('#overrideCategoryList').change(function () {
+                // loading messages
                 $('#overrideBrandIDList').html(loading);
+                // disable submit button while list(s) are loading
+                $('#saveButton').prop("disabled", true);
                 $.getJSON('/ProductHierarchyOverride/GetNewBrandIDJson?div=' + $('#overrideDivisionList').val() +
                     '&dept=' + $('#overrideDepartmentList').val() + '&cat=' + $('#overrideCategoryList').val(), function (data) {
                         var items = '';
