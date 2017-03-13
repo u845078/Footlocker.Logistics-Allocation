@@ -8,6 +8,7 @@ using Microsoft.Practices.EnterpriseLibrary.Data;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Models.Factories;
 using Footlocker.Logistics.Allocation.Services;
+using Footlocker.Common;
 using System.Linq;
 
 namespace Footlocker.Logistics.Allocation.Models.Services
@@ -24,7 +25,80 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             _databaseEurope = DatabaseFactory.CreateDatabase("DB2EURP");
         }
 
-        
+        /// <summary>
+        /// Returns a list of ring fences ordered by create date descending.
+        /// </summary>
+        /// <param name="validDivisions">A list of divisions that you want to match the ring fences against</param>
+        /// <returns></returns>
+        public List<RingFence> GetValidRingFences(List<Division> validDivisions)
+        {
+            List<RingFence> list = (from a in db.RingFences
+                                    where a.Qty > 0
+                                    select a).ToList();
+
+            list = (from a in list
+                    join d in validDivisions on a.Division equals d.DivCode
+                    select a).OrderByDescending(x => x.CreateDate).ToList();
+
+            return list;
+        }
+
+        public RingFenceDetail BuildFutureRingFenceDetail(string sku, string stockSizeNumber, string warehouseCode, 
+            long currentRingfenceID, string poNumber, string priorityCode, List<RingFenceSummary> rfSummaryList, 
+            int allocatableQty, DateTime expectedDeliveryDate)
+        {
+            RingFenceDetail det = new RingFenceDetail();
+            DistributionCenter dc;
+            int existingRingFenceQty = 0;
+            int currentRingFenceQty = 0;
+
+            det.Size = stockSizeNumber;
+            dc = (from a in db.DistributionCenters
+                  where a.MFCode == warehouseCode
+                  select a).FirstOrDefault();
+
+            if (dc != null)
+            {
+                det.Warehouse = dc.Name;
+                det.DCID = dc.ID;
+            }
+
+            det.RingFenceID = currentRingfenceID;
+            det.PO = poNumber;
+            det.ActiveInd = "1";
+            det.ringFenceStatusCode = "1";
+            det.PriorityCode = priorityCode;
+            //existingRingFenceQty = (from a in rfSummaryList
+            //                        where ((a.Sku == sku) &&
+            //                                (a.Size == det.Size) &&
+            //                                (a.DC == warehouseCode) &&
+            //                                (a.PO == det.PO))
+            //                        select a.Qty).Sum();
+
+            existingRingFenceQty = (from a in db.InventoryReductions
+                                      where ((a.Sku == sku) &&
+                                             (a.Size == det.Size) &&
+                                             (a.MFCode == warehouseCode) &&
+                                             (a.PO == det.PO))
+                                      select a.Qty).DefaultIfEmpty(0).Sum();
+
+            //if (existingRingFenceQty != myNewExistingRFQty)
+            //    myNewExistingRFQty = 0;
+
+            currentRingFenceQty = 0;
+
+            currentRingFenceQty = (from a in db.RingFenceDetails
+                                    where ((a.RingFenceID == det.RingFenceID) &&
+                                            (a.Size == det.Size) &&
+                                            (a.DCID == dc.ID) &&
+                                            (a.PO == det.PO) &&
+                                            (a.ActiveInd == "1"))
+                                    select a.Qty).DefaultIfEmpty(0).Sum();
+
+            det.AvailableQty = allocatableQty - existingRingFenceQty + currentRingFenceQty;
+            det.DueIn = expectedDeliveryDate;
+            return det;
+        }
 
         public List<RingFenceDetail> GetFuturePOs(RingFence rf)
         {
@@ -39,10 +113,10 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             }
             List<RingFenceDetail> _que;
             _que = new List<RingFenceDetail>();
-
-            RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
-            Int32 instanceid = (from a in db.InstanceDivisions where a.Division == rf.Division select a.InstanceID).First();
-            List<RingFenceSummary> list = summaryDAO.GetRingFenceSummaries(Convert.ToString(instanceid));
+            
+            Int32 instanceid = (from a in db.InstanceDivisions
+                                where a.Division == rf.Division
+                                select a.InstanceID).First();
 
             DbCommand SQLCommand;
             string stock, color, dept;
@@ -99,58 +173,49 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             data = currDatabase.ExecuteDataSet(SQLCommand);
 
             RingFenceDetail det;
-            int existingRingFenceQty = 0;
-            int currentRingFenceQty = 0;
-            string warehouse;
             if (data.Tables.Count > 0)
             {
-                DistributionCenter dc;
-                foreach (DataRow dr in data.Tables[0].Rows)
+                List<DataRow> futureInventory = data.Tables[0].AsEnumerable().ToList();
+                List<DataRow> newFutureInventory = new List<DataRow>();
+
+                // if RFID = 0 then this is not a RF that is already in the DB
+                if (rf.ID == 0)
                 {
-                    det = new RingFenceDetail();
-                    det.Size = Convert.ToString(dr["STK_SIZE_NUM"]);
-                    warehouse = Convert.ToString(dr["WHSE_ID_NUM"]);
-                    
-                    dc = (from a in db.DistributionCenters where a.MFCode == warehouse select a).FirstOrDefault();
-                    if (dc != null)
+                    if (rf.ringFenceDetails.Count() > 0)
                     {
-                        det.Warehouse = dc.Name;
-                        det.DCID = dc.ID;
-                    }
-                    det.RingFenceID = rf.ID;
-                    det.PO = Convert.ToString(dr["PO_NUM"]);
-                    det.PriorityCode = Convert.ToString(dr["PRIORITY_CODE"]);
-                    existingRingFenceQty = (from a in list where ((a.Sku == rf.Sku) && (a.Size == det.Size) && (a.DC == warehouse) && (a.PO == det.PO)) select a.Qty).Sum();
+                        foreach (RingFenceDetail rfd in rf.ringFenceDetails)
+                        {
+                            var newRow = data.Tables[0].AsEnumerable().Where(r => ((string)r["STK_SIZE_NUM"]) == rfd.Size &&
+                                                                                  ((string)r["PO_NUM"]) == rfd.PO &&
+                                                                                  ((string)r["WHSE_ID_NUM"]) == rfd.Warehouse);
+                            newFutureInventory.AddRange(newRow);
+                        }
 
-                    var currQtyQuery = (from a in db.RingFenceDetails
-                                        where ((a.RingFenceID == det.RingFenceID) && 
-                                               (a.Size == det.Size) &&
-                                               (a.ActiveInd == "1"))
-                                        select a.Qty);
-                    if (currQtyQuery.Count() > 0)
-                    {
-                        currentRingFenceQty = currQtyQuery.Sum();
+                        futureInventory = newFutureInventory;
                     }
-                    else
-                    {
-                        currentRingFenceQty = 0;
-                    }
+                }
 
-                    det.AvailableQty = Convert.ToInt32(dr["due_in"]) - existingRingFenceQty + currentRingFenceQty;
-                    det.DueIn = Convert.ToDateTime(dr["EXPECTED_DELV_DATE"]);
+                //RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
+                //List<RingFenceSummary> list = summaryDAO.GetRingFenceSummaries(Convert.ToString(instanceid));
+
+                foreach (DataRow dr in futureInventory)
+                {
+                    det = BuildFutureRingFenceDetail(rf.Sku, Convert.ToString(dr["STK_SIZE_NUM"]),
+                                 Convert.ToString(dr["WHSE_ID_NUM"]), rf.ID, Convert.ToString(dr["PO_NUM"]),
+                                 Convert.ToString(dr["PRIORITY_CODE"]), null, Convert.ToInt32(dr["due_in"]),
+                                 Convert.ToDateTime(dr["EXPECTED_DELV_DATE"]));
+
                     _que.Add(det);
                 }
             }
             return _que;
         }
-
-
         
         public List<RingFenceDetail> GetTransloadPOs(RingFence rf)
-        {
-            RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
-            Int32 instanceid = (from a in db.InstanceDivisions where a.Division == rf.Division select a.InstanceID).First();
-            List<RingFenceSummary> list = summaryDAO.GetRingFenceSummaries(Convert.ToString(instanceid));
+        {            
+            Int32 instanceid = (from a in db.InstanceDivisions
+                                where a.Division == rf.Division
+                                select a.InstanceID).First();
 
             List<RingFenceDetail> _que;
             _que = new List<RingFenceDetail>();
@@ -166,46 +231,41 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             data = database.ExecuteDataSet(SQLCommand);
 
             RingFenceDetail det;
-            int existingRingFenceQty = 0;
-            int currentRingFenceQty = 0;
-            string warehouse;
             if (data.Tables.Count > 0)
             {
-                DistributionCenter dc;
-                foreach (DataRow dr in data.Tables[0].Rows)
+                List<DataRow> futureInventory = data.Tables[0].AsEnumerable().ToList();
+                List<DataRow> newFutureInventory = new List<DataRow>();
+
+                // if RFID = 0 then this is not a RF that is already in the DB
+                if (rf.ID != 0)
                 {
-                    det = new RingFenceDetail();
-                    det.Size = Convert.ToString(dr["Size"]);
-                    warehouse = Convert.ToString(dr["Store"]);
-
-                    dc = (from a in db.DistributionCenters where a.MFCode == warehouse select a).FirstOrDefault();
-                    if (dc != null)
+                    if (rf.ringFenceDetails.Count() > 0)
                     {
-                        det.Warehouse = dc.Name;
-                        det.DCID = dc.ID;
-                    }
-                    det.RingFenceID = rf.ID;
-                    det.PO = Convert.ToString(dr["InventoryID"]).Split('-')[0];
-                    det.PriorityCode = "";
-                    existingRingFenceQty = (from a in list where ((a.Sku == rf.Sku) && (a.Size == det.Size) && (a.DC == warehouse) && (a.PO == det.PO)) select a.Qty).Sum();
+                        foreach (RingFenceDetail rfd in rf.ringFenceDetails)
+                        {
+                            var newRow = data.Tables[0].AsEnumerable().Where(r => Convert.ToString(r["Size"]) == rfd.Size &&
+                                                                                  Convert.ToString(r["InventoryID"]).Split('-')[0] == rfd.PO &&
+                                                                                  Convert.ToString(r["Store"]) == rfd.Warehouse);
+                            newFutureInventory.AddRange(newRow);
+                        }
 
-                    var currQtyQuery = (from a in db.RingFenceDetails
-                                        where ((a.RingFenceID == det.RingFenceID) && 
-                                               (a.Size == det.Size) &&
-                                               (a.ActiveInd == "1"))
-                                        select a.Qty);
-                    if (currQtyQuery.Count() > 0)
-                    {
-                        currentRingFenceQty = currQtyQuery.Sum();
+                        futureInventory = newFutureInventory;
                     }
-                    else
-                    {
-                        currentRingFenceQty = 0;
-                    }
+                }
 
-                    det.AvailableQty = Convert.ToInt32(dr["StockQty"]) - existingRingFenceQty + currentRingFenceQty;
-                    string date = Convert.ToString(dr["AvailableDate"]);
-                    det.DueIn = Convert.ToDateTime(date.Substring(4, 2) + "-" + date.Substring(6, 2) + "-" + date.Substring(0, 4));
+                //RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
+                //List<RingFenceSummary> list = summaryDAO.GetRingFenceSummaries(Convert.ToString(instanceid));
+
+                foreach (DataRow dr in futureInventory)
+                {
+                    string availableDateString = Convert.ToString(dr["AvailableDate"]);
+                    DateTime availableDate = Convert.ToDateTime(availableDateString.Substring(4, 2) + "-" +
+                        availableDateString.Substring(6, 2) + "-" + availableDateString.Substring(0, 4));
+
+                    det = BuildFutureRingFenceDetail(rf.Sku, Convert.ToString(dr["Size"]),
+                                    Convert.ToString(dr["Store"]), rf.ID, 
+                                    Convert.ToString(dr["InventoryID"]).Split('-')[0], "", null,
+                                    Convert.ToInt32(dr["StockQty"]), availableDate);
                     _que.Add(det);
                 }
             }
@@ -214,10 +274,54 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
         public List<RingFenceDetail> GetWarehouseAvailable(RingFence rf)
         {
-
             List<RingFenceDetail> _que = GetWarehouseAvailableCommon(rf.Sku, rf.Size, "", rf.ID);
 
             return _que;
+        }
+
+        public RingFenceDetail BuildCurrentRingFenceDetail(string sku, string stockSizeNumber, string warehouseCode, long? currentRingfenceID, List<RingFenceSummary> rfSummaryList, int allocatableQty)
+        {
+            RingFenceDetail det = new RingFenceDetail();
+            DistributionCenter dc;
+            int existingRingFenceQty = 0;
+            int currentRingFenceQty = 0;
+
+            det.Size = stockSizeNumber;
+            dc = (from a in db.DistributionCenters
+                  where a.MFCode == warehouseCode
+                  select a).FirstOrDefault();
+
+            if (dc != null)
+            {
+                det.Warehouse = dc.Name;
+                det.DCID = dc.ID;
+                if (currentRingfenceID != null)
+                {
+                    det.RingFenceID = Convert.ToInt64(currentRingfenceID);
+                }
+                det.PO = "";
+                det.ActiveInd = "1";
+                det.ringFenceStatusCode = "4";
+                existingRingFenceQty = (from a in rfSummaryList
+                                        where ((a.Sku == sku) &&
+                                               (a.Size == det.Size) &&
+                                               (a.DC == warehouseCode) &&
+                                              ((a.PO == "N\\A") || (a.PO == "")))
+                                        select a.Qty).Sum();
+
+                currentRingFenceQty = (from a in db.RingFenceDetails
+                                    where ((a.RingFenceID == det.RingFenceID) &&
+                                           (a.Size == det.Size) &&
+                                           (a.DCID == dc.ID) &&
+                                           (a.ActiveInd == "1") &&
+                                           ((a.PO == "N\\A") || (a.PO == "")))
+                                    select a.Qty).DefaultIfEmpty(0).Sum();
+
+                det.AvailableQty = allocatableQty - existingRingFenceQty + currentRingFenceQty;
+                return det;
+            }
+            else
+                return null;
         }
 
         /// <summary>
@@ -230,15 +334,12 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         /// <returns></returns>
         public List<RingFenceDetail> GetWarehouseAvailableCommon(string sku, string size, string warehouse, long? currentRingfenceID)
         {
-
             string stock, color, dept, div;
             string[] tokens = sku.Split('-');
             div = tokens[0];
             dept = tokens[1];
             stock = tokens[2];
             color = tokens[3];
-            int existingRingFenceQty = 0;
-            int currentRingFenceQty = 0;
 
             Int32 instanceid = (from a in db.InstanceDivisions
                                 where a.Division == div
@@ -269,7 +370,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             if (warehouse != "")
             {
                 SQL = SQL + "and WHSE_ID_NUM = '" + warehouse + "' ";
-
             }
             //SQL = SQL + "and WHSE_ID_NUM = '" + warehouse + "' ";
             //SQL = SQL + "and STK_SIZE_NUM = " + Convert.ToInt32(size);
@@ -278,44 +378,17 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
             DataSet data = new DataSet();
             data = currDatabase.ExecuteDataSet(SQLCommand);
-            string tempWarehouse;
             RingFenceDetail det;
             if (data.Tables.Count > 0)
-            {
-                DistributionCenter dc;
+            {                
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    det = new RingFenceDetail();
-                    det.Size = Convert.ToString(dr["STK_SIZE_NUM"]).PadLeft(3, '0');
-                    tempWarehouse = Convert.ToString(dr["WHSE_ID_NUM"]);
-                    dc = (from a in db.DistributionCenters where a.MFCode == tempWarehouse select a).FirstOrDefault();
-                    if (dc != null)
-                    {
-                        det.Warehouse = dc.Name;
-                        det.DCID = dc.ID;
-                        if (currentRingfenceID != null)
-                        {
-                            det.RingFenceID = Convert.ToInt64(currentRingfenceID);
-                        }
-                        det.PO = "";
-                        existingRingFenceQty = (from a in list where ((a.Sku == sku) && (a.Size == det.Size) && (a.DC == tempWarehouse) && ((a.PO == "N\\A") || (a.PO == ""))) select a.Qty).Sum();
-                        var currQtyQuery = (from a in db.RingFenceDetails
-                                            where ((a.RingFenceID == det.RingFenceID) && 
-                                                   (a.Size == det.Size) && 
-                                                   (a.DCID == dc.ID) && 
-                                                   (a.ActiveInd == "1") &&
-                                                   ((a.PO == "N\\A") || (a.PO == "")))
-                                            select a.Qty);
-                        if (currQtyQuery.Count() > 0)
-                        {
-                            currentRingFenceQty = currQtyQuery.Sum();
-                        }
-                        else
-                        {
-                            currentRingFenceQty = 0;
-                        }
+                    det = BuildCurrentRingFenceDetail(sku, Convert.ToString(dr["STK_SIZE_NUM"]).PadLeft(3, '0'),
+                        Convert.ToString(dr["WHSE_ID_NUM"]), currentRingfenceID, list,
+                        Convert.ToInt32(dr["ALLOCATABLE_BS_QTY"]));
 
-                        det.AvailableQty = Convert.ToInt32(dr["ALLOCATABLE_BS_QTY"]) - existingRingFenceQty + currentRingFenceQty;
+                    if (det != null)
+                    {
                         _que.Add(det);
                     }
                 }
@@ -331,7 +404,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             if (warehouse != "")
             {
                 SQL = SQL + "and WHSE_ID_NUM = '" + warehouse + "' ";
-
             }
             //SQL = SQL + "and WHSE_ID_NUM = '" + warehouse + "' ";
             //SQL = SQL + "and STK_SIZE_NUM = " + Convert.ToInt32(size);
@@ -342,55 +414,96 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
             if (data.Tables.Count > 0)
             {
-                DistributionCenter dc;
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    det = new RingFenceDetail();
-                    det.Size = Convert.ToString(dr["CL_SCHED_NUM"]).PadLeft(5, '0');
-                    tempWarehouse = Convert.ToString(dr["WHSE_ID_NUM"]);
-                    dc = (from a in db.DistributionCenters where a.MFCode == tempWarehouse select a).FirstOrDefault();
-                    if (dc != null)
-                    {
-                        det.Warehouse = dc.Name;
-                        det.DCID = dc.ID;
-                        if (currentRingfenceID != null)
-                        {
-                            det.RingFenceID = Convert.ToInt64(currentRingfenceID);
-                        }
-                        det.PO = "";
-                        existingRingFenceQty = (from a in list where ((a.Sku == sku) && (a.Size == det.Size) && (a.DC == tempWarehouse) && ((a.PO == "N\\A") || (a.PO == ""))) select a.Qty).Sum();
-                        var currQtyQuery = (from a in db.RingFenceDetails
-                                            where ((a.RingFenceID == det.RingFenceID) && 
-                                                   (a.Size == det.Size) && 
-                                                   (a.DCID == dc.ID) && 
-                                                   (a.ActiveInd == "1") &&
-                                                   ((a.PO == "N\\A") || (a.PO == "")))
-                                            select a.Qty);
-                        if (currQtyQuery.Count() > 0)
-                        {
-                            currentRingFenceQty = currQtyQuery.Sum();
-                        }
-                        else
-                        {
-                            currentRingFenceQty = 0;
-                        }
+                    det = BuildCurrentRingFenceDetail(sku, Convert.ToString(dr["CL_SCHED_NUM"]).PadLeft(5, '0'),
+                        Convert.ToString(dr["WHSE_ID_NUM"]), currentRingfenceID, list,
+                        Convert.ToInt32(dr["ALLOCATABLE_CL_QTY"]));
 
-                        det.AvailableQty = Convert.ToInt32(dr["ALLOCATABLE_CL_QTY"]) - existingRingFenceQty + currentRingFenceQty;
+                    if (det != null)
+                    {
                         _que.Add(det);
                     }
                 }
             }
             return _que;
+        }        
+
+        public bool canUserUpdateRingFence(RingFence rf, string userName, out string errorMessage)
+        {
+            bool result = true;
+            errorMessage = "";
+
+            //TODO:  Do we want department level security???
+            if (!(WebSecurityService.UserHasDivision(userName, "Allocation", rf.Division)))
+            {
+                result = false;
+                errorMessage = "You do not have permission to ring fence for division " + rf.Division;
+            }
+            else if (!(WebSecurityService.UserHasDepartment(userName, "Allocation", rf.Division, rf.Department)))
+            {
+                errorMessage = "You do not have permission to ring fence for department " + rf.Department;
+            }
+
+            return result;
         }
 
+        public bool isEcommWarehouse(string division, string store)
+        {
+            if (store == "00800")
+                return true;
+            else if (store == "00900" && division == "31")
+                return true;
+            else
+            {
+                return (from a in db.EcommWarehouses
+                        where ((a.Division == division) &&
+                               (a.Store == store))
+                        select a).Count() > 0;
+            }
+        }
+
+        public bool isValidRingFence(RingFence rf, string userName, out string errorMessage)
+        {
+            bool result = true;
+            errorMessage = "";
+
+            if (rf.Division != rf.Sku.Substring(0, 2))
+            {
+                errorMessage = "Invalid Sku, division does not match selection.";
+                return false;
+            }
+            else
+            {
+                if (!canUserUpdateRingFence(rf, userName, out errorMessage))
+                {
+                    return false;
+                }
+
+                int count = (from a in db.ItemMasters
+                             where (a.MerchantSku == rf.Sku)
+                             select a).Count();
+                if (count == 0)
+                {
+                    errorMessage = "Invalid Sku, does not exist";
+                    return false;
+                }
+            }
+
+            return result;
+        }
 
         public void UpdateRingFence(RingFence rf, string user)
         {
+            // not sure if we should keep setting these create columns
             rf.CreateDate = DateTime.Now;
             rf.CreatedBy = user;
+
+            rf.LastModifiedDate = DateTime.Now;
+            rf.LastModifiedUser = user;
+            
             db.Entry(rf).State = EntityState.Modified;
             db.SaveChanges();
-
 
             RingFenceHistory history = new RingFenceHistory();
             history.RingFenceID = rf.ID;
@@ -406,8 +519,18 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             history.CreatedBy = user;
             db.RingFenceHistory.Add(history);
             db.SaveChanges();
+        }
 
+        public int GetRingFenceDetailTotalQuantity(long ringFenceID)
+        {
+            int newQty;
 
+            newQty = (from a in db.RingFenceDetails
+                      where a.RingFenceID == ringFenceID &&
+                            a.ActiveInd == "1"
+                      select a.Qty).Sum();
+
+            return newQty;
         }
 
         public void UpdateRingFenceDetail(RingFenceDetail det, string user)
@@ -415,29 +538,35 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             db.Entry(det).State = EntityState.Modified;
             db.SaveChanges();
 
+            RingFence rf = (from a in db.RingFences
+                            where a.ID == det.RingFenceID
+                            select a).First();
+
             RingFenceHistory history = new RingFenceHistory();
             history.RingFenceID = det.RingFenceID;
+            history.Division = rf.Division;
+            history.Store = rf.Store;
+            history.Sku = rf.Sku;
+            history.Size = det.Size;
             history.DCID = det.DCID;
             history.PO = det.PO;
             history.Qty = det.Qty;
+            history.StartDate = rf.StartDate;
+            history.EndDate = rf.EndDate;
             history.Action = "Update Det";
             history.CreateDate = DateTime.Now;
             history.CreatedBy = user;
             db.RingFenceHistory.Add(history);
             db.SaveChanges();
 
-            RingFence rf = (from a in db.RingFences where a.ID == det.RingFenceID select a).First();            
-            rf.Qty = (from a in db.RingFenceDetails
-                      where a.RingFenceID == det.RingFenceID &&
-                            a.ActiveInd == "1"
-                      select a.Qty).Sum();
-            rf.CreateDate = DateTime.Now;
-            rf.CreatedBy = user;
-            db.Entry(rf).State = EntityState.Modified;
-            db.SaveChanges();
+            int newQty = GetRingFenceDetailTotalQuantity(det.RingFenceID);
 
+            if (rf.Qty != newQty)
+            {
+                rf.Qty = newQty;
+                UpdateRingFence(rf, user);
+            }           
         }
-
 
         public void SetRingFenceHeaderQtyAndHistory(List<Int64> ringfences)
         {
@@ -448,7 +577,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
             foreach (Int64 id in ringfences)
             {
-
                 SQLCommand = database.GetStoredProcCommand(SQL);
                 database.AddInParameter(SQLCommand, "@id", DbType.Int64, id);
 

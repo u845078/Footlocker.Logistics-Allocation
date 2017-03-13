@@ -441,6 +441,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 newRF.Qty = rf.RingFenceDetail.Qty;
                 newRF.StartDate = rf.RingFence.StartDate;
                 newRF.EndDate = rf.RingFence.EndDate;
+                newRF.Size = rf.RingFenceDetail.Size;
                 newRF.PO = rf.RingFenceDetail.PO;
                 newRF.CreatedBy = rf.RingFence.CreatedBy;
                 newRF.CreateDate = rf.RingFence.CreateDate;
@@ -784,7 +785,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         #region WMS Request
 
-        [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes")]
+        [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes, Head Merchandiser")]
         public ActionResult RequestWSM()
         {
             WSMRequestModel model = new WSMRequestModel();
@@ -793,7 +794,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
-        [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes")]
+        [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes, Head Merchandiser")]
         public ActionResult RequestWSM(WSMRequestModel model, string submitAction)
         {
             Aspose.Excel.License license = new Aspose.Excel.License();

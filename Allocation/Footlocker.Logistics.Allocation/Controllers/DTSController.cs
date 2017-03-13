@@ -144,7 +144,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.CreatedBy = User.Identity.Name;
             if (Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation", model.Sku.Substring(0, 2), model.Sku.Substring(3, 2)))
             {
-                ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == model.Sku select a).FirstOrDefault();
+                ItemMaster item = (from a in db.ItemMasters
+                                   where a.MerchantSku == model.Sku &&
+                                         a.Deleted == 0
+                                   select a).FirstOrDefault();
 
                 if (item != null)
                 {

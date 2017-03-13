@@ -46,7 +46,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // HACK: Should really be relational, and pulled in on a single query from EF
             var ringFenceItemName = db.RingFences.AsNoTracking().Single(rf => rf.ID == ringFenceID).Sku;
             var ringFenceItemID = db.ItemMasters.Single(i => i.MerchantSku == ringFenceItemName).ID;
-            var ringFenceDetails = db.RingFenceDetails.AsNoTracking().Where(d => d.RingFenceID == ringFenceID && d.ActiveInd == "1").ToList();
+            var ringFenceDetails = db.RingFenceDetails.AsNoTracking().Where(d => d.RingFenceID == ringFenceID && 
+                                                                                 d.ActiveInd == "1").ToList();
             var dcs = (from a in db.DistributionCenters select a).ToList();
             foreach (var det in ringFenceDetails)
             {
@@ -59,7 +60,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         var itemPack = db.ItemPacks.Include("Details").Single(p => p.ItemID == ringFenceItemID && p.Name == det.Size);
                         det.PackDetails = itemPack.Details.ToList();
                     }
-                    catch (Exception ex)
+                    catch 
                     {
                         det.PackDetails = new List<ItemPackDetail>();
                     }
@@ -91,7 +92,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     return "Qty must be less than ring fence Qty.";
                 }
-
             }
             return "";
         }
@@ -99,21 +99,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #endregion
 
         public ActionResult Index(string message)
-        {
-            //List<RingFence> model = (from a in db.RingFences select a).ToList();
+        {            
             List<RingFenceModel> model = new List<RingFenceModel>();
-            
-            List<Division> divs = Divisions();
-            List<RingFence> list = (from a in db.RingFences where a.Qty > 0 select a).ToList();
-            list = (from a in list
-                    join d in divs on a.Division equals d.DivCode
-                    select a).OrderByDescending(x => x.CreateDate).ToList();
 
-            //foreach (RingFence rf in (from a in list select a))
-            //{
-            //    temp = new RingFenceModel(rf);
-            //    model.Add(temp);
-            //}
+            RingFenceDAO rfDAO = new RingFenceDAO();
+            List<RingFence> list = rfDAO.GetValidRingFences(Divisions());            
+
             ViewData["message"] = message;
             return View(list);
         }
@@ -133,15 +124,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _RingFenceSummary()
         {
-            //List<RingFence> model = (from a in db.RingFences select a).ToList();
-            List<Division> divs = Divisions();
-            List<RingFence> list = (from a in db.RingFences where a.Qty > 0 select a).ToList();
-            list = (from a in list
-                    join d in divs on a.Division equals d.DivCode
-                    select a).OrderByDescending(x => x.CreateDate).ToList();
+            RingFenceDAO rfDAO = new RingFenceDAO();
+            List<RingFence> list = rfDAO.GetValidRingFences(Divisions());
 
-            var rfGroups =
-            from rf in list
+            var rfGroups = from rf in list
             group rf by new
             {
                 Sku = rf.Sku,
@@ -156,17 +142,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 Qty = g.Sum(r => r.Qty)
             };
 
-            List<RingFenceSummary> list2 = rfGroups.ToList();
-
-            return PartialView(new GridModel(list2));
+            //List<RingFenceSummary> list2 = rfGroups.ToList();
+            //return PartialView(new GridModel(list2));
+            return PartialView(new GridModel(rfGroups.ToList()));
         }
-
-
 
         [GridAction]
         public ActionResult _RingFenceStores()
         {
-            //List<RingFence> model = (from a in db.RingFences select a).ToList();
             List<Division> divs = Divisions();
             List<StoreLookup> list = (from a in db.RingFences join b in db.StoreLookups on new { a.Division, a.Store } equals new { b.Division, b.Store } where a.Qty > 0 select b).ToList();
             list = (from a in list
@@ -181,7 +164,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             div = div.Trim();
             store = store.Trim();
-            //List<RingFence> model = (from a in db.RingFences select a).ToList();
+
             List<Division> divs = Divisions();
             List<FOB> list = (from a in db.RingFences join b in db.StoreLookups on new { a.Division, a.Store } equals new { b.Division, b.Store } 
                               join c in db.ItemMasters on a.ItemID equals c.ID
@@ -198,7 +181,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _RingFences(string sku)
         {
-
             List<Division> divs = Divisions();
             List<RingFence> list = (from a in db.RingFences where ((a.Qty > 0)&&(a.Sku == sku)) select a).ToList();
             list = (from a in list
@@ -329,105 +311,97 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
+        private void createEcommRingFences(RingFence ringFence)
+        {
+            //Europe ecomm for all countries, need to create on for each country
+            List<EcommWarehouse> list = (from a in db.EcommWarehouses
+                                         where a.Store != "00800"
+                                         select a).ToList();
+            Boolean add;
+            foreach (EcommWarehouse w in list)
+            {
+                add = false;
+
+                RingFence rf = (from a in db.RingFences
+                                where ((a.Division == w.Division) &&
+                                       (a.Store == w.Store) &&
+                                       (a.ItemID == ringFence.ItemID))
+                                select a).FirstOrDefault();
+                if (rf == null)
+                {
+                    add = true;
+                    rf = new RingFence();
+                    rf.Division = w.Division;
+                    rf.Store = w.Store;
+                    rf.Sku = ringFence.Sku;
+                    rf.ItemID = ringFence.ItemID;
+                }
+                rf.Comments = ringFence.Comments;
+                rf.StartDate = ringFence.StartDate;
+                rf.EndDate = ringFence.EndDate;
+                rf.DCID = ringFence.DCID;
+                rf.Type = 2;
+                rf.LastModifiedDate = DateTime.Now;
+                rf.LastModifiedUser = User.Identity.Name;
+
+                if (add)
+                {
+                    db.RingFences.Add(rf);
+                }
+            }
+            db.SaveChanges(UserName);
+        }
+
+        public void SetUpRingFenceHeader(RingFence rf)
+        {
+            rf.ItemID = (from a in db.ItemMasters
+                         where (a.MerchantSku == rf.Sku)
+                         select a).First().ID;
+
+            rf.StartDate = (from a in db.ControlDates
+                                 join b in db.InstanceDivisions
+                                     on a.InstanceID equals b.InstanceID
+                            where b.Division == rf.Division
+                            select a.RunDate).First().AddDays(1);
+
+            rf.CreateDate = DateTime.Now;
+            rf.CreatedBy = User.Identity.Name;
+            rf.LastModifiedDate = DateTime.Now;
+            rf.LastModifiedUser = User.Identity.Name;
+
+            //set the type for ringfence, normal/ecomm/alshaya
+            rf.Type = 1;//default to normal
+            var ecomm = (from a in db.EcommWarehouses
+                         where ((a.Division == rf.Division) &&
+                                (a.Store == rf.Store))
+                         select a);
+            if (ecomm.Count() > 0)
+            {
+                rf.Type = 2;
+            }
+            rf.Qty = 0;
+
+            rf.ringFenceDetails = new List<RingFenceDetail>();
+        }
+
         [HttpPost]
         public ActionResult Create(RingFenceModel model)
         {
-            if (model.RingFence.Store != null)
+            model.Divisions = this.Divisions();
+            RingFenceDAO rfDAO = new RingFenceDAO();
+            string errorMessage;
+
+            if (!rfDAO.isValidRingFence(model.RingFence, UserName, out errorMessage))
             {
-                model.RingFence.Store = model.RingFence.Store.PadLeft(5, '0');
-            }
-            //string validationMessage = ValidateHold(model.Hold);
-            System.Text.RegularExpressions.Regex regexSku = new System.Text.RegularExpressions.Regex(@"^\d{2}-\d{2}-\d{5}-\d{2}$");
-            if ((model.RingFence.Sku == null) || (model.RingFence.Sku.Trim() == ""))
-            {
-                ViewData["message"] = "Invalid Sku, format should be ##-##-#####-##";
-                model.Divisions = this.Divisions();
-                return View(model);
-            }
-            if (!(regexSku.IsMatch(model.RingFence.Sku)))
-            {
-                ViewData["message"] = "Invalid Sku, format should be ##-##-#####-##";
-                model.Divisions = this.Divisions();
-                return View(model);
-            }
-            else if (model.RingFence.Division != model.RingFence.Sku.Substring(0, 2))
-            {
-                ViewData["message"] = "Invalid Sku, division does not match selection.";
-                model.Divisions = this.Divisions();
+                ViewData["message"] = errorMessage;
                 return View(model);
             }
             else
             {
-                //TODO:  Do we want department level security???
-                if (!(WebSecurityService.UserHasDivision(UserName, "Allocation", model.RingFence.Division)))
-                {
-                    ViewData["message"] = "You do not have permission to ring fence in this division";
-                    model.Divisions = this.Divisions();
-                    return View(model);                
-                }
-                else if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", model.RingFence.Division, model.RingFence.Department)))
-                {
-                    ViewData["message"] = "You do not have permission to ring fence in this department";
-                    model.Divisions = this.Divisions();
-                    return View(model);
-                }
-
-                model.RingFence.StartDate = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == model.RingFence.Division select a.RunDate).First().AddDays(1);
-
-                model.RingFence.CreateDate = DateTime.Now;
-                model.RingFence.CreatedBy = User.Identity.Name;
-                try
-                {
-                    model.RingFence.ItemID = (from a in db.ItemMasters where (a.MerchantSku == model.RingFence.Sku) select a).First().ID;
-                }
-                catch
-                {
-                    ViewData["message"] = "Invalid Sku, does not exist";
-                    model.Divisions = this.Divisions();
-                    return View(model);
-                }
-                //set the type for ringfence, normal/ecomm/alshaya
-                model.RingFence.Type = 1;//default to normal
-                var ecomm = (from a in db.EcommWarehouses where ((a.Division == model.RingFence.Division) && (a.Store == model.RingFence.Store)) select a);
-                if (ecomm.Count() > 0)
-                {
-                    model.RingFence.Type = 2;
-                }
-                model.RingFence.Qty = 0;
+                SetUpRingFenceHeader(model.RingFence);
+                
                 db.RingFences.Add(model.RingFence);
                 db.SaveChanges(User.Identity.Name);
-
-                if (model.RingFence.Store == "00800")
-                {
-                    //Europe ecomm for all countries, need to create on for each country
-                    List<EcommWarehouse> list = (from a in db.EcommWarehouses where a.Store != "00800" select a).ToList();
-                    Boolean add;
-                    foreach (EcommWarehouse w in list)
-                    {
-                        add = false;
-
-                        RingFence rf = (from a in db.RingFences where ((a.Division == w.Division) && (a.Store == w.Store) && (a.ItemID == model.RingFence.ItemID)) select a).FirstOrDefault();
-                        if (rf == null)
-                        {
-                            add = true;
-                            rf = new RingFence();
-                            rf.Division = w.Division;
-                            rf.Store = w.Store;
-                            rf.Sku = model.RingFence.Sku;
-                            rf.ItemID = model.RingFence.ItemID;
-                        }
-                        rf.Comments = model.RingFence.Comments;
-                        rf.StartDate = model.RingFence.StartDate;
-                        rf.EndDate = model.RingFence.EndDate;
-                        rf.DCID = model.RingFence.DCID;
-                        rf.Type = 2;
-                        if (add)
-                        {
-                            db.RingFences.Add(rf);
-                        }
-                    }
-                    db.SaveChanges(UserName);
-                }
 
                 return AssignInventory(model);
             }
@@ -437,148 +411,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ViewData["ringFenceID"] = model.RingFence.ID;
 
-            model.WarehouseAvailable = GetWarehouseAvailable(model.RingFence);
-
-            model.FutureAvailable = GetFutureAvailable(model.RingFence);
-
             model.Divisions = this.Divisions();
 
+            model.WarehouseAvailable = GetWarehouseAvailable(model.RingFence);
+            model.FutureAvailable = GetFutureAvailable(model.RingFence);
 
             return View("AssignInventory", model);
-        }
-        
-        [HttpPost]
-        public ActionResult SaveAssignInventory(RingFenceModel model)
-        {
-            //TODO:  Save the assignments.
-            var warehouses = (from a in model.WarehouseAvailable where a.Qty > 0 select a);
-            var futures = (from a in model.FutureAvailable where a.Qty > 0 select a);
-
-            string message = "";
-            Boolean save = true;
-            foreach (RingFenceDetail det in warehouses)
-            {
-                det.PO = "";
-                det.ActiveInd = "1";
-                det.ringFenceStatusCode = "4";
-
-                if ((det.Qty > det.AvailableQty)&&(det.Qty > 0))
-                {
-                    message = message + "Max Qty for " + det.Warehouse + " " + det.PO + " is " + det.AvailableQty;
-                    save = false;
-                } 
-                else if (det.Qty < 0)
-                {
-                    message = message + "Cannot have qty < 0";
-                    save = false;
-                }
-            }
-            foreach (RingFenceDetail det in futures)
-            {
-                det.ActiveInd = "1";
-                det.ringFenceStatusCode = "1";
-
-                if ((det.Qty > det.AvailableQty)&&(det.Qty > 0))
-                {
-                    message = message + "Max Qty for " + det.Warehouse + " " + det.PO + " is " + det.AvailableQty + "<br>";
-                    save = false;
-                }
-                else if (det.Qty < 0)
-                {
-                    message = message + "Cannot have qty < 0";
-                    save = false;
-                }
-                List<ExistingPO> poList = (new ExistingPODAO()).GetExistingPO(model.RingFence.Division, det.PO);
-
-                foreach (ExistingPO po in poList)
-                {
-                    if (po.ExpectedDeliveryDate < DateTime.Now)
-                    {
-                        message = message + "This PO is expected to delivery today.  If it does, this ringfence will NOT be enforced (it will be deleted).<br>";
-                    }
-                }
-            }
-
-            if (save)
-            {
-                if (model.RingFence.Store != "00800")
-                {
-                    foreach (RingFenceDetail det in warehouses)
-                    {
-                        if (det.Qty > 0)
-                        {
-                            det.Size = det.Size.Trim();
-                            db.RingFenceDetails.Add(det);
-                            db.SaveChanges(User.Identity.Name);
-                        }
-                    }
-                    foreach (RingFenceDetail det in futures)
-                    {
-                        if (det.Qty > 0)
-                        {
-                            db.RingFenceDetails.Add(det);
-                            db.SaveChanges(User.Identity.Name);
-                        }
-                    }
-
-                    //RingFence rf = (from a in db.RingFences where a.ID == model.RingFence.ID select a).First();
-                    //rf.Qty = (from a in futures select a.Qty).Sum();
-                    //rf.Qty = rf.Qty + (from a in warehouses select a.Qty).Sum();
-                    //db.SaveChanges(User.Identity.Name);
-
-                    return RedirectToAction("Index");
-                }
-                else
-                { 
-                    //ecomm store for all countries, break it out
-
-                    RingFenceDetail newDet = new RingFenceDetail();
-                    List<EcommWeight> weights = (new EcommWeightDAO()).GetEcommWeightList(model.RingFence.Department);
-
-                    foreach (EcommWeight w in weights)
-                    {
-                        RingFence rf = (from a in db.RingFences
-                                        where ((a.Sku == model.RingFence.Sku)&&(a.Store == w.Store))
-                                        select a).First();
-
-                        foreach (RingFenceDetail det in warehouses)
-                        {
-                            newDet = new RingFenceDetail();
-                            newDet.DCID = det.DCID;
-                            newDet.PO = det.PO;
-                            newDet.Qty = Convert.ToInt32(det.Qty*w.Weight);
-                            newDet.Size = det.Size.Trim();
-
-                            newDet.RingFenceID = rf.ID;
-                            db.RingFenceDetails.Add(newDet);
-                            //db.SaveChanges(User.Identity.Name);
-                        }
-                        foreach (RingFenceDetail det in futures)
-                        {
-                            newDet = new RingFenceDetail();
-                            newDet.DCID = det.DCID;
-                            newDet.PO = det.PO;
-                            newDet.Qty = Convert.ToInt32(det.Qty * w.Weight);
-                            newDet.Size = det.Size.Trim();
-                            newDet.RingFenceID = rf.ID;
-                            db.RingFenceDetails.Add(newDet);
-                            //db.SaveChanges(User.Identity.Name);
-                        }
-
-                        rf.Qty = (from a in futures select a.Qty).Sum();
-                        rf.Qty = rf.Qty + (from a in warehouses select a.Qty).Sum();
-                        db.SaveChanges(User.Identity.Name);
-                    }
-
-                    return RedirectToAction("Index");
-                }
-            }
-            else
-            {
-                model.RingFence = (from a in db.RingFences where a.ID == model.RingFence.ID select a).First();
-                ViewData["message"] = message;
-                return View("AssignInventory", model);
-            }
         }
 
         public ActionResult Details(int ID)
@@ -699,9 +537,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 catch (Exception ex)
                 {
                 }
-
             }
-
 
             RingFenceSizeModel model = new RingFenceSizeModel();
             model.RingFence = (from a in db.RingFences
@@ -732,19 +568,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             foreach (RingFenceDetail det in list)
             {
+                RingFenceDetail newDetail = new RingFenceDetail
+                {
+                    RingFenceID = det.RingFenceID,
+                    Size = det.Size, 
+                    PO = det.PO, 
+                    Qty = det.Qty,
+                    Units = det.Units,
+                    DCID = det.DCID
+                };
                 includeDetail = false;
-                if (det.Size.Length > _CASELOT_SIZE_INDICATOR_VALUE_LENGTH)
+                if (newDetail.Size.Length > _CASELOT_SIZE_INDICATOR_VALUE_LENGTH)
                 {
                     try
                     {
-                        var itemPack = db.ItemPacks.Include("Details").Single(p => p.ItemID == ringFenceItemID && p.Name == det.Size);
-                        det.PackDetails = itemPack.Details.ToList();
+                        var itemPack = db.ItemPacks.Include("Details").Single(p => p.ItemID == ringFenceItemID && 
+                                                                                    p.Name == newDetail.Size);
+                        newDetail.PackDetails = itemPack.Details.ToList();
 
-                        foreach (ItemPackDetail pd in det.PackDetails)
+                        foreach (ItemPackDetail pd in newDetail.PackDetails)
                         {
                             if (pd.Size == size)
                             {
-                                det.Units += det.Qty * pd.Quantity;
+                                newDetail.Units += det.Qty * pd.Quantity;
                                 includeDetail = true;
                             }
                         }
@@ -757,19 +603,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 else
                 {
                     includeDetail = true;
-                    det.Units = det.Qty;
+                    newDetail.Units = newDetail.Qty;
                 }
 
-                det.Warehouse = (from a in dcs where a.ID == det.DCID select a).First().Name;
+                newDetail.Warehouse = (from a in dcs
+                                       where a.ID == newDetail.DCID
+                                       select a).First().Name;
 
                 if (includeDetail)
                 {
-                    model.Add(det);
+                    model.Add(newDetail);
                 }
             }
 
             return View(new GridModel(model));
-
         }
 
         public ActionResult SizeDetail(int ID, string size)
@@ -778,44 +625,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.RingFence = (from a in db.RingFences
                                where a.ID == ID
                                select a).First();
+
             model.FutureAvailable = new List<RingFenceDetail>();
-            //List<RingFenceDetail> list = (from a in db.RingFenceDetails where ((a.RingFenceID == ID) && ((a.Size == size) || (a.Size.Length > _CASELOT_SIZE_INDICATOR_VALUE_LENGTH))) select a).ToList();
-
-            //List<DistributionCenter> dcs = (from a in db.DistributionCenters select a).ToList();
-            //Boolean includeDetail = false;
-            //long ringFenceItemID = model.RingFence.ItemID;
-            //foreach (RingFenceDetail det in list)
-            //{
-            //    includeDetail = false;
-            //    if (det.Size.Length > _CASELOT_SIZE_INDICATOR_VALUE_LENGTH)
-            //    {
-            //        try
-            //        {
-            //            var itemPack = db.ItemPacks.Include("Details").Single(p => p.ItemID == ringFenceItemID && p.Name == det.Size);
-            //            det.PackDetails = itemPack.Details.ToList();
-
-            //            foreach (ItemPackDetail pd in det.PackDetails)
-            //            {
-            //                if (pd.Size == size)
-            //                {
-            //                    includeDetail = true;
-            //                }
-            //            }
-            //        }
-            //        catch (Exception ex)
-            //        {
-            //            includeDetail = false;
-            //        }
-            //    }
-            //    else
-            //    {
-            //        includeDetail = true;
-            //    }
-
-            //    det.Warehouse = (from a in dcs where a.ID == det.DCID select a).First().Name;
-
-            //    model.FutureAvailable.Add(det);
-            //}
 
             model.Divisions = this.Divisions();
             ViewData["Size"] = size;
@@ -825,25 +636,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Edit(int ID)
         {
             ViewData["ringFenceID"] = ID;
+            string errorMessage;
+            RingFenceDAO rfDAO = new RingFenceDAO();
 
             // Build up a RingFence view model
             RingFenceModel model = new RingFenceModel();
-            var ringfenceQuery = (from a in db.RingFences where a.ID == ID select a);
+            var ringfenceQuery = (from a in db.RingFences
+                                  where a.ID == ID select a);
             if (ringfenceQuery.Count() == 0)
             {
                 return RedirectToAction("Index", new { message = "Ring fence no longer exists.  " });
             }
             model.RingFence = ringfenceQuery.First();
 
-            if (!(WebSecurityService.UserHasDivision(UserName, "Allocation", model.RingFence.Division)))
+            if (!rfDAO.canUserUpdateRingFence(model.RingFence, UserName, out errorMessage))
             {
-                return RedirectToAction("Index", new { message = "You do not have permission to ring fence in this division" });
+                return RedirectToAction("Index", new { message = errorMessage });
             }
-            else if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", model.RingFence.Division, model.RingFence.Department)))
-            {
-                return RedirectToAction("Index", new { message = "You do not have permission to ring fence in this department" });
-            }
-
 
             model.Divisions = this.Divisions();
 
@@ -853,60 +662,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Edit(RingFenceModel model)
         {
-            try{
-            ViewData["ringFenceID"] = model.RingFence.ID;
+            string errorMessage;
+            RingFenceDAO rfDAO = new RingFenceDAO();
 
-            if (!(WebSecurityService.UserHasDivision(UserName, "Allocation", model.RingFence.Division)))
+            try
             {
-                ViewData["message"] = "You do not have permission to ring fence in this division";
                 model.Divisions = this.Divisions();
-                return View(model);
-            }
-            else if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", model.RingFence.Division, model.RingFence.Department)))
-            {
-                ViewData["message"] = "You do not have permission to ring fence in this department";
-                model.Divisions = this.Divisions();
-                return View(model);
-            }
+                ViewData["ringFenceID"] = model.RingFence.ID;
+                if (!rfDAO.canUserUpdateRingFence(model.RingFence, UserName, out errorMessage))
+                {
+                    ViewData["message"] = errorMessage;
+                    return View(model);
+                }
 
-            model.RingFence.CreatedBy = User.Identity.Name;
-            model.RingFence.CreateDate = DateTime.Now;
+                model.RingFence.CreatedBy = User.Identity.Name;
+                model.RingFence.CreateDate = DateTime.Now;
+                model.RingFence.LastModifiedDate = DateTime.Now;
+                model.RingFence.LastModifiedUser = User.Identity.Name;
 
-            db.Entry(model.RingFence).State = System.Data.EntityState.Modified;
+                db.Entry(model.RingFence).State = System.Data.EntityState.Modified;
 
-            //if (model.RingFence.Type == 2)
-            //{ 
-            //    //ecomm warehouse ringfence, need to update warehouse inventory
-            //    var ecommQuery = (from a in db.EcommInventory where ((a.Division == model.RingFence.Division)&&(a.Store == model.RingFence.Store)&&(a.Size == model.RingFence.Size)&&(a.ItemID == model.RingFence.ItemID)) select a);
-            //    EcommInventory inventory;
-            //    if (ecommQuery.Count() >0)
-            //    {
-            //        inventory = ecommQuery.First();
-            //        inventory.Qty = model.RingFence.Qty;
-            //        db.Entry(inventory).State = System.Data.EntityState.Modified;
-            //        inventory.UpdateDate = DateTime.Now;
-            //        inventory.UpdatedBy = UserName;
-            //        db.SaveChanges();
-            //    }
-            //    else
-            //    {
-            //        inventory = new EcommInventory();
-            //        inventory.Qty = model.RingFence.Qty;
-            //        inventory.Store = model.RingFence.Store;
-            //        inventory.Division = model.RingFence.Division;
-            //        inventory.ItemID = model.RingFence.ItemID;
-            //        inventory.Size = model.RingFence.Size;
-            //        inventory.UpdateDate = DateTime.Now;
-            //        inventory.UpdatedBy = UserName;
-            //        db.EcommInventory.Add(inventory);
-            //        db.SaveChanges();
-            //    }
-
-            //}
-
-
-            db.SaveChanges(User.Identity.Name);
-
+                db.SaveChanges(User.Identity.Name);
 
                 return RedirectToAction("Index");
             }
@@ -919,6 +695,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Delete(int ID)
         {
+            string errorMessage;
+            RingFenceDAO rfDAO = new RingFenceDAO();
+
             var rfQuery = (from a in db.RingFences where a.ID == ID select a);
             if (rfQuery.Count() == 0)
             {
@@ -926,13 +705,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             RingFence rf = rfQuery.First();
 
-            if (!(WebSecurityService.UserHasDivision(UserName, "Allocation", rf.Division)))
+            if (!rfDAO.canUserUpdateRingFence(rf, UserName, out errorMessage))
             {
-                return RedirectToAction("Index", new { message = "Sorry, you do not have permission for this division." });
-            }
-            else if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", rf.Division, rf.Department)))
-            {
-                return RedirectToAction("Index", new { message = "Sorry, you do not have permission for this department." });
+                return RedirectToAction("Index", new { message = errorMessage });
             }
 
             List<RingFenceDetail> details = (from a in db.RingFenceDetails
@@ -943,21 +718,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 db.RingFenceDetails.Remove(det);
                 db.SaveChanges(User.Identity.Name);
-
-                //if (rf.Type == 2)
-                //{ 
-                //    //ecomm warehouse, need to update inventory
-                //    var ecomm = (from a in db.EcommInventory where ((a.Division == rf.Division)&&(a.Store == rf.Store)&&(a.Size== det.Size)) select a);
-                //    if (ecomm.Count() > 0)
-                //    {
-                //        EcommInventory inv = ecomm.First();
-                //        inv.Qty -= det.Qty;
-                //        db.Entry(inv).State = System.Data.EntityState.Modified;
-                //        db.SaveChanges(User.Identity.Name);
-                //    }
-
-                //}
-
             }
 
             db.RingFences.Remove(rf);
@@ -1118,7 +878,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         rdq.Type = "user_opt";
                         rf.Message = "Since this was created today, it will NOT be honored if the PO is delivered today.";
-
                     }
 
                     rdqsToCheck.Add(rdq);
@@ -1148,7 +907,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         //det.AssignedQty = 0;
                         deleteList.Add(det);
                         //db.SaveChanges(User.Identity.Name);
-
                     }
                     else if (det.AssignedQty > 0)
                     {
@@ -1163,7 +921,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         //db.SaveChanges(User.Identity.Name);
 
                         pickedQty += det.AssignedQty;
-
                     }
 
                     history.CreateDate = DateTime.Now;
@@ -1211,7 +968,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     rf.Message += " Ring fence picked, quantity remaining.";
                 }
                 db.SaveChanges(User.Identity.Name);
-
             }
 
             return View(rf);
@@ -1264,6 +1020,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             Boolean optionalPick = false;
             string message=null;
+            string errorMessage;
+            RingFenceDAO rfDAO = new RingFenceDAO();
 
             var ringfenceQuery = (from a in db.RingFences where a.ID == ID select a);
             if (ringfenceQuery.Count() == 0)
@@ -1271,14 +1029,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return RedirectToAction("Index", new { message = "Ringfence no longer exists.  Please verify.  " });
             }
             RingFence rf = ringfenceQuery.First();
-            if (!(WebSecurityService.UserHasDivision(UserName, "Allocation", rf.Division)))
+
+            if (!rfDAO.canUserUpdateRingFence(rf, UserName, out errorMessage))
             {
-                return RedirectToAction("Index", new { message = "Sorry, you do not have permission for this division." });
+                return RedirectToAction("Index", new { message = errorMessage });
             }
-            else if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", rf.Division, rf.Department)))
-            {
-                return RedirectToAction("Index", new { message = "Sorry, you do not have permission for this department." });
-            }
+
             if (rf.Type == 2)
             { 
                 //this is an ecomm ringfence, you can't pick it
@@ -1644,14 +1400,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             int count = 0;
             int ecommCount = 0;
             int permissionCount = 0;
+            string errorMessage;
+            RingFenceDAO rfDAO = new RingFenceDAO();
 
             foreach (RingFence rf in rfList)
             {
-                if (!(WebSecurityService.UserHasDivision(UserName, "Allocation", rf.Division)))
-                {
-                    permissionCount++;
-                }
-                else if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", rf.Division, rf.Department)))
+                if (!rfDAO.canUserUpdateRingFence(rf, UserName, out errorMessage))
                 {
                     permissionCount++;
                 }
@@ -1662,7 +1416,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 else
                 {
-
                     rf.CreatedBy = User.Identity.Name;
                     rf.CreateDate = DateTime.Now;
 
@@ -1768,7 +1521,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             // Get Ring Fence data
             var details = GetRingFenceDetails(ringFenceID);
-            RingFence rf = (from a in db.RingFences where a.ID == ringFenceID select a).First();
+            RingFence rf = (from a in db.RingFences
+                            where a.ID == ringFenceID
+                            select a).First();
             RingFenceDAO dao = new RingFenceDAO();
             List<RingFenceDetail> stillAvailable = dao.GetWarehouseAvailable(rf);
             stillAvailable.AddRange(dao.GetFuturePOs(rf));
@@ -1776,7 +1531,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RingFenceDetail existing;
             foreach (RingFenceDetail det in stillAvailable)
             {
-                var query = (from a in details where ((a.Size == det.Size) && (a.PO == det.PO) && (a.Warehouse == det.Warehouse)) select a);
+                var query = (from a in details
+                             where ((a.Size == det.Size) && 
+                                    (a.PO == det.PO) && 
+                                    (a.Warehouse == det.Warehouse))
+                             select a);
                 if (query.Count() > 0)
                 {
                     existing = query.First();
@@ -1807,233 +1566,259 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _SaveBatchEditing([Bind(Prefix = "updated")]IEnumerable<RingFenceDetail> updated)
         {
-            long ringFenceID = Convert.ToInt64(ViewData["ringFenceID"]);
-            if (updated.Count() > 0)
-            {
-                ringFenceID = (from a in updated select a.RingFenceID).First();
-            }
+            string errorMessage;
+            RingFenceDAO rfDAO = new RingFenceDAO();
+
+            long ringFenceID = (from a in updated select a.RingFenceID).First();
             RingFence ringFence = null;
             List<RingFenceDetail> available = null;
-            RingFenceDetail additionalAvailable;
-            int availableQty;
 
-            if (ringFence == null)
-            {
-                ringFence = (from a in db.RingFences where a.ID == ringFenceID select a).First();
-                available = GetWarehouseAvailable(ringFence);
-                available.AddRange(GetFutureAvailable(ringFence));
-            } 
+            ringFence = (from a in db.RingFences
+                         where a.ID == ringFenceID
+                         select a).First();
+
+            available = GetWarehouseAvailable(ringFence);
+            available.AddRange(GetFutureAvailable(ringFence));
             
             if (updated != null)
-            {
-                string message = "";
-                
+            {                
                 foreach (RingFenceDetail det in updated)
                 {
-                    message = String.Empty;
                     det.Message = "";
-                    det.ActiveInd = "1";
 
-                    if (string.IsNullOrEmpty(det.ringFenceStatusCode))
-                    {
-                        if (string.IsNullOrEmpty(det.PO))
-                            det.ringFenceStatusCode = "4";
-                        else
-                            det.ringFenceStatusCode = "1";
-                    }                        
-
-                    if (det.PO == null)
-                    {
-                        det.PO = "";
+                    if (!rfDAO.canUserUpdateRingFence(ringFence, UserName, out errorMessage))
+                    {                        
+                        det.Message += errorMessage;
                     }
 
-                    if (!(WebSecurityService.UserHasDivision(UserName, "Allocation", ringFence.Division)))
-                    {
-                        message = message + "You do not have permission to ring fence in this division";
-                        det.Message = message;
-                    }
-                    else if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", ringFence.Division, ringFence.Department)))
-                    {
-                        message = message + "You do not have permission to ring fence in this department";
-                        det.Message = message;
-                    }
+                    det.AvailableQty = (from a in available
+                                        where ((a.PO == det.PO) &&
+                                               (a.Warehouse == det.Warehouse) &&
+                                               (a.Size == det.Size))
+                                        select a.AvailableQty).FirstOrDefault();
 
-                    additionalAvailable = (from a in available where ((a.PO == det.PO) && (a.Warehouse == det.Warehouse)&&(a.Size == det.Size)) select a).FirstOrDefault();
-                    availableQty = 0;
-                    if (additionalAvailable != null)
+                    if (isRingFenceDetailValid(det))
                     {
-                        availableQty = additionalAvailable.AvailableQty;
-                    }
+                        var detailRec = (from a in ringFence.ringFenceDetails
+                                         where ((a.RingFenceID == det.RingFenceID) &&
+                                                 (a.DCID == det.DCID) &&
+                                                 (a.Size == det.Size) &&
+                                                 (a.PO == det.PO))
+                                         select a).FirstOrDefault();
 
-                    if ((availableQty < det.Qty)&&(det.Qty > 0))
-                    {
-                        message = message + "Max Qty for " + det.Warehouse + " " + det.PO + " is " + availableQty;
-                        det.Message = message;
-                        //det.Qty = det.AvailableQty;
-                    }
-                    else
-                    {
-                        if ((from a in db.RingFenceDetails where ((a.RingFenceID == det.RingFenceID) && (a.DCID == det.DCID) && (a.Size == det.Size) && (a.PO == det.PO)) select a).Count() > 0)
+                        if (det.Qty > 0)
                         {
-                            db.Entry(det).State = System.Data.EntityState.Modified;
+                            det.ActiveInd = "1";
+
+                            if (string.IsNullOrEmpty(det.PO))
+                                det.ringFenceStatusCode = "4";
+                            else
+                                det.ringFenceStatusCode = "1";
+
+                            if (detailRec != null)
+                            {                                
+                                detailRec.Qty = det.Qty;                                
+                                db.Entry(detailRec).State = System.Data.EntityState.Modified;
+                                //db.Entry(det).State = System.Data.EntityState.Modified;
+                            }
+                            else
+                            {
+                                db.Entry(det).State = System.Data.EntityState.Added;
+                            }
+
+                            det.LastModifiedDate = DateTime.Now;
+                            det.LastModifiedUser = User.Identity.Name;                            
                         }
-                        else
+                        else if (det.Qty == 0)
                         {
-                            db.Entry(det).State = System.Data.EntityState.Added;
+                            if (detailRec != null)
+                            {
+                                db.Entry(detailRec).State = EntityState.Deleted;
+                            }
                         }
-
-                        //if (ringFence.Type == 2)
-                        //{
-                        //    //ecomm warehouse ringfence, need to update warehouse inventory
-                        //    var ecommQuery = (from a in db.EcommInventory where ((a.Division == ringFence.Division) && (a.Store == ringFence.Store) && (a.Size == det.Size) && (a.ItemID == ringFence.ItemID)) select a);
-                        //    EcommInventory inventory;
-                        //    if (ecommQuery.Count() > 0)
-                        //    {
-                        //        inventory = ecommQuery.First();
-                        //        inventory.Qty = det.Qty;
-                        //        db.Entry(inventory).State = System.Data.EntityState.Modified;
-                        //        inventory.UpdateDate = DateTime.Now;
-                        //        inventory.UpdatedBy = UserName;
-                        //    }
-                        //    else
-                        //    {
-                        //        inventory = new EcommInventory();
-                        //        inventory.Qty = det.Qty;
-                        //        inventory.Store = ringFence.Store;
-                        //        inventory.Division = ringFence.Division;
-                        //        inventory.ItemID = ringFence.ItemID;
-                        //        inventory.Size = det.Size;
-                        //        inventory.UpdateDate = DateTime.Now;
-                        //        inventory.UpdatedBy = UserName;
-                        //        db.EcommInventory.Add(inventory);
-                        //    }
-
-                        //}
 
                         db.SaveChanges(User.Identity.Name);
-
-                        //ringFence.CreatedBy = User.Identity.Name;
-                        //ringFence.CreateDate = DateTime.Now;
-
-                        //ringFence.Qty = (from a in db.RingFenceDetails where a.RingFenceID == ringFenceID select a.Qty).Sum();
-
-                        //db.Entry(ringFence).State = System.Data.EntityState.Modified;
-                        //db.SaveChanges(User.Identity.Name);
-
                     }
-
                 }
-
             }
-             
+
             // Build up viewmodel to be returned, (add errors if necessary)
-            var details = GetRingFenceDetails(ringFenceID);
-            List<RingFenceDetail> nonUpdates = (from a in updated where ((a.Message != null)&&(a.Message.Length > 0)) select a).ToList();
+            List<RingFenceDetail> details = (from a in ringFence.ringFenceDetails
+                                             where a.ActiveInd == "1"
+                                             select a).ToList();
+
             List<RingFenceDetail> final = new List<RingFenceDetail>();
-            RingFenceDetail existing;
+
             foreach (RingFenceDetail det in available)
             {
-                var error = (from a in nonUpdates where ((a.Warehouse == det.Warehouse) && (a.Size == det.Size) && (a.PO == det.PO)) select a);
-                if ((error != null) && (error.Count() > 0))
+                var updateRecord = (from a in updated
+                                    where a.DCID == det.DCID &&
+                                          a.Size == det.Size &&
+                                          a.PO == det.PO
+                                    select a).FirstOrDefault();
+
+                var detailRecord = (from a in details
+                                    where a.DCID == det.DCID &&
+                                          a.Size == det.Size &&
+                                          a.PO == det.PO
+                                    select a).FirstOrDefault();
+
+                if (updateRecord != null)
                 {
-                    existing = error.First();
-                    det.Qty = existing.Qty;
-                    //det.AvailableQty = existing.AvailableQty;
-                    det.RingFenceID = existing.RingFenceID;
-                    det.Message = existing.Message;
+                    //final.Add(updateRecord);
+                    final.Add(new RingFenceDetail
+                    {
+                        Size = updateRecord.Size,
+                        PackDetails = updateRecord.PackDetails,
+                        RingFenceID = updateRecord.RingFenceID,
+                        Warehouse = updateRecord.Warehouse,
+                        PO = updateRecord.PO,
+                        Qty = updateRecord.Qty,
+                        AvailableQty = updateRecord.AvailableQty,
+                        AssignedQty = updateRecord.AssignedQty,
+                        Message = updateRecord.Message,
+                        DCID = updateRecord.DCID,
+                        ringFenceStatusCode = updateRecord.ringFenceStatusCode
+                    });
+                }
+                else if (detailRecord != null)
+                {
+                    det.Qty = detailRecord.Qty;
+                    //final.Add(det);
+                    final.Add(new RingFenceDetail
+                    {
+                        Size = det.Size,
+                        PackDetails = det.PackDetails,
+                        RingFenceID = det.RingFenceID,
+                        Warehouse = det.Warehouse,
+                        PO = det.PO,
+                        Qty = det.Qty,
+                        AvailableQty = det.AvailableQty,
+                        AssignedQty = det.AssignedQty,
+                        Message = det.Message,
+                        DCID = det.DCID,
+                        ringFenceStatusCode = det.ringFenceStatusCode
+                    });
                 }
                 else
                 {
-                    var query = (from a in details where ((a.Size == det.Size) && (a.PO == det.PO)) select a);
-                    if (query.Count() > 0)
+                    //final.Add(det);
+                    final.Add(new RingFenceDetail
                     {
-                        existing = query.First();
-                        det.Qty = existing.Qty;
-                        //det.AvailableQty = existing.AvailableQty;
-                        det.RingFenceID = existing.RingFenceID;
-                    }
+                        Size = det.Size,
+                        PackDetails = det.PackDetails,
+                        RingFenceID = det.RingFenceID,
+                        Warehouse = det.Warehouse,
+                        PO = det.PO,
+                        Qty = det.Qty,
+                        AvailableQty = det.AvailableQty,
+                        AssignedQty = det.AssignedQty,
+                        Message = det.Message,
+                        DCID = det.DCID,
+                        ringFenceStatusCode = det.ringFenceStatusCode
+                    });
                 }
-                final.Add(det);
             }
 
             return View(new GridModel(final));
+        }
+
+        bool isRingFenceDetailValid(RingFenceDetail rfDetail)
+        {
+            if (rfDetail.Qty > rfDetail.AvailableQty)
+            {
+                if (string.IsNullOrEmpty(rfDetail.PO))
+                    rfDetail.Message = "Max Quantity for " + rfDetail.Warehouse + " is " + rfDetail.AvailableQty;
+                else
+                    rfDetail.Message = "Max Quantity for PO  " + rfDetail.PO + " is " + rfDetail.AvailableQty;
+
+                return false;
+            }
+
+            if (rfDetail.Qty < 0)
+            {
+                rfDetail.Message = "You cannot ring fence a negative number";
+                return false;
+            }
+
+            return true;
+        }
+
+        private RingFenceUploadModel CreateUploadModelFromDetail(RingFenceDetail rfd, RingFence rf)
+        {
+            RingFenceUploadModel model = new RingFenceUploadModel();
+
+            model.SKU = rf.Sku;
+            model.Size = rfd.Size;
+            model.PO = rfd.PO;
+            model.Comments = rf.Comments;
+            model.Qty = Convert.ToString(rfd.Qty);
+
+            model.Store = rf.Store;
+            model.Warehouse = rfd.Warehouse;
+            model.Division = rf.Division;
+            model.EndDate = Convert.ToString(rf.EndDate);
+
+            return model;
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
         [GridAction]
         public ActionResult _SaveBatchInsert([Bind(Prefix = "updated")]IEnumerable<RingFenceDetail> updated)
         {
-            long ringFenceID = Convert.ToInt64(ViewData["ringFenceID"]);
             List<RingFenceDetail> available = null;
+            RingFenceDAO rfDAO = new RingFenceDAO();
+            string PO;
 
             if (updated != null)
             {
                 string message = "";
-                Boolean save = true;
                 RingFence ringFence = null;
 
                 int availableQty;
-                long rfID = updated.First().RingFenceID;
+                long ringFenceID = updated.First().RingFenceID;
+                PO = updated.First().PO;
 
-                ringFence = (from a in db.RingFences where a.ID == rfID select a).First();
-                ringFenceID = ringFence.ID;
-                if ((ringFence.PO != "") && (ringFence.PO != null))
-                {
-                    available = GetFutureAvailable(ringFence);
-                }
-                else
+                ringFence = (from a in db.RingFences
+                             where a.ID == ringFenceID
+                             select a).First();
+
+                if (string.IsNullOrEmpty(PO))
                 {
                     available = GetWarehouseAvailable(ringFence);
                 }
-
-                Boolean ecommwarehouse = ((from a in db.EcommWarehouses where ((a.Division == ringFence.Division) && (a.Store == ringFence.Store)) select a).Count() > 0);
-                if (ringFence.Store == "00800")
+                else
                 {
-                    ecommwarehouse = true;
+                    available = GetFutureAvailable(ringFence);                    
                 }
-                if (!(ecommwarehouse))
+
+                bool ecommwarehouse = rfDAO.isEcommWarehouse(ringFence.Division, ringFence.Store);
+
+                if (!ecommwarehouse)
                 {
                     foreach (RingFenceDetail det in updated)
                     {
-                        det.Size = det.Size.Trim();
-                        message = String.Empty;
-                        det.Message = "";
-                        det.ActiveInd = "1";
-
-                        if (det.Qty <= det.AvailableQty)
+                        if (isRingFenceDetailValid(det))
                         {
                             if (det.Qty > 0)
                             {
-                                det.ringFenceStatusCode = "1";
-
-                                if (det.PO == null)
-                                {
-                                    det.PO = "";
-                                    det.ringFenceStatusCode = "4";
-                                }
-                                else if (det.PO.Length > 0)
-                                {
-                                    List<ExistingPO> poList = (new ExistingPODAO()).GetExistingPO(ringFence.Division, det.PO);
-
-                                    foreach (ExistingPO po in poList)
-                                    {
-                                        if (po.ExpectedDeliveryDate < DateTime.Now)
-                                        {
-                                            message = message + "This PO is expected to delivery today.  If it does, this ringfence will NOT be enforced (it will be deleted).";
-                                            det.Message = message;
-                                        }
-                                    }
-                                    available.Insert(0, det);
-                                }
                                 var exists = (from a in db.RingFenceDetails
-                                              where ((a.RingFenceID == det.RingFenceID) && 
+                                              where ((a.RingFenceID == det.RingFenceID) &&
                                                      (a.DCID == det.DCID) &&
-                                                     (a.Size == det.Size) && 
+                                                     (a.Size == det.Size) &&
                                                      (a.PO == det.PO))
                                               select a);
 
                                 if (exists.Count() == 0)
                                 {
+                                    det.Message = "";
+                                    det.ActiveInd = "1";
+
+                                    if (det.PO == "")
+                                        det.ringFenceStatusCode = "4";
+                                    else
+                                        det.ringFenceStatusCode = "1";
+
                                     db.RingFenceDetails.Add(det);
                                 }
                                 else
@@ -2043,104 +1828,170 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     existingDet.ActiveInd = "1";
                                     db.Entry(existingDet).State = EntityState.Modified;
                                 }
+
+                                if (det.PO != "")
+                                {
+                                    List<ExistingPO> poList = (new ExistingPODAO()).GetExistingPO(ringFence.Division, det.PO);
+
+                                    foreach (ExistingPO po in poList)
+                                    {
+                                        if (po.ExpectedDeliveryDate < DateTime.Now)
+                                        {
+                                            det.Message = "This PO is expected for delivery today. If it does, this ringfence will NOT be enforced (it will be deleted).";
+                                        }
+                                    }
+                                    //available.Insert(0, det);
+                                }
+
+                                det.LastModifiedDate = DateTime.Now;
+                                det.LastModifiedUser = User.Identity.Name;
+
+                                db.SaveChanges(User.Identity.Name);
                             }
                         }
-                        else
-                        {
-                            if (det.PO == null)
-                            {
-                                det.PO = "";
-                            }
-                            message = message + "Max Qty for " + det.Warehouse + " " + det.PO + " is " + (det.AvailableQty);
-                            det.Message = message;
-                            save = false;
-                        }
-                    }
-                    if (save)
-                    {
-                        db.SaveChanges(User.Identity.Name);
                     }
 
                     List<RingFenceDetail> details = (from a in db.RingFenceDetails
                                                      where a.RingFenceID == ringFenceID &&
                                                            a.ActiveInd == "1"
                                                      select a).ToList();
-                    List<RingFenceDetail> nonUpdates = (from a in updated
-                                                        where ((a.Message != null) && 
-                                                               (a.Message.Length > 0))
-                                                        select a).ToList();
 
                     List<RingFenceDetail> final = new List<RingFenceDetail>();
+
                     foreach (RingFenceDetail det in available)
                     {
-                        if (det.PO == null)
+                        var updateRecord = (from a in updated
+                                            where a.DCID == det.DCID &&
+                                                  a.Size == det.Size &&
+                                                  a.PO == det.PO
+                                            select a).FirstOrDefault();
+
+                        var detailRecord = (from a in details
+                                            where a.DCID == det.DCID &&
+                                                  a.Size == det.Size &&
+                                                  a.PO == det.PO
+                                            select a).FirstOrDefault();
+
+                        if (updateRecord != null)
                         {
-                            det.PO = "";
+                            //final.Add(updateRecord);
+                            final.Add(new RingFenceDetail
+                            {
+                                Size = updateRecord.Size,
+                                PackDetails = updateRecord.PackDetails,
+                                RingFenceID = updateRecord.RingFenceID,
+                                Warehouse = updateRecord.Warehouse,
+                                PO = updateRecord.PO,
+                                Qty = updateRecord.Qty,
+                                AvailableQty = updateRecord.AvailableQty,
+                                AssignedQty = updateRecord.AssignedQty,
+                                Message = updateRecord.Message,
+                                DCID = updateRecord.DCID,
+                                ringFenceStatusCode = updateRecord.ringFenceStatusCode
+                            });
                         }
-                        var error = (from a in nonUpdates where ((a.Warehouse == det.Warehouse) && (a.Size == det.Size) && (a.PO == det.PO)) select a);
-                        if ((error != null) && (error.Count() > 0))
+                        else if (detailRecord != null)
                         {
-                            final.Add(error.First());
+                            det.Qty = detailRecord.Qty;
+                            //final.Add(det);
+                            final.Add(new RingFenceDetail
+                            {
+                                Size = det.Size,
+                                PackDetails = det.PackDetails,
+                                RingFenceID = det.RingFenceID,
+                                Warehouse = det.Warehouse,
+                                PO = det.PO,
+                                Qty = det.Qty,
+                                AvailableQty = det.AvailableQty,
+                                AssignedQty = det.AssignedQty,
+                                Message = det.Message,
+                                DCID = det.DCID,
+                                ringFenceStatusCode = det.ringFenceStatusCode
+                            });
                         }
                         else
                         {
-                            var actual = (from a in details
-                                          where ((a.Warehouse == det.Warehouse) && 
-                                                 (a.Size == det.Size) && 
-                                                 (a.PO == det.PO))
-                                          select a);
-                            if ((actual != null) && (actual.Count() > 0))
+                            //final.Add(det);
+                            final.Add(new RingFenceDetail
                             {
-                                final.Add(actual.First());
+                                Size = det.Size,
+                                PackDetails = det.PackDetails,
+                                RingFenceID = det.RingFenceID,
+                                Warehouse = det.Warehouse,
+                                PO = det.PO,
+                                Qty = det.Qty,
+                                AvailableQty = det.AvailableQty,
+                                AssignedQty = det.AssignedQty,
+                                Message = det.Message,
+                                DCID = det.DCID,
+                                ringFenceStatusCode = det.ringFenceStatusCode
+                            });
+                        }
+                            
+                    }
+                    return View(new GridModel(final));
+                }
+                else
+                {
+                    if ((ringFence.Store == "00800") && (ringFence.Division == "31"))
+                    {
+                        List<RingFenceUploadModel> list = new List<RingFenceUploadModel>();
+                        List<RingFenceUploadModel> errorlist = new List<RingFenceUploadModel>();
+                        List<RingFenceDetail> outputList = new List<RingFenceDetail>();
+                        RingFenceUploadModel model;
+
+                        foreach (RingFenceDetail det in updated)
+                        {
+                            // took out the validation since we're allowing 31/00800 to ring fence against 0 qty
+                            //if (isRingFenceDetailValid(det))
+                            //{
+                            if (det.Qty > 0)
+                            {
+                                model = CreateUploadModelFromDetail(det, ringFence);
+
+                                list.Add(model);
+                            }
+                            //}
+                        }
+
+                        if (list.Count() > 0)
+                        {
+                            processEcommRingFences(list, errorlist);
+
+                            List<string> errors = (from a in errorlist
+                                          where (!(a.ErrorMessage.StartsWith("Warning")))
+                                          select a.ErrorMessage).ToList();
+
+                            if (errors.Count() == 0)
+                            {
+                                RingFenceDetail finishMsg = new RingFenceDetail();
+
+                                finishMsg.Qty = ringFence.Qty;  
+                                finishMsg.Message = "This data has been processed.";
+                                outputList.Add(finishMsg);
                             }
                             else
                             {
-                                final.Add(det);
+                                RingFenceDetail finishMsg = new RingFenceDetail();
+                                
+                                finishMsg.Message = errors.ToString();
+                                outputList.Add(finishMsg);
                             }
                         }
-                    }
-                    return View(new GridModel(final));
 
-                }
-                else
-                { 
-                    //Ecomm RingFence we need to create ecomm inventory
-                    RingFenceDetail newDet = new RingFenceDetail();
-                    List<EcommWeight> weights;
-                    List<RingFenceDetail> futures = GetFutureAvailable(ringFence);
-                    List<RingFenceDetail> warehouse = GetWarehouseAvailable(ringFence);
-
-                    if (ringFence.Store == "00800")
-                    {
-
-                        List<RingFenceUploadModel> list = new List<RingFenceUploadModel>();
-                        List<RingFenceUploadModel> errorlist = new List<RingFenceUploadModel>();
-                        RingFenceUploadModel model = new RingFenceUploadModel();
-                        foreach (RingFenceDetail det in updated)
-                        {
-                            model = new RingFenceUploadModel();
-                            model.SKU = ringFence.Sku;
-                            model.Size = det.Size;
-                            model.Qty = Convert.ToString(det.Qty);
-                            model.Store = ringFence.Store;
-                            model.Warehouse = det.Warehouse;
-                            model.PO = det.PO;
-                            model.Division = ringFence.Division;
-                            list.Add(model);
-                        }
-                        if (list.Count() > 0)
-                        {
-                            CreateOrUpdateRingFence(ringFence.Division, ringFence.Store, ringFence.Sku, list, errorlist, warehouse, futures);
-                            errorlist = (from a in errorlist where (!(a.ErrorMessage.StartsWith("Warning"))) select a).ToList();
-                        }
-
-                        return View(new GridModel(errorlist));
-
+                        return View(new GridModel(outputList));
                     }
                     else
                     {
+                        //Ecomm RingFence we need to create ecomm inventory
+                        List<RingFenceDetail> futures = GetFutureAvailable(ringFence);
+                        List<RingFenceDetail> warehouse = GetWarehouseAvailable(ringFence);
+
                         //ecomm all countries store
                         //EcommInventory ecommInv = new EcommInventory();
+                        RingFenceDetail newDet = new RingFenceDetail();
+                        List<EcommWeight> weights;
+
                         weights = new List<EcommWeight>();
                         EcommWeight weight = new EcommWeight();
                         weight.Division = ringFence.Division;
@@ -2150,19 +2001,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         Boolean addDetail;
                         foreach (EcommWeight w in weights)
                         {
-                            RingFence rf = (from a in db.RingFences where ((a.Sku == ringFence.Sku) && (a.Store == w.Store)) select a).First();
-                            save = false;
+                            RingFence rf = (from a in db.RingFences
+                                            where ((a.Sku == ringFence.Sku) && (a.Store == w.Store))
+                                            select a).First();
                             foreach (RingFenceDetail det in updated)
                             {
                                 availableQty = 0;
                                 try
                                 {
-                                    availableQty += (from a in futures where ((a.PO == det.PO) && (a.Size == det.Size) && (a.DCID == det.DCID)) select a.AvailableQty).Sum();
+                                    availableQty += (from a in futures
+                                                     where ((a.PO == det.PO) && 
+                                                            (a.Size == det.Size) && 
+                                                            (a.DCID == det.DCID))
+                                                     select a.AvailableQty).Sum();
                                 }
                                 catch { }
                                 try
                                 {
-                                    availableQty += (from a in warehouse where ((a.Size == det.Size) && (a.DCID == det.DCID)) select a.AvailableQty).Sum();
+                                    availableQty += (from a in warehouse
+                                                     where ((a.Size == det.Size) && (a.DCID == det.DCID))
+                                                     select a.AvailableQty).Sum();
                                 }
                                 catch { }
 
@@ -2187,13 +2045,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                         newDet.Size = det.Size;
                                     }
                                     newDet.DCID = det.DCID;
+                                    newDet.ActiveInd = "1";
+                                    newDet.LastModifiedDate = DateTime.Now;
+                                    newDet.LastModifiedUser = User.Identity.Name;
                                     if (det.PO == null)
                                     {
                                         newDet.PO = "";
+                                        newDet.ringFenceStatusCode = "4";
                                     }
                                     else
                                     {
                                         newDet.PO = det.PO;
+                                        newDet.ringFenceStatusCode = "1";
                                     }
                                     newDet.Qty = Convert.ToInt32(det.Qty * w.Weight);
 
@@ -2213,12 +2076,116 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
             return View(new GridModel(updated));
-
         }
 
         public ActionResult Upload()
         {
             return View();
+        }
+
+        private RingFenceUploadModel createModelFromSpreadsheet(Cells spreadsheet, int row)
+        {
+            RingFenceUploadModel model = new RingFenceUploadModel();
+
+            model.Store = Convert.ToString(spreadsheet[row, 1].Value);
+            model.Division = Convert.ToString(spreadsheet[row, 0].Value);
+            model.Comments = Convert.ToString(spreadsheet[row, 9].Value);
+            model.EndDate = Convert.ToString(spreadsheet[row, 3].Value);
+            model.PO = Convert.ToString(spreadsheet[row, 4].Value);
+            model.Qty = Convert.ToString(spreadsheet[row, 8].Value);
+
+            if (Convert.ToString(spreadsheet[row, 6].Value) != "")
+            {
+                model.Size = Convert.ToString(spreadsheet[row, 6].Value).PadLeft(3, '0');
+            }
+            else
+            {
+                model.Size = Convert.ToString(spreadsheet[row, 7].Value).PadLeft(5, '0');
+            }
+
+            model.SKU = Convert.ToString(spreadsheet[row, 2].Value);
+            model.Warehouse = Convert.ToString(spreadsheet[row, 5].Value).PadLeft(2, '0');
+            model.PO = Convert.ToString(spreadsheet[row, 4].Value);
+
+            return model;
+        }
+
+        private bool validateUploadSecurity(RingFenceUploadModel model)
+        {
+            if (!(Footlocker.Common.WebSecurityService.UserHasDivision(UserName, "allocation", model.Division)))
+            {
+                model.ErrorMessage = "You are not authorized to update division " + model.Division;
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool validateUploadModel(RingFenceUploadModel model)
+        {            
+            if (model.SKU.Substring(0, 2) != model.Division)
+            {
+                model.ErrorMessage = "Division doesn't match";
+                return false;
+            }
+            //else if (model.Store.Length == 0)
+            //{
+            //    model.ErrorMessage = "Store is required";
+            //    return false;
+            //}
+            else if (model.SKU.Length == 0)
+            {
+                model.ErrorMessage = "Sku is required";
+                return false;
+            }
+            else if (model.Size.Length == 0)
+            {
+                model.ErrorMessage = "Size is required";
+                return false;
+            }
+            else if (model.Warehouse.Length == 0)
+            {
+                model.ErrorMessage = "Warehouse is required";
+                return false;
+            }
+
+            return true;
+        }
+
+        private void processUploadedRingfences(List<RingFenceUploadModel> ProcessList, List<RingFenceUploadModel> Errors)
+        {
+            RingFenceDAO dao = new RingFenceDAO();
+            List<RingFenceDetail> Available = null;
+            List<RingFenceDetail> FuturePOs = null;
+
+            RingFence tempRingFence = new RingFence();
+            tempRingFence.Sku = ProcessList[0].SKU;
+            tempRingFence.Division = ProcessList[0].Division;
+            tempRingFence.Store = ProcessList[0].Store;
+
+            SetUpRingFenceHeader(tempRingFence);
+
+            foreach (RingFenceUploadModel rfum in ProcessList)
+            {
+                RingFenceDetail det = new RingFenceDetail();
+                det.Size = rfum.Size;
+                det.PO = rfum.PO;
+                det.Warehouse = rfum.Warehouse;
+
+                tempRingFence.ringFenceDetails.Add(det);
+            }
+
+            foreach (RingFenceUploadModel rfum in ProcessList)
+            {
+                if ((rfum.PO == "") && (Available == null))
+                    Available = dao.GetWarehouseAvailable(tempRingFence);
+
+                if ((rfum.PO != "") && (FuturePOs == null))
+                    FuturePOs = GetFutureAvailable(tempRingFence);
+            }                        
+
+            CreateOrUpdateRingFence(tempRingFence.Division, tempRingFence.Store, tempRingFence.Sku, ProcessList, 
+                Errors, Available, FuturePOs);
         }
 
         public ActionResult SaveRingFences(IEnumerable<HttpPostedFileBase> attachments)
@@ -2227,6 +2194,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //Set the license 
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
             string Division = "";
+            RingFenceDAO rfDAO = new RingFenceDAO();
             foreach (HttpPostedFileBase file in attachments)
             {
                 //Instantiate a Workbook object that represents an Excel file
@@ -2248,136 +2216,93 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     Division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0');
 
-                    RingFence ringFence=null;
-                    string division,store,sku,prevsku;
-                    prevsku = "FIRST";
-                    RingFenceDAO dao = new RingFenceDAO();
-                    List<RingFenceDetail> Available=null;
-                    List<RingFenceDetail> FuturePOs=null;
+                    string sku, prevsku;
+                    prevsku = "FIRST";                   
 
                     List<RingFenceUploadModel> ProcessList = new List<RingFenceUploadModel>();
                     List<RingFenceUploadModel> Errors = new List<RingFenceUploadModel>();
                     RingFenceUploadModel model;
-                    prevsku = Convert.ToString(mySheet.Cells[row, 2].Value);
-                    division = "";
-                    store = "";
+                    bool skipSKU = false; 
+                    string skipError = "";
+                    //prevsku = Convert.ToString(mySheet.Cells[row, 2].Value);                 
 
                     while (mySheet.Cells[row, 0].Value != null)
                     {
-                        sku = Convert.ToString(mySheet.Cells[row, 2].Value);
-                        //process per sku
-                        while ((sku == prevsku) && (mySheet.Cells[row, 0].Value != null))
-                        {
-                            division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0');
-                            store = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(5, '0');
-                            if (store.Equals("00000"))
-                            {
-                                store = "";
-                            }
-                            model = new RingFenceUploadModel();
-                            model.Comments = Convert.ToString(mySheet.Cells[row, 9].Value);
-                            model.Division = division;
-                            model.EndDate = Convert.ToString(mySheet.Cells[row, 3].Value);
-                            model.PO = Convert.ToString(mySheet.Cells[row, 4].Value);
-                            model.Qty = Convert.ToString(mySheet.Cells[row, 8].Value);
+                        model = createModelFromSpreadsheet(mySheet.Cells, row);
 
-                            if (Convert.ToString(mySheet.Cells[row, 6].Value) != "")
+                        sku = Convert.ToString(mySheet.Cells[row, 2].Value);                        
+
+                        if (sku != prevsku)
+                        {
+                            skipSKU = false;
+                            skipError = "";
+                            if (!validateUploadSecurity(model))
                             {
-                                model.Size = Convert.ToString(mySheet.Cells[row, 6].Value).PadLeft(3, '0');
+                                Errors.Add(model);
+                                skipError = model.ErrorMessage;
+                                skipSKU = true;
+                            }
+                            
+                            prevsku = sku;
+                        }
+                        else
+                        {
+                            if (skipSKU)
+                            {
+                                model.ErrorMessage = skipError;
+                                Errors.Add(model);
+                            }
+                        }
+
+                        if (!skipSKU)
+                        {
+                            if (!validateUploadModel(model))
+                            {
+                                Errors.Add(model);
                             }
                             else
                             {
-                                model.Size = Convert.ToString(mySheet.Cells[row, 7].Value).PadLeft(5, '0');
-                            }
-
-                            model.SKU = Convert.ToString(mySheet.Cells[row, 2].Value);
-                            model.Store = store;
-                            model.Warehouse = Convert.ToString(mySheet.Cells[row, 5].Value).PadLeft(2, '0');
-                            model.PO = Convert.ToString(mySheet.Cells[row, 4].Value);
-
-                            string status = (from a in db.StoreLookups where a.Store == store select a.status).FirstOrDefault();
-                            Boolean ecommwarehouse = ((from a in db.EcommWarehouses where ((a.Division == division) && (a.Store == store)) select a).Count() > 0);
-                            if ((store == "00900") && (division == "31"))
-                            {
-                                //alshaya
-                                ecommwarehouse = true;
-                            }
-                            if ((store == "00800") && (division == "31"))
-                            {
-                                //ecomm all countries
-                                ecommwarehouse = true;
-                            }
-
-                            if (!(Footlocker.Common.WebSecurityService.UserHasDivision(User.Identity.Name.Split('\\')[1], "allocation", division)))
-                            {
-                                return Content("You are not authorized to update division " + division);
-                            }
-                            else if (sku.Substring(0, 2) != division)
-                            {
-                                //error
-                                model.ErrorMessage = "Division doesn't match";
-                                Errors.Add(model);
-                            }
-                            else if (model.Store.Length == 0)
-                            {
-                                model.ErrorMessage = "Store is required";
-                                Errors.Add(model);
-                            }
-                            else if (model.SKU.Length == 0)
-                            {
-                                model.ErrorMessage = "Sku is required";
-                                Errors.Add(model);
-                            }
-                            else if (model.Size.Length == 0)
-                            {
-                                model.ErrorMessage = "Size is required";
-                                Errors.Add(model);
-                            }
-                            else if (model.Warehouse.Length == 0)
-                            {
-                                model.ErrorMessage = "Warehouse is required";
-                                Errors.Add(model);
-                            }
-                            else //if ((status == "N") || (status == "T") || (status == "A") || ecommwarehouse)
-                            {
                                 ProcessList.Add(model);
                             }
-                            //Note:  Originally we weren't supposed to be ringfencing much, so we limited to Ecomm and new stores.
-                            //  Because of all-star game stores, they wanted more
-                            //  opening it up for now.  Probably should restrict to certain stores based on a new store extention attribute.
-                            //else
-                            //{
-                            //    model.ErrorMessage = "You can only upload new stores or Ecomm warehouse ringfences";
-                            //    Errors.Add(model);
-                            //}
-                            row++;
-                            //for next loop, set sku to next value
-                            sku = Convert.ToString(mySheet.Cells[row, 2].Value);
                         }
-                        prevsku = sku;
 
+                        row++;
+                    }
+
+                    if (ProcessList.Count > 0)
+                    {
                         //now we have a list to process
-                        if (ProcessList.Count > 0)
+                        prevsku = "";
+                        string prevStore = "";
+                        List<RingFenceUploadModel> processListBySku = new List<RingFenceUploadModel>();
+
+                        foreach (RingFenceUploadModel rfum in ProcessList)
                         {
-                            RingFence tempRingFence = new RingFence();
-                            tempRingFence.Sku = ProcessList[0].SKU;
-                            tempRingFence.Division = ProcessList[0].Division;
-                            tempRingFence.Store = ProcessList[0].Store;
+                            if ((rfum.SKU != prevsku) || (rfum.Store != prevStore))
+                            {
+                                if (processListBySku.Count > 0)
+                                {
+                                    processUploadedRingfences(processListBySku, Errors);
+                                    processListBySku.Clear();
+                                }
 
-                            Available = dao.GetWarehouseAvailable(tempRingFence);
-                            FuturePOs = GetFutureAvailable(tempRingFence);
-
-                            CreateOrUpdateRingFence(tempRingFence.Division, tempRingFence.Store, tempRingFence.Sku, ProcessList, Errors, Available, FuturePOs);
-
-                            ProcessList.Clear();
+                                processListBySku.Add(rfum);
+                                prevsku = rfum.SKU;
+                                prevStore = rfum.Store;
+                            }
+                            else
+                                processListBySku.Add(rfum);
                         }
-
+                        processUploadedRingfences(processListBySku, Errors);
                     }
 
                     if (Errors.Count() > 0)
                     {
                         Session["errorList"] = Errors;
-                        int count = (from a in Errors where (!(a.ErrorMessage.StartsWith("Warning"))) select a).Count();
+                        int count = (from a in Errors
+                                     where (!(a.ErrorMessage.StartsWith("Warning")))
+                                     select a).Count();
+
                         string msg=(row - count - 1) + " successfully uploaded";
                         if (count > 0)
                         {
@@ -2387,7 +2312,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         {
                             //have warnings
                             msg += ", " + (Errors.Count() - count) + " Warnings";
-
                         }
                         return Content(msg);
                     }
@@ -2402,452 +2326,215 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return Content("");
         }
 
-
-        public void CreateOrUpdateRingFence(string division, string store, string sku, List<RingFenceUploadModel> ProcessList, List<RingFenceUploadModel> Errors, List<RingFenceDetail> Available, List<RingFenceDetail> FuturePOs)
+        public void processEcommRingFences(List<RingFenceUploadModel> ProcessList, List<RingFenceUploadModel> Errors)
         {
             List<EcommRingFence> EcommAllStoresList = new List<EcommRingFence>();
 
-            ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == sku select a).FirstOrDefault();
-
             foreach (RingFenceUploadModel model in ProcessList)
             {
-                List<EcommWeight> weights = new List<EcommWeight>();
+                //Europe ecomm store that needs to be broken out
+                EcommRingFence ecomm = new EcommRingFence();
+                ecomm.Sku = model.SKU;
+                ecomm.Size = model.Size;
+                ecomm.PO = model.PO;
+                ecomm.Comments = model.Comments;
 
+                try
+                {
+                    ecomm.Qty = Convert.ToInt32(model.Qty);
+                    if (ecomm.Qty < 0)
+                        throw new Exception("Qty < 0");
+
+                    EcommAllStoresList.Add(ecomm);
+                }
+                catch (Exception ex)
+                {
+                    model.ErrorMessage = ex.Message;
+                    Errors.Add(model);
+                }
+            }
+
+            if (EcommAllStoresList.Count() > 0)
+            {
+                ConvertRangeDAO crDAO = new ConvertRangeDAO();
+                crDAO.SaveEcommRingFences(EcommAllStoresList, User.Identity.Name);
+            }
+        }
+
+        public void CreateOrUpdateRingFence(string division, string store, string sku, List<RingFenceUploadModel> ProcessList, List<RingFenceUploadModel> Errors, List<RingFenceDetail> Available, List<RingFenceDetail> FuturePOs)
+        {
+            List<RingFenceUploadModel> EcommRingFenceList = new List<RingFenceUploadModel>();
+
+            ItemMaster item = (from a in db.ItemMasters
+                               where a.MerchantSku == sku
+                               select a).FirstOrDefault();
+
+            RingFence ringFence = null;
+            Boolean newRingFence = false;
+
+            foreach (RingFenceUploadModel model in ProcessList)
+            {                
                 if (model.Store == "00800")
                 {
                     //Europe ecomm store that needs to be broken out
-                    EcommRingFence ecomm = new EcommRingFence();
-                    ecomm.Sku = model.SKU;
-                    ecomm.Size = model.Size;
-                    ecomm.PO = model.PO;
-                    try
-                    {
-                        ecomm.Qty = Convert.ToInt32(model.Qty);
-                        if (ecomm.Qty < 0)
-                            throw new Exception("Qty < 0");
-                        EcommAllStoresList.Add(ecomm);
-                    }
-                    catch (Exception ex)
-                    {
-                        model.ErrorMessage = ex.Message;
-                        Errors.Add(model);
-                    }
+                    EcommRingFenceList.Add(model);                    
                 }
                 else
                 {
-                    EcommWeight tw = new EcommWeight();
-                    tw.Store = store;
-                    tw.Division = division;
-                    if (model.Store != "")
-                    {
-                        tw.Store = model.Store;
-                        tw.Division = model.Division;
-                    }
-                    tw.Weight = 1;
-                    weights.Add(tw);
-
                     try
                     {
-                        foreach (EcommWeight weight in weights)
+                        RingFenceDetail detail = null;
+                        int distributionCenterID;
+
+                        try
                         {
-                            RingFence ringFence = (from a in db.RingFences where ((a.Division == division) && (a.Store == weight.Store) && (a.Sku == sku)) select a).FirstOrDefault();
-                            Boolean newRingFence = false;
+                            distributionCenterID = (from a in db.DistributionCenters
+                                                    where a.MFCode == model.Warehouse
+                                                    select a.ID).First();
+                        }
+                        catch
+                        {
+                            throw new Exception("Invalid Warehouse");
+                        }
+
+                        if (ringFence == null)
+                        {
+                            ringFence = (from a in db.RingFences
+                                         where ((a.Division == model.Division) &&
+                                                 (a.Store == model.Store) &&
+                                                 (a.Sku == model.SKU))
+                                         select a).FirstOrDefault();
+
                             if (ringFence == null)
                             {
                                 ringFence = new RingFence();
-                                ringFence.Sku = sku;
-                                ringFence.ItemID = item.ID;
-                                ringFence.Qty = 0;
+                                ringFence.Sku = model.SKU;
                                 newRingFence = true;
+                                ringFence.Division = model.Division;
+                                ringFence.Store = model.Store;
                             }
                             ringFence.Comments = model.Comments;
-                            ringFence.CreateDate = DateTime.Now;
-                            ringFence.StartDate = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == division select a.RunDate).First().AddDays(1);
-                            ringFence.CreatedBy = UserName;
-                            ringFence.Division = division;
-                            ringFence.Store = weight.Store;
-                            Boolean ecommwarehouse = ((from a in db.EcommWarehouses where ((a.Division == division) && (a.Store == store)) select a).Count() > 0);
-                            if (ecommwarehouse)
-                            {
-                                ringFence.Type = 2;
-                            }
-                            else
-                            {
-                                ringFence.Type = 1;
-                            }
 
-                            if (newRingFence)
+                            SetUpRingFenceHeader(ringFence);
+                        }
+
+                        if (!newRingFence)
+                        {
+                            if (ringFence.ringFenceDetails.Count() == 0)
                             {
-                                db.RingFences.Add(ringFence);
-                                db.SaveChanges(UserName);
+                                // if it is not a new ring fence, the detail might already exist
+                                ringFence.ringFenceDetails = (from a in db.RingFenceDetails                                                              
+                                                              where a.RingFenceID == ringFence.ID
+                                                              select a).ToList();
                             }
 
-                            RingFenceDetail detail;
-                            if ((model.PO == null) || (model.PO == ""))
-                            {
-                                detail = (from a in db.RingFenceDetails join 
-                                               b in db.DistributionCenters 
-                                                   on a.DCID equals b.ID
-                                          where ((a.RingFenceID == ringFence.ID) && 
-                                                 (a.Size == model.Size) && 
-                                                 (b.MFCode == model.Warehouse) && 
-                                                 ((a.PO == null) || (a.PO == "")))
-                                          select a).FirstOrDefault();
-                            }
-                            else
-                            {
-                                detail = (from a in db.RingFenceDetails join 
-                                               b in db.DistributionCenters 
-                                                   on a.DCID equals b.ID
-                                          where ((a.RingFenceID == ringFence.ID) && 
-                                                 (a.Size == model.Size) && 
-                                                 (b.MFCode == model.Warehouse) && 
-                                                 (a.PO == model.PO))
-                                          select a).FirstOrDefault();
-                            }
-                            Boolean newDetail = false;                            
+                            detail = (from a in ringFence.ringFenceDetails
+                                        where a.DCID == distributionCenterID &&
+                                            a.Size == model.Size.PadLeft(3, '0') &&
+                                            a.PO == model.PO
+                                        select a).FirstOrDefault();
 
-                            if (detail == null)
+                            if (detail != null)
                             {
-                                detail = new RingFenceDetail();
-                                detail.RingFenceID = ringFence.ID;
-                                detail.Size = model.Size.PadLeft(3, '0');
-
-                                detail.Warehouse = model.Warehouse.PadLeft(2, '0');
-                                try
-                                {
-                                    detail.DCID = (from a in db.DistributionCenters
-                                                   where a.MFCode == model.Warehouse
-                                                   select a.ID).First();
-                                }
-                                catch
-                                {
-                                    throw new Exception("Invalid Warehouse");
-                                }
-                                newDetail = true;
-                            }
-
-                            detail.ActiveInd = "1";
-                            detail.PO = model.PO;
-                            detail.Qty = Convert.ToInt32(Convert.ToInt32(model.Qty) * weight.Weight);
-                            int availableQty;
-                            if (detail.PO != "")
-                            {
-                                detail.ringFenceStatusCode = "4";
-                                var query = (from a in FuturePOs where ((a.PO == detail.PO) && (a.Size == detail.Size) && (a.DCID == detail.DCID)) select a.AvailableQty);
-                                availableQty = 0;
-
-                                if (query.Count() > 0)
-                                {
-                                    availableQty = query.Sum();
-                                    try
-                                    {
-                                        availableQty += (from a in db.RingFences join 
-                                                              b in db.RingFenceDetails 
-                                                                  on a.ID equals b.RingFenceID
-                                                         where ((a.Sku == model.SKU) && 
-                                                                (b.Size == model.Size) &&
-                                                                (b.ActiveInd == "1"))
-                                                         select b.Qty).Sum();
-                                    }
-                                    catch (Exception ex)
-                                    { }
-                                }
-                                if (detail.Qty > availableQty)
-                                {
-                                    model.ErrorMessage = "Only " + availableQty + " available";
-                                    Errors.Add(model);
-                                }
-                                else if (detail.Qty < 0)
-                                {
-                                    model.ErrorMessage = "Qty < 0";
-                                    Errors.Add(model);
-                                }
-                            }
-                            else
-                            {
-                                detail.ringFenceStatusCode = "1";
-                                var query = (from a in Available where ((a.Size == detail.Size) && (a.DCID == detail.DCID)) select a.AvailableQty);
-                                availableQty = 0;
-
-                                if (query.Count() > 0)
-                                {
-                                    availableQty = query.Sum();
-                                    try
-                                    {
-                                        availableQty += (from a in db.RingFences join 
-                                                              b in db.RingFenceDetails 
-                                                                  on a.ID equals b.RingFenceID
-                                                         where ((a.Sku == model.SKU) && 
-                                                                (b.Size == model.Size) &&
-                                                                (b.ActiveInd == "1"))
-                                                         select b.Qty).Sum();
-                                    }
-                                    catch { }
-                                }
-                                if (detail.Qty > availableQty)
-                                {
-                                    model.ErrorMessage = "Only " + availableQty + " available";
-                                    Errors.Add(model);
-                                }
-                            }
-
-                            if ((model.ErrorMessage == null) || (model.ErrorMessage == ""))
-                            {
-                                if ((newDetail)&&(detail.Qty > 0))
-                                {
-                                    db.RingFenceDetails.Add(detail);
-                                }
-                                else if (detail.Qty > 0)
-                                {
-                                    model.ErrorMessage = "Warning:  Already existed, updated to new value";
-                                    Errors.Add(model);
-                                }
-                                db.SaveChanges(UserName);
+                                model.ErrorMessage = "Warning:  Already existed, updated to new value";
+                                Errors.Add(model);
                             }
                         }
-                    }
+
+                        Boolean newDetail = false;
+
+                        if ((detail == null) || newRingFence)
+                        {
+                            detail = new RingFenceDetail();
+                            detail.Size = model.Size.PadLeft(3, '0');
+                            detail.Warehouse = model.Warehouse.PadLeft(2, '0');
+                            detail.DCID = distributionCenterID;
+                            detail.PO = model.PO;
+
+                            newDetail = true;
+                        }
+
+                        detail.ActiveInd = "1";                        
+                        detail.LastModifiedDate = DateTime.Now;
+                        detail.LastModifiedUser = User.Identity.Name;
+                        detail.Qty = Convert.ToInt32(model.Qty);
+                        int availableQty = 0;
+
+                        if (detail.PO != "")
+                        {
+                            detail.ringFenceStatusCode = "1";
+                            availableQty = (from a in FuturePOs
+                                         where ((a.PO == detail.PO) &&
+                                             (a.Size == detail.Size) &&
+                                             (a.DCID == detail.DCID))
+                                         select a.AvailableQty).Sum();
+                        }
+                        else
+                        {
+                            detail.ringFenceStatusCode = "4";
+                            availableQty = (from a in Available
+                                         where ((a.Size == detail.Size) &&
+                                             (a.DCID == detail.DCID))
+                                         select a.AvailableQty).Sum();
+                        }
+
+                        try
+                        {
+                            availableQty += (from a in db.RingFences join 
+                                                    b in db.RingFenceDetails 
+                                                        on a.ID equals b.RingFenceID
+                                                where ((a.Sku == model.SKU) && 
+                                                    (b.Size == model.Size) &&
+                                                    (b.ActiveInd == "1"))
+                                                select b.Qty).Sum();
+                        }
+                        catch { }
+
+                        if (detail.Qty > availableQty)
+                        {
+                            model.ErrorMessage = "Only " + availableQty + " available";
+                            Errors.Add(model);
+                        }
+                        else if (detail.Qty < 0)
+                        {
+                            model.ErrorMessage = "Qty < 0";
+                            Errors.Add(model);
+                        }
+
+                        if ((model.ErrorMessage == null) || (model.ErrorMessage == ""))
+                        {
+                            if ((newDetail) && (detail.Qty > 0))
+                            {
+                                ringFence.ringFenceDetails.Add(detail);                                
+                            }                          
+                        }
+                    }                   
                     catch (Exception ex)
                     {
                         model.ErrorMessage = ex.Message;
                         Errors.Add(model);
-                    }
+                    }                    
                 }
             }
 
-            if (EcommAllStoresList.Count > 0)
+            if (ringFence != null)
             {
-                ConvertRangeDAO crDAO = new ConvertRangeDAO();
-                crDAO.SaveEcommRingFences(EcommAllStoresList, UserName);
+                if (ringFence.ringFenceDetails.Count() > 0)
+                {
+                    ringFence.calculateTotalRingFenceQuantity();
+
+                    if (newRingFence)
+                        db.RingFences.Add(ringFence);
+                }
+            }
+
+            db.SaveChanges(UserName);
+
+            if (EcommRingFenceList.Count > 0)
+            {
+                processEcommRingFences(EcommRingFenceList, Errors);
             }
         }
-
-        public ActionResult SaveRingFences_OLD(IEnumerable<HttpPostedFileBase> attachments)
-        {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-            string Division = "";
-            List<RingFenceUploadModel> Errors = new List<RingFenceUploadModel>();
-            RingFenceUploadModel model;
-            foreach (HttpPostedFileBase file in attachments)
-            {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-
-                int row = 1;
-                if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Div")) && (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Store")) &&
-                    (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("SKU")) && (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("EndDate")) &&
-                    (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("PO")) && (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Warehouse")) &&
-                    (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Size")) && (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Qty")) &&
-                    (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Comments"))
-                    )
-                {
-                    Division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0');
-
-                    RingFence ringFence = null;
-                    RingFenceDetail detail;
-                    string division, store, sku, prevsku;
-                    prevsku = "FIRST";
-                    RingFenceDAO dao = new RingFenceDAO();
-                    List<RingFenceDetail> Available = null;
-                    List<RingFenceDetail> FuturePOs = null;
-                    int availableQty;
-                    Boolean newRingFence = false;
-                    Boolean newDetail = false;
-                    while (mySheet.Cells[row, 0].Value != null)
-                    {
-                        division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0');
-                        store = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(5, '0');
-                        sku = Convert.ToString(mySheet.Cells[row, 2].Value);
-                        model = new RingFenceUploadModel();
-                        model.Comments = Convert.ToString(mySheet.Cells[row, 8].Value);
-                        model.Division = division;
-                        model.EndDate = Convert.ToString(mySheet.Cells[row, 3].Value);
-                        model.PO = Convert.ToString(mySheet.Cells[row, 4].Value);
-                        model.Qty = Convert.ToString(mySheet.Cells[row, 7].Value);
-                        model.Size = Convert.ToString(mySheet.Cells[row, 6].Value).PadLeft(3, '0');
-                        model.SKU = Convert.ToString(mySheet.Cells[row, 2].Value);
-                        model.Store = Convert.ToString(mySheet.Cells[row, 1].Value);
-                        model.Warehouse = Convert.ToString(mySheet.Cells[row, 5].Value).PadLeft(2, '0');
-
-                        string status = (from a in db.StoreLookups where a.Store == store select a.status).First();
-                        Boolean ecommwarehouse = ((from a in db.EcommWarehouses where ((a.Division == division) && (a.Store == store)) select a).Count() > 0);
-
-
-                        if (!(Footlocker.Common.WebSecurityService.UserHasDivision(User.Identity.Name.Split('\\')[1], "allocation", division)))
-                        {
-                            return Content("You are not authorized to update division " + division);
-                        }
-                        else if (sku.Substring(0, 2) != division)
-                        {
-                            //error
-                            model.ErrorMessage = "Division doesn't match";
-                            Errors.Add(model);
-                        }
-                        else if (model.Store.Length == 0)
-                        {
-                            model.ErrorMessage = "Store is required";
-                            Errors.Add(model);
-                        }
-                        else if (model.SKU.Length == 0)
-                        {
-                            model.ErrorMessage = "Sku is required";
-                            Errors.Add(model);
-                        }
-                        else if (model.Size.Length == 0)
-                        {
-                            model.ErrorMessage = "Size is required";
-                            Errors.Add(model);
-                        }
-                        else if (model.Warehouse.Length == 0)
-                        {
-                            model.ErrorMessage = "Warehouse is required";
-                            Errors.Add(model);
-                        }
-                        else if ((status == "A") || ecommwarehouse)
-                        {
-                            try
-                            {
-                                if (sku != prevsku)
-                                {
-                                    ringFence = (from a in db.RingFences where ((a.Division == division) && (a.Store == store) && (a.Sku == sku)) select a).FirstOrDefault();
-                                    newRingFence = false;
-                                    if (ringFence == null)
-                                    {
-                                        ringFence = new RingFence();
-                                        ringFence.Sku = sku;
-                                        newRingFence = true;
-                                    }
-                                    ringFence.Comments = model.Comments;
-                                    ringFence.CreateDate = DateTime.Now;
-                                    ringFence.StartDate = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == division select a.RunDate).First().AddDays(1);
-                                    ringFence.CreatedBy = UserName;
-                                    ringFence.Division = division;
-                                    ringFence.Store = store;
-                                    if (ecommwarehouse)
-                                    {
-                                        ringFence.Type = 2;
-                                    }
-                                    else
-                                    {
-                                        ringFence.Type = 1;
-                                    }
-
-                                    if (newRingFence)
-                                    {
-                                        db.RingFences.Add(ringFence);
-                                        db.SaveChanges(UserName);
-                                    }
-                                    Available = dao.GetWarehouseAvailable(ringFence);
-                                    FuturePOs = dao.GetFuturePOs(ringFence);
-                                }
-                                prevsku = sku;
-
-                                detail = (from a in db.RingFenceDetails join 
-                                               b in db.DistributionCenters 
-                                                    on a.DCID equals b.ID
-                                          where ((a.RingFenceID == ringFence.ID) && 
-                                                 (a.Size == model.Size) && 
-                                                 (b.MFCode == model.Warehouse) &&
-                                                 (a.ActiveInd == "1"))
-                                          select a).FirstOrDefault();
-                                newDetail = false;
-                                if (detail == null)
-                                {
-                                    detail = new RingFenceDetail();
-                                    detail.RingFenceID = ringFence.ID;
-                                    detail.Size = model.Size.PadLeft(3, '0');
-                                    detail.Warehouse = model.Warehouse.PadLeft(2, '0');
-                                    detail.DCID = (from a in db.DistributionCenters
-                                                   where a.MFCode == model.Warehouse
-                                                   select a.ID).First();
-                                    newDetail = true;
-                                }
-                                detail.PO = Convert.ToString(mySheet.Cells[row, 4].Value);
-                                detail.Qty = Convert.ToInt32(model.Qty);
-
-                                if (detail.PO != "")
-                                {
-                                    var query = (from a in FuturePOs
-                                                 where ((a.PO == detail.PO) && 
-                                                        (a.Size == detail.Size) && 
-                                                        (a.DCID == detail.DCID))
-                                                 select a.AvailableQty);
-                                    availableQty = 0;
-
-                                    if (query.Count() > 0)
-                                    {
-                                        availableQty = query.Sum();
-                                    }
-                                    if (detail.Qty > availableQty)
-                                    {
-                                        model.ErrorMessage = "Only " + availableQty + " available";
-                                        Errors.Add(model);
-                                    }
-                                }
-                                else
-                                {
-                                    var query = (from a in Available where ((a.Size == detail.Size) && (a.DCID == detail.DCID)) select a.AvailableQty);
-                                    availableQty = 0;
-
-                                    if (query.Count() > 0)
-                                    {
-                                        availableQty = query.Sum();
-                                    }
-                                    if (detail.Qty > availableQty)
-                                    {
-                                        model.ErrorMessage = "Only " + availableQty + " available";
-                                        Errors.Add(model);
-                                    }
-                                }
-
-                                if ((model.ErrorMessage == null) || (model.ErrorMessage == ""))
-                                {
-                                    if (newDetail)
-                                    {
-                                        db.RingFenceDetails.Add(detail);
-                                    }
-                                    db.SaveChanges(UserName);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                model.ErrorMessage = ex.Message;
-                                Errors.Add(model);
-                            }
-                        }
-                        else
-                        {
-                            model.ErrorMessage = "You can only upload new stores or Ecomm warehouse ringfences";
-                            Errors.Add(model);
-                        }
-                        row++;
-                    }
-                    //dao.UpdateList(updateList);
-
-                    if (Errors.Count() > 0)
-                    {
-                        Session["errorList"] = Errors;
-                        return Content(Errors.Count() + " Errors on spreadsheet (" + (row - Errors.Count() - 1) + " successfully uploaded)");
-                    }
-                }
-                else
-                {
-                    // Inform of missing/bad header row
-                    return Content("Incorrectly formatted or missing header row. Please correct and re-process.");
-                }
-            }
-
-            return Content("");
-        }
-
 
         public ActionResult ExcelTemplate()
         {

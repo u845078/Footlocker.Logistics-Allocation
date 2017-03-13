@@ -4,18 +4,21 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 
+
 namespace Footlocker.Logistics.Allocation.Models
 {
     public class RingFenceDetail
     {
         public RingFenceDetail()
         {
+            ActiveInd = "1";
             PackDetails = new List<ItemPackDetail>();
         }
 
         [Key]
         [Column(Order=0)]
-        public Int64 RingFenceID { get; set; }
+        [ForeignKey("RingFence")]
+        public long RingFenceID { get; set; }
         
         [Key]
         [Column(Order = 1)]
@@ -24,9 +27,21 @@ namespace Footlocker.Logistics.Allocation.Models
         [NotMapped]
         public string Warehouse { get; set; }
 
+        private string _size;
+
         [Key]
         [Column(Order = 2)]
-        public string Size { get; set; }
+        public string Size
+        {
+            get
+            {
+                return _size;
+            }
+            set
+            {
+                _size = value.Trim();
+            }
+        }
 
         private string _PO;
         [Key]
@@ -37,20 +52,23 @@ namespace Footlocker.Logistics.Allocation.Models
             {
                 return _PO;
                 //to avoid the "N/A" vs "" logic everywhere, return "" for N/A.
-                if ((_PO != null)&&(_PO != ""))
-                    return _PO;
-                return "N/A";
+                //if ((_PO != null)&&(_PO != ""))
+                //    return _PO;
+                //return "N/A";
             }
             set 
-            { 
-                _PO = value; 
+            {
+                if (value == null)
+                    _PO = "";
+                else
+                    _PO = value; 
             }
         }
 
         [NotMapped]
         public string PriorityCode { get; set; }
 
-        [Range(0, double.MaxValue,ErrorMessage="must be > 0")]
+        [Range(0, double.MaxValue, ErrorMessage = "Must be > 0")]
         public int Qty { get; set; }
 
         [NotMapped]
@@ -73,11 +91,17 @@ namespace Footlocker.Logistics.Allocation.Models
         [NotMapped]
         public List<ItemPackDetail> PackDetails { get; set; }
 
+        public string LastModifiedUser { get; set; }
+
+        public DateTime LastModifiedDate { get; set; }
+
         public string ActiveInd { get; set; }
 
         public string ringFenceStatusCode { get; set; }
 
         [NotMapped]
         public RingFenceStatusCodes ringFenceStatus { get; set; }
+
+        public virtual RingFence RingFence { get; set; }
     }
 }

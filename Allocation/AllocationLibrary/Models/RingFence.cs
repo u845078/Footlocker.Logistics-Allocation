@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Footlocker.Logistics.Allocation.Services;
 
 using Footlocker.Common.Utilities.File;
 
@@ -11,22 +12,54 @@ namespace Footlocker.Logistics.Allocation.Models
 {
     public class RingFence : BiExtract
     {
+        private string _store;
+        private string _sku;
+
         public override bool IsValid()
         {
             return true;
         }
 
         [StringLayoutDelimited(0)]
-        public Int64 ID { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long ID { get; set; }
 
         [StringLayoutDelimited(1)]
         public string Division { get; set; }
 
         [StringLayoutDelimited(2)]
-        public string Store { get; set; }
+        public string Store
+        {
+            get
+            {
+                return _store;
+            }
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _store = value.PadLeft(5, '0');
+                }
+                else
+                    _store = value;
+            }
+        }
 
         [StringLayoutDelimited(3)]
-        public string Sku { get; set; }
+        [Required(ErrorMessage ="SKU is required")]
+        [RegularExpression(@"^\d{2}-\d{2}-\d{5}-\d{2}$", ErrorMessage = "Invalid Sku, format should be ##-##-#####-##")]
+        public string Sku
+        {
+            get
+            {
+                return _sku;
+            }
+            set
+            {
+                _sku = value.Trim();
+            }
+        }
 
         [NotMapped]
         public string Department
@@ -61,7 +94,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public Int32 CaseQty { get; set; }
 
         //[StringLayoutDelimited(7)]
-        [Display(Name="Units")]
+        [Display(Name="Total Units")]
         public Int32 Qty { get; set; }
 
         [DataType(DataType.Date)]
@@ -77,6 +110,10 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [StringLayoutDelimited(12, "yyyy-MM-dd h:mm:ss tt")]
         public DateTime? CreateDate { get; set; }
+
+        public string LastModifiedUser { get; set; }
+
+        public DateTime LastModifiedDate { get; set; }
 
         public string Comments { get; set; }
 
@@ -130,6 +167,50 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [NotMapped]
         public RingFenceStatusCodes ringFenceStatus { get; set; }
+
+        public virtual List<RingFenceDetail> ringFenceDetails { get; set; }
+
+        public void calculateTotalRingFenceQuantity()
+        {
+            int tempQuantity = 0;
+
+            if (this.ringFenceDetails != null)
+            {
+                tempQuantity = (from a in this.ringFenceDetails
+                                where ((a.Size.Length == 3) &&
+                                    (a.ActiveInd == "1"))
+                                select a.Qty).Sum();
+
+                var caselotRFD = (from a in this.ringFenceDetails
+                                where (a.Size.Length == 5 &&
+                                       a.ActiveInd == "1")                                      
+                                select a).ToList();
+
+                if (caselotRFD.Count() > 0)
+                {
+                    AllocationLibraryContext alc = new AllocationLibraryContext();
+                   
+                    foreach (RingFenceDetail cs in caselotRFD)
+                    {
+                        try
+                        {                                                        
+                            var clQty = (from a in alc.ItemPacks
+                                          where a.Name == cs.Size                                                
+                                          select a.TotalQty).FirstOrDefault();
+
+                            tempQuantity += (cs.Qty * clQty);
+                        }
+                        catch
+                        {
+                            //don't have details, leave qty without caselots
+                        }
+                    }
+                }
+            }
+
+            Qty = tempQuantity;
+        }
+
 
         /// <summary>
         /// Initializes a new instance of the RingFence class.

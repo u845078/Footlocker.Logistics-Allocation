@@ -150,6 +150,7 @@
     <Compile Include="Models\FOBPackOverride.cs" />
     <Compile Include="Models\InterfaceFile.cs" />
     <Compile Include="Models\InvalidTransaction.cs" />
+    <Compile Include="Models\InventoryReductions.cs" />
     <Compile Include="Models\InventorySummary.cs" />
     <Compile Include="Models\LegacyFutureInventory.cs" />
     <Compile Include="Models\LegacyInventory.cs" />
@@ -162,6 +163,7 @@
     <Compile Include="Models\Price.cs" />
     <Compile Include="Models\ProductHierarchyOverrides.cs" />
     <Compile Include="Models\ProductOverrideTypes.cs" />
+    <Compile Include="Models\PurgeArchiveType.cs" />
     <Compile Include="Models\QuantumInstance.cs" />
     <Compile Include="Models\QuantumSeasonalityData.cs" />
     <Compile Include="Models\RangeFileItem.cs" />
@@ -257,6 +259,7 @@
     <Compile Include="Services\InterfaceLogDAO.cs" />
     <Compile Include="Services\NetworkZoneStoreDAO.cs" />
     <Compile Include="Services\PickService.cs" />
+    <Compile Include="Services\PurgeArchiveDAO.cs" />
     <Compile Include="Services\RangeFileItemDAO.cs" />
     <Compile Include="Services\RangeReformat.cs" />
     <Compile Include="Services\RingFenceDAO.cs" />
