@@ -1560,6 +1560,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             RingFence ringFence = (from a in db.RingFences where a.ID == ringFenceID select a).First();
             return View(new GridModel(GetFutureAvailable(ringFence)));
+            //return View();
         }
 
         [AcceptVerbs(HttpVerbs.Post)]

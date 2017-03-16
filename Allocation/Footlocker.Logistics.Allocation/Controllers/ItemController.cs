@@ -401,10 +401,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [GridAction]
-        public ActionResult _ItemRingfences(string sku, string store)
+        public ActionResult _ItemRingfences(string sku, string store, string mode)
         {
             string div = sku.Substring(0, 2);
-            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).First();
+            DateTime today = (from a in db.ControlDates
+                              join b in db.InstanceDivisions 
+                              on a.InstanceID equals b.InstanceID
+                              where b.Division == div
+                              select a.RunDate).First();
 
             //lazy loading was causing invalid circular references
             db.Configuration.ProxyCreationEnabled = false;
@@ -412,7 +416,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RingFenceStatusCodes> rfStatusCodes = (from rfs in db.RingFenceStatusCodes
                                                         select rfs).ToList();
 
-            List<RingFence> ringFences = new List<RingFence>();
+            List<RingFenceSummary> ringFences = new List<RingFenceSummary>();
 
             //List<RingFence> ringFences = (from a in db.RingFences where ((a.StartDate <= today) && ((a.EndDate >= today) || (a.EndDate == null))) select a).ToList();
 
@@ -424,6 +428,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //                    select a).Distinct().ToList();
 
             var newRingFences = (from rf in db.RingFences
+                                     join rfd in db.RingFenceDetails
+                                      on rf.ID equals rfd.RingFenceID
+                                     where rf.Sku == sku &&
+                                           rfd.ActiveInd == "1" &&
+                                           ((rf.Store == store) || (store == null) || (rf.Store == null))
+                                     select new { RingFence = rf, RingFenceDetail = rfd });
+
+            if (mode == "Current")
+            {
+                newRingFences = (from rf in db.RingFences
                                  join rfd in db.RingFenceDetails
                                   on rf.ID equals rfd.RingFenceID
                                  where rf.Sku == sku &&
@@ -431,24 +445,37 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     ((rf.StartDate <= today) && ((rf.EndDate >= today) || (rf.EndDate == null))) &&
                                        ((rf.Store == store) || (store == null) || (rf.Store == null))
                                  select new { RingFence = rf, RingFenceDetail = rfd });
+            }
+
             foreach (var rf in newRingFences)
             {
-                RingFence newRF = new RingFence();
-                newRF.ID = rf.RingFence.ID;
+                RingFenceSummary newRF = new RingFenceSummary();
+                newRF.RingFenceID = rf.RingFence.ID;
                 newRF.Division = rf.RingFence.Division;
                 newRF.Store = rf.RingFence.Store;
                 newRF.Sku = rf.RingFence.Sku;
+                newRF.PickQuantity = rf.RingFenceDetail.Qty;
+                newRF.ItemID = rf.RingFence.ItemID;                
                 newRF.Qty = rf.RingFenceDetail.Qty;
                 newRF.StartDate = rf.RingFence.StartDate;
                 newRF.EndDate = rf.RingFence.EndDate;
                 newRF.Size = rf.RingFenceDetail.Size;
                 newRF.PO = rf.RingFenceDetail.PO;
                 newRF.CreatedBy = rf.RingFence.CreatedBy;
-                newRF.CreateDate = rf.RingFence.CreateDate;
-                newRF.ringFenceStatusCode = rf.RingFenceDetail.ringFenceStatusCode;
-                newRF.ringFenceStatus = rfStatusCodes.Find(s => s.ringFenceStatusCode == newRF.ringFenceStatusCode);
+                newRF.CreateDate = rf.RingFence.CreateDate.Value;
+                newRF.RingFenceStatus = rfStatusCodes.Find(s => s.ringFenceStatusCode == rf.RingFenceDetail.ringFenceStatusCode);
 
                 ringFences.Add(newRF);
+            }
+
+            // Note: I'm doing this here to avoid having multiple active result sets in LINQ
+            foreach (RingFenceSummary rf in ringFences.Where(r => r.Size.Length == 5))
+            {
+                int packQty = (from ip in db.ItemPacks
+                                where ip.Name == rf.Size &&
+                                        ip.ItemID == rf.ItemID
+                                select ip.TotalQty).FirstOrDefault();
+                rf.Qty = rf.Qty * packQty;
             }
 
             return View(new GridModel(ringFences));
