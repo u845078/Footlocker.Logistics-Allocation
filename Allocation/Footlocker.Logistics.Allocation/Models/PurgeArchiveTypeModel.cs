@@ -16,5 +16,7 @@ namespace Footlocker.Logistics.Allocation.Models
         }
         public PurgeArchiveType purgeArchiveType { get; set; }
         public List<InstanceModel> Instances { get; set; }
+        public List<PurgeArchiveType> PurgeArchiveTypes { get; set; }
+        public bool CanEdit { get; set; }
     }
 }
