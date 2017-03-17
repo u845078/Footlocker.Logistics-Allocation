@@ -7,12 +7,12 @@ using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
 using Telerik.Web.Mvc;
 using Footlocker.Logistics.Allocation.Services;
-using System.Data.Entity;
+using Footlocker.Common;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
     [CheckPermission(Roles = "Admin,IT,Support")]
-    public class PurgeArchiveController : Controller
+    public class PurgeArchiveController : AppController
     {
 
         #region private members
@@ -30,8 +30,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         #region Index
 
-        [GridAction]
+        /// <summary>
+        /// Ensure the user is allowed to edit by checking permissions.
+        /// </summary>
+        /// <returns>PurgeArchiveTypeModel</returns>
         public ActionResult Index()
+        {
+            PurgeArchiveTypeModel model = new PurgeArchiveTypeModel();
+            var permissions = WebSecurityService.ListUserRoles(UserName, "Allocation");
+            model.CanEdit = permissions.Contains("IT");
+            return View(model);
+        }
+
+        [GridAction]
+        public ActionResult _Index()
         {
             List<Instance> list = (from a in db.Instances select a).ToList();
             return View(new GridModel(list));
@@ -44,7 +56,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <returns>Popoulated GridModel with purge types by instance</returns>
         [GridAction]
         public ActionResult PurgeArchiveTypesByInstance(string id)
-        {
+        {   
             int instanceID = Convert.ToInt32(id);
             List<PurgeArchiveType> list = patDAO.GetPurgeArchiveTypesByInstance(instanceID);
             return View(new GridModel(list));
