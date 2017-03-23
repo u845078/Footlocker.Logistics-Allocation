@@ -3,10 +3,23 @@
 <script type="text/javascript">
         $(function () {
             var loading = '<option>Loading...</option>';
-            $('#newDivisionLabelDiv').text($('#overrideDivisionList option:selected').text());
-            $('#newDivisionLabel').html($('#overrideDivisionList option:selected').text());
-            //save previous override level
+            var model = @Html.Raw(Json.Encode(Model));
+
+            // initially set the text of the newDivisionLabel to mimic the overrideDivision dependent on the override
+            // level.
+            if (model.prodHierarchyOverride.overrideItemID == null && $('#overrideLevelList').val() == 'SKU') {
+                // set the newDivisionLabelDiv equal to the first value in the overrideDivisionList
+                $('#newDivisionLabelDiv').text(model.overrideDivisionList[0].Text);
+            } else if (model.prodHierarchyOverride.overrideItemID != null && $('#overrideLevelList').val() == 'SKU') {
+                // set the text to the selected item on the overrideDivisionList.
+                $('#newDivisionLabelDiv').text($('#overrideDivisionLabelDiv').text());
+            } else {
+                $('#newDivisionLabelDiv').text($('#overrideDivisionList option:selected').text());
+            }
+            // save previous override level to help determine if the override and new lists need to be refreshed.
+            // this is necessary to ensure that the divisions are identical to avoid cross division override creation.
             $('#overrideLevelList').data("previousOverrideLevel", $(this).val());
+
             $('#overrideLevelList').change(function () {
                 $('#overrideDivisionList').show();
                 $('#overrideDepartmentList').show();
@@ -17,7 +30,6 @@
                 $('#overrideDeptLabelDiv').hide();
                 $('#overrideCatLabelDiv').hide();
                 $('#overrideBrandIDLabelDiv').hide();
-
 
                 switch ($('#overrideLevelList').val()) {
                     case 'DEPT':
@@ -48,7 +60,6 @@
 
                         break;
                     case 'SKU':
-                        $('#newDivisionLabelDiv').text($('#overrideDivisionLabelDiv').text());
                         $('#overrideDivisionList').change();
                         $('#overrideDivisionList').hide();
                         $('#overrideDepartmentList').hide();
@@ -76,17 +87,18 @@
                 var divisionFilter;
                 // disable submit button while list(s) are loading
                 $('#saveButton').prop("disabled", true);
+
+                // grab the view model from the view
                 var model = @Html.Raw(Json.Encode(Model.prodHierarchyOverride));
-                if($('#overrideLevelList').val() == 'SKU') {
-                    if (model.overrideItemID != null)
-                    {
-                        divisionFilter = model.overrideDivision;
+                    if($('#overrideLevelList').val() == 'SKU') {
+                        if (model.overrideItemID != null) {
+                            divisionFilter = model.overrideDivision;
+                        } else {
+                            divisionFilter = model.newDivision;
+                        }
                     } else {
-                        divisionFilter = model.newDivision;
+                        divisionFilter = $('#overrideDivisionList').val();
                     }
-                } else {
-                    divisionFilter = $('#overrideDivisionList').val();
-                }
 
                 $.getJSON('/ProductHierarchyOverride/GetNewCatJson?div=' + divisionFilter +
                 '&dept=' + $('#newDepartmentList').val(), function (data) {

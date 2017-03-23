@@ -312,6 +312,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.prodHierarchyOverride.overrideDepartment = "";
                 model.prodHierarchyOverride.overrideDivision = "";
                 model.prodHierarchyOverride.overrideBrandID = "";
+                model.prodHierarchyOverride.overrideItemID = null;
                 model.overrideSKUDescription = "The SKU was not found";
             }
             else
