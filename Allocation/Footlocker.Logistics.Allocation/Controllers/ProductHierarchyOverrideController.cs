@@ -273,6 +273,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #endregion
 
         #region JSON Result routines
+
         public JsonResult GetNewDeptsJson(string Id)
         {
             List<SelectListItem> newDeptList = GetDepartmentList(Id);
@@ -339,7 +340,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.prodHierarchyOverride.overrideCategory = itemRec.Category;
                 model.prodHierarchyOverride.overrideDepartment = itemRec.Dept;
                 model.prodHierarchyOverride.overrideDivision = itemRec.Div;
+                model.prodHierarchyOverride.newDivision = itemRec.Div;
                 model.prodHierarchyOverride.overrideBrandID = itemRec.Brand;
+                model.prodHierarchyOverride.overrideItemID = itemRec.ID;
                 model.overrideSKUDescription = itemRec.Description;
             }
 
@@ -388,12 +391,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 pho.overrideBrandID = model.overrideBrandIDList[0].Value;
             }
 
-            model.newDivisionList = GetDivisionList();
-            var existentNewDivision = model.newDivisionList.Where(div => div.Value == pho.newDivision).Count();
-            if (existentNewDivision == 0 && model.newDivisionList.Count() > 0)
-            {
-                pho.newDivision = model.newDivisionList[0].Value;
-            }
+            pho.newDivision = pho.overrideDivision;
 
             model.newDepartmentList = GetDepartmentList(pho.newDivision);
             var existentNewDepartment = model.newDepartmentList.Where(dept => dept.Value == pho.newDepartment).Count();
@@ -421,6 +419,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private ProductHierarchyOverrides PopulateFields(ProductHierarchyOverrides record)
         {
+            // set the new division equal to the override division
+            record.newDivision = record.overrideDivision;
             record.displayNewValue = record.newDivision + ":" + record.newDepartment + ":" + record.newCategory +
                 ":" + record.newBrandID;
             switch (record.productOverrideTypeCode)

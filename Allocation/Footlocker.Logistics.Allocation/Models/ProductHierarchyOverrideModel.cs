@@ -30,11 +30,8 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [DisplayFormat(NullDisplayText = "** No value **")]
         public string overrideBrandIDLabel { get; set; }
-
         public string overrideSKU { get; set; }
         public string overrideSKUDescription { get; set; }
-
-        public List<SelectListItem> newDivisionList { get; set; }
         public List<SelectListItem> newDepartmentList { get; set; }
         public List<SelectListItem> newCategoryList { get; set; }
         public List<SelectListItem> newBrandIDList { get; set; }
@@ -43,6 +40,5 @@ namespace Footlocker.Logistics.Allocation.Models
         {
             prodHierarchyOverride = new ProductHierarchyOverrides();
         }
-
     }
 }
