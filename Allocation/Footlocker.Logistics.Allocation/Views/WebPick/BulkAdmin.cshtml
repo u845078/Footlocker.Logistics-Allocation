@@ -40,7 +40,7 @@
         </div>
 }
 
-@using (Html.BeginForm("BulkAdmin", "WebPick"))
+@using (Html.BeginForm("BulkAdmin", "WebPick", FormMethod.Post, new { id = "BulkAdminForm" }))
 {
         @Html.HiddenFor(model => model.Instance)
         @Html.HiddenFor(model => model.Division)
@@ -66,7 +66,7 @@
                                         @Html.Raw("(Stores are specified)")
                                     }
                                         </span>
-            <input type="submit" value="Select Stores" class="t-button" onclick="return showStoreSelector()"/>
+            <input type="button" value="Select Stores" class="t-button" onclick="return showStoreSelector()"/>
         </div>
 
 @*        <div class="editor-label">
@@ -231,8 +231,9 @@
 
             //document.getElementById("ShowStoreSelector").value = 'yes';
             $("#ShowStoreSelector").val("yes");
-            $('#Hold_Store').hide();
-            return true;
+            $('#Hold_Store').hide();           
+            $('form#BulkAdminForm').submit();
+            //return true;
         }
 
         function hideStoreSelector() {
