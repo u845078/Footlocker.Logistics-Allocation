@@ -105,6 +105,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ViewData["message"] = errorMessage;
                 //populate fields
                 model = FillModelLists(model);
+                // populate the SKU labels if the SKU is valid
+                if (model.prodHierarchyOverride.productOverrideTypeCode == "SKU")
+                    model = Lookup(model);
 
                 return View(model);
             }
@@ -258,6 +261,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #endregion
 
         #region JSON Result routines
+
         public JsonResult GetNewDeptsJson(string Id)
         {
             List<SelectListItem> newDeptList = GetDepartmentList(Id);
@@ -296,6 +300,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.prodHierarchyOverride.overrideDepartment = "";
                 model.prodHierarchyOverride.overrideDivision = "";
                 model.prodHierarchyOverride.overrideBrandID = "";
+                model.prodHierarchyOverride.overrideItemID = null;
                 model.overrideSKUDescription = "The SKU was not found";
             }
             else
@@ -324,7 +329,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.prodHierarchyOverride.overrideCategory = itemRec.Category;
                 model.prodHierarchyOverride.overrideDepartment = itemRec.Dept;
                 model.prodHierarchyOverride.overrideDivision = itemRec.Div;
+                model.prodHierarchyOverride.newDivision = itemRec.Div;
                 model.prodHierarchyOverride.overrideBrandID = itemRec.Brand;
+                model.prodHierarchyOverride.overrideItemID = itemRec.ID;
                 model.overrideSKUDescription = itemRec.Description;
             }
 
@@ -348,13 +355,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 pho.overrideDivision = model.overrideDivisionList[0].Value;
             }
-                
+
             //else
             //    model.overrideDivisionList[model.overrideDivisionList.FindIndex(m => m.Value == model.prodHierarchyOverride.overrideDivision)].Selected = true;
 
             model.overrideDepartmentList = GetDepartmentList(pho.overrideDivision);
             var existentOverrideDepartment = model.overrideDepartmentList.Where(dept => dept.Value == pho.overrideDepartment).Count();
-            if (existentOverrideDepartment == 0 && model.overrideDepartmentList.Count() > 0 )
+            if (existentOverrideDepartment == 0 && model.overrideDepartmentList.Count() > 0)
             {
                 pho.overrideDepartment = model.overrideDepartmentList[0].Value;
             }
@@ -373,12 +380,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 pho.overrideBrandID = model.overrideBrandIDList[0].Value;
             }
 
-            model.newDivisionList = GetDivisionList();
-            var existentNewDivision = model.newDivisionList.Where(div => div.Value == pho.newDivision).Count();
-            if (existentNewDivision == 0 && model.newDivisionList.Count() > 0)
-            {
-                pho.newDivision = model.newDivisionList[0].Value;
-            }
+            // used to populate the newDivisionList but we mimic the overrideDivision to limit the user from creating
+            // cross division overrides
+            pho.newDivision = pho.overrideDivision;
 
             model.newDepartmentList = GetDepartmentList(pho.newDivision);
             var existentNewDepartment = model.newDepartmentList.Where(dept => dept.Value == pho.newDepartment).Count();
@@ -406,6 +410,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private ProductHierarchyOverrides PopulateFields(ProductHierarchyOverrides record)
         {
+            // set the new division equal to the override division
+            record.newDivision = record.overrideDivision;
             record.displayNewValue = record.newDivision + ":" + record.newDepartment + ":" + record.newCategory +
                 ":" + record.newBrandID;
             switch (record.productOverrideTypeCode)
