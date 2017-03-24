@@ -23,7 +23,6 @@
             $('#overrideLevelList').data("previousOverrideLevel", $(this).val());
 
             $('#overrideLevelList').change(function () {
-                var model = @Html.Raw(Json.Encode(Model));
                 $('#overrideDivisionList').show();
                 $('#overrideDepartmentList').show();
                 $('#overrideCategoryList').show();

@@ -113,6 +113,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ViewData["message"] = errorMessage;
                 //populate fields
                 model = FillModelLists(model);
+                // populate the SKU labels if the SKU is valid
+                if (model.prodHierarchyOverride.productOverrideTypeCode == "SKU")
+                    model = Lookup(model);
 
                 return View(model);
             }
@@ -367,13 +370,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 pho.overrideDivision = model.overrideDivisionList[0].Value;
             }
-                
+
             //else
             //    model.overrideDivisionList[model.overrideDivisionList.FindIndex(m => m.Value == pho.overrideDivision)].Selected = true;
 
             model.overrideDepartmentList = GetDepartmentList(pho.overrideDivision);
             var existentOverrideDepartment = model.overrideDepartmentList.Where(dept => dept.Value == pho.overrideDepartment).Count();
-            if (existentOverrideDepartment == 0 && model.overrideDepartmentList.Count() > 0 )
+            if (existentOverrideDepartment == 0 && model.overrideDepartmentList.Count() > 0)
             {
                 pho.overrideDepartment = model.overrideDepartmentList[0].Value;
             }
@@ -392,6 +395,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 pho.overrideBrandID = model.overrideBrandIDList[0].Value;
             }
 
+            // used to populate the newDivisionList but we mimic the overrideDivision to limit the user from creating
+            // cross division overrides
             pho.newDivision = pho.overrideDivision;
 
             model.newDepartmentList = GetDepartmentList(pho.newDivision);
