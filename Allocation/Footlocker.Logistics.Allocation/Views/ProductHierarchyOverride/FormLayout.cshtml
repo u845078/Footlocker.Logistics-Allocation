@@ -10,6 +10,8 @@
             if (model.prodHierarchyOverride.overrideItemID == null && $('#overrideLevelList').val() == 'SKU') {
                 // set the newDivisionLabelDiv equal to the first value in the overrideDivisionList
                 $('#newDivisionLabelDiv').text(model.overrideDivisionList[0].Text);
+                // disable submit button until a valid sku is entered
+                $('#saveButton').prop('disabled', true);
             } else if (model.prodHierarchyOverride.overrideItemID != null && $('#overrideLevelList').val() == 'SKU') {
                 // set the text to the selected item on the overrideDivisionList.
                 $('#newDivisionLabelDiv').text($('#overrideDivisionLabelDiv').text());
@@ -21,6 +23,7 @@
             $('#overrideLevelList').data("previousOverrideLevel", $(this).val());
 
             $('#overrideLevelList').change(function () {
+                var model = @Html.Raw(Json.Encode(Model));
                 $('#overrideDivisionList').show();
                 $('#overrideDepartmentList').show();
                 $('#overrideCategoryList').show();
@@ -87,19 +90,17 @@
                 var divisionFilter;
                 // disable submit button while list(s) are loading
                 $('#saveButton').prop("disabled", true);
-
                 // grab the view model from the view
-                var model = @Html.Raw(Json.Encode(Model.prodHierarchyOverride));
+                var model = @Html.Raw(Json.Encode(Model));
                     if($('#overrideLevelList').val() == 'SKU') {
-                        if (model.overrideItemID != null) {
-                            divisionFilter = model.overrideDivision;
+                        if (model.prodHierarchyOverride.overrideItemID != null) {
+                            divisionFilter = model.prodHierarchyOverride.overrideDivision;
                         } else {
-                            divisionFilter = model.newDivision;
+                            divisionFilter = model.overrideDivisionList[0].Value;
                         }
                     } else {
                         divisionFilter = $('#overrideDivisionList').val();
                     }
-
                 $.getJSON('/ProductHierarchyOverride/GetNewCatJson?div=' + divisionFilter +
                 '&dept=' + $('#newDepartmentList').val(), function (data) {
                     var items = '';
@@ -120,17 +121,17 @@
                 $('#newBrandIDList').html(loading);
                 // disable submit button while list(s) are loading
                 $('#saveButton').prop("disabled", true);
-                if ($('#overrideLevelList').val() == 'SKU') {
-                    var model = @Html.Raw(Json.Encode(Model.prodHierarchyOverride));
-                    if (model.overrideItemID != null)
-                    {
-                        divisionFilter = model.overrideDivision;
+                var model = @Html.Raw(Json.Encode(Model));
+                    if($('#overrideLevelList').val() == 'SKU') {
+                        if (model.prodHierarchyOverride.overrideItemID != null) {
+                            divisionFilter = model.prodHierarchyOverride.overrideDivision;
+                        } else {
+                            //set to first division on the list to essentially "reset".
+                            divisionFilter = model.overrideDivisionList[0].Value;
+                        }
                     } else {
-                        divisionFilter = model.newDivision;
+                        divisionFilter = $('#overrideDivisionList').val();
                     }
-                } else {
-                    divisionFilter = $('#overrideDivisionList').val();
-                }
                 $.getJSON('/ProductHierarchyOverride/GetNewBrandIDJson?div=' + divisionFilter +
                     '&dept=' + $('#newDepartmentList').val() + '&cat=' + $('#newCategoryList').val(), function (data) {
                         var items = '';
@@ -138,7 +139,14 @@
                             items += "<option value='" + brandid.Value + "'>" + brandid.Text + "</option>";
                         });
                         $('#newBrandIDList').html(items);
-                        $('#saveButton').prop("disabled", false);
+                        // if the level is SKU and the overrideItemID is null the user shouldn't be able to click submit
+                        // or else they will be able to do cross division overrides.
+                        if ($('#overrideLevelList').val() != 'SKU') {
+                            $('#saveButton').prop("disabled", false);
+                        }
+                        if ($('#overrideLevelList').val() == 'SKU' && model.prodHierarchyOverride.overrideItemID != null) {
+                            $('#saveButton').prop("disabled", false);
+                        }
                     });
             });
 
@@ -154,7 +162,7 @@
                         $('#newDivisionLabelDiv').text(model.overrideDivisionLabel);
                         divisionFilter = model.prodHierarchyOverride.overrideDivision
                     }
-                    
+
                 } else {
                     $('#newDivisionLabelDiv').text($('#overrideDivisionList option:selected').text());
                     divisionFilter = $('#overrideDivisionList').val();
@@ -211,8 +219,14 @@
                             items += "<option value='" + brandid.Value + "'>" + brandid.Text + "</option>";
                         });
                         $('#overrideBrandIDList').html(items);
-                        // enable submit button
-                        $('#saveButton').prop("disabled", false);
+                        // if the level is SKU and the overrideItemID is null the user shouldn't be able to click submit
+                        // or else they will be able to do cross division overrides.
+                        if ($('#overrideLevelList').val() != 'SKU') {
+                            $('#saveButton').prop("disabled", false);
+                        }
+                        if ($('#overrideLevelList').val() == 'SKU' && model.prodHierarchyOverride.overrideItemID != null) {
+                            $('#saveButton').prop("disabled", false);
+                        }
                     });
             });
         });
