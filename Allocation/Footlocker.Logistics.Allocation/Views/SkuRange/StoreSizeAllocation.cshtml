@@ -238,10 +238,6 @@
             End
             <br />
         </th>
-        <th nowrap class='headcol4' style='width:70px;'>
-        ALR/OP
-            <br />
-        </th>
         <th nowrap class='headcol5' style='width:55px;'>
         (<span class='total' id="DetTotal"></span>)
             <br />
@@ -367,20 +363,7 @@
                             .Name("det[" + count + "].EndDate")
                             .HtmlAttributes(new { id = "DatePicker_wrapper", title = "Last day of learning (end date + store lead time)" })
                             .Value(item.EndDate).Enable(true)
-                    )
-                @Html.Raw("</td><td class=\"headcol4\" style='width:70px;'>")
-                @Html.DropDownList(item.RangeType,
-                                new SelectList(
-                                    new List<SelectListItem>
-                                    {
-                                        new SelectListItem { Text = "Both", Value = "Both"},
-                                        new SelectListItem { Text = "ALR", Value = "ALR"},
-                                        new SelectListItem { Text = "OP", Value = "OP"},
-                                    }, "Value", "Text", item.RangeType), new { Name = "det[" + count + "].RangeType", id = "det[" + count + "].RangeType" })
-                                                     //@Html.Raw("<select><option>Both</option><option>ALR</option><option>OP</option></select>")                   
-                @Html.Raw("</td>")
-                
-
+                    )                
                 @Html.Raw("</td><td class=\"headcol5\" style='width:55px;'>")
                 @Html.Raw("(<span class='total' id='DetTotal" + count + "'></span>)")    
                 @Html.Raw("</td>")

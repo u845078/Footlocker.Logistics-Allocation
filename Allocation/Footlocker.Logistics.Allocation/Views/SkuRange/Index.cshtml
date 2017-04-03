@@ -19,11 +19,6 @@
     @Html.ActionLink("Copy From", "CopyRangePlan", null, new { @class = "t-button" })
 
     @Html.ActionLink("Refresh Grid", "Refresh", null, new { @class = "t-button" })
-
-@*@if (Footlocker.Common.WebSecurityService.UserHasRole(User.Identity.Name.Split('\\')[1],"Allocation","ManageRange"))
-{
-    @Html.ActionLink("Manage", "Manage", null, new { @class="t-button"})
-}*@
 </p>
 @if (ViewData["message"] != null)
 { 
@@ -40,9 +35,7 @@
         {
             columns.Template(
                 @<text>
-                    <img 
-                        src="@Url.Content("~/Image/ShowImage/?sku=" + item.Sku)"
-                      />
+                    <img src="@Url.Content("~/Image/ShowImage/?sku=" + item.Sku)" />
                       @if (item.Launch)
                       {
                           if (item.LaunchDate != null)
@@ -58,14 +51,13 @@
             ).Title("Image").Width(25);
             columns.Bound(o => o.Sku).Width(100);
             columns.Bound(o => o.ItemMaster.Description).Width(150).Title("Sku Description");
-            columns.Bound(o => o.PlanType).Width(10);
             columns.Bound(o => o.StoreCount).Width(10);
             columns.Bound(o => o.Description).Width(150).Title("Comment");
             columns.Bound(o => o.ActiveAR).Width(10);
             columns.Bound(o => o.StartDate).Format("{0:MM/dd/yyyy}").Width(100);
             columns.Bound(o => o.EndDate).Format("{0:MM/dd/yyyy}").Width(100);
-            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(100);
-            columns.Bound(o => o.UpdateDate).Format("{0:MM/dd/yyyy}").Width(100);
+            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy h:mm:ss tt}").Width(100);
+            columns.Bound(o => o.UpdateDate).Format("{0:MM/dd/yyyy h:mm:ss tt}").Width(100);
             columns.Bound(o => o.UpdatedBy).Width(100);
             columns.Template(
                 @<text>
@@ -78,119 +70,16 @@
                     @Html.ActionLink("Delete", "DeleteConfirm", new { planID = item.Id }, new { @class = "t-button", @style = "width:50px" })
                  </text>
                 ).Title("").HtmlAttributes(new { style = "text-align: center" }).Width(100);
-            ////columns.Command(commands =>
-            ////{
-            ////    commands
-            ////    .Custom("Stores")
-            ////    .Text("Stores")
-            ////    .Ajax(false)
-            ////    .Action("EditStores", "SkuRange", new { message = "" });
-            ////    commands
-            ////    .Custom("PresentationQuantities")
-            ////    .Text("Details")
-            ////    .Ajax(false)
-            ////    .Action("PresentationQuantities", "SkuRange");
-            ////    commands
-            ////    .Custom("Edit")
-            ////    .Text("Edit")
-            ////    .Ajax(false)
-            ////    .Action("Edit", "SkuRange", new { message = "" });
-            ////    commands.Custom("Delete")
-            ////        .Text("Delete")
-            ////        .Ajax(false)
-            ////        .Action("DeleteConfirm", "SkuRange", new { message = "" });
-            ////}).HtmlAttributes(new { style = "text-align: left" }).Width(250);
         })
 
 
         .DataBinding(dataBinding =>
         {
             dataBinding.Server().Select("Index", "SkuRange");
-            //dataBinding.Ajax().Select("_Index", "SkuRange"); //note, this breaks images
         })
-        //.Scrollable(scrolling => scrolling.Enabled(true))
         .Sortable(sorting => sorting.Enabled(true))
         .Pageable(paging => paging.Enabled(true))
         .Filterable(filtering => filtering.Enabled(true))
         .Groupable(grouping => grouping.Enabled(false))
             .Footer(true)
 )
-
-@*
-<div class="t-widget t-grid">
-<table cellspacing=0>
-    <thead class="t-grid-header">
-    <tr>
-        <th class="t-header">
-            @Html.DisplayNameFor(model => model.Sku)
-        </th>
-        <th class="t-header">
-            @Html.DisplayNameFor(model => model.Description)
-        </th>
-        <th class="t-header">
-            @Html.DisplayNameFor(model => model.PlanType)
-        </th>
-        <th class="t-header">
-            @Html.DisplayNameFor(model => model.StoreCount)
-        </th>
-        <th class="t-header">
-            @Html.DisplayNameFor(model => model.CreatedBy)
-        </th>
-        <th class="t-header">
-            @Html.DisplayNameFor(model => model.UpdatedBy)
-        </th>
-        <th class="t-header">
-            @Html.DisplayNameFor(model => model.CreateDate)
-        </th>
-        <th class="t-header">
-            @Html.DisplayNameFor(model => model.UpdateDate)
-        </th>
-        <th class="t-header"></th>
-    </tr>
-    </thead>
-@{
-    Boolean alternate=false;
-    foreach (var item in Model) {
-        if (alternate)
-        {
-            @Html.Raw("<tr class=\"t-alt\">")
-        }
-        else {
-            @Html.Raw("<tr>")
-        }
-        alternate = !alternate;
-        <td>
-            @Html.DisplayFor(modelItem => item.Sku)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Description)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.PlanType)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.StoreCount)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CreatedBy)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.UpdatedBy)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CreateDate)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.UpdateDate)
-        </td>
-        <td>
-            @Html.ActionLink("Stores", "EditStores", new { planID = item.Id }, new { @class = "t-button"}) 
-            &nbsp;
-            @Html.ActionLink("Size Allocation", "SizeAllocation", new { planID = item.Id }, new { @class = "t-button"}) 
-
-        </td>
-    @Html.Raw("</tr>")
-    }
-}
-</table>
-</div>*@

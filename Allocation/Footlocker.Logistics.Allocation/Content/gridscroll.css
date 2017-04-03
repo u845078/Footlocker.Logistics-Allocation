@@ -1,7 +1,7 @@
 ﻿        .scrollablearea { 
             width: 675px; 
             overflow-x:scroll;  
-            margin-left:435px; 
+            margin-left:365px; 
             overflow-y:visible;
             padding-bottom:1px;
         }
@@ -57,5 +57,5 @@
             border-left: 0px none black; 
             border-top-width:3px; /*only relevant for first row*/
             margin-top:0px; /*compensate for top border*/
-            margin-left:370px;
+            margin-left:300px;
         }         .long { }

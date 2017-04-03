@@ -589,7 +589,6 @@
     <Content Include="Views\SkuRange\SizeAllocation.cshtml" />
     <Content Include="Views\SkuRange\PresentationQuantitiesALR.cshtml" />
     <Content Include="Views\SkuRange\TotalSizeAllocationALR.cshtml" />
-    <Content Include="Views\SkuRange\StoreSizeAllocationALR.cshtml" />
     <Content Include="Views\SkuRange\RuleFilter.cshtml" />
     <Content Include="Views\Network\Index.cshtml" />
     <Content Include="Views\Network\PartialLeadTimeList.cshtml" />

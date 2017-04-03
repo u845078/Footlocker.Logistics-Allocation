@@ -44,14 +44,6 @@ namespace Footlocker.Logistics.Allocation.Factories
             {
                 _newObject.EndDate = Convert.ToDateTime(dr["EndDate"]);
             }
-            if (!(Convert.IsDBNull(dr["RangeType"])))
-            {
-                _newObject.RangeType = Convert.ToString(dr["RangeType"]);
-            }
-            else
-            {
-                _newObject.RangeType = "Both";
-            }
             if (!(Convert.IsDBNull(dr["MinEndDate"])))
             {
                 _newObject.MinEndDate = Convert.ToDateTime(dr["MinEndDate"]);
