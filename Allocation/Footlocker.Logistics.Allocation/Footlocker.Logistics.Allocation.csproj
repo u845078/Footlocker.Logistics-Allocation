@@ -712,6 +712,7 @@
     <Content Include="Views\SkuRange\UploadRange.cshtml" />
     <Content Include="Views\Upload\ARConstraintsUpload.cshtml" />
     <Content Include="Views\Upload\ARSkusUpload.cshtml" />
+    <Content Include="Views\Hold\Upload.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
