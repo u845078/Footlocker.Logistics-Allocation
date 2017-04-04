@@ -365,56 +365,111 @@
         .Groupable(grouping => grouping.Enabled(false))
             .Footer(true)
     )
-</fieldset>    
-    
-<fieldset>
+</fieldset><fieldset>
     <legend>Ring Fences</legend>
     <p>@Html.ActionLink("Create Ring Fence", "Create", "RingFence", null, new { @class = "t-button" })</p>
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFence>()
-        .Name("RingFenceGrid")
-        .Columns(columns =>
-        {
-            columns.Bound(o => o.Division);
-            columns.Bound(o => o.Store);
-            columns.Bound(o => o.Sku);
-            columns.Bound(o => o.Size);
-            columns.Bound(o => o.ringFenceStatus.ringFenceStatusDesc).Title("Ring Fence Status");
-            columns.Bound(o => o.Qty).Aggregate(aggreages => aggreages.Sum())
-                   .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
-            columns.Bound(o => o.StartDate);
-            columns.Bound(o => o.EndDate);
-            columns.Bound(o => o.PO);
-            columns.Bound(o => o.CreatedBy);
-            columns.Bound(o => o.CreateDate);
-            columns.Command(commands =>
+
+    @(Html.Telerik().TabStrip()
+            .Name("TabStrip")
+            .Items(items =>
             {
-                commands
-                .Custom("SizeSummary")
-                .Text("Details")
-                .Ajax(false)
-                .Action("SizeSummary", "RingFence")
-                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); });
+                items.Add().Text("All Ring Fences")
+                    .Selected(true)
+                    .Content(@<text>
+                        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFenceSummary>()
+                            .Name("AllRingFenceGrid")
+                            .Columns(columns =>
+                            {
+                                columns.Bound(o => o.Division);
+                                columns.Bound(o => o.Store);
+                                columns.Bound(o => o.Sku);
+                                columns.Bound(o => o.Size);
+                                columns.Bound(o => o.RingFenceStatus.ringFenceStatusDesc).Title("Ring Fence Status");
+                                columns.Bound(o => o.PickQuantity).Aggregate(totAllPickQty => totAllPickQty.Sum())
+                                                                  .Title("Pick Quantity")
+                                                                  .ClientFooterTemplate("Filtered Pick Qty: <#= Sum #>");
+                                columns.Bound(o => o.Qty).Aggregate(totAllQty => totAllQty.Sum())
+                                .ClientFooterTemplate("Filtered Qty: <#= Sum #>")
+                                    .Title("Quantity");
+                                columns.Bound(o => o.StartDate).Format("{0:MM/dd/yyyy}");
+                                columns.Bound(o => o.EndDate);
+                                columns.Bound(o => o.PO);
+                                columns.Bound(o => o.CreatedBy);
+                                columns.Bound(o => o.CreateDate);
+                                columns.Command(commands =>
+                                {
+                                    commands
+                                        .Custom("SizeSummary")
+                                        .Text("Details")
+                                        .Ajax(false)
+                                        .Action("SizeSummary", "RingFence")
+                                        .DataRouteValues(route =>
+                                        {
+                                            route.Add(o => o.RingFenceID).RouteKey("id");
+                                        });
+                                }).HtmlAttributes(new { style = "text-align: left" }).Width(100);
+                            })
+                        .DataBinding(dataBinding =>
+                        {
+                            dataBinding.Ajax().Select("_ItemRingFences", "item", new { sku = Model.Sku, store = Model.Store, mode = "All" });
+                        })
+                        .Sortable(sorting => sorting.Enabled(true))
+                        .Pageable(paging => paging.Enabled(true))
+                        .Filterable(filtering => filtering.Enabled(true))
+                        .Groupable(grouping => grouping.Enabled(false))
+                        .Footer(true)
+                        )
+                    </text>);
+                items.Add().Text("Current in Quantum")
+                .Content(@<text>
+                    @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFenceSummary>()
+                         .Name("CurrentRingFenceGrid")
+                         .Columns(columns =>
+                         {
+                             columns.Bound(o => o.Division);
+                             columns.Bound(o => o.Store);
+                             columns.Bound(o => o.Sku);
+                             columns.Bound(o => o.Size);
+                             columns.Bound(o => o.RingFenceStatus.ringFenceStatusDesc).Title("Ring Fence Status");
+                             columns.Bound(o => o.PickQuantity).Aggregate(totCurrPickQty => totCurrPickQty.Sum())
+                                                               .Title("Pick Quantity")
+                                                               .ClientFooterTemplate("Filtered Pick Qty: <#= Sum #>");
+                             columns.Bound(o => o.Qty).Aggregate(totCurrQty => totCurrQty.Sum())
+                                                      .Title("Quantity")
+                                                      .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
+                             columns.Bound(o => o.StartDate).Format("{0:MM/dd/yyyy}");
+                             columns.Bound(o => o.EndDate);
+                             columns.Bound(o => o.PO);
+                             columns.Bound(o => o.CreatedBy);
+                             columns.Bound(o => o.CreateDate);
+                             columns.Command(commands =>
+                             {
+                                 commands
+                                     .Custom("SizeSummary")
+                                     .Text("Details")
+                                     .Ajax(false)
+                                     .Action("SizeSummary", "RingFence")
+                                     .DataRouteValues(route =>
+                                     {
+                                         route.Add(o => o.RingFenceID).RouteKey("id");
+                                     });
 
-            }).HtmlAttributes(new { style = "text-align: left" }).Width(100);
-
-        })
-        .DataBinding(dataBinding =>
-        {
-            dataBinding.Ajax().Select("_ItemRingFences", "item", new { sku = Model.Sku, store = Model.Store });
-        })
-        //.DataBinding(dataBinding =>
-                                //{
-                                //    //dataBinding.Server().Select("Index", "OverridePO");
-                                //    dataBinding.Ajax().Select("_Index", "Hold");
-                                //})
-        .Sortable(sorting => sorting.Enabled(true))
-        .Pageable(paging => paging.Enabled(true))
-        .Filterable(filtering => filtering.Enabled(true))
-        .Groupable(grouping => grouping.Enabled(false))
-            .Footer(true)
-)
-
-
+                             }).HtmlAttributes(new { style = "text-align: left" }).Width(100);
+                         })
+                         .DataBinding(dataBinding =>
+                         {
+                             dataBinding.Ajax().Select("_ItemRingFences", "item", new { sku = Model.Sku, store = Model.Store, mode = "Current" });
+                         })
+                         .Sortable(sorting => sorting.Enabled(true))
+                         .Pageable(paging => paging.Enabled(true))
+                         .Filterable(filtering => filtering.Enabled(true))
+                         .Groupable(grouping => grouping.Enabled(false))
+                         .Footer(true)
+                        )
+                        </text>
+                    );
+            })
+    )
 </fieldset>
 <fieldset>
     <legend>Holds</legend>

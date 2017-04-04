@@ -64,7 +64,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Create(ProductHierarchyOverrideModel model, string submitAction)
         {
-            string errorMessage = "";
             try
             {
                 if (submitAction.Equals("lookup"))
@@ -79,13 +78,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         model = Lookup(model);
 
                     ProductHierarchyOverrides newRec = PopulateFields(model.prodHierarchyOverride);
-
-                    if (!ValidateOverride(model.prodHierarchyOverride, out errorMessage))
-                    {
-                        model = FillModelLists(model);
-                        ViewData["message"] = errorMessage;
-                        return View(model);
-                    }
 
                     db.ProductHierarchyOverrides.Add(newRec);
                     db.SaveChanges();
@@ -150,13 +142,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 ProductHierarchyOverrides editedRec = PopulateFields(model.prodHierarchyOverride);
                 editedRec.productHierarchyOverrideID = id;
-
-                if (!ValidateOverride(model.prodHierarchyOverride, out errorMessage))
-                {
-                    model = FillModelLists(model);
-                    ViewData["message"] = errorMessage;
-                    return View(model);
-                }
 
                 db.ProductHierarchyOverrides.Attach(editedRec);
                 db.Entry(editedRec).State = System.Data.EntityState.Modified;
@@ -372,7 +357,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             //else
-            //    model.overrideDivisionList[model.overrideDivisionList.FindIndex(m => m.Value == pho.overrideDivision)].Selected = true;
+            //    model.overrideDivisionList[model.overrideDivisionList.FindIndex(m => m.Value == model.prodHierarchyOverride.overrideDivision)].Selected = true;
 
             model.overrideDepartmentList = GetDepartmentList(pho.overrideDivision);
             var existentOverrideDepartment = model.overrideDepartmentList.Where(dept => dept.Value == pho.overrideDepartment).Count();

@@ -32,8 +32,13 @@ namespace Footlocker.Logistics.Allocation.Models
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         [Display(Name = "ExpectedDeliveryDate")]
+        [NotMapped]
         public DateTime? DeliveryDate { get; set; }
-        
+
+        [DataType(DataType.Date)]
+        [Column("DeliveryDate")]
+        public DateTime? StoredDeliveryDate { get; set; }
+
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         [StringLayoutDelimited(3, "yyyy-MM-dd")]
