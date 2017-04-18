@@ -16,6 +16,8 @@ namespace Footlocker.Logistics.Allocation.Factories
             _newObject.Division = Convert.ToString(dr["Division"]);
             _newObject.Store = Convert.ToString(dr["Store"]);
             _newObject.Size = Convert.ToString(dr["Size"]);
+            _newObject.League = Convert.ToString(dr["League"]);
+
             if (!(Convert.IsDBNull(dr["Min"])))
             {
                 _newObject.Min = Convert.ToInt32(dr["Min"]);

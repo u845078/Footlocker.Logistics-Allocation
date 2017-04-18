@@ -157,7 +157,7 @@ foreach (var item in Model)
         @Html.Raw("<input name=\"[" + count + "].MaxInit\" type=\"hidden\" value=\"" + item.Max + "\" />")
     //@Html.TextBoxFor(modelItem => item.Max, new { style = "Width:20px", id = "[" + count + "].Max" })
         @Html.Raw("<br>")
-        @Html.Raw("<input class=\"initdemand\" name=\"[" + count + "].InitialDemand\" type=\"text\" value=\"" + item.InitialDemand + "\" style = \"Width:28px\"/ onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" >")
+        @Html.Raw("<input class=\"initdemand\" name=\"[" + count + "].InitialDemand\" type=\"text\" value=\"" + item.InitialDemand + "\" style = \"Width:40px\"/ onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" >")
         @Html.Raw("<input name=\"[" + count + "].InitialDemandInit\" type=\"hidden\" value=\"" + item.InitialDemand + "\" />")
         @Html.Raw("<br>")
 

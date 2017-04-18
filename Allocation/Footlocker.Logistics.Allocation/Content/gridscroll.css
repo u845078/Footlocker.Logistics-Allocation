@@ -1,61 +1,73 @@
-﻿        .scrollablearea { 
-            width: 675px; 
-            overflow-x:scroll;  
-            margin-left:365px; 
-            overflow-y:visible;
-            padding-bottom:1px;
-        }
-        .headcol {
-            position:absolute; 
-            width:340px; 
-            left:0;
-            top:auto;
-            border-right: 0px none black; 
-            border-left: 0px none black; 
-            border-top-width:3px; /*only relevant for first row*/
-            margin-top:0px; /*compensate for top border*/
-        }
-        .headcol2 {
-            position:absolute; 
-            width:95px; 
-            left:0;
-            top:auto;
-            border-right: 0px none black; 
-            border-left: 0px none black; 
-            border-top-width:3px; /*only relevant for first row*/
-            margin-top:0px; /*compensate for top border*/
-            margin-left:85px;
-        }        
-        .headcol3 {
-            position:absolute; 
-            width:109px; 
-            left:0;
-            top:auto;
-            border-right: 0px none black; 
-            border-left: 0px none black; 
-            border-top-width:3px; /*only relevant for first row*/
-            margin-top:0px; /*compensate for top border*/
-            margin-left:191px;
-        }        
-        .headcol4 {
-            position:absolute; 
-            width:70px; 
-            left:0;
-            top:auto;
-            border-right: 0px none black; 
-            border-left: 0px none black; 
-            border-top-width:3px; /*only relevant for first row*/
-            margin-top:0px; /*compensate for top border*/
-            margin-left:300px;
-        }        
-        .headcol5 {
-            position:absolute; 
-            width:55px; 
-            left:0;
-            top:auto;
-            border-right: 0px none black; 
-            border-left: 0px none black; 
-            border-top-width:3px; /*only relevant for first row*/
-            margin-top:0px; /*compensate for top border*/
-            margin-left:300px;
-        }         .long { }
+﻿.scrollablearea { 
+    width: 675px; 
+    overflow-x:scroll;  
+    margin-left:450px; 
+    overflow-y:visible;
+    padding-bottom:1px;
+}
+.headcolLeague {
+    position: absolute;
+    width: 85px;
+    left: 0;
+    top: auto;
+    border-right: 0px none black;
+    border-left: 0px none black;
+    border-top-width: 3px; /*only relevant for first row*/
+    margin-top: 0px; /*compensate for top border*/
+}
+.headcol {
+    position:absolute; 
+    width:340px; 
+    left:0;
+    top:auto;
+    border-right: 0px none black; 
+    border-left: 0px none black; 
+    border-top-width:3px; /*only relevant for first row*/
+    margin-top:0px; /*compensate for top border*/
+    margin-left: 85px;
+}
+.headcol2 {
+    position:absolute; 
+    width:95px; 
+    left:0;
+    top:auto;
+    border-right: 0px none black; 
+    border-left: 0px none black; 
+    border-top-width:3px; /*only relevant for first row*/
+    margin-top:0px; /*compensate for top border*/
+    margin-left:170px;
+}        
+.headcol3 {
+    position:absolute; 
+    width:115px; 
+    left:0;
+    top:auto;
+    border-right: 0px none black; 
+    border-left: 0px none black; 
+    border-top-width:3px; /*only relevant for first row*/
+    margin-top:0px; /*compensate for top border*/
+    margin-left:270px;
+}        
+/*.headcol4 {
+    position:absolute; 
+    width:70px; 
+    left:0;
+    top:auto;
+    border-right: 0px none black; 
+    border-left: 0px none black; 
+    border-top-width:3px; 
+    margin-top:0px; 
+    margin-left:300px;
+}*/        
+.headcol5 {
+    position:absolute; 
+    width:55px; 
+    left:0;
+    top:auto;
+    border-right: 0px none black; 
+    border-left: 0px none black; 
+    border-top-width:3px; /*only relevant for first row*/
+    margin-top:0px; /*compensate for top border*/
+    margin-left:385px;
+}         
+.long { }

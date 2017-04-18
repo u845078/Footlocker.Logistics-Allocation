@@ -65,8 +65,12 @@ namespace Footlocker.Logistics.Allocation.Models
         public string InitialDemand { get; set; }
 
         [NotMapped]
+        public string League { get; set; }
+
+        [NotMapped]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime? StartDate { get; set; }
+
         [NotMapped]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime? EndDate { get; set; }
@@ -93,6 +97,5 @@ namespace Footlocker.Logistics.Allocation.Models
                 }
             }
         }
-
     }
 }
