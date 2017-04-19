@@ -1679,7 +1679,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                             if (message != "")
                             {
-                                message = string.Format("Row #{0}: {1}", row, message);
+                                message = string.Format("Row #{0}: {1}", (row + 1), message);
                                 return Content(message);
                             }
 
@@ -1699,7 +1699,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         successCount = db.Holds.Local.Count;
                         db.SaveChanges();
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
                         message = "Upload failed: One or more columns has missing or invalid data.";
                         return Content(message);
@@ -1710,6 +1710,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return Json(new { message = string.Format("{0} Holds Uploaded", successCount)}, "applicaton/json");
         }
 
+        /// <summary>
+        /// Will check to ensure the data on the next row has data
+        /// </summary>
+        /// <param name="sheet"></param>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private bool HasDataOnRow(Worksheet sheet, int row)
         {
             return sheet.Cells[row, 0].Value != null ||
@@ -1814,8 +1820,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 h.EndDate = null;
             }
 
+            // ensure there are no duplicates from excel file
+            if (checkForDuplicate(h))
+            {
+                errorsFound = "Identical hold already found within spreadsheet.";
+            }
 
             return errorsFound;
+        }
+
+        /// <summary>
+        /// Ensure there is no duplicate record ready for insertion from Holds upload
+        /// </summary>
+        /// <param name="item">Hold</param>
+        /// <returns></returns>
+        private bool checkForDuplicate(Hold item)
+        {
+            return db.Holds.Local.Any(h => h.Division == item.Division &&
+                                           h.Store == item.Store &&
+                                           h.Duration == item.Duration &&
+                                           h.Level == item.Level &&
+                                           h.Value == (item.Value == "" ? "N/A": item.Value) &&
+                                           h.StartDate == item.StartDate &&
+                                           h.EndDate == item.EndDate &&
+                                           h.ReserveInventoryBool == item.ReserveInventoryBool);
         }
 
         #endregion
