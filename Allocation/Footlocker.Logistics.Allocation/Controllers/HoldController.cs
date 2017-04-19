@@ -1615,6 +1615,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult UploadHolds(IEnumerable<HttpPostedFileBase> attachments)
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
+            int successCount = 0;
 
             //Set license
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
@@ -1656,7 +1657,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     int row = 1;
                     try
                     {
-                        while (mySheet.Cells[row, 0].Value != null)
+                        while (HasDataOnRow(mySheet, row))
                         {
                             Hold item = new Hold();
                             item.Division = Convert.ToString(mySheet.Cells[row, 0].Value).Trim();
@@ -1670,10 +1671,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             item.Comments = Convert.ToString(mySheet.Cells[row, 8].Value).Trim();
 
                             item.CreateDate = DateTime.Now;
-                            item.CreatedBy = this.UserName;
+                            item.CreatedBy = this.User.Identity.Name;
+                            item.Comments = "(Upload) - " + item.Comments;
 
                             //validate values entered by user
-                            message = ValidateHoldValues(item, level, duration, holdType);
+                            message = ValidateHoldUploadValues(item, level, duration, holdType);
 
                             if (message != "")
                             {
@@ -1681,6 +1683,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 return Content(message);
                             }
 
+                            //validate values dependent on business logic and sql server data type restrictions
                             message = ValidateHold(item, false, false);
 
                             if (message != "")
@@ -1692,7 +1695,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             db.Holds.Add(item);
                             row++;
                         }
-
+                        // set number of successful hold records that were created before saving.
+                        successCount = db.Holds.Local.Count;
                         db.SaveChanges();
                     }
                     catch (Exception)
@@ -1703,8 +1707,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
+            return Json(new { message = string.Format("{0} Holds Uploaded", successCount)}, "applicaton/json");
+        }
 
-            return Content(message);
+        private bool HasDataOnRow(Worksheet sheet, int row)
+        {
+            return sheet.Cells[row, 0].Value != null ||
+                   sheet.Cells[row, 1].Value != null ||
+                   sheet.Cells[row, 2].Value != null ||
+                   sheet.Cells[row, 3].Value != null ||
+                   sheet.Cells[row, 4].Value != null ||
+                   sheet.Cells[row, 5].Value != null ||
+                   sheet.Cells[row, 6].Value != null ||
+                   sheet.Cells[row, 7].Value != null ||
+                   sheet.Cells[row, 8].Value != null;
         }
 
         /// <summary>
@@ -1717,7 +1733,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <param name="duration"></param>
         /// <param name="holdType"></param>
         /// <returns></returns>
-        private string ValidateHoldValues(Hold h, string level, string duration, string holdType)
+        private string ValidateHoldUploadValues(Hold h, string level, string duration, string holdType)
         {
             string errorsFound = "";
 
@@ -1763,7 +1779,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (duration.Equals("temporary") || duration.Equals("permanent"))
             {
                 //capitalizes the first letter
-                h.Duration = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(duration);
+                h.Duration = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(duration);  
             }
             else
             {

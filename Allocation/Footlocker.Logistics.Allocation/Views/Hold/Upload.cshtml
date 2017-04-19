@@ -39,7 +39,7 @@
         .ClientEvents(events => events
             .OnError("onError")
             .OnSelect("onSelect")
-                    .OnSuccess("onSuccess")
+            .OnSuccess("onSuccess")
             )
     )
 
@@ -49,6 +49,7 @@
 </fieldset>
 
 <script type="text/javascript">
+
 
     function onSelect(e) {
         var files = e.files;
@@ -68,8 +69,8 @@
     }
 
     function onSuccess(e) {
-        var message = e.XMLHttpRequest.responseText;
-        $('#message').empty().append("<font color='red'>Success</font>");
+        var response = JSON.parse(e.XMLHttpRequest.responseText);
+        $('#message').empty().append("<font color='red'>Success <br /> " + response.message + "</font>");
         e.preventDefault();
     }
 </script>
