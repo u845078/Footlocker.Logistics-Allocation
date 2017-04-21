@@ -514,7 +514,6 @@
     <Content Include="Views\SkuRange\AddStoresByRule.cshtml" />
     <Content Include="Views\SkuRange\RuleList.cshtml" />
     <Content Include="Views\SkuRange\StoreLookupList.cshtml" />
-    <Content Include="Views\SkuRange\Copy of AddStoresByRule.cshtml" />
     <Content Include="Views\Rule\RuleFilterNoStores.cshtml" />
     <Content Include="Views\Rule\RuleFilter.cshtml" />
     <Content Include="Views\Rule\RuleList.cshtml" />
@@ -589,7 +588,6 @@
     <Content Include="Views\SkuRange\SizeAllocation.cshtml" />
     <Content Include="Views\SkuRange\PresentationQuantitiesALR.cshtml" />
     <Content Include="Views\SkuRange\TotalSizeAllocationALR.cshtml" />
-    <Content Include="Views\SkuRange\StoreSizeAllocationALR.cshtml" />
     <Content Include="Views\SkuRange\RuleFilter.cshtml" />
     <Content Include="Views\Network\Index.cshtml" />
     <Content Include="Views\Network\PartialLeadTimeList.cshtml" />
@@ -664,7 +662,6 @@
     <Content Include="Views\Upload\SkuIdUpload.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\Rule.cshtml" />
     <Content Include="Views\StoreBTS\EditorTemplates\StoreBTSControl.cshtml" />
-    <Content Include="Views\SkuRange\Copy of StoreSizeAllocation.cshtml" />
     <Content Include="Views\Route\RouteDC.cshtml" />
     <Content Include="Views\Route\StoreLeadTimes.cshtml" />
     <Content Include="Views\Route\EditStoreLeadTime.cshtml" />
