@@ -16,16 +16,16 @@
         })
         .Columns(columns =>
         {
-            columns.Bound(o => o.Division).ReadOnly();
-            columns.Bound(o => o.Region).ReadOnly();
+            columns.Bound(o => o.Division).Width(20).ReadOnly();
+            columns.Bound(o => o.Region).Width(20).ReadOnly();
             columns.Bound(o => o.League).ReadOnly();
             columns.Bound(o => o.Store).ReadOnly();
             columns.Bound(o => o.Mall).ReadOnly();
             columns.Bound(o => o.City).ReadOnly();
             columns.Bound(o => o.State).ReadOnly();
             columns.Bound(o => o.DBA).ReadOnly();
-            columns.Bound(o => o.ExcludeStore).Width(20);
-            columns.Bound(o => o.FirstReceipt).Width(150).FooterTemplate(
+            columns.Bound(o => o.ExcludeStore).Width(20).ClientTemplate(" <input type='checkbox' <#= ExcludeStore ? checked='checked' : '' #> disabled /> ");
+            columns.Bound(o => o.FirstReceipt).Width(180).FooterTemplate(
                         @<text>
                         <input type="button" name="name" value="Save" class="t-button" onclick='saveChanges()' />
                     </text>

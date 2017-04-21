@@ -3579,6 +3579,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             range = new BulkRange();
                             range.Division = division;
                             range.Store = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(5, '0');
+
+                            //ensure the store is valid
+                            if (!ValidateStore(range.Division, range.Store))
+                            {
+                                string message = string.Format("Row #{0}: The division and store combination does not exist within the system.", row);
+                                return Content(message);
+                            }
+
                             range.Sku = Convert.ToString(mySheet.Cells[row, 2].Value);
                             range.Size = Convert.ToString(mySheet.Cells[row, 3].Value).PadLeft(3, '0').ToUpper();
                             range.RangeStartDate = Convert.ToString(mySheet.Cells[row, 4].Value);
@@ -3618,7 +3626,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             {
                                 range.EndDate = "-1";
                             }
-
 
                             updateList.Add(range);
                             row++;
@@ -3676,6 +3683,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             return Content("");
+        }
+
+        /// <summary>
+        /// Validate the store entered from the RangeUpload file
+        /// </summary>
+        /// <param name="division">division from file</param>
+        /// <param name="store">store from file</param>
+        /// <returns></returns>
+        private bool ValidateStore(string division, string store)
+        {
+            return (from sl in db.StoreLookups where sl.Division == division && sl.Store == store select sl).Any();
         }
 
         public ActionResult DownloadRangeErrors()
