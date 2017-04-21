@@ -65,7 +65,7 @@ else
 using (Html.BeginForm("SaveTotalSizeAllocation", "SkuRange", FormMethod.Post))
 {
    <fieldset>
-<b>Update all filtered stores:</b><br />
+       <legend>Update all filtered stores</legend>
 @Html.HiddenFor(m => Model.First().StartDate)
 <span title = "Last day of learning">End:</span>
                     @(Html.Telerik().DatePicker()
