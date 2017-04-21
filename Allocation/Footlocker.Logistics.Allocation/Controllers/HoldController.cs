@@ -1785,7 +1785,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (duration.Equals("temporary") || duration.Equals("permanent"))
             {
                 //capitalizes the first letter
-                h.Duration = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(duration);  
+                h.Duration = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(duration);
             }
             else
             {
@@ -1798,7 +1798,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 h.ReserveInventoryBool = holdType.Equals("reserve inventory");
 
                 // if duration is permanent, the user should not be able to reserve inventory
-                if (h.ReserveInventoryBool && h.Duration.Equals("permanent"))
+                if (h.ReserveInventoryBool && h.Duration.ToLower().Equals("permanent"))
                 {
                     errorsFound = "You cannot reserve inventory if you have a duration of permanent.";
                 }
