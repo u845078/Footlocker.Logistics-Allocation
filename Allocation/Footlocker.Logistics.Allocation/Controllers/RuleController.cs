@@ -1068,7 +1068,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             try
             {
                 Boolean updated = false;
-                RuleSet rs = (from a in db.RuleSets where a.RuleSetID == ruleSetID select a).First();
+                RuleSet rs = (from a in db.RuleSets
+                              where a.RuleSetID == ruleSetID
+                              select a).First();
 
                 //if plan allows multiple rulesets of same type
                 //we can tell if it's in another ruleset (for warning purposes)
@@ -1077,7 +1079,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if (rs.PlanID > 0)
                 {
-                    List<Int64> similarRulesets = (from a in db.RuleSets where ((a.PlanID == rs.PlanID) && (a.Type == rs.Type) && (rs.RuleSetID != a.RuleSetID)) select a.RuleSetID).ToList();
+                    List<Int64> similarRulesets = (from a in db.RuleSets
+                                                   where ((a.PlanID == rs.PlanID) && 
+                                                          (a.Type == rs.Type) && 
+                                                          (rs.RuleSetID != a.RuleSetID))
+                                                   select a.RuleSetID).ToList();
                     foreach (Int64 similar in similarRulesets)
                     {
                         foreach (StoreLookup s in dao.GetStoresInRuleSet(similar))
@@ -1091,10 +1097,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 var currlist =
                     from n in list
-                    join c in storesInSimilarplans on new { n.Division, n.Store } equals new { c.Division, c.Store }
+                    join c in storesInSimilarplans 
+                    on new { n.Division, n.Store } equals new { c.Division, c.Store }
                     select n;
 
-                if ((!verified)&&(currlist.Count() > 0))
+                if ((!verified) && (currlist.Count() > 0))
                 {
                     return Json("Verify");
                 }

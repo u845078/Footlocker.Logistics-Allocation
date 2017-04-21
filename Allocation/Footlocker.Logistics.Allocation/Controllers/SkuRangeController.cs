@@ -2145,16 +2145,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public void UpdateDeliveryGroupDates(DeliveryGroup model)
         {
-            int dts = (from a in db.DirectToStoreSkus join b in db.RangePlans on a.Sku equals b.Sku where (b.Id == model.PlanID) select b).Count();
-            RangePlan plan = (from a in db.RangePlans where a.Id == model.PlanID select a).FirstOrDefault();
+            int dts = (from a in db.DirectToStoreSkus
+                       join b in db.RangePlans 
+                       on a.Sku equals b.Sku
+                       where (b.Id == model.PlanID)
+                       select b).Count();
 
+            RangePlan plan = (from a in db.RangePlans
+                              where a.Id == model.PlanID
+                              select a).FirstOrDefault();
 
             List<MaxLeadTime> leadTimes;
 
-            leadTimes = (from b in db.RuleSelectedStores join c in db.MaxLeadTimes on new { b.Division, b.Store } equals new { c.Division, c.Store } where (b.RuleSetID == model.RuleSetID) select c).ToList();
+            leadTimes = (from b in db.RuleSelectedStores
+                         join c in db.MaxLeadTimes 
+                         on new { b.Division, b.Store } equals new { c.Division, c.Store }
+                         where (b.RuleSetID == model.RuleSetID)
+                         select c).ToList();
 
             SizeAllocationDAO dao = new SizeAllocationDAO();
-            List<RangePlanDetail> rangePlanDetails = (from a in db.RangePlanDetails join b in db.RuleSelectedStores on new { a.Division, a.Store } equals new { b.Division, b.Store } where ((a.ID == model.PlanID) && (b.RuleSetID == model.RuleSetID)) select a).ToList();
+            List<RangePlanDetail> rangePlanDetails = (from a in db.RangePlanDetails
+                                                      join b in db.RuleSelectedStores 
+                                                      on new { a.Division, a.Store } equals new { b.Division, b.Store }
+                                                      where ((a.ID == model.PlanID) && (b.RuleSetID == model.RuleSetID))
+                                                      select a).ToList();
 
             if (plan.Launch)
             {
@@ -2175,7 +2189,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 //non dts store, set start date to delivery group start date + lead time
                 foreach (var lt in leadTimes)
                 {
-                    var query = (from a in rangePlanDetails where ((a.Division == lt.Division) && (a.Store == lt.Store)) select a);
+                    var query = (from a in rangePlanDetails
+                                 where ((a.Division == lt.Division) && (a.Store == lt.Store))
+                                 select a);
+
                     foreach (RangePlanDetail det in query)
                     {
                         db.Entry(det).State = System.Data.EntityState.Modified;
@@ -2228,35 +2245,34 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                     det.EndDate = ((DateTime)model.EndDate);
                 }
-
             }
 
             UpdateRangeHeader(model.PlanID);
             db.SaveChanges(UserName);
             Session["pqDeliveryGroups"] = null;
         }
-
         #endregion
 
-
         #region "Add/Remove Stores"
-
         public ActionResult Edit(Int64 planID, string message)
         {
             ViewData["message"] = message;
-            RangePlan p = (from a in db.RangePlans where a.Id == planID select a).First();
+            RangePlan p = (from a in db.RangePlans
+                           where a.Id == planID
+                           select a).First();
             return View(p);
         }
-
 
         [HttpPost]
         public ActionResult Edit(RangePlan model)
         {
             db.Entry(model).State = System.Data.EntityState.Modified;
             model.UpdateDate = DateTime.Now;
-            model.UpdatedBy = UserName;
+            model.UpdatedBy = User.Identity.Name;
             db.SaveChanges(UserName);
-            List<DeliveryGroup> groups = (from a in db.DeliveryGroups where a.PlanID == model.Id select a).ToList();
+            List<DeliveryGroup> groups = (from a in db.DeliveryGroups
+                                          where a.PlanID == model.Id
+                                          select a).ToList();
             foreach (DeliveryGroup dg in groups)
             {
                 UpdateDeliveryGroupDates(dg);
@@ -2657,7 +2673,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             //fds  model.RuleToAdd = new Rule();
             model.PlanID = planID;
-            model.Plan = (from a in db.RangePlans where a.Id == planID select a).First();
+            model.Plan = (from a in db.RangePlans
+                          where a.Id == planID
+                          select a).First();
 
             UpdateRangePlanDate(planID);
             //ClearSessionVariables();
