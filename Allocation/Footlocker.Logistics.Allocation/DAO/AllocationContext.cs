@@ -525,7 +525,10 @@ namespace Footlocker.Logistics.Allocation.DAO
 
         public List<StoreLookupModel> GetStoreLookupsForPlan(Int64 planID, string divisions)
         {
-            RangePlan p = (from a in RangePlans where a.Id == planID select a).First();
+            RangePlan p = (from a in RangePlans
+                           where a.Id == planID
+                           select a).First();
+
             var list = (from store in StoreLookups
                         join det in RangePlanDetails
                         on new { store.Division, store.Store } equals new { det.Division, det.Store }
@@ -533,12 +536,16 @@ namespace Footlocker.Logistics.Allocation.DAO
                         select new { Store = store, StoreExtension = store.StoreExtension });
             List<StoreLookupModel> results = new List<StoreLookupModel>();
 
-            List<ConceptType> concepts = (from a in ConceptTypes select a).ToList() ;
+            List<ConceptType> concepts = (from a in ConceptTypes
+                                          select a).ToList();
             foreach (var s in list)
             {
-                try{
+                try
+                {
                     s.Store.StoreExtension = s.StoreExtension;
-                    s.Store.StoreExtension.ConceptType = (from a in concepts where a.ID == s.Store.StoreExtension.ConceptTypeID select a).FirstOrDefault();
+                    s.Store.StoreExtension.ConceptType = (from a in concepts
+                                                          where a.ID == s.Store.StoreExtension.ConceptTypeID
+                                                          select a).FirstOrDefault();
                 }
                 catch
                 {}
