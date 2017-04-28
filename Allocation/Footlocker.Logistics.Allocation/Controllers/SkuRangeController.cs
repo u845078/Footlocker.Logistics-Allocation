@@ -1894,14 +1894,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("PresentationQuantities", new { planID = planID });
         }
 
-        public ActionResult AddMissingStoreToDeliveryGroup(string div, string store, long ruleSetID, long planID, string rangeType)
+        //public ActionResult AddMissingStoreToDeliveryGroup(string div, string store, long ruleSetID, long planID, string rangeType)
+        public ActionResult AddMissingStoreToDeliveryGroup(string div, string store, long ruleSetID, long planID)
         {
             if (ruleSetID < 0)
             {
                 //no ruleset yet, see if there's a delivery group created today
                 DeliveryGroup newGroup;
                 DateTime today = DateTime.Now.Date;
-                var query = (from a in db.DeliveryGroups where ((a.StartDate == today)&&(a.PlanID == planID)) select a);
+                var query = (from a in db.DeliveryGroups
+                             where ((a.StartDate == today) && (a.PlanID == planID))
+                             select a);
                 if (query.Count() > 0)
                 {
                     newGroup = query.First();
@@ -1918,18 +1921,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
             rss.Division = div;
             rss.Store = store;
             rss.RuleSetID = ruleSetID;
-            rss.CreatedBy = UserName;
+            rss.CreatedBy = User.Identity.Name;
             rss.CreateDate = DateTime.Now;
 
-            if ((from a in db.RuleSelectedStores where ((a.Store == rss.Store)&&(a.RuleSetID == rss.RuleSetID)&&(a.Division == rss.Division)) select a).Count()==0)
+            if ((from a in db.RuleSelectedStores
+                 where ((a.Store == rss.Store) && 
+                        (a.RuleSetID == rss.RuleSetID) && 
+                        (a.Division == rss.Division))
+                 select a).Count() == 0)
             {
                 db.RuleSelectedStores.Add(rss);
             }
             //delete it from any other groups
             List<RuleSelectedStore> existing = (from a in db.RuleSelectedStores
                                                 join b in db.RuleSets on a.RuleSetID equals b.RuleSetID
-                                                where
-                                                   (b.Type == "Delivery") &&
+                                                where (b.Type == "Delivery") &&
                                                     (b.RuleSetID != ruleSetID) &&
                                                     (b.PlanID == planID) &&
                                                     (a.Store == store) &&
@@ -1942,7 +1948,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
 
-            UpdateStoreDates(div, store, ruleSetID, planID, rangeType);
+            UpdateStoreDates(div, store, ruleSetID, planID, string.Empty);
             db.SaveChanges(UserName);
             UpdateRangeHeader(planID);
             ClearSessionVariables();
@@ -1955,25 +1961,36 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             DeliveryGroupMissingModel model = new DeliveryGroupMissingModel();
             model.PlanID = planID;
-            model.DeliveryGroups = (from a in db.DeliveryGroups where a.PlanID == planID select a).ToList();
+            model.DeliveryGroups = (from a in db.DeliveryGroups
+                                    where a.PlanID == planID
+                                    select a).ToList();
 
             DeliveryGroup newGroup = new DeliveryGroup();
             newGroup.Name = "<New Delivery Group>";
             newGroup.ID = -1;
             newGroup.RuleSetID = -1;
             newGroup.PlanID = planID;
-            model.DeliveryGroups.Insert(0,newGroup);
+            model.DeliveryGroups.Insert(0, newGroup);
 
             List<StoreLookupModel> list = db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name));
-            List<RuleSelectedStore> ruleSetStores = (from a in db.RuleSets join b in db.RuleSelectedStores on a.RuleSetID equals b.RuleSetID where ((a.PlanID == planID) && (a.Type == "Delivery")) select b).ToList();
+            List<RuleSelectedStore> ruleSetStores = (from a in db.RuleSets
+                                                     join b in db.RuleSelectedStores 
+                                                        on a.RuleSetID equals b.RuleSetID
+                                                     where ((a.PlanID == planID) && 
+                                                            (a.Type == "Delivery"))
+                                                     select b).ToList();
 
             model.Stores = new List<StoreLookupModel>();
             foreach (StoreLookupModel m in list)
             {
-                if ((from a in ruleSetStores where ((a.Division == m.Division) && (a.Store == m.Store)) select a).Count() == 0)
+                if ((from a in ruleSetStores
+                     where ((a.Division == m.Division) && (a.Store == m.Store))
+                     select a).Count() == 0)
                 {
                     //not in a delivery group
-                    if ((from a in db.vValidStores where ((a.Division == m.Division) && (a.Store == m.Store)) select a).Count() > 0)
+                    if ((from a in db.vValidStores
+                         where ((a.Division == m.Division) && (a.Store == m.Store))
+                         select a).Count() > 0)
                     {
                         //valid store, so they need to assign it
                         model.Stores.Add(m);
@@ -3425,10 +3442,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult StopALR(Int64 planID)
         {
-            RangePlan rp = (from a in db.RangePlans where a.Id == planID select a).First();
+            RangePlan rp = (from a in db.RangePlans
+                            where a.Id == planID select a).First();
             rp.ALRStartDate = null;
             rp.UpdateDate = DateTime.Now;
-            rp.UpdatedBy = UserName;
+            rp.UpdatedBy = User.Identity.Name;
 
             db.Entry(rp).State = System.Data.EntityState.Modified;
             List<DeliveryGroup> deliveryGroups = (from a in db.DeliveryGroups where (a.PlanID == planID) select a).ToList();

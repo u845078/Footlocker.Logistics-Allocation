@@ -7,7 +7,7 @@
 <h2>Stores Without Delivery Group</h2>
 <script>
     function Save(div, store, plan) {
-        window.location = "/SkuRange/AddMissingStoreToDeliveryGroup?div=" + div + '&store=' + store + '&planID=' + plan + '&ruleSetID=' + $('#delivery' + div + store).val() + '&rangeType=' + $('#rangeType' + div + store).val();
+        window.location = "/SkuRange/AddMissingStoreToDeliveryGroup?div=" + div + '&store=' + store + '&planID=' + plan + '&ruleSetID=' + $('#delivery' + div + store).val(); // + '&rangeType=' + $('#rangeType' + div + store).val();
     }
 </script>
 
@@ -22,9 +22,6 @@
         <th>
             @Html.DisplayName("Delivery Group")
         </th>
-        <th>
-            @Html.DisplayName("Range Type")
-        </th>
         <th></th>
     </tr>
 
@@ -38,17 +35,6 @@
         </td>
         <td>
             @Html.DropDownList("delivery" + item.Division + item.Store, new SelectList(Model.DeliveryGroups, "RuleSetID", "Name"))
-        </td>
-        <td>
-            @Html.DropDownList("rangeType" + item.Division + item.Store,
-                    new SelectList(
-                        new List<SelectListItem>
-                        {
-                            new SelectListItem { Text = "Both", Value = "Both"},
-                            new SelectListItem { Text = "ALR", Value = "ALR"},
-                            new SelectListItem { Text = "OP", Value = "OP"},
-                        }, "Value", "Text", "Both"))
-
         </td>
         <td>
             @Html.Raw("<div onclick=\"Save('" + item.Division + "','" + item.Store + "'," + Model.PlanID + ")\" class='t-button'>Save</div>")
