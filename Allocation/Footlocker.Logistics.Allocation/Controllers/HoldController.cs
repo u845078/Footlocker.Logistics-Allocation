@@ -1639,12 +1639,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         (Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Division")) &&
                         (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Store")) &&
                         (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Duration")) &&
-                        (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Level")) &&
-                        (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Value")) &&
-                        (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Start Date")) &&
-                        (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("End Date")) &&
-                        (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Hold Type")) &&
-                        (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Comment"))
+                        (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Dept")) &&
+                        (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Brand")) &&
+                        (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Team")) &&
+                        (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Category")) &&
+                        (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Vendor")) &&
+                        (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Sku")) &&
+                        (Convert.ToString(mySheet.Cells[0, 9].Value).Contains("Start Date")) &&
+                        (Convert.ToString(mySheet.Cells[0, 10].Value).Contains("End Date")) &&
+                        (Convert.ToString(mySheet.Cells[0, 11].Value).Contains("Hold Type")) &&
+                        (Convert.ToString(mySheet.Cells[0, 12].Value).Contains("Comment"))
                 );
 
                 // Validate that the template's header row exists... (else error out)
@@ -1663,19 +1667,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             item.Division = Convert.ToString(mySheet.Cells[row, 0].Value).Trim();
                             item.Store = Convert.ToString(mySheet.Cells[row, 1].Value).Trim();
                             string duration = Convert.ToString(mySheet.Cells[row, 2].Value).Trim().ToLower();
-                            string level = Convert.ToString(mySheet.Cells[row, 3].Value).Trim().ToLower();
-                            item.Value = Convert.ToString(mySheet.Cells[row, 4].Value).Trim();
-                            item.StartDate = Convert.ToDateTime(mySheet.Cells[row, 5].Value);
-                            item.EndDate = Convert.ToDateTime(mySheet.Cells[row, 6].Value);
-                            string holdType = Convert.ToString(mySheet.Cells[row, 7].Value).Trim().ToLower();
-                            item.Comments = Convert.ToString(mySheet.Cells[row, 8].Value).Trim();
+                            string dept = Convert.ToString(mySheet.Cells[row, 3].Value).Trim();
+                            string brand = Convert.ToString(mySheet.Cells[row, 4].Value).Trim();
+                            string team = Convert.ToString(mySheet.Cells[row, 5].Value).Trim();
+                            string category = Convert.ToString(mySheet.Cells[row, 6].Value).Trim();
+                            string vendor = Convert.ToString(mySheet.Cells[row, 7].Value).Trim();
+                            string sku = Convert.ToString(mySheet.Cells[row, 8].Value).Trim();
+                            item.StartDate = Convert.ToDateTime(mySheet.Cells[row, 9].Value);
+                            item.EndDate = Convert.ToDateTime(mySheet.Cells[row, 10].Value);
+                            string holdType = Convert.ToString(mySheet.Cells[row, 11].Value).Trim().ToLower();
+                            item.Comments = Convert.ToString(mySheet.Cells[row, 12].Value).Trim();
 
                             item.CreateDate = DateTime.Now;
                             item.CreatedBy = this.User.Identity.Name;
                             item.Comments = "(Upload) - " + item.Comments;
 
                             //validate values entered by user
-                            message = ValidateHoldUploadValues(item, level, duration, holdType);
+                            message = ValidateHoldUploadValues(item, duration, dept, brand, team, category, vendor, sku, holdType);
 
                             if (message != "")
                             {
@@ -1726,60 +1734,102 @@ namespace Footlocker.Logistics.Allocation.Controllers
                    sheet.Cells[row, 5].Value != null ||
                    sheet.Cells[row, 6].Value != null ||
                    sheet.Cells[row, 7].Value != null ||
-                   sheet.Cells[row, 8].Value != null;
+                   sheet.Cells[row, 8].Value != null ||
+                   sheet.Cells[row, 9].Value != null ||
+                   sheet.Cells[row, 10].Value != null ||
+                   sheet.Cells[row, 11].Value != null ||
+                   sheet.Cells[row, 12].Value != null;
         }
-
         /// <summary>
-        /// Will validate the inputted values from the user that are typically controlled by dropdown lists 
-        /// from the view model.  Also will validate miscellaneous items such as dates that are not handled
-        /// in the ValidateHold method.
+        /// determines the correct level for the hold and verifies specific values entered by user are correct
         /// </summary>
-        /// <param name="h"></param>
-        /// <param name="level"></param>
-        /// <param name="duration"></param>
-        /// <param name="holdType"></param>
-        /// <returns></returns>
-        private string ValidateHoldUploadValues(Hold h, string level, string duration, string holdType)
+        /// <param name="h">Hold</param>
+        /// <param name="duration">duration</param>
+        /// <param name="dept">department</param>
+        /// <param name="brand">brand</param>
+        /// <param name="category">category</param>
+        /// <param name="vendor">vendor</param>
+        /// <param name="sku">sku</param>
+        /// <param name="holdType">holdtype</param>
+        /// <returns>string of errors found</returns>
+        private string ValidateHoldUploadValues(Hold h, string duration, string dept, string brand, string team, string category, string vendor, string sku, string holdType)
         {
             string errorsFound = "";
 
-            // check level
-            switch (level)
+            bool deptExists = !string.IsNullOrEmpty(dept);
+            bool brandExists = !string.IsNullOrEmpty(brand);
+            bool teamExists = !string.IsNullOrEmpty(team);
+            bool categoryExists = !string.IsNullOrEmpty(category);
+            bool vendorExists = !string.IsNullOrEmpty(vendor);
+            bool skuExists = !string.IsNullOrEmpty(sku);
+
+            #region Validate hold level
+
+            // sku
+            if (skuExists && !deptExists && !brandExists && !teamExists && !categoryExists && !vendorExists)
             {
-                case "store":
-                    h.Level = "All";
-                    break;
-                case "dept":
-                    h.Level = "Dept";
-                    break;
-                case "deptbrand":
-                    h.Level = "DeptBrand";
-                    break;
-                case "deptteam":
-                    h.Level = "DeptTeam";
-                    break;
-                case "deptcat":
-                    h.Level = "Category";
-                    break;
-                case "deptcatbrand":
-                    h.Level = "DeptCatBrand";
-                    break;
-                case "deptcatteam":
-                    h.Level = "DeptCatTeam";
-                    break;
-                case "vendordept":
-                    h.Level = "VendorDept";
-                    break;
-                case "vendordeptcategory":
-                    h.Level = "VendorDeptCategory";
-                    break;
-                case "sku":
-                    h.Level = "Sku";
-                    break;
-                default:
-                    errorsFound = "Invalid input for 'Level'.";
-                    break;
+                h.Level = "Sku";
+                h.Value = sku;
             }
+            // VendorDeptCategory
+            else if (deptExists && categoryExists && vendorExists && !brandExists && !teamExists && !skuExists)
+            {
+                h.Level = "VendorDeptCategory";
+                h.Value = string.Format("{0}-{1}-{2}", vendor, dept, category);
+            }
+            // VendorDept
+            else if (deptExists && vendorExists && !brandExists && !teamExists && !categoryExists && !skuExists)
+            {
+                h.Level = "VendorDept";
+                h.Value = string.Format("{0}-{1}", vendor, dept);
+            }
+            // DeptCatTeam
+            else if (deptExists && categoryExists && teamExists && !brandExists && !vendorExists && !skuExists)
+            {
+                h.Level = "DeptCatTeam";
+                h.Value = string.Format("{0}-{1}-{2}", dept, category, team);
+            }
+            // DeptCatBrand
+            else if (deptExists && categoryExists && brandExists && !teamExists && !vendorExists && !skuExists)
+            {
+                h.Level = "DeptCatBrand";
+                h.Value = string.Format("{0}-{1}-{2}", dept, category, brand);
+            }
+            // DeptCat
+            else if (deptExists && categoryExists && !brandExists && !teamExists && !vendorExists && !skuExists)
+            {
+                h.Level = "Category";
+                h.Value = string.Format("{0}-{1}", dept, category);
+            }
+            // DeptTeam
+            else if (deptExists && teamExists && !brandExists && !categoryExists && !vendorExists && !skuExists)
+            {
+                h.Level = "DeptTeam";
+                h.Value = string.Format("{0}-{1}", dept, team);
+            }
+            // DeptBrand
+            else if (deptExists && brandExists && !teamExists && !categoryExists && !vendorExists && !skuExists)
+            {
+                h.Level = "DeptBrand";
+                h.Value = string.Format("{0}-{1}", dept, brand);
+            }
+            // Dept
+            else if (deptExists && !brandExists && !teamExists && !categoryExists && !vendorExists && !skuExists)
+            {
+                h.Level = "Dept";
+                h.Value = dept;
+            }
+            // Store
+            else if (!deptExists && !brandExists && !teamExists && !categoryExists && !vendorExists && !skuExists)
+            {
+                h.Level = "All";
+            }
+            else
+            {
+                errorsFound = "Invalid combination for hold.";
+            }
+
+            #endregion
 
             // check duration
             if (duration.Equals("temporary") || duration.Equals("permanent"))
@@ -1825,6 +1875,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 errorsFound = "Identical hold already found within spreadsheet.";
             }
+
 
             return errorsFound;
         }
