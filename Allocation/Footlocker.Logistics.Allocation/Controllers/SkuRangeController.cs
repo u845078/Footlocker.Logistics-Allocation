@@ -1934,7 +1934,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             //delete it from any other groups
             List<RuleSelectedStore> existing = (from a in db.RuleSelectedStores
-                                                join b in db.RuleSets on a.RuleSetID equals b.RuleSetID
+                                                join b in db.RuleSets 
+                                                  on a.RuleSetID equals b.RuleSetID
                                                 where (b.Type == "Delivery") &&
                                                     (b.RuleSetID != ruleSetID) &&
                                                     (b.PlanID == planID) &&
@@ -2112,7 +2113,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 rangeType = "Both";
             }
 
-            MaxLeadTime lt = (from c in db.MaxLeadTimes where ((c.Store == store) && (c.Division == div)) select c).FirstOrDefault();
+            MaxLeadTime lt = (from c in db.MaxLeadTimes
+                              where ((c.Store == store) && (c.Division == div))
+                              select c).FirstOrDefault();
             if (lt == null)
             {
                 lt = new MaxLeadTime();
@@ -2121,9 +2124,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 lt.Store = store;
             }
             SizeAllocationDAO dao = new SizeAllocationDAO();
-            List<RangePlanDetail> rangePlanDetails = (from a in db.RangePlanDetails where a.ID == planID select a).ToList();
-            var query = (from a in rangePlanDetails where ((a.Division == lt.Division) && (a.Store == lt.Store)) select a);
-            DeliveryGroup dg = (from a in db.DeliveryGroups where a.RuleSetID == ruleSetID select a).First();
+            List<RangePlanDetail> rangePlanDetails = (from a in db.RangePlanDetails
+                                                      where a.ID == planID
+                                                      select a).ToList();
+
+            var query = (from a in rangePlanDetails
+                         where ((a.Division == lt.Division) && (a.Store == lt.Store))
+                         select a);
+
+            DeliveryGroup dg = (from a in db.DeliveryGroups
+                                where a.RuleSetID == ruleSetID
+                                select a).First();
+
             foreach (RangePlanDetail rpDet in query)
             {
                 rpDet.RangeType = rangeType;
@@ -3597,6 +3609,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             range = new BulkRange();
                             range.Division = division;
                             range.Store = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(5, '0');
+
+                            //ensure the store is valid
+                            if (!ValidateStore(range.Division, range.Store))
+                            {
+                                string message = string.Format("Row #{0}: The division and store combination does not exist within the system.", row);
+                                return Content(message);
+                            }
+
                             range.Sku = Convert.ToString(mySheet.Cells[row, 2].Value);
                             range.Size = Convert.ToString(mySheet.Cells[row, 3].Value).PadLeft(3, '0').ToUpper();
                             range.RangeStartDate = Convert.ToString(mySheet.Cells[row, 4].Value);
@@ -3636,7 +3656,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             {
                                 range.EndDate = "-1";
                             }
-
 
                             updateList.Add(range);
                             row++;
@@ -3694,6 +3713,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             return Content("");
+        }
+
+        /// <summary>
+        /// Validate the store entered from the RangeUpload file
+        /// </summary>
+        /// <param name="division">division from file</param>
+        /// <param name="store">store from file</param>
+        /// <returns></returns>
+        private bool ValidateStore(string division, string store)
+        {
+            return (from sl in db.StoreLookups where sl.Division == division && sl.Store == store select sl).Any();
         }
 
         public ActionResult DownloadRangeErrors()
