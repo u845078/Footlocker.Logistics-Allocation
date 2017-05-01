@@ -545,7 +545,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
 
-        private string ValidateHold(Hold hold, Boolean usesRuleSet, Boolean edit)
+        private string ValidateHold(Hold hold, Boolean usesRuleSet, Boolean edit, Boolean fromUpload = false)
         {
             string returnMessage = "";
             string value = hold.Value + "";
@@ -581,13 +581,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
                     }
                 }
-                else if ((from a in db.Holds
-                          where ((a.ID != hold.ID) &&
-                          (a.Level == hold.Level) && (a.Value == hold.Value)
-                         && ((a.Store == hold.Store) || ((a.Store == null) && (hold.Store == null)))) select a).Count() > 0)
+                //else if ((from a in db.Holds
+                //          where ((a.ID != hold.ID) &&
+                //          (a.Level == hold.Level) && (a.Value == hold.Value)
+                //         && ((a.Store == hold.Store) || ((a.Store == null) && (hold.Store == null))))
+                //          select a).Count() > 0)
+                //{
+                //    returnMessage = "There is already a hold for " + hold.Store + " " + hold.Level + " " + hold.Value;
+                //}
+                else
                 {
-                    returnMessage = "There is already a hold for " + hold.Store + " " + hold.Level + " " + hold.Value;
+                    var holds = (from a in db.Holds where (a.ID != hold.ID) && (a.Level == hold.Level) && (a.Value == hold.Value) select a).ToList();
+
+                    if (holds.Any(a => (!fromUpload && ((a.Store == hold.Store) || (a.Store == null) && (hold.Store == null))) ||
+                                       (fromUpload && ((a.EndDate == null) || (a.EndDate > hold.StartDate)))))
+                    {
+                        returnMessage = "There is already a hold for " + hold.Store + " " + hold.Level + " " + hold.Value;
+                    }
                 }
+                
             }
 
             if (string.IsNullOrEmpty(returnMessage) && hold.EndDate != null)
@@ -1639,7 +1651,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         (Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Division")) &&
                         (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Store")) &&
                         (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Duration")) &&
-                        (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Dept")) &&
+                        (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Department")) &&
                         (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Brand")) &&
                         (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Team")) &&
                         (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Category")) &&
@@ -1692,7 +1704,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             }
 
                             //validate values dependent on business logic and sql server data type restrictions
-                            message = ValidateHold(item, false, false);
+                            message = ValidateHold(item, false, false, true);
 
                             if (message != "")
                             {
