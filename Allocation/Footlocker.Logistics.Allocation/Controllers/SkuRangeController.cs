@@ -1934,7 +1934,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             //delete it from any other groups
             List<RuleSelectedStore> existing = (from a in db.RuleSelectedStores
-                                                join b in db.RuleSets on a.RuleSetID equals b.RuleSetID
+                                                join b in db.RuleSets 
+                                                  on a.RuleSetID equals b.RuleSetID
                                                 where (b.Type == "Delivery") &&
                                                     (b.RuleSetID != ruleSetID) &&
                                                     (b.PlanID == planID) &&
@@ -2112,7 +2113,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 rangeType = "Both";
             }
 
-            MaxLeadTime lt = (from c in db.MaxLeadTimes where ((c.Store == store) && (c.Division == div)) select c).FirstOrDefault();
+            MaxLeadTime lt = (from c in db.MaxLeadTimes
+                              where ((c.Store == store) && (c.Division == div))
+                              select c).FirstOrDefault();
             if (lt == null)
             {
                 lt = new MaxLeadTime();
@@ -2121,9 +2124,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 lt.Store = store;
             }
             SizeAllocationDAO dao = new SizeAllocationDAO();
-            List<RangePlanDetail> rangePlanDetails = (from a in db.RangePlanDetails where a.ID == planID select a).ToList();
-            var query = (from a in rangePlanDetails where ((a.Division == lt.Division) && (a.Store == lt.Store)) select a);
-            DeliveryGroup dg = (from a in db.DeliveryGroups where a.RuleSetID == ruleSetID select a).First();
+            List<RangePlanDetail> rangePlanDetails = (from a in db.RangePlanDetails
+                                                      where a.ID == planID
+                                                      select a).ToList();
+
+            var query = (from a in rangePlanDetails
+                         where ((a.Division == lt.Division) && (a.Store == lt.Store))
+                         select a);
+
+            DeliveryGroup dg = (from a in db.DeliveryGroups
+                                where a.RuleSetID == ruleSetID
+                                select a).First();
+
             foreach (RangePlanDetail rpDet in query)
             {
                 rpDet.RangeType = rangeType;
