@@ -594,7 +594,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     var holds = (from a in db.Holds where (a.ID != hold.ID) && (a.Level == hold.Level) && (a.Value == hold.Value) select a).ToList();
 
                     if (holds.Any(a => (!fromUpload && ((a.Store == hold.Store) || (a.Store == null) && (hold.Store == null))) ||
-                                       (fromUpload && ((a.EndDate == null) || (a.EndDate > hold.StartDate)))))
+                                       (fromUpload && (a.Store == hold.Store && ((a.EndDate == null) || (a.EndDate > hold.StartDate))))))
                     {
                         returnMessage = "There is already a hold for " + hold.Store + " " + hold.Level + " " + hold.Value;
                     }
@@ -1600,13 +1600,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         #region Holds Upload
 
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult Upload()
         {
             return View();
         }
 
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult ExcelHoldsUploadTemplate()
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -1667,6 +1665,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 if (!hasValidHeaderRow)
                 {
                     message = "Upload failed: Incorrect header - please use template.";
+                    return Content(message);
                 }
                 else
                 {
@@ -1862,7 +1861,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 // if duration is permanent, the user should not be able to reserve inventory
                 if (h.ReserveInventoryBool && h.Duration.ToLower().Equals("permanent"))
                 {
-                    errorsFound = "You cannot reserve inventory if you have a duration of permanent.";
+                    errorsFound = "You cannot reserve inventory if you have a permanent duration.";
                 }
             }
             else
