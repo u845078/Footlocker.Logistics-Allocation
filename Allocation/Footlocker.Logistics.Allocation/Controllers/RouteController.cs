@@ -709,15 +709,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public void ReassignStartDates(StoreLeadTime lt)
         {
-            List<RangePlanDetail> updateList = (from a in db.RangePlanDetails where ((a.Division == lt.Division) && (a.Store == lt.Store)) select a).ToList();
-            var groupData = (from a in db.DeliveryGroups join b in db.RuleSelectedStores on a.RuleSetID equals b.RuleSetID where ((b.Division == lt.Division)&&(b.Store == lt.Store)) select new { start = a.StartDate, end = a.EndDate, planid = a.PlanID}).ToList();
+            List<RangePlanDetail> updateList = (from a in db.RangePlanDetails
+                                                where ((a.Division == lt.Division) && (a.Store == lt.Store))
+                                                select a).ToList();
+
+            var groupData = (from a in db.DeliveryGroups
+                             join b in db.RuleSelectedStores on a.RuleSetID equals b.RuleSetID
+                             where ((b.Division == lt.Division)&&(b.Store == lt.Store))
+                             select new { start = a.StartDate, end = a.EndDate, planid = a.PlanID}).ToList();
 
             int days;
             Boolean update = false;
             foreach (RangePlanDetail rpd in updateList)
             {
                 //get delivery start date
-                var query = (from a in groupData where a.planid == rpd.ID select a);
+                var query = (from a in groupData
+                             where a.planid == rpd.ID
+                             select a);
 
                 if (query.Count() > 0)
                 {
@@ -726,16 +734,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     if ((rpd.StartDate != null)&&(dateInfo.start != null))
                     {
                         //get new max lead time
-                        days = (from a in db.MaxLeadTimes where ((a.Division == lt.Division) && (a.Store == lt.Store)) select a.LeadTime).First();
+                        days = (from a in db.MaxLeadTimes
+                                where ((a.Division == lt.Division) && (a.Store == lt.Store))
+                                select a.LeadTime).First();
+
                         days = days - (((DateTime)rpd.StartDate) - ((DateTime)dateInfo.start)).Days;
                         rpd.StartDate = ((DateTime)rpd.StartDate).AddDays(days);
-                    }
-                    if ((rpd.EndDate != null)&&(dateInfo.end != null))
-                    {
-                        //get new max lead time
-                        days = (from a in db.MaxLeadTimes where ((a.Division == lt.Division) && (a.Store == lt.Store)) select a.LeadTime).First();
-                        days = days - (((DateTime)rpd.StartDate) - ((DateTime)dateInfo.start)).Days;
-                        rpd.EndDate = ((DateTime)rpd.EndDate).AddDays(days);
+
+                        if ((rpd.EndDate != null) && (dateInfo.end != null))
+                        {
+                            rpd.EndDate = ((DateTime)rpd.EndDate).AddDays(days);
+                        }
                     }
                 }
             }
