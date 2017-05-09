@@ -1003,19 +1003,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     if ((t.Store != currentStore) || (t.Division != currentDiv))
                     {
                         //Now let's update the date of the rangeplan
-                        RangePlanDetail det = (from a in db.RangePlanDetails where ((a.ID == planID) && (a.Division == t.Division) && (a.Store == t.Store)) select a).First();
+                        RangePlanDetail det = (from a in db.RangePlanDetails
+                                               where ((a.ID == planID) && 
+                                                      (a.Division == t.Division) && 
+                                                      (a.Store == t.Store))
+                                               select a).First();
                         det.StartDate = t.StartDate;
                         det.EndDate = t.EndDate;
-                        if (t.RangeType != "N\\A")
-                        {
-                            det.RangeType = t.RangeType;
-                        }
+                        //if (t.RangeType != "N\\A")
+                        //{
+                        //    det.RangeType = t.RangeType;
+                        //}
 
                         //always default to "Both"
-                        if (string.IsNullOrEmpty(det.RangeType))
-                        {
+                        //if (string.IsNullOrEmpty(det.RangeType))
+                        //{
                             det.RangeType = "Both";
-                        }
+                        //}
 
                         fixEndDate(det);
                         db.Entry(det).State = System.Data.EntityState.Modified;
