@@ -9,34 +9,34 @@ namespace Footlocker.Logistics.Allocation.Services
 {
     public class RangeReformat
     {
-        private const int _productIdent = 0;
-        private const int _locationType = 1;
-        private const int _locationID = 2;
-        private const int _onRange = 3;
-        private const int _offRange = 4;
-        private const int _todayUnitCost = 5;
-        private const int _todayUnitRetail = 6;
-        private const int _lifeCycle = 7;
-        private const int _min = 8;
-        private const int _max = 9;
-        private const int _initialDemand = 10;
-        private const int _range = 11;
-        private const int _launch = 12;
-        private const int _firstReceivableDt = 13;
-        private const int _minEndDate = 14;
-        private const int _attribute_15 = 15;
-        private const int _attribute_9 = 16;
-        private const int _learningTransitionCode = 17;
-        private const int _mld = 18;
-        private Boolean _InstanceOnOrderPlanning = false;
-        private const int _markdown = 20;
+        //private const int _productIdent = 0;
+        //private const int _locationType = 1;
+        //private const int _locationID = 2;
+        //private const int _onRange = 3;
+        //private const int _offRange = 4;
+        //private const int _todayUnitCost = 5;
+        //private const int _todayUnitRetail = 6;
+        //private const int _lifeCycle = 7;
+        //private const int _min = 8;
+        //private const int _max = 9;
+        //private const int _initialDemand = 10;
+        //private const int _range = 11;
+        //private const int _launch = 12;
+        //private const int _firstReceivableDt = 13;
+        //private const int _minEndDate = 14;
+        //private const int _attribute_15 = 15;
+        //private const int _attribute_9 = 16;
+        //private const int _learningTransitionCode = 17;
+        //private const int _mld = 18;
+        //private Boolean _InstanceOnOrderPlanning = false;
+        //private const int _markdown = 20;
 
         public RangeReformat()
         { }
 
         public RangeReformat(int instance)
         {
-            _InstanceOnOrderPlanning = (new Allocation.Services.ConfigService()).IsTrue(instance, "ORDER_PLANNING");
+            //_InstanceOnOrderPlanning = (new Allocation.Services.ConfigService()).IsTrue(instance, "ORDER_PLANNING");
 
         }
         public string Format(IDataReader dr, int instance)
@@ -47,51 +47,69 @@ namespace Footlocker.Logistics.Allocation.Services
         public string Format(IDataReader dr, string MLD, int instance)
         {
             string line = "";
-            line = line + "\"" + Convert.ToString(dr[_productIdent]) + "\",";
-            line = line + "\"" + Convert.ToString(dr[_locationType]) + "\",";
-            line = line + "\"" + Convert.ToString(dr[_locationID]) + "\",";
+            line = line + "\"" + Convert.ToString(dr["ProductIdent"]) + "\",";
+            line = line + "\"" + Convert.ToString(dr["LocationTypeCode"]) + "\",";
+            line = line + "\"" + Convert.ToString(dr["LocationID"]) + "\",";
             line = line + ",,";
-            line = line + Convert.ToString(dr[_max]) + ",";
+            line = line + Convert.ToString(dr["Max"]) + ",";
             line = line + ",";
-            line = line + Convert.ToString(dr[_min]) + ",";
+            line = line + Convert.ToString(dr["Min"]) + ",";
             line = line + ",,,,";
-            line = line + "\"" + Convert.ToString(dr[_onRange]).Trim() + "\",";
-            if (Convert.IsDBNull(dr[_markdown]))
+            line = line + "\"" + Convert.ToString(dr["OnRangeDt"]).Trim() + "\",";
+
+
+			//string productIdent = Convert.ToString(dr["ProductIdent"]);
+			//string markdown = "";
+			//if (!productIdent.StartsWith("3440049-") && !productIdent.StartsWith("3306940-") &&
+			//    !productIdent.StartsWith("3331343-") && !productIdent.StartsWith("3294248-"))
+			//{
+			//    markdown = "\"99991231\",";
+			//}
+			//else
+			//{
+			//    markdown = ",";
+			//}
+			//line = line + markdown;
+
+			if (Convert.IsDBNull(dr["Markdown"]))
+			{
+				line = line + ",";
+			}
+			else
+			{
+				line = line + "\"" + Convert.ToString(dr["Markdown"]).Trim() + "\",";
+			}
+
+			line = line + "\"" + Convert.ToString(dr["OffRangeDt1"]).Trim() + "\",";            
+
+            if (Convert.IsDBNull(dr["TodayUnitCost"]))
             {
                 line = line + ",";
             }
             else
             {
-                line = line + "\"" + Convert.ToString(dr[_markdown]).Trim() + "\",";
+                line = line + "\"" + Convert.ToString(dr["TodayUnitCost"]).Trim() + "\",";
             }
 
-            line = line + "\"" + Convert.ToString(dr[_offRange]).Trim() + "\",";
-            if (Convert.IsDBNull(dr[_todayUnitCost]))
+            if (Convert.IsDBNull(dr["TodayUnitRetail"]))
             {
                 line = line + ",";
             }
             else
             {
-                line = line + "\"" + Convert.ToString(dr[_todayUnitCost]).Trim() + "\",";
+                line = line + "\"" + Convert.ToString(dr["TodayUnitRetail"]).Trim() + "\",";
             }
 
-            if (Convert.IsDBNull(dr[_todayUnitRetail]))
-            {
-                line = line + ",";
-            }
-            else
-            {
-                line = line + "\"" + Convert.ToString(dr[_todayUnitRetail]).Trim() + "\",";
-            }
             line = line + ",,,,";
 
             string initDemand = "";
             if (Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings[instance + "_DEFAULT_DEMAND"]) > 0)
             {
-                if ((!(Convert.IsDBNull(dr[_initialDemand])))&&
-                    (Convert.ToString(dr[_initialDemand]) != "0") && (Convert.ToString(dr[_initialDemand]).Length>0))
+                if (!Convert.IsDBNull(dr["InitialDemand"]) &&
+                    Convert.ToString(dr["InitialDemand"]) != "0" && 
+                    Convert.ToString(dr["InitialDemand"]).Length > 0)
                 {
-                    initDemand = Convert.ToString(dr[_initialDemand]);
+                    initDemand = Convert.ToString(dr["InitialDemand"]);
                 }
                 else
                 {
@@ -100,29 +118,23 @@ namespace Footlocker.Logistics.Allocation.Services
             }
             else
             {
-                initDemand = Convert.ToString(dr[_initialDemand]);
+                initDemand = Convert.ToString(dr["InitialDemand"]);
             }
+
             if (initDemand == "0")
             {
                 initDemand = "";
             }
-            line = line + initDemand + ",";
+            
+            line = line + initDemand + "," + "\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",,";
 
-            line = line + "\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",";
-            line = line + "\"0\"";
-            line = line + ",";
-            if (!(Convert.IsDBNull(dr[_attribute_9])))
+            if (Convert.IsDBNull(dr["Launch"]))
             {
-                line = line + Convert.ToString(dr[_attribute_9]) + ",";
+                line = line + "\"REGULAR\",";
             }
             else
             {
-                line = line + ",";
-            }
-
-            if (!(Convert.IsDBNull(dr[_launch])))
-            {
-                if (Convert.ToInt16(dr[_launch]) == 1)
+                if (Convert.ToInt16(dr["Launch"]) == 1)
                 {
                     line = line + "\"LAUNCH\",";
                 }
@@ -131,45 +143,53 @@ namespace Footlocker.Logistics.Allocation.Services
                     line = line + "\"REGULAR\",";
                 }
             }
-            else
-            {
-                line = line + "\"REGULAR\",";
-            }
-
+  
             line = line + ",,,,";
-            if (_InstanceOnOrderPlanning)
-            {
-                line = line + "\"" + dr[_attribute_15] + "\""; //might be wrong!  this should match to attribute 15
-                MLD = Convert.ToString(dr[_mld]);
-            }
-            line = line + ",,,,,";
-            line = line + MLD + ",";
-            if (Convert.IsDBNull(dr[_firstReceivableDt]))
+
+            //if (_InstanceOnOrderPlanning)
+            //{
+            if (Convert.IsDBNull(dr["Attribute_15"]))
             {
                 line = line + ",";
             }
             else
             {
-                line = line + "\"" + Convert.ToString(dr[_firstReceivableDt]).Trim() + "\",";
+                line = line + "\"" + dr["Attribute_15"] + "\",";
+            }
+            if (!Convert.IsDBNull(dr["MLD"]))
+            {
+                MLD = Convert.ToString(dr["MLD"]);
+            }
+            //}
+
+            line = line + ",,,," + MLD + ",";
+
+            if (Convert.IsDBNull(dr["FirstReceivableDt"]))
+            {
+                line = line + ",";
+            }
+            else
+            {
+                line = line + "\"" + Convert.ToString(dr["FirstReceivableDt"]).Trim() + "\",";
             }
 
-            if (Convert.IsDBNull(dr[_learningTransitionCode]))
-            {
-                line = line + ",";
-            }
-            else
-            {
-                line = line + "\"" + Convert.ToString(dr[_learningTransitionCode]).Trim() + "\",";
-            }
+            //if (Convert.IsDBNull(dr["LearningTransitionCode"]))
+            //{
+            //    line = line + ",";
+            //}
+            //else
+            //{
+            //    line = line + "\"" + Convert.ToString(dr["LearningTransitionCode"]).Trim() + "\",";
+            //}
 
-            if (Convert.IsDBNull(dr[_minEndDate]))
-            {
-                line = line + ",";
-            }
-            else
-            {
-                line = line + "\"" + Convert.ToString(dr[_minEndDate]).Trim() + "\",";
-            }
+            //if (Convert.IsDBNull(dr["MinEndDate"]))
+            //{
+            //    line = line + ",";
+            //}
+            //else
+            //{
+            //    line = line + "\"" + Convert.ToString(dr["MinEndDate"]).Trim() + "\",";
+            //}
 
             
             
