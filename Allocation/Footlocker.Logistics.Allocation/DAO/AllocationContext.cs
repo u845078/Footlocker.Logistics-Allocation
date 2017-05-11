@@ -92,6 +92,7 @@ namespace Footlocker.Logistics.Allocation.DAO
         public DbSet<Categories> Categories { get; set; }
         public DbSet<BrandIDs> BrandIDs { get; set; }
         public DbSet<RingFenceStatusCodes> RingFenceStatusCodes { get; set; }
+        public DbSet<PurchaseOrder> POs { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -524,15 +525,10 @@ namespace Footlocker.Logistics.Allocation.DAO
 
         public List<StoreLookupModel> GetStoreLookupsForPlan(Int64 planID, string divisions)
         {
-/*                            var currlist =
-                        from n in model.NewStores
-                        join c in model.CurrentStores on new { n.Division, n.Store } equals new { c.Division, c.Store}
-                        select n; 
-            */
-            //StoreLookup s2 = (from a in StoreLookups.Include(o => o.StoreExtension).Include(o=>o.StoreExtension.ConceptType) where a.Store == "07395" select a).FirstOrDefault();
+            RangePlan p = (from a in RangePlans
+                           where a.Id == planID
+                           select a).First();
 
-            
-            RangePlan p = (from a in RangePlans where a.Id == planID select a).First();
             var list = (from store in StoreLookups
                         join det in RangePlanDetails
                         on new { store.Division, store.Store } equals new { det.Division, det.Store }
@@ -540,12 +536,16 @@ namespace Footlocker.Logistics.Allocation.DAO
                         select new { Store = store, StoreExtension = store.StoreExtension });
             List<StoreLookupModel> results = new List<StoreLookupModel>();
 
-            List<ConceptType> concepts = (from a in ConceptTypes select a).ToList() ;
+            List<ConceptType> concepts = (from a in ConceptTypes
+                                          select a).ToList();
             foreach (var s in list)
             {
-                try{
+                try
+                {
                     s.Store.StoreExtension = s.StoreExtension;
-                    s.Store.StoreExtension.ConceptType = (from a in concepts where a.ID == s.Store.StoreExtension.ConceptTypeID select a).FirstOrDefault();
+                    s.Store.StoreExtension.ConceptType = (from a in concepts
+                                                          where a.ID == s.Store.StoreExtension.ConceptTypeID
+                                                          select a).FirstOrDefault();
                 }
                 catch
                 {}
@@ -553,33 +553,25 @@ namespace Footlocker.Logistics.Allocation.DAO
                 results.Add(new StoreLookupModel(s.Store,planID,true));
             }
             return results;
-//            RangePlanDetails.Where(a => (a.ID == planID)).ToList();
         }
 
         public List<StoreLookupModel> GetStoreLookupsNotInPlan(Int64 planID, string divisions)
         {
-            //var templist = from det in RangePlanDetails
-            //           join store in StoreLookups on new { det.Division, det.Store } equals new { store.Division, store.Store }
-            //           where det.ID == planID
-            //           select store;
-
-
-            //var templist = from store in StoreLookups
-            //           from det in RangePlanDetails
-            //           where
-            //           (store.Division == det.Division)
-            //           && (store.Store == det.Store) && (det.ID == planID)
-            //           select store;
-
-            //var list = StoreLookups.Except(templist.ToList());
-            //var list = from store in StoreLookups 
-            //           where RangePlanDetails.Any(det=>((det.Store==store.Store)&&(det.ID==planID))) select store;
-            RangePlan p = (from a in RangePlans where a.Id == planID select a).First();
+            RangePlan p = (from a in RangePlans
+                           where a.Id == planID
+                           select a).First();
 
             //get list of div/store that are not in plan
-            var templist = (from s in StoreLookups where (s.Division == p.Sku.Substring(0,2)) select new { s.Division, s.Store }).Except(from det in RangePlanDetails where det.ID == planID select new { det.Division, det.Store });
+            var templist = (from s in StoreLookups
+                            where (s.Division == p.Sku.Substring(0,2))
+                            select new { s.Division, s.Store }).Except(from det in RangePlanDetails
+                                                                       where det.ID == planID
+                                                                       select new { det.Division, det.Store });
             //get StoreLookup objects for these div/stores
-            var list = (from s in StoreLookups join det in templist on new { s.Division, s.Store } equals new { det.Division, det.Store } select new { Store = s, StoreExtension = s.StoreExtension });
+            var list = (from s in StoreLookups
+                        join det in templist 
+                            on new { s.Division, s.Store } equals new { det.Division, det.Store }
+                        select new { Store = s, StoreExtension = s.StoreExtension });
 
             List<StoreLookupModel> results = new List<StoreLookupModel>();
             List<ConceptType> concepts = (from a in ConceptTypes select a).ToList();

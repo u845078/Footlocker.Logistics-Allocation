@@ -99,8 +99,7 @@
                 "InitialDemand": $("input[name='det[" + i + "].InitialDemand']").val(),
                 "StartDate": $("input[name='det[" + daterow + "].StartDate']").val(),
                 "EndDate": $("input[name='det[" + daterow + "].EndDate']").val(),
-                "MinEndDate": $("input[name='det[" + i + "].MnEndDate']").val(),
-                "RangeType": getSelectedText(daterow)
+                "MinEndDate": $("input[name='det[" + i + "].MnEndDate']").val()
             });
         }
 
@@ -191,7 +190,7 @@
 @using (Html.BeginForm("SaveStoreSizeAllocation", "SkuRange", FormMethod.Post))
 {
     <fieldset>
-<b>Update Individual Stores:</b> <br />
+        <legend>Update Individual Stores</legend>
         <b>Show: </b>
         <script>
             function toggleInitDemand()
@@ -226,6 +225,10 @@
 <div class="scrollablearea">
 <table class="scrolltable" cellpadding=0 cellspacing=0>
     <tr>
+        <th nowrap class='headcolLeague' style='width:85px;'>
+            @Html.DisplayNameFor(model => model.League)
+            <br />
+        </th>
         <th nowrap class='headcol' style='width:85px;'>
             @Html.DisplayNameFor(model => model.Store) 
             <br />
@@ -234,12 +237,8 @@
             OnRange
             <br />
         </th>
-        <th nowrap class='headcol3' style='width:100px;'>
+        <th nowrap class='headcol3' style='width:115px;'>
             End
-            <br />
-        </th>
-        <th nowrap class='headcol4' style='width:70px;'>
-        ALR/OP
             <br />
         </th>
         <th nowrap class='headcol5' style='width:55px;'>
@@ -276,69 +275,82 @@
     <th></th>
     @Html.Raw("</tr>")
 
-    prevStore = "FIRST";
-    prevDiv = "FIRST";
-    alternate = false;
-    int count = 0;
-    int startCount = 0;
-    int storeCount = 0;
-    int page = Convert.ToInt32(ViewData["page"]) + 1;
+        prevStore = "FIRST";
+        prevDiv = "FIRST";
+        alternate = false;
+        int count = 0;
+        int startCount = 0;
+        int storeCount = 0;
+        int page = Convert.ToInt32(ViewData["page"]) + 1;
 
-    int minStore = page * 10 - 10;
-    int maxStore = page * 10 - 1;
-    Int64 planID;
-    string scriptContent="";
-    
-    List<String> extraSizes = new List<String>();
-    List<int> extraQty = new List<int>();
-    
-    foreach (var item in Model)
-    {
-        if (!((prevDiv.Equals(item.Division)) && (prevStore.Equals(item.Store))))
+        int minStore = page * 10 - 10;
+        int maxStore = page * 10 - 1;
+        Int64 planID;
+        string scriptContent="";
+
+        List<String> extraSizes = new List<String>();
+        List<int> extraQty = new List<int>();
+
+        foreach (var item in Model)
         {
-            if (!(prevDiv.Equals("FIRST")))
+            if (!((prevDiv.Equals(item.Division)) && (prevStore.Equals(item.Store))))
             {
-                if ((storeCount >= minStore) && (storeCount <= maxStore))
+                if (!(prevDiv.Equals("FIRST")))
                 {
-                    @Html.Raw("<td nowrap class=\"long\"><div class=\"t-button\" onclick=\"SaveChanges('" + startCount + "', '" + count + "');\" >Save</div></td>")
-                    @Html.Raw("</tr>");
-                    scriptContent += "maxCell = " + count+ ";";
-                    scriptContent += "if (minCell == -1)";
-                    scriptContent += "{";
-                    scriptContent += "minCell = " + startCount;
-                    scriptContent += "}";
-                }
-                startCount = count;
-                storeCount++;
+                    if ((storeCount >= minStore) && (storeCount <= maxStore))
+                    {
 
-                //if (storeCount > maxStore)
-                //{
-                //    break;
-                //}
-            }
-            else
-            {
-                scriptContent += "var planID = " + item.PlanID + ";";
-                scriptContent += "var breakIndexes=[];";
-                scriptContent += "var minCell = -1;";
-                scriptContent += "var maxCell=0;";
-            }
-            prevDiv = item.Division;
-            prevStore = item.Store;
-            if ((storeCount >= minStore) && (storeCount <= maxStore))
-            {
-                if (alternate)
-                {
-                @Html.Raw("<tr class = 't-alt scrolltr'>")
+                        @Html.Raw("<td nowrap class=\"long\"><div class=\"t-button\" onclick=\"SaveChanges('" + startCount + "', '" + count + "');\" >Save</div></td>")
+                        @Html.Raw("</tr>");
+                        scriptContent += "maxCell = " + count+ ";";
+                        scriptContent += "if (minCell == -1)";
+                        scriptContent += "{";
+                        scriptContent += "minCell = " + startCount;
+                        scriptContent += "}";
+                    }
+                    startCount = count;
+                    storeCount++;
+
+                    //if (storeCount > maxStore)
+                    //{
+                    //    break;
+                    //}
                 }
                 else
                 {
-                @Html.Raw("<tr class=\"scrolltr\">")
+                    scriptContent += "var planID = " + item.PlanID + ";";
+                    scriptContent += "var breakIndexes=[];";
+                    scriptContent += "var minCell = -1;";
+                    scriptContent += "var maxCell=0;";
                 }
-                scriptContent += "breakIndexes.push(" + count + ");";
-
-                if (alternate)
+                prevDiv = item.Division;
+                prevStore = item.Store;
+                if ((storeCount >= minStore) && (storeCount <= maxStore))
                 {
+                    if (alternate)
+                    {
+                        @Html.Raw("<tr class = 't-alt scrolltr'>")
+                    }
+                    else
+                    {
+                        @Html.Raw("<tr class=\"scrolltr\">")
+                    }
+                    scriptContent += "breakIndexes.push(" + count + ");";
+
+                    if (alternate)
+                    {
+                        @Html.Raw("<td class=\"t-alt headcolLeague\" style='width:85px;'>")
+                    }
+                    else
+                    {
+                        @Html.Raw("<td class=\"headcolLeague\" style='width:85px;'>")
+                    }
+
+                    @Html.DisplayFor(modelItem => item.League)
+                    @Html.Raw("</td>")
+
+                    if (alternate)
+                    {
                     @Html.Raw("<td class=\"t-alt headcol\" style='width:85px;'>")
                 }
                 else
@@ -367,20 +379,7 @@
                             .Name("det[" + count + "].EndDate")
                             .HtmlAttributes(new { id = "DatePicker_wrapper", title = "Last day of learning (end date + store lead time)" })
                             .Value(item.EndDate).Enable(true)
-                    )
-                @Html.Raw("</td><td class=\"headcol4\" style='width:70px;'>")
-                @Html.DropDownList(item.RangeType,
-                                new SelectList(
-                                    new List<SelectListItem>
-                                    {
-                                        new SelectListItem { Text = "Both", Value = "Both"},
-                                        new SelectListItem { Text = "ALR", Value = "ALR"},
-                                        new SelectListItem { Text = "OP", Value = "OP"},
-                                    }, "Value", "Text", item.RangeType), new { Name = "det[" + count + "].RangeType", id = "det[" + count + "].RangeType" })
-                                                     //@Html.Raw("<select><option>Both</option><option>ALR</option><option>OP</option></select>")                   
-                @Html.Raw("</td>")
-                
-
+                    )                
                 @Html.Raw("</td><td class=\"headcol5\" style='width:55px;'>")
                 @Html.Raw("(<span class='total' id='DetTotal" + count + "'></span>)")    
                 @Html.Raw("</td>")
@@ -407,7 +406,7 @@
             @Html.Raw("&nbsp;")
             @Html.Raw("<input class=\"max\" name=\"det[" + count + "].Max\" type=\"text\" placeholder=\"max\" value=\"" + item.Max + "\" style = \"Width:28px\" onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" />")
             @Html.Raw("&nbsp;")
-            @Html.Raw("<input class=\"initdemand idtoggle\" placeholder=\"base\" hidden=true name=\"det[" + count + "].InitialDemand\" type=\"text\" value=\"" + item.InitialDemand + "\" style = \"Width:28px\" onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" />")
+            @Html.Raw("<input class=\"initdemand idtoggle\" placeholder=\"base\" hidden=true name=\"det[" + count + "].InitialDemand\" type=\"text\" value=\"" + item.InitialDemand + "\" style = \"Width:40px\" onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" />")
             @Html.Raw("&nbsp;")
             @(Html.Telerik().DatePicker()
                                     .Name("det[" + count + "].MnEndDate")

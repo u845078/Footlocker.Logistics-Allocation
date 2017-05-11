@@ -160,9 +160,12 @@
     <Compile Include="Models\MandatoryCrossdockDefault.cs" />
     <Compile Include="Models\MaxLeadTime.cs" />
     <Compile Include="Models\OrderPlanningRequest.cs" />
+    <Compile Include="Models\POStatus.cs" />
+    <Compile Include="Models\POStockStatus.cs" />
     <Compile Include="Models\Price.cs" />
     <Compile Include="Models\ProductHierarchyOverrides.cs" />
     <Compile Include="Models\ProductOverrideTypes.cs" />
+    <Compile Include="Models\PurchaseOrder.cs" />
     <Compile Include="Models\PurgeArchiveType.cs" />
     <Compile Include="Models\QuantumInstance.cs" />
     <Compile Include="Models\QuantumSeasonalityData.cs" />

@@ -65,7 +65,7 @@ else
 using (Html.BeginForm("SaveTotalSizeAllocation", "SkuRange", FormMethod.Post))
 {
    <fieldset>
-<b>Update all filtered stores:</b><br />
+       <legend>Update all filtered stores</legend>
 @Html.HiddenFor(m => Model.First().StartDate)
 <span title = "Last day of learning">End:</span>
                     @(Html.Telerik().DatePicker()
@@ -82,9 +82,9 @@ else
 { 
     @Html.Raw("<br>")
 }
-<span>ALR/OP</span>
+<!--span>ALR/OP<span-->
 
-@Html.Raw("<select id='totalRangeType' onchange='updateRangeType(this)'><option>N/A</option><option>ALR</option><option>OP</option><option>Both</option></select>")    
+@*@Html.Raw("<select id='totalRangeType' onchange='updateRangeType(this)'><option>N/A</option><option>ALR</option><option>OP</option><option>Both</option></select>")*@    
 
 <div class="t-widget t-grid">
 <table cellpadding=0 cellspacing=0>
@@ -157,7 +157,7 @@ foreach (var item in Model)
         @Html.Raw("<input name=\"[" + count + "].MaxInit\" type=\"hidden\" value=\"" + item.Max + "\" />")
     //@Html.TextBoxFor(modelItem => item.Max, new { style = "Width:20px", id = "[" + count + "].Max" })
         @Html.Raw("<br>")
-        @Html.Raw("<input class=\"initdemand\" name=\"[" + count + "].InitialDemand\" type=\"text\" value=\"" + item.InitialDemand + "\" style = \"Width:28px\"/ onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" >")
+        @Html.Raw("<input class=\"initdemand\" name=\"[" + count + "].InitialDemand\" type=\"text\" value=\"" + item.InitialDemand + "\" style = \"Width:40px\"/ onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" >")
         @Html.Raw("<input name=\"[" + count + "].InitialDemandInit\" type=\"hidden\" value=\"" + item.InitialDemand + "\" />")
         @Html.Raw("<br>")
 

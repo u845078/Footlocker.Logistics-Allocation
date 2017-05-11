@@ -10,6 +10,9 @@ using Telerik.Web.Mvc;
 using Footlocker.Common;
 using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.DAO;
+using System.IO;
+using Aspose.Excel;
+using System.Globalization;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -82,7 +85,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<Division> divs = Divisions();
             List<Hold> list = db.Holds.ToList();
             list = (from a in list
-                               join d in divs on a.Division equals d.DivCode where ((a.Duration == duration )|| (duration=="All"))
+                    join d in divs on a.Division equals d.DivCode where ((a.Duration == duration) || (duration == "All"))
                     select a).ToList();
             //TODO:  Do we want dept level security on holds???
             ViewData["message"] = message;
@@ -148,8 +151,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     select a).ToList();
             //TODO:  Do we want dept level security on holds???
 
-            List<HoldByProductModel> finalList = list.GroupBy(x => new {x.Division, x.Level, x.Value, x.HoldType})
-                .Select( y => new HoldByProductModel(y.Key.Division, y.Key.Level, y.Key.Value, y.Key.HoldType)).ToList();
+            List<HoldByProductModel> finalList = list.GroupBy(x => new { x.Division, x.Level, x.Value, x.HoldType })
+                .Select(y => new HoldByProductModel(y.Key.Division, y.Key.Level, y.Key.Value, y.Key.HoldType)).ToList();
             return View(new GridModel(finalList));
         }
 
@@ -210,7 +213,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     join d in divs on a.Division equals d.DivCode
                     where (((a.Duration == duration) || (duration == "All"))
                     && (a.Division == div)
-                    && ((a.Store == store) || ((a.Store == null)&&(store == "")))
+                    && ((a.Store == store) || ((a.Store == null) && (store == "")))
                     && (a.HoldType == holdType)
                     )
                     select a).ToList();
@@ -253,7 +256,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     model.RuleSetID = rs.RuleSetID;
                 }
-                
+
                 ViewData["ruleSetID"] = model.RuleSetID;
                 model.Divisions = this.Divisions();
                 return View(model);
@@ -271,7 +274,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 //TODO:  Do we want dept level security on holds???
                 if ((Footlocker.Common.WebSecurityService.UserHasDivision(UserName, "Allocation", model.Hold.Division)))
                 {
-                    if ((model.Hold.Level == "Sku")&&(model.Hold.Division != model.Hold.Value.Substring(0, 2)))
+                    if ((model.Hold.Level == "Sku") && (model.Hold.Division != model.Hold.Value.Substring(0, 2)))
                     {
                         ViewData["message"] = "Invalid Sku, division does not match selection.";
                         model.Divisions = this.Divisions();
@@ -286,7 +289,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             ApplyHoldsToExistingWebPicks(model.Hold);
                             return RedirectToAction("Index", new { duration = model.Hold.Duration });
                         }
-                        else 
+                        else
                         {
                             //create hold for each store
                             RuleDAO dao = new RuleDAO();
@@ -363,7 +366,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Edit(HoldModel model)
         {
-            string validationMessage = ValidateHold(model.Hold,false, true);
+            string validationMessage = ValidateHold(model.Hold, false, true);
             if (model.OriginalStartDate > model.Hold.StartDate)
             {
                 validationMessage = "Start date must be after original start date of hold";
@@ -453,7 +456,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     tempvalidationMessage = "Start date must be after original start date of hold for store " + h.Store + "<br>";
                 }
-               
+
                 if (tempvalidationMessage == "")
                 {
                     updatedList.Add(h);
@@ -542,7 +545,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
 
-        private string ValidateHold(Hold hold, Boolean usesRuleSet, Boolean edit)
+        private string ValidateHold(Hold hold, Boolean usesRuleSet, Boolean edit, Boolean fromUpload = false)
         {
             string returnMessage = "";
             string value = hold.Value + "";
@@ -564,7 +567,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 if (hold.Level == "All")
                 {
-                    if ((from a in db.Holds where ((a.Division == hold.Division)&&(a.Store == hold.Store) && (a.Level == hold.Level) && (a.ID != hold.ID)) select a).Count() > 0)
+                    if ((from a in db.Holds where ((a.Division == hold.Division) && (a.Store == hold.Store) && (a.Level == hold.Level) && (a.ID != hold.ID)) select a).Count() > 0)
                     {
                         returnMessage = "There is already a hold for " + hold.Store;
                     }
@@ -574,17 +577,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         int enabledDepts = Departments().Where(m => m.DivCode == hold.Division).Count();
                         if (divDepts != enabledDepts)
                         {
-                            returnMessage ="You do not have authority to create this hold.  Store level holds must have dept level access for ALL departments in the division.";
+                            returnMessage = "You do not have authority to create this hold.  Store level holds must have dept level access for ALL departments in the division.";
                         }
                     }
                 }
-                else if ((from a in db.Holds
-                          where ((a.ID != hold.ID)&&
-                          (a.Level == hold.Level) && (a.Value == hold.Value)
-                         && ((a.Store == hold.Store)||((a.Store == null)&&(hold.Store == null)))) select a).Count() > 0)
+                //else if ((from a in db.Holds
+                //          where ((a.ID != hold.ID) &&
+                //          (a.Level == hold.Level) && (a.Value == hold.Value)
+                //         && ((a.Store == hold.Store) || ((a.Store == null) && (hold.Store == null))))
+                //          select a).Count() > 0)
+                //{
+                //    returnMessage = "There is already a hold for " + hold.Store + " " + hold.Level + " " + hold.Value;
+                //}
+                else
                 {
-                    returnMessage = "There is already a hold for " + hold.Store + " " + hold.Level + " " + hold.Value;
+                    var holds = (from a in db.Holds where (a.ID != hold.ID) && (a.Level == hold.Level) && (a.Value == hold.Value) select a).ToList();
+
+                    if (holds.Any(a => (!fromUpload && ((a.Store == hold.Store) || (a.Store == null) && (hold.Store == null))) ||
+                                       (fromUpload && (a.Store == hold.Store && ((a.EndDate == null) || (a.EndDate > hold.StartDate))))))
+                    {
+                        returnMessage = "There is already a hold for " + hold.Store + " " + hold.Level + " " + hold.Value;
+                    }
                 }
+                
             }
 
             if (string.IsNullOrEmpty(returnMessage) && hold.EndDate != null)
@@ -834,7 +849,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     //if it was cancel inventory before, then let it be
                     var reserveinventory = (from a in db.Holds where a.ID == hold.ID select a.ReserveInventory).First();
-                    if ((reserveinventory != null)&&(reserveinventory > 0))
+                    if ((reserveinventory != null) && (reserveinventory > 0))
                     {
                         returnMessage = "RDQs already assigned to this hold, you must release the RDQs before setting this to Cancel Inventory";
                     }
@@ -853,7 +868,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             dh.Hold = model;
             ViewData["holdID"] = ID;
             RDQDAO dao = new RDQDAO();
-            
+
             //probably want stored proc so we can join for category
             dh.CurrentRDQs = GetRDQsForSession(ID);
 
@@ -1253,9 +1268,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             var rdqTotalQty = dao.GetRDQsForHold(holdID).ToList().Sum(r => r.Qty);
 
             // Return JSON representing Success
-            return new JsonResult() { 
-                Data = new JsonResultData(ActionResultCode.Success) { Data = rdqTotalQty }, 
-                JsonRequestBehavior = JsonRequestBehavior.AllowGet 
+            return new JsonResult() {
+                Data = new JsonResultData(ActionResultCode.Success) { Data = rdqTotalQty },
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }
 
@@ -1267,13 +1282,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
             var rdqTotalQty = GetRDQsInSession().ToList().Sum(r => r.Qty);
 
             // Return JSON representing Success
-            return new JsonResult() { 
-                Data = new JsonResultData(ActionResultCode.Success) { Data = rdqTotalQty }, 
-                JsonRequestBehavior = JsonRequestBehavior.AllowGet 
+            return new JsonResult() {
+                Data = new JsonResultData(ActionResultCode.Success) { Data = rdqTotalQty },
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }
 
-        
+
         // ------------------------------------------------------------------------------------------------------------------
         // OLD: These actions were used to release RDQs at the RDQ level (item/size), not at the RDQGroup level (item) which is the current UI design...
         // NOTE: Leaving this code commented out as an artifact and point to come back to in case the user's change their mind on the UI design...
@@ -1581,5 +1596,320 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.SaveChanges();
             return RedirectToAction("Index");
         }
+
+
+        #region Holds Upload
+
+        public ActionResult Upload()
+        {
+            return View();
+        }
+
+        public ActionResult ExcelHoldsUploadTemplate()
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+            Excel excelDocument = new Excel();
+            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["HoldsUploadTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
+            Byte[] data1 = new Byte[file.Length];
+            file.Read(data1, 0, data1.Length);
+            file.Close();
+            MemoryStream memoryStream1 = new MemoryStream(data1);
+            excelDocument.Open(memoryStream1);
+            excelDocument.Save("HoldsUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            return View("HoldsUpload");
+        }
+
+        public ActionResult UploadHolds(IEnumerable<HttpPostedFileBase> attachments)
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            int successCount = 0;
+
+            //Set license
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+            string message = String.Empty;
+            List<Hold> list = new List<Hold>();
+
+            foreach (HttpPostedFileBase file in attachments)
+            {
+                // Instantiate a Workbook object that represents an Excel file
+                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+                Byte[] data1 = new Byte[file.InputStream.Length];
+                file.InputStream.Read(data1, 0, data1.Length);
+                file.InputStream.Close();
+                MemoryStream memoryStream1 = new MemoryStream(data1);
+                workbook.Open(memoryStream1);
+                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+
+                // Determine if the spreadsheet contains a valid header row
+                var hasValidHeaderRow = (
+                        (Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Division")) &&
+                        (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Store")) &&
+                        (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Duration")) &&
+                        (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Department")) &&
+                        (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Brand")) &&
+                        (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Team")) &&
+                        (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Category")) &&
+                        (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Vendor")) &&
+                        (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Sku")) &&
+                        (Convert.ToString(mySheet.Cells[0, 9].Value).Contains("Start Date")) &&
+                        (Convert.ToString(mySheet.Cells[0, 10].Value).Contains("End Date")) &&
+                        (Convert.ToString(mySheet.Cells[0, 11].Value).Contains("Hold Type")) &&
+                        (Convert.ToString(mySheet.Cells[0, 12].Value).Contains("Comment"))
+                );
+
+                // Validate that the template's header row exists... (else error out)
+                if (!hasValidHeaderRow)
+                {
+                    message = "Upload failed: Incorrect header - please use template.";
+                    return Content(message);
+                }
+                else
+                {
+                    int row = 1;
+                    try
+                    {
+                        while (HasDataOnRow(mySheet, row))
+                        {
+                            Hold item = new Hold();
+                            item.Division = Convert.ToString(mySheet.Cells[row, 0].Value).Trim();
+                            item.Store = Convert.ToString(mySheet.Cells[row, 1].Value).Trim();
+                            string duration = Convert.ToString(mySheet.Cells[row, 2].Value).Trim().ToLower();
+                            string dept = Convert.ToString(mySheet.Cells[row, 3].Value).Trim();
+                            string brand = Convert.ToString(mySheet.Cells[row, 4].Value).Trim();
+                            string team = Convert.ToString(mySheet.Cells[row, 5].Value).Trim();
+                            string category = Convert.ToString(mySheet.Cells[row, 6].Value).Trim();
+                            string vendor = Convert.ToString(mySheet.Cells[row, 7].Value).Trim();
+                            string sku = Convert.ToString(mySheet.Cells[row, 8].Value).Trim();
+                            item.StartDate = Convert.ToDateTime(mySheet.Cells[row, 9].Value);
+                            item.EndDate = Convert.ToDateTime(mySheet.Cells[row, 10].Value);
+                            string holdType = Convert.ToString(mySheet.Cells[row, 11].Value).Trim().ToLower();
+                            item.Comments = Convert.ToString(mySheet.Cells[row, 12].Value).Trim();
+
+                            item.CreateDate = DateTime.Now;
+                            item.CreatedBy = this.User.Identity.Name;
+                            item.Comments = "(Upload) - " + item.Comments;
+
+                            //validate values entered by user
+                            message = ValidateHoldUploadValues(item, duration, dept, brand, team, category, vendor, sku, holdType);
+
+                            if (message != "")
+                            {
+                                message = string.Format("Row #{0}: {1}", (row + 1), message);
+                                return Content(message);
+                            }
+
+                            //validate values dependent on business logic and sql server data type restrictions
+                            message = ValidateHold(item, false, false, true);
+
+                            if (message != "")
+                            {
+                                message = string.Format("Row #{0}: {1}", (row + 1), message);
+                                return Content(message);
+                            }
+
+                            db.Holds.Add(item);
+                            row++;
+                        }
+                        // set number of successful hold records that were created before saving.
+                        successCount = db.Holds.Local.Count;
+                        db.SaveChanges();
+                    }
+                    catch (Exception ex)
+                    {
+                        message = "Upload failed: One or more columns has missing or invalid data.";
+                        return Content(message);
+                    }
+                }
+            }
+
+            return Json(new { message = string.Format("{0} Holds Uploaded", successCount)}, "applicaton/json");
+        }
+
+        /// <summary>
+        /// Will check to ensure the data on the next row has data
+        /// </summary>
+        /// <param name="sheet"></param>
+        /// <param name="row"></param>
+        /// <returns></returns>
+        private bool HasDataOnRow(Worksheet sheet, int row)
+        {
+            return sheet.Cells[row, 0].Value != null ||
+                   sheet.Cells[row, 1].Value != null ||
+                   sheet.Cells[row, 2].Value != null ||
+                   sheet.Cells[row, 3].Value != null ||
+                   sheet.Cells[row, 4].Value != null ||
+                   sheet.Cells[row, 5].Value != null ||
+                   sheet.Cells[row, 6].Value != null ||
+                   sheet.Cells[row, 7].Value != null ||
+                   sheet.Cells[row, 8].Value != null ||
+                   sheet.Cells[row, 9].Value != null ||
+                   sheet.Cells[row, 10].Value != null ||
+                   sheet.Cells[row, 11].Value != null ||
+                   sheet.Cells[row, 12].Value != null;
+        }
+        /// <summary>
+        /// determines the correct level for the hold and verifies specific values entered by user are correct
+        /// </summary>
+        /// <param name="h">Hold</param>
+        /// <param name="duration">duration</param>
+        /// <param name="dept">department</param>
+        /// <param name="brand">brand</param>
+        /// <param name="category">category</param>
+        /// <param name="vendor">vendor</param>
+        /// <param name="sku">sku</param>
+        /// <param name="holdType">holdtype</param>
+        /// <returns>string of errors found</returns>
+        private string ValidateHoldUploadValues(Hold h, string duration, string dept, string brand, string team, string category, string vendor, string sku, string holdType)
+        {
+            string errorsFound = "";
+
+            bool deptExists = !string.IsNullOrEmpty(dept);
+            bool brandExists = !string.IsNullOrEmpty(brand);
+            bool teamExists = !string.IsNullOrEmpty(team);
+            bool categoryExists = !string.IsNullOrEmpty(category);
+            bool vendorExists = !string.IsNullOrEmpty(vendor);
+            bool skuExists = !string.IsNullOrEmpty(sku);
+
+            #region Validate hold level
+
+            // sku
+            if (skuExists && !deptExists && !brandExists && !teamExists && !categoryExists && !vendorExists)
+            {
+                h.Level = "Sku";
+                h.Value = sku;
+            }
+            // VendorDeptCategory
+            else if (deptExists && categoryExists && vendorExists && !brandExists && !teamExists && !skuExists)
+            {
+                h.Level = "VendorDeptCategory";
+                h.Value = string.Format("{0}-{1}-{2}", vendor, dept, category);
+            }
+            // VendorDept
+            else if (deptExists && vendorExists && !brandExists && !teamExists && !categoryExists && !skuExists)
+            {
+                h.Level = "VendorDept";
+                h.Value = string.Format("{0}-{1}", vendor, dept);
+            }
+            // DeptCatTeam
+            else if (deptExists && categoryExists && teamExists && !brandExists && !vendorExists && !skuExists)
+            {
+                h.Level = "DeptCatTeam";
+                h.Value = string.Format("{0}-{1}-{2}", dept, category, team);
+            }
+            // DeptCatBrand
+            else if (deptExists && categoryExists && brandExists && !teamExists && !vendorExists && !skuExists)
+            {
+                h.Level = "DeptCatBrand";
+                h.Value = string.Format("{0}-{1}-{2}", dept, category, brand);
+            }
+            // DeptCat
+            else if (deptExists && categoryExists && !brandExists && !teamExists && !vendorExists && !skuExists)
+            {
+                h.Level = "Category";
+                h.Value = string.Format("{0}-{1}", dept, category);
+            }
+            // DeptTeam
+            else if (deptExists && teamExists && !brandExists && !categoryExists && !vendorExists && !skuExists)
+            {
+                h.Level = "DeptTeam";
+                h.Value = string.Format("{0}-{1}", dept, team);
+            }
+            // DeptBrand
+            else if (deptExists && brandExists && !teamExists && !categoryExists && !vendorExists && !skuExists)
+            {
+                h.Level = "DeptBrand";
+                h.Value = string.Format("{0}-{1}", dept, brand);
+            }
+            // Dept
+            else if (deptExists && !brandExists && !teamExists && !categoryExists && !vendorExists && !skuExists)
+            {
+                h.Level = "Dept";
+                h.Value = dept;
+            }
+            // Store
+            else if (!deptExists && !brandExists && !teamExists && !categoryExists && !vendorExists && !skuExists)
+            {
+                h.Level = "All";
+            }
+            else
+            {
+                errorsFound = "Invalid combination for hold.";
+            }
+
+            #endregion
+
+            // check duration
+            if (duration.Equals("temporary") || duration.Equals("permanent"))
+            {
+                //capitalizes the first letter
+                h.Duration = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(duration);
+            }
+            else
+            {
+                errorsFound = "Invalid input for 'Duration'.";
+            }
+
+            // check hold type
+            if (holdType.Equals("reserve inventory") || holdType.Equals("cancel inventory"))
+            {
+                h.ReserveInventoryBool = holdType.Equals("reserve inventory");
+
+                // if duration is permanent, the user should not be able to reserve inventory
+                if (h.ReserveInventoryBool && h.Duration.ToLower().Equals("permanent"))
+                {
+                    errorsFound = "You cannot reserve inventory if you have a permanent duration.";
+                }
+            }
+            else
+            {
+                errorsFound = "Invalid input for 'Hold Type'.";
+            }
+
+            // check start date
+            if (h.StartDate.Equals(DateTime.MinValue))
+            {
+                errorsFound = "Invalid input for 'Start Date'.  This value cannot be empty.";
+            }
+
+            // check end date - original parsing will set the EndDate to the MinValue if not present, which will conflict with sql server
+            if (h.EndDate.Equals(DateTime.MinValue))
+            {
+                h.EndDate = null;
+            }
+
+            // ensure there are no duplicates from excel file
+            if (checkForDuplicate(h))
+            {
+                errorsFound = "Identical hold already found within spreadsheet.";
+            }
+
+
+            return errorsFound;
+        }
+
+        /// <summary>
+        /// Ensure there is no duplicate record ready for insertion from Holds upload
+        /// </summary>
+        /// <param name="item">Hold</param>
+        /// <returns></returns>
+        private bool checkForDuplicate(Hold item)
+        {
+            return db.Holds.Local.Any(h => h.Division == item.Division &&
+                                           h.Store == item.Store &&
+                                           h.Duration == item.Duration &&
+                                           h.Level == item.Level &&
+                                           h.Value == (item.Value == "" ? "N/A": item.Value) &&
+                                           h.StartDate == item.StartDate &&
+                                           h.EndDate == item.EndDate &&
+                                           h.ReserveInventoryBool == item.ReserveInventoryBool);
+        }
+
+        #endregion
+
+
     }
 }

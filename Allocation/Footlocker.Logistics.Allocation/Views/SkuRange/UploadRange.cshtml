@@ -96,7 +96,7 @@
 
         function onError(e) {
             var message = e.XMLHttpRequest.responseText;
-            $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='DownloadRangeErrors'>Download Errors</a>");
+            $('#message').empty().append("<font color='red'>" + message + "<br /></font><br><a class='t-button' href='DownloadRangeErrors'>Download Errors</a>");
 
              e.preventDefault();
          }
