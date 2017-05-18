@@ -33,14 +33,18 @@
 <body>
     <div class="page">
         <div id="header" style="z-index: 1000">
+            <div style="color: white; float: left;">
+                Current date/time: @ViewBag.CurrentDate
+            </div>
+
+            <div id="logindisplay">
+                @ViewBag.FullUserName - [@HttpContext.Current.User.Identity.Name]
+            </div> 
+            
             <div id="title">
                 <h1>Allocation <font color="red">@(System.Configuration.ConfigurationManager.AppSettings["environment"])</font></h1>
-            </div>
- 
-            <div id="logindisplay" >
-                [@HttpContext.Current.User.Identity.Name]<br />&nbsp;
-            </div> 
-
+            </div>     
+            
            <div id="menucontainer">
 
                 @(Html.Telerik().Menu()
