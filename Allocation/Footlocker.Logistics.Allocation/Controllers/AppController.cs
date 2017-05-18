@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using Footlocker.Common;
 using Telerik.Web.Mvc;
 using System.DirectoryServices;
+using System.Web.Routing;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -111,6 +112,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
         }
 
-
+        protected override void Initialize(RequestContext requestContext)
+        {
+            base.Initialize(requestContext);
+            ViewBag.FullUserName = getCurrentUserFullUserName();
+            ViewBag.CurrentDate = DateTime.Now;
+        }
     }
 }
