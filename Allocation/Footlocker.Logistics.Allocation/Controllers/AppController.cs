@@ -115,7 +115,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         protected override void Initialize(RequestContext requestContext)
         {
             base.Initialize(requestContext);
-            ViewBag.FullUserName = getCurrentUserFullUserName();
+            ViewBag.FullUserName = getFullUserName(User.Identity.Name.Replace('\\', '/'));
+
             ViewBag.CurrentDate = DateTime.Now;
         }
     }
