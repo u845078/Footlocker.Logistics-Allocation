@@ -364,13 +364,13 @@ table th
 
 #menucontainer
 {
-    margin-top:50px;
+    margin-top:70px;
 }
 
 div#title
 {
     margin-top: 0;
-    /*display:block; */
+    display:block; 
     float:left;
     text-align:left;
 }
