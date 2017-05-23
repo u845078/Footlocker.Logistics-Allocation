@@ -65,6 +65,7 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<Categories> Categories { get; set; }
         public DbSet<BrandIDs> BrandIDs { get; set; }
         public DbSet<InventoryReductions> InventoryReductions { get; set; }
+        public DbSet<ProductHierarchyOverrides> ProductOverrides { get; set; }
 
         public AllocationLibraryContext()
             : base("AllocationContext")
@@ -114,6 +115,10 @@ namespace Footlocker.Logistics.Allocation.Services
                 m.MapInheritedProperties();
                 m.ToTable("vValidStores");
             });
+
+            //modelBuilder.Entity<ProductHierarchyOverrides>()
+            //    .HasRequired<ProductOverrideTypes>(p => p.productOverrideType)
+            //    .WithMany(s => s.productHierarchyOverrides);
         }
 
         public void HistoryRingFence(RingFence rf, string user, System.Data.EntityState state)

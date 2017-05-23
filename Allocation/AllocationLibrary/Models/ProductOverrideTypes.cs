@@ -32,10 +32,9 @@ namespace Footlocker.Logistics.Allocation.Models
                     default:
                         return 10;
                 }
-
             }
         }
 
-
+        public virtual ICollection<ProductHierarchyOverrides> productHierarchyOverrides { get; set; }
     }
 }

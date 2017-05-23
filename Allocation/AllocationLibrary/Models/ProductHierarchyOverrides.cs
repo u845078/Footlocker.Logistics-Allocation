@@ -11,10 +11,10 @@ namespace Footlocker.Logistics.Allocation.Models
     {
         [Key]
         public long productHierarchyOverrideID { get; set; }
+        [ForeignKey("productOverrideType")]
         public string productOverrideTypeCode { get; set; }
 
-        [NotMapped]
-        public ProductOverrideTypes productOverrideType { get; set; }
+        public virtual ProductOverrideTypes productOverrideType { get; set; }
         public DateTime effectiveFromDt { get; set; }
         public DateTime? effectiveToDt { get; set; }
         public string overrideDivision { get; set; }
