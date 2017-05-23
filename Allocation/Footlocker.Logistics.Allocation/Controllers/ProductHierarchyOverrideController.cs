@@ -7,6 +7,8 @@ using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Common;
 using Telerik.Web.Mvc;
 using System.Data.Objects;
+using Footlocker.Logistics.Allocation.Services;
+using System.Data.Entity;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -14,6 +16,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     public class ProductHierarchyOverrideController : AppController
     {
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        Footlocker.Logistics.Allocation.Services.AllocationLibraryContext context = new Services.AllocationLibraryContext();
 
         #region ActionResult handlers
         //
@@ -24,17 +27,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ViewData["message"] = message;
 
             List<Division> userDivList = WebSecurityService.ListUserDivisions(UserName, "Allocation");
-            List<ProductHierarchyOverrides> model = (from a in db.ProductHierarchyOverrides
-                                                     select a).ToList();
+
+            List<ProductHierarchyOverrides> model = (from p in context.ProductOverrides.Include(p => p.productOverrideType)
+                        select p).ToList();
+
             var filteredModel = from a in model
                                 join u in userDivList
-                on a.overrideDivision equals u.DivCode
+                                on a.overrideDivision equals u.DivCode
                                 select a;
 
-            foreach (ProductHierarchyOverrides pho in filteredModel)
+            Dictionary<string, string> names = new Dictionary<string, string>();
+            var users = (from a in filteredModel
+                         select a.lastModifiedUser).Distinct();
+            foreach (string userID in users)
             {
-                pho.lastModifiedUserName = getFullUserName(pho.lastModifiedUser.Replace('\\', '/'));
-                pho.productOverrideType = (from a in db.ProductOverrideTypes where a.productOverrideTypeCode == pho.productOverrideTypeCode select a).FirstOrDefault();
+                names.Add(userID, getFullUserName(userID.Replace('\\', '/')));
+            }
+
+            foreach (var item in filteredModel)
+            {
+                item.lastModifiedUserName = names[item.lastModifiedUser];
             }
 
             return View(filteredModel);
