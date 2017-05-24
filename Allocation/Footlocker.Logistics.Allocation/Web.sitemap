@@ -24,7 +24,7 @@
 
 	  <siteMapNode title="Network">
 		  <siteMapNode title="Blackouts" controller="WarehouseBlackout" action="Index"/>
-		  <siteMapNode title="CrossDock Exclusion" controller="CrossDockExclusion" action="Index"/>
+		  <siteMapNode title="CrossDock Exclusions" controller="CrossDockExclusion" action="Index"/>
 		  <siteMapNode title="Distribution Centers" controller="Route" action="DCIndex"/>
 		  <siteMapNode title="Routes" controller="Route" action="Index"/>
 		  <siteMapNode title="Store Network Schedule" controller="Route" action="StoreLeadTimes"/>
