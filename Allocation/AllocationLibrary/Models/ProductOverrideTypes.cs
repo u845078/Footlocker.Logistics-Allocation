@@ -35,6 +35,6 @@ namespace Footlocker.Logistics.Allocation.Models
             }
         }
 
-        public virtual ICollection<ProductHierarchyOverrides> productHierarchyOverrides { get; set; }
+        //public virtual ICollection<ProductHierarchyOverrides> productHierarchyOverrides { get; set; }
     }
 }
