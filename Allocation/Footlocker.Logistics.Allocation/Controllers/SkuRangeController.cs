@@ -3345,12 +3345,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
             OrderPlanningRequest model = new OrderPlanningRequest();
             model.PlanID = planID;
             DateTime start = (from p in db.RangePlans
-                              join i in db.ItemMasters on p.ItemID equals i.ID
-                              join id in db.InstanceDivisions on i.Div equals id.Division
-                              join cd in db.ControlDates on id.InstanceID equals cd.InstanceID
+                              join i in db.ItemMasters 
+                                on p.ItemID equals i.ID
+                              join id in db.InstanceDivisions 
+                                on i.Div equals id.Division
+                              join cd in db.ControlDates 
+                                on id.InstanceID equals cd.InstanceID
+                              where p.Id == planID
                               select cd.RunDate).First();
 
-            model.StartSend = start.AddDays(2);//warehouse pick day is control date + 2
+            model.StartSend = start;
             model.EndSend = start.AddDays(12);
             return View(model);
         }
