@@ -35,7 +35,16 @@ namespace Footlocker.Logistics.Allocation.Models
             }
         }
 
-        public string StatusNoSpace { get { return Status.Replace(" ", ""); } }
+        public string StatusNoSpace
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(Status))
+                    return Status.Replace(" ", "");
+                else
+                    return "";
+            }
+        }
         public string WarehouseNoSpace { get { return (""+this.WarehouseName).Replace(" ", ""); } }
 
 

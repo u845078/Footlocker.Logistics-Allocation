@@ -133,6 +133,7 @@ namespace Footlocker.Logistics.Allocation.Services
                             {
                                 ringfenceQty = Convert.ToInt32(reductionRow[0].ItemArray[1]);
                                 rdqQty = Convert.ToInt32(reductionRow[0].ItemArray[2]);
+                                onHandQty = onHandQty - Convert.ToInt32(reductionRow[0].ItemArray[3]);
                             }
                         }
 
