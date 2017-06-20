@@ -58,27 +58,28 @@ namespace Footlocker.Logistics.Allocation.Services
             line = line + "\"" + Convert.ToString(dr["OnRangeDt"]).Trim() + "\",";
 
 
-			//string productIdent = Convert.ToString(dr["ProductIdent"]);
-			//string markdown = "";
-			//if (!productIdent.StartsWith("3440049-") && !productIdent.StartsWith("3306940-") &&
-			//    !productIdent.StartsWith("3331343-") && !productIdent.StartsWith("3294248-"))
-			//{
-			//    markdown = "\"99991231\",";
-			//}
-			//else
-			//{
-			//    markdown = ",";
-			//}
-			//line = line + markdown;
+            //string productIdent = Convert.ToString(dr["ProductIdent"]);
+            //string markdown = "";
+            //if (!productIdent.StartsWith("3440049-") && !productIdent.StartsWith("3306940-") &&
+            //    !productIdent.StartsWith("3331343-") && !productIdent.StartsWith("3294248-"))
+            //{
+            //    markdown = "\"99991231\",";
+            //}
+            //else
+            //{
+            //    markdown = ",";
+            //}
+            //line = line + markdown;
 
-			if (Convert.IsDBNull(dr["Markdown"]))
-			{
-				line = line + ",";
-			}
-			else
-			{
-				line = line + "\"" + Convert.ToString(dr["Markdown"]).Trim() + "\",";
-			}
+            //if (Convert.IsDBNull(dr["Markdown"]))
+            //{
+            //	line = line + ",";
+            //}
+            //else
+            //{
+            //	line = line + "\"" + Convert.ToString(dr["Markdown"]).Trim() + "\",";
+            //}
+            line = line + "\"99991231\",";
 
 			line = line + "\"" + Convert.ToString(dr["OffRangeDt1"]).Trim() + "\",";            
 
