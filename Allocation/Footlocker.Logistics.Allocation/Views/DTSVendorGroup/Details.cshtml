@@ -56,9 +56,9 @@
 
 </table>*@
 
-@if (Model.Details.Count() > 0)
+@if (Model.HasDetails)
 {
-@(Html.Telerik().Grid(Model.Details)
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.VendorGroupDetail>()
         .Name("VendorGroupDetails")
         .Columns(columns =>
         {
