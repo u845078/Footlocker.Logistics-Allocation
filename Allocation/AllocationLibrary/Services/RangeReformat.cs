@@ -56,13 +56,13 @@ namespace Footlocker.Logistics.Allocation.Services
             line = line + Convert.ToString(dr[_min]) + ",";
             line = line + ",,,,";
             line = line + "\"" + Convert.ToString(dr[_onRange]).Trim() + "\",";
-            if (Convert.IsDBNull(dr[_markdown]))
+            if (Convert.IsDBNull(dr["Markdown"]))
             {
                 line = line + ",";
             }
             else
             {
-                line = line + "\"" + Convert.ToString(dr[_markdown]).Trim() + "\",";
+                line = line + "\"" + Convert.ToString(dr["Markdown"]).Trim() + "\",";
             }
 
             line = line + "\"" + Convert.ToString(dr[_offRange]).Trim() + "\",";
