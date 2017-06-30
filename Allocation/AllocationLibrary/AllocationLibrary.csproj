@@ -104,6 +104,7 @@
     <Compile Include="Factories\InventorySummaryFactory.cs" />
     <Compile Include="Factories\LegacyFutureInventoryFactory.cs" />
     <Compile Include="Factories\LegacyInventoryFactory.cs" />
+    <Compile Include="Factories\LostSalesFactory.cs" />
     <Compile Include="Factories\MainframeLinkFactory.cs" />
     <Compile Include="Factories\RangeFileItemFactory.cs" />
     <Compile Include="Factories\RangePlanFactory.cs" />
@@ -154,6 +155,7 @@
     <Compile Include="Models\InventorySummary.cs" />
     <Compile Include="Models\LegacyFutureInventory.cs" />
     <Compile Include="Models\LegacyInventory.cs" />
+    <Compile Include="Models\LostSalesRequest.cs" />
     <Compile Include="Models\MainframeLink.cs" />
     <Compile Include="Models\MainframeStore.cs" />
     <Compile Include="Models\MandatoryCrossdock.cs" />
@@ -252,6 +254,7 @@
     <Compile Include="Services\LegacyFutureInventoryDAO.cs" />
     <Compile Include="Services\EcommWeightDAO.cs" />
     <Compile Include="Services\LegacyInventoryDAO.cs" />
+    <Compile Include="Services\LostSalesDAO.cs" />
     <Compile Include="Services\MainframeDAO.cs" />
     <Compile Include="Services\MainframeStoreDAO.cs" />
     <Compile Include="Services\InventorySummaryDAO.cs" />
