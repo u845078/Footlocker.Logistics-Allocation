@@ -250,6 +250,7 @@
     <Compile Include="Models\AuditRDQModel.cs" />
     <Compile Include="Models\BulkRDQModel.cs" />
     <Compile Include="Models\InstanceModel.cs" />
+    <Compile Include="Models\LostSalesRequestModel.cs" />
     <Compile Include="Models\ProductHierarchyOverrideModel.cs" />
     <Compile Include="Models\PurgeArchiveTypeModel.cs" />
     <Compile Include="Models\TroubleshootRDQForSkuModel.cs" />
@@ -567,7 +568,7 @@
     <Content Include="Views\OverridePO\IndexByPO.cshtml" />
     <Content Include="Views\SkuRange\CreateOrderPlanningRequest.cshtml" />
     <Content Include="Views\SkuRange\EditOrderPlanningRequest.cshtml" />
-    <Content Include="Views\Item\RequestWSM.cshtml" />
+    <Content Include="Views\Item\RequestLostSales.cshtml" />
     <Content Include="Views\ProductHierarchyOverride\Index.cshtml" />
     <Content Include="Views\ProductHierarchyOverride\Create.cshtml" />
     <Content Include="Views\ProductHierarchyOverride\Edit.cshtml" />

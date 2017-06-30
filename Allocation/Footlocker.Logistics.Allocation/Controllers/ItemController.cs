@@ -7,7 +7,6 @@ using Aspose.Excel;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Models.Services;
-
 using Telerik.Web.Mvc;
 
 namespace Footlocker.Logistics.Allocation.Controllers
@@ -810,159 +809,127 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #endregion  
 
 
-        #region WMS Request
+        #region Lost Sales Request
 
         [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes, Head Merchandiser")]
-        public ActionResult RequestWSM()
+        public ActionResult RequestLostSales()
         {
-            WSMRequestModel model = new WSMRequestModel();
-            //model.Instances = db.Instances.ToList();
+            LostSalesRequestModel model = new LostSalesRequestModel();
             return View(model);
         }
 
         [HttpPost]
         [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes, Head Merchandiser")]
-        public ActionResult RequestWSM(WSMRequestModel model, string submitAction)
+        public ActionResult RequestLostSales(LostSalesRequestModel model)
         {
+            ViewData.Clear();
+
             Aspose.Excel.License license = new Aspose.Excel.License();
             //Set the license 
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
 
-            WSMDAO dao = new WSMDAO();
+            LostSalesDAO dao = new LostSalesDAO();
 
-            if (submitAction == "WSM")
+            DateTime start = default(DateTime);
+            int row = 1;
+            int page = 0;
+
+            ViewData["NoDataFound"] = "";
+            List<LostSalesRequest> list = dao.GetLostSales(model.Sku);
+            if (!list.Any())
             {
-                List<WSM> list = dao.GetWSM(model.Sku);
+                ViewBag.NoDataFound = "There was no data found for Sku " + model.Sku;
+                ModelState.Clear();
+                return View();
+            }
 
-                int row = 1;
-                int page = 0;
-                Worksheet mySheet = InitializeNewSheet(excelDocument, 0);
+            // clear error message *** doesnt work
+            ViewData.Clear();
 
-                for (int i = 0; i < 12; i++)
+            start = list.ElementAt(0).Start;
+            Worksheet mySheet = InitializeNewSheet(excelDocument, page, start);
+
+            foreach (LostSalesRequest ls in list)
+            {
+                int DailySalesIndex = 0;
+                mySheet.Cells[row, 0].PutValue(ls.LocationId);
+                mySheet.Cells[row, 1].PutValue(ls.ProductId);
+                for (int i = 0; i < 16; i++)
                 {
-                    mySheet.Cells[0, i].Style.Font.IsBold = true;
-                }
-
-                foreach (WSM w in list)
-                {
-                    mySheet.Cells[row, 0].PutValue(w.RunDate);
-                    mySheet.Cells[row, 1].PutValue(w.TargetProduct);
-                    mySheet.Cells[row, 2].PutValue(w.TargetProductId);
-                    mySheet.Cells[row, 3].PutValue(w.TargetLocation);
-                    mySheet.Cells[row, 4].PutValue(w.MatchProduct);
-                    mySheet.Cells[row, 5].PutValue(w.MatchProductId);
-                    mySheet.Cells[row, 6].PutValue(w.ProductWeight);
-                    mySheet.Cells[row, 7].PutValue(w.MatchLocation);
-                    mySheet.Cells[row, 8].PutValue(w.LocationWeight);
-                    mySheet.Cells[row, 9].PutValue(w.FinalMatchWeight);
-                    mySheet.Cells[row, 10].PutValue(w.FinalMatchDemand);
-                    mySheet.Cells[row, 11].PutValue(w.LastCapturedDemand);
-                    mySheet.Cells[row, 12].PutValue(w.StatusCode);
-                    row++;
-                    if (row > 60000)
+                    if (i == 7) //week 1 total
                     {
-                        //new page
-                        row = 1;
-                        page++;
-                        for (int i = 0; i < 12; i++)
-                        {
-                            mySheet.AutoFitColumn(i);
-                        }
-                        mySheet = InitializeNewSheet(excelDocument, page);
+                        mySheet.Cells[row, 2 + i].PutValue(ls.WeeklySales.ElementAt(0));
+                    } else if (i == 15) //week 2 total
+                    {
+                        mySheet.Cells[row, 2 + i].PutValue(ls.WeeklySales.ElementAt(1));
+                    } else //daily lost sales
+                    {
+                        mySheet.Cells[row, 2 + i].PutValue(ls.DailySales.ElementAt(DailySalesIndex));
+                        DailySalesIndex++;
                     }
                 }
-
-                for (int i = 0; i < 12; i++)
+                if (row > 60000)
                 {
-                    mySheet.AutoFitColumn(i);
+                    //new page
+                    row = 1;
+                    page++;
+                    mySheet = InitializeNewSheet(excelDocument, page, start);
                 }
-                excelDocument.Save(model.Sku + "-WSM.xls", SaveType.OpenInExcel, FileFormatType.Default,
-                    System.Web.HttpContext.Current.Response);
+                row++;
             }
-            else if (submitAction == "LocClus")
-            {
-                List<QuantumSeasonalityData> results = dao.getQuantumSeasonalityData(model.Sku);
 
-                int row = 1;
-                int page = 0;
-                Worksheet mySheet = InitializeNewSheetForSeasonalDownload(excelDocument, 0);
-
-                for (int i = 0; i < 3; i++)
-                {
-                    mySheet.Cells[0, i].Style.Font.IsBold = true;
-                }
-
-                foreach (QuantumSeasonalityData qsd in results)
-                {
-                    mySheet.Cells[row, 0].PutValue(qsd.locationFinalNodeID);
-                    mySheet.Cells[row, 1].PutValue(qsd.weekBeginDate);
-                    mySheet.Cells[row, 1].Style.Number = 14;
-                    mySheet.Cells[row, 2].PutValue(qsd.indexValue);
-                    mySheet.Cells[row, 2].Style.Number = 2;
-
-                    row++;
-                    if (row > 60000)
-                    {
-                        //new page
-                        row = 1;
-                        page++;
-                        for (int i = 0; i < 3; i++)
-                        {
-                            mySheet.AutoFitColumn(i);
-                        }
-                        mySheet = InitializeNewSheetForSeasonalDownload(excelDocument, page);
-                    }
-                }
-
-                for (int i = 0; i < 3; i++)
-                {
-                    mySheet.AutoFitColumn(i);
-                }
-                excelDocument.Save(model.Sku + "-LocClus.xls", SaveType.OpenInExcel, FileFormatType.Default,
-                    System.Web.HttpContext.Current.Response);
-            }
-            //model.Instances = db.Instances.ToList();
-            return View(model);
+            excelDocument.Save(model.Sku + "-LostSales.xls", SaveType.OpenInExcel, FileFormatType.Default,
+                System.Web.HttpContext.Current.Response);
+           
+            return View();
         }
 
-        private Worksheet InitializeNewSheet(Excel excelDocument, int page)
+        //method to create a new excel worksheet
+        private Worksheet InitializeNewSheet(Excel excelDocument, int page, DateTime start)
         {
             if (page > 0)
             {
                 excelDocument.Worksheets.Add();
             }
             Worksheet mySheet = excelDocument.Worksheets[page];
-            mySheet.Cells[0, 0].PutValue("RunDate");
-            mySheet.Cells[0, 1].PutValue("TargetProduct");
-            mySheet.Cells[0, 2].PutValue("TargetProductID");
-            mySheet.Cells[0, 3].PutValue("TargetLocation");
-            mySheet.Cells[0, 4].PutValue("MatchProduct");
-            mySheet.Cells[0, 5].PutValue("MatchProductID");
-            mySheet.Cells[0, 6].PutValue("ProductWeight");
-            mySheet.Cells[0, 7].PutValue("MatchLocation");
-            mySheet.Cells[0, 8].PutValue("LocationWeight");
-            mySheet.Cells[0, 9].PutValue("FinalMatchWeight");
-            mySheet.Cells[0, 10].PutValue("FinalMatchDemand");
-            mySheet.Cells[0, 11].PutValue("LastCapturedDemand");
-            mySheet.Cells[0, 12].PutValue("StatusCode");
+
+            //assign header names
+            for (int i = 0; i < 18; i++)
+            {
+                //make the headers of excel sheet bold
+                mySheet.Cells[0, i].Style.Font.IsBold = true;
+
+                if (i == 0) //column 1
+                {
+                    mySheet.Cells[0, 0].PutValue("Location Id");
+                }
+                else if (i == 1) //column 2
+                {
+                    mySheet.Cells[0, 1].PutValue("Product Id");
+                }
+                else if (i == 9) //column 10
+                {
+                    mySheet.Cells[0, 9].PutValue("Week 1 Total");
+                }
+                else if (i == 17) //column 18
+                {
+                    mySheet.Cells[0, 17].PutValue("Week 2 Total");
+                }
+                else //all other columns
+                {
+                    //format cells to datetime
+                    mySheet.Cells[0, i].Style.Number = 14;
+                    mySheet.Cells[0, i].PutValue(start.AddDays(i));
+                }
+                //auto fit each column
+                mySheet.AutoFitColumn(i);
+            }
+            
             return mySheet;
         }
 
-        private Worksheet InitializeNewSheetForSeasonalDownload(Excel excelDocument, int page)
-        {
-            if (page > 0)
-            {
-                excelDocument.Worksheets.Add();
-            }
-            Worksheet mySheet = excelDocument.Worksheets[page];
-            mySheet.Cells[0, 0].PutValue("Location Node ID");
-            mySheet.Cells[0, 1].PutValue("Week Begin Date");
-            mySheet.Cells[0, 2].PutValue("Index Value");
-            return mySheet;
-        }
         #endregion
-
     }
 }
