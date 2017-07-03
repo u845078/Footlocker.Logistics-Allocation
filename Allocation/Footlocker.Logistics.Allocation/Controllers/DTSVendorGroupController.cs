@@ -74,9 +74,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Details(int ID, string message)
         {
             ViewData["message"] = message;
-            Footlocker.Logistics.Allocation.Services.VendorGroupDetailDAO dao = new Services.VendorGroupDetailDAO();
             VendorGroupDetailsModel model = new VendorGroupDetailsModel();
-            model.Details = dao.GetVendorGroupDetails(ID);//(from a in db.VendorGroupDetails where a.GroupID == ID select a).ToList();
+            //model.Details = dao.GetVendorGroupDetails(ID);//(from a in db.VendorGroupDetails where a.GroupID == ID select a).ToList();
+            model.HasDetails = (from a in db.VendorGroupDetails where a.GroupID == ID select a).Any();
             model.Header = (from a in db.VendorGroups where a.ID == ID select a).First();
             //model.LeadTimes = (from a in db.VendorGroupLeadTimes where a.VendorGroupID == ID select a).ToList();
             ViewData["GroupID"] = ID;
