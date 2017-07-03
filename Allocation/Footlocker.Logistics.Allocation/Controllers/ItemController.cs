@@ -822,7 +822,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes, Head Merchandiser")]
         public ActionResult RequestLostSales(LostSalesRequestModel model)
         {
-            ViewData.Clear();
 
             Aspose.Excel.License license = new Aspose.Excel.License();
             //Set the license 
@@ -836,17 +835,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             int row = 1;
             int page = 0;
 
-            ViewData["NoDataFound"] = "";
             List<LostSalesRequest> list = dao.GetLostSales(model.Sku);
             if (!list.Any())
             {
                 ViewBag.NoDataFound = "There was no data found for Sku " + model.Sku;
-                ModelState.Clear();
-                return View();
+                return View(model);
             }
-
-            // clear error message *** doesnt work
-            ViewData.Clear();
 
             start = list.ElementAt(0).Start;
             Worksheet mySheet = InitializeNewSheet(excelDocument, page, start);
@@ -883,7 +877,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             excelDocument.Save(model.Sku + "-LostSales.xls", SaveType.OpenInExcel, FileFormatType.Default,
                 System.Web.HttpContext.Current.Response);
            
-            return View();
+            return RedirectToAction("RequestLostSales");
         }
 
         //method to create a new excel worksheet
