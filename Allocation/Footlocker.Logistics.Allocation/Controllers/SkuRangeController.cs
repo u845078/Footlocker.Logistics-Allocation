@@ -3690,7 +3690,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
 
                         RangePlanDetailDAO dao = new RangePlanDetailDAO();
-                        errorList = dao.BulkUpdateRange(updateList, UserName);
+                        errorList = dao.BulkUpdateRange(updateList, User.Identity.Name);
 
                         if (errorList.Count > 0)
                         {
