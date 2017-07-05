@@ -3,7 +3,7 @@
   <siteMapNode title="Home" controller="Home" action="Overview">
 	  <siteMapNode title="Admin">
 		  <siteMapNode title="Control Date" controller="Driver" action="Control" />
-      <siteMapNode title="Quantum Data Download" controller="Item" action="RequestLostSales" />
+      <siteMapNode title="Quantum Data Download" controller="Item" action="QuantumDataDownload" />
       <siteMapNode title="Instance Config" controller="Config" action="Index" />
       <siteMapNode title="Item Lookup" controller="Item" action="Lookup" />
 		  <siteMapNode title="Setup Dept" controller="Driver" action="Index" />

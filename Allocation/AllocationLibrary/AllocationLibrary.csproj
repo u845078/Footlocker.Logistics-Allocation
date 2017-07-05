@@ -254,7 +254,7 @@
     <Compile Include="Services\LegacyFutureInventoryDAO.cs" />
     <Compile Include="Services\EcommWeightDAO.cs" />
     <Compile Include="Services\LegacyInventoryDAO.cs" />
-    <Compile Include="Services\LostSalesDAO.cs" />
+    <Compile Include="Services\QuantumDAO.cs" />
     <Compile Include="Services\MainframeDAO.cs" />
     <Compile Include="Services\MainframeStoreDAO.cs" />
     <Compile Include="Services\InventorySummaryDAO.cs" />
@@ -279,7 +279,6 @@
     <Compile Include="Services\RuleDAO.cs" />
     <Compile Include="Services\SizeAllocationDAO.cs" />
     <Compile Include="Services\WarehouseInventoryDAO.cs" />
-    <Compile Include="Services\WSMDAO.cs" />
     <Compile Include="Validation\ModelClientValidationRequiredIfRule.cs" />
     <Compile Include="Validation\RequiredIfAttribute.cs" />
   </ItemGroup>

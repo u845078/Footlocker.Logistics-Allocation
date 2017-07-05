@@ -1,28 +1,49 @@
-﻿using Microsoft.Practices.EnterpriseLibrary.Data;
+﻿using Footlocker.Logistics.Allocation.Factories;
+using Footlocker.Logistics.Allocation.Models;
+using Microsoft.Practices.EnterpriseLibrary.Data;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Linq;
 using System.Text;
-using Footlocker.Common;
-using Footlocker.Logistics.Allocation.Factories;
-using Footlocker.Logistics.Allocation.Models;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
-    public class WSMDAO
+    public class QuantumDAO
     {
-        Database _database;
+         Database _database;
 
-        public WSMDAO()
+        public QuantumDAO()
         {
             _database = DatabaseFactory.CreateDatabase("AllocationContext");
         }
 
-        public List<WSM> GetWSM(string sku)
+        public List<LostSalesRequest> GetLostSales(string sku)
         {
-            List<WSM> list = new List<WSM>();
+            List<LostSalesRequest> lostSalesList = new List<LostSalesRequest>();
+            string SQL = "dbo.[GetLostSales]";
+            var sqlCommand = Footlocker.Common.DatabaseService.GetStoredProcCommand(_database, SQL);
+            _database.AddInParameter(sqlCommand, "@sku", DbType.String, sku);
+            sqlCommand.CommandTimeout = 300;
+
+            DataSet data = _database.ExecuteDataSet(sqlCommand);
+
+            LostSalesFactory lostSalesFactory = new LostSalesFactory();
+
+            if (data.Tables.Count > 0)
+            {
+                foreach (DataRow dr in data.Tables[0].Rows)
+                {
+                    lostSalesList.Add(lostSalesFactory.Create(dr));
+                }
+            }
+
+            return lostSalesList;
+        }
+
+         public List<WSM> GetWSM(string sku)
+        {
+            List<WSM> wsmList = new List<WSM>();
             string SQL = "dbo.[GetWSM]";
             var sqlCommand = Footlocker.Common.DatabaseService.GetStoredProcCommand(_database, SQL);
             _database.AddInParameter(sqlCommand, "@sku", DbType.String, sku);
@@ -30,41 +51,17 @@ namespace Footlocker.Logistics.Allocation.Services
 
             DataSet data = _database.ExecuteDataSet(sqlCommand);
 
-            WSMFactory factory = new WSMFactory();
+            WSMFactory wsmFactory = new WSMFactory();
 
             if (data.Tables.Count > 0)
             {
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    list.Add(factory.Create(dr));
+                    wsmList.Add(wsmFactory.Create(dr));
                 }
             }
 
-            return list;
+            return wsmList;
         }
-
-        public List<QuantumSeasonalityData> getQuantumSeasonalityData(string sku)
-        {
-            List<QuantumSeasonalityData> results = new List<QuantumSeasonalityData>();
-            string SQL = "dbo.[GetSeasonalityData]";
-            var sqlCommand = Footlocker.Common.DatabaseService.GetStoredProcCommand(_database, SQL);
-            _database.AddInParameter(sqlCommand, "@sku", DbType.String, sku);
-            sqlCommand.CommandTimeout = 300;
-
-            DataSet data = _database.ExecuteDataSet(sqlCommand);
-
-            WSMFactory factory = new WSMFactory();
-
-            if (data.Tables.Count > 0)
-            {
-                foreach (DataRow dr in data.Tables[0].Rows)
-                {
-                    results.Add(factory.CreateSeasonalData(dr));
-                }
-            }
-
-            return results;
-        }
-
     }
 }

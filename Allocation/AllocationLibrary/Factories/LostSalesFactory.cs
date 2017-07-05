@@ -9,10 +9,6 @@ namespace Footlocker.Logistics.Allocation.Factories
 {
     public class LostSalesFactory
     {
-        public LostSalesFactory()
-        {
-        }
-
         public LostSalesRequest Create(DataRow dr)
         {
             LostSalesRequest newObject = new LostSalesRequest();
@@ -29,7 +25,6 @@ namespace Footlocker.Logistics.Allocation.Factories
             }
            
             return newObject;
-        }
-           
+        }    
     }
 }
