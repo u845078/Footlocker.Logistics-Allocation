@@ -32,9 +32,21 @@ namespace Footlocker.Logistics.Allocation.Services
 
             if (data.Tables.Count > 0)
             {
+                List<DataRow> tempList = new List<DataRow>(); //temporary list to store enough data for a single LostSalesRequest
+
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    lostSalesList.Add(lostSalesFactory.Create(dr));
+                    //lostSalesList.Add(lostSalesFactory.Create(dr)); :FOR USE WITH PIVOT STORED PROC
+                    tempList.Add(dr);
+                    if (tempList.Count == 16) //16 rows of the query is 14 consecutive days of daily sales as well as 2 total weekly sales
+                    {
+                        LostSalesRequest lsr = lostSalesFactory.Create(tempList);
+                        if (lsr.DailySales.Count > 0) //do not add a LostSalesRequest with no daily values
+                        {
+                            lostSalesList.Add(lsr);
+                        }
+                        tempList.Clear(); //clear temporary list for next LostSalesRequest
+                    }
                 }
             }
 

@@ -851,19 +851,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     int dailySalesIndex = 0;
                     mySheet.Cells[row, 0].PutValue(ls.LocationId);
                     mySheet.Cells[row, 1].PutValue(ls.ProductId);
-                    for (int i = 0; i < 16; i++)
+                    for (int i = 2; i < 18; i++)
                     {
-                        if (i == 7) //week 1 total
+                        if (i == 2) //week 1 total
                         {
-                            mySheet.Cells[row, 2 + i].PutValue(ls.WeeklySales.ElementAt(0));
+                            mySheet.Cells[row, i].PutValue(ls.WeeklySales.ElementAt(0));
                         }
-                        else if (i == 15) //week 2 total
+                        else if (i == 3) //week 2 total
                         {
-                            mySheet.Cells[row, 2 + i].PutValue(ls.WeeklySales.ElementAt(1));
+                            mySheet.Cells[row, i].PutValue(ls.WeeklySales.ElementAt(1));
                         }
                         else //daily lost sales
                         {
-                            mySheet.Cells[row, 2 + i].PutValue(ls.DailySales.ElementAt(dailySalesIndex));
+                            mySheet.Cells[row, i].PutValue(ls.DailySales.ElementAt(dailySalesIndex));
                             dailySalesIndex++;
                         }
                     }
@@ -970,19 +970,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     mySheet.Cells[0, 1].PutValue("Product Id");
                 }
-                else if (i == 9) //column 10 header
+                else if (i == 2) //column 10 header
                 {
-                    mySheet.Cells[0, 9].PutValue("Week 1 Total");
+                    mySheet.Cells[0, 2].PutValue("Week 1 Total");
                 }
-                else if (i == 17) //column 18 header
+                else if (i == 3) //column 18 header
                 {
-                    mySheet.Cells[0, 17].PutValue("Week 2 Total");
+                    mySheet.Cells[0, 3].PutValue("Week 2 Total");
                 }
                 else //all other column headers
                 {
                     //format cells to datetime type
                     mySheet.Cells[0, i].Style.Number = 14;
-                    mySheet.Cells[0, i].PutValue(start.AddDays(i));
+                    mySheet.Cells[0, i].PutValue(start.AddDays(i - 4));
                 }
             }
             return mySheet;
