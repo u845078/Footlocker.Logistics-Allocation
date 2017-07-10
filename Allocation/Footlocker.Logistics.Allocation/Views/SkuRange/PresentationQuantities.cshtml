@@ -146,17 +146,17 @@
                 .Ajax(false)
                 .Action("DeleteDeliveryGroup", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
             }).HtmlAttributes(new { style = "text-align: left" }).Width(150);
-            columns.Bound(o => o.ALRStartDate)
-            .Template(@<text>
-                                @if (item.ALRStartDate != null)
-                                {
-                                    @Html.Raw(String.Format("{0:MM/dd/yyyy}", item.ALRStartDate) + "&nbsp;<a class=\"t-button\" href='/SkuRange/StopDeliveryGroup?deliveryGroupID=" + item.ID + "&planID=" + item.PlanID + "'>Stop</a>")
-                                }
-                                else
-                                {
-                                    @Html.Raw("<a class=\"t-button\" href='/SkuRange/StartDeliveryGroup?deliveryGroupID=" + item.ID + "&planID=" + item.PlanID + "'>Start</a>")
-                                }
-            </text>).Width(150).Title("Sending ALR Since");
+            //columns.Bound(o => o.ALRStartDate)
+            //.Template(@<text>
+            //                    @if (item.ALRStartDate != null)
+            //                    {
+            //                        @Html.Raw(String.Format("{0:MM/dd/yyyy}", item.ALRStartDate) + "&nbsp;<a class=\"t-button\" href='/SkuRange/StopDeliveryGroup?deliveryGroupID=" + item.ID + "&planID=" + item.PlanID + "'>Stop</a>")
+            //                    }
+            //                    else
+            //                    {
+            //                        @Html.Raw("<a class=\"t-button\" href='/SkuRange/StartDeliveryGroup?deliveryGroupID=" + item.ID + "&planID=" + item.PlanID + "'>Start</a>")
+            //                    }
+            //</text>).Width(150).Title("Sending ALR Since");
 
         })
                                                                     .DataBinding(dataBinding =>
@@ -182,7 +182,7 @@
 }
 
 <fieldset style="width:765px">
-    <b>Order Planning Request:</b><br />
+    <legend>Order Planning Request:</legend>
 
     @if (Model.OrderPlanningRequest != null)
     {
@@ -227,11 +227,11 @@
     }
 </fieldset>
 
-
+<!--
 <fieldset style="width:765px">
     <b>ALR Status:</b><br />
 
-    @if (Model.Plan.ALRStartDate != null)
+    @*if (Model.Plan.ALRStartDate != null)
     {
         @Html.Raw("Sending ALR Since ")
         @Html.DisplayFor(m => m.Plan.ALRStartDate)
@@ -241,8 +241,8 @@
     else
     {
         <a class='t-button' href="StartALR?planID=@Model.PlanID">Start Sending ALR into Quantum</a>
-    }
-</fieldset>
+    }*@
+</fieldset>-->
 
 
 <div style="margin-left:0px;margin-right:200px;" class="fieldset">
