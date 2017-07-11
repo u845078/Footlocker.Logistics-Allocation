@@ -1820,6 +1820,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                      on new { a.Division, a.Store } equals new { b.Division, b.Store }
                                      where a.ID == planID
                                      select a).Count();
+
+            var instanceQuery = from c in db.Configs
+                                join cp in db.ConfigParams
+                                on c.ParamID equals cp.ParamID
+                                where cp.Name == "ORDER_PLANNING" &&
+                                      c.InstanceID == i.InstanceID
+                                select c.Value;
+
+            if (instanceQuery.FirstOrDefault() == "true")
+                model.Plan.OPInstance = true;
+            else
+                model.Plan.OPInstance = false;
+
             db.SaveChanges();
 
             return model;
