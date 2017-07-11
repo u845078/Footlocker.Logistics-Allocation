@@ -849,21 +849,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 foreach (LostSalesRequest ls in lostSalesList)
                 {
                     int dailySalesIndex = 0;
-                    mySheet.Cells[row, 0].PutValue(ls.LocationId);
-                    mySheet.Cells[row, 1].PutValue(ls.ProductId);
-                    for (int i = 2; i < 18; i++)
+                    mySheet.Cells[row, 0].PutValue(ls.LocationId.Substring(3)); //eliminate 'S' and 'division' from location id
+                    mySheet.Cells[row, 1].PutValue(model.Sku + ls.ProductId.Substring(7)); //add shoe size from product id to end of sku
+                    for (int i = 2; i < 17; i++)
                     {
-                        if (i == 2) //week 1 total
+                        if (i == 2) //Prior Week Lost Sales
                         {
-                            mySheet.Cells[row, i].PutValue(ls.WeeklySales.ElementAt(0));
-                        }
-                        else if (i == 3) //week 2 total
-                        {
-                            mySheet.Cells[row, i].PutValue(ls.WeeklySales.ElementAt(1));
+                            mySheet.Cells[row, i].PutValue(ls.WeeklySales);
                         }
                         else //daily lost sales
                         {
-                            mySheet.Cells[row, i].PutValue(ls.DailySales.ElementAt(dailySalesIndex));
+                            //if there are no daily lost sales reported, put a 0 into the cell to avoid an out of range exception
+                            if (ls.DailySales.Count > dailySalesIndex)
+                            {
+                                mySheet.Cells[row, i].PutValue(ls.DailySales.ElementAt(dailySalesIndex));
+                            }
+                            else
+                            {
+                                mySheet.Cells[row, i].PutValue(0);
+                            }
                             dailySalesIndex++;
                         }
                     }
@@ -875,7 +879,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         page++;
 
                         //auto fit columns before adding a new sheet
-                        for (int i = 0; i < 18; i++)
+                        for (int i = 0; i < 17; i++)
                         {
                             mySheet.AutoFitColumn(i);
                         }
@@ -884,7 +888,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 //auto fit columns 
-                for (int i = 0; i < 18; i++)
+                for (int i = 0; i < 17; i++)
                 {
                     mySheet.AutoFitColumn(i);
                 }
@@ -957,7 +961,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             Worksheet mySheet = excelDocument.Worksheets[page];
 
             //assign header names
-            for (int i = 0; i < 18; i++)
+            for (int i = 0; i < 17; i++)
             {
                 //make the headers of excel sheet bold
                 mySheet.Cells[0, i].Style.Font.IsBold = true;
@@ -968,21 +972,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 else if (i == 1) //column 2 header
                 {
-                    mySheet.Cells[0, 1].PutValue("Product Id");
+                    mySheet.Cells[0, 1].PutValue("Sku");
                 }
-                else if (i == 2) //column 10 header
+                else if (i == 2) //column 3 header
                 {
-                    mySheet.Cells[0, 2].PutValue("Week 1 Total");
-                }
-                else if (i == 3) //column 18 header
-                {
-                    mySheet.Cells[0, 3].PutValue("Week 2 Total");
+                    mySheet.Cells[0, 2].PutValue("Prior Week Lost Sales");
                 }
                 else //all other column headers
                 {
                     //format cells to datetime type
                     mySheet.Cells[0, i].Style.Number = 14;
-                    mySheet.Cells[0, i].PutValue(start.AddDays(i - 4));
+                    mySheet.Cells[0, i].PutValue(start.AddDays(i - 3));
                 }
             }
             return mySheet;

@@ -33,23 +33,45 @@ namespace Footlocker.Logistics.Allocation.Services
             if (data.Tables.Count > 0)
             {
                 List<DataRow> tempList = new List<DataRow>(); //temporary list to store enough data for a single LostSalesRequest
+                String product_id = Convert.ToString(data.Tables[0].Rows[0]["PRODUCT_ID"]); //variable to check each row's product id
+                String location_id = Convert.ToString(data.Tables[0].Rows[0]["LOCATION_ID"]); //variable to check each row's location id
+                LostSalesRequest lsr = new LostSalesRequest(); 
 
-                foreach (DataRow dr in data.Tables[0].Rows)
+                for (int i = 0; i < data.Tables[0].Rows.Count; i++)
                 {
-                    //lostSalesList.Add(lostSalesFactory.Create(dr)); :FOR USE WITH PIVOT STORED PROC
-                    tempList.Add(dr);
-                    if (tempList.Count == 16) //16 rows of the query is 14 consecutive days of daily sales as well as 2 total weekly sales
-                    {
-                        LostSalesRequest lsr = lostSalesFactory.Create(tempList);
-                        if (lsr.DailySales.Count > 0) //do not add a LostSalesRequest with no daily values
-                        {
-                            lostSalesList.Add(lsr);
-                        }
-                        tempList.Clear(); //clear temporary list for next LostSalesRequest
-                    }
-                }
-            }
+                    var dataRow = data.Tables[0].Rows[i];
 
+                    //check to see if it is the last row in the result set, if so add to temp list and send to LostSalesFactory
+                    if (i == data.Tables[0].Rows.Count - 1)
+                    {
+                        tempList.Add(dataRow);
+
+                        //create a LostSalesRequest which represents a single row in the excel sheet and add to the returned list
+                        lsr = lostSalesFactory.Create(tempList);
+                        lostSalesList.Add(lsr);
+                    }
+                    //check to make sure the row has the same product and location id, if so add to temp list
+                    else if ((Convert.ToString(dataRow["PRODUCT_ID"]) == product_id) && (Convert.ToString(dataRow["LOCATION_ID"]) == location_id)) 
+                    {
+                        tempList.Add(dataRow);
+                    }
+                    //check to see if product_id OR location_id has changed, if so reassign id's and send the temp list to the LostSalesFactory
+                    else if ((Convert.ToString(dataRow["PRODUCT_ID"]) != product_id) || (Convert.ToString(dataRow["LOCATION_ID"]) != location_id))
+                    {
+                        //reassign product_id and location_id 
+                        product_id = Convert.ToString(dataRow["PRODUCT_ID"]);
+                        location_id = Convert.ToString(dataRow["LOCATION_ID"]);
+
+                        //create a LostSalesRequest which represents a single row in the excel sheet and add to the returned list
+                        lsr = lostSalesFactory.Create(tempList);
+                        lostSalesList.Add(lsr);
+
+                        //clear temporary list and add the first element of the next product_id
+                        tempList.Clear();
+                        tempList.Add(dataRow);
+                    } 
+                }   
+            }
             return lostSalesList;
         }
 
