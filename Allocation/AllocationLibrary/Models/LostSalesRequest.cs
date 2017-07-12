@@ -7,15 +7,13 @@ namespace Footlocker.Logistics.Allocation.Models
 {
     public class LostSalesRequest
     {
-        public String ProductId { get; set; }
-        public String LocationId { get; set; }
-        public DateTime Start { get; set; }
-        public List<double> DailySales { get; set; }
-        public double WeeklySales { get; set; }
+        public List<LostSalesInstance> LostSales { get; set; }
+        public DateTime BeginDate { get; set; }
+        public DateTime EndDate { get; set; }
 
         public LostSalesRequest()
         {
-            DailySales = new List<double>();
+            LostSales = new List<LostSalesInstance>();
         }
     }
 }

@@ -828,48 +828,35 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             QuantumDAO dao = new QuantumDAO();
 
+            LostSalesRequest request = new LostSalesRequest();
+
             int row = 1;
             int page = 0;
 
             if (submitAction == "LostSales")
             {
                 DateTime start = default(DateTime);
-                List<LostSalesRequest> lostSalesList = dao.GetLostSales(model.Sku);
+                
+                request = dao.GetLostSales(model.Sku);
 
                 //If lost sales query returns no results then inform user
-                if (!lostSalesList.Any()) 
+                if (!request.LostSales.Any()) 
                 {
                     ViewBag.NoDataFound = "There was no data found for Sku " + model.Sku;
                     return View(model);
                 }
 
-                start = lostSalesList.ElementAt(0).Start;
+                start = request.BeginDate;
                 Worksheet mySheet = InitializeNewLostSalesSheet(excelDocument, page, start);
 
-                foreach (LostSalesRequest ls in lostSalesList)
+                foreach (LostSalesInstance ls in request.LostSales)
                 {
-                    int dailySalesIndex = 0;
                     mySheet.Cells[row, 0].PutValue(ls.LocationId.Substring(3)); //eliminate 'S' and 'division' from location id
                     mySheet.Cells[row, 1].PutValue(model.Sku + ls.ProductId.Substring(7)); //add shoe size from product id to end of sku
-                    for (int i = 2; i < 17; i++)
+                    mySheet.Cells[row, 2].PutValue(ls.WeeklySales);
+                    for (int i = 0; i < 14; i++)
                     {
-                        if (i == 2) //Prior Week Lost Sales
-                        {
-                            mySheet.Cells[row, i].PutValue(ls.WeeklySales);
-                        }
-                        else //daily lost sales
-                        {
-                            //if there are no daily lost sales reported, put a 0 into the cell to avoid an out of range exception
-                            if (ls.DailySales.Count > dailySalesIndex)
-                            {
-                                mySheet.Cells[row, i].PutValue(ls.DailySales.ElementAt(dailySalesIndex));
-                            }
-                            else
-                            {
-                                mySheet.Cells[row, i].PutValue(0);
-                            }
-                            dailySalesIndex++;
-                        }
+                       mySheet.Cells[row, i + 3].PutValue(ls.DailySales[i]);
                     }
                     row++;
                     if (row > 60000)

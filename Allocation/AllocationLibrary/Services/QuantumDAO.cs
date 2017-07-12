@@ -18,15 +18,20 @@ namespace Footlocker.Logistics.Allocation.Services
             _database = DatabaseFactory.CreateDatabase("AllocationContext");
         }
 
-        public List<LostSalesRequest> GetLostSales(string sku)
+        public LostSalesRequest GetLostSales(string sku)
         {
-            List<LostSalesRequest> lostSalesList = new List<LostSalesRequest>();
+            LostSalesRequest lostSalesRequest = new LostSalesRequest();
             string SQL = "dbo.[GetLostSales]";
             var sqlCommand = Footlocker.Common.DatabaseService.GetStoredProcCommand(_database, SQL);
             _database.AddInParameter(sqlCommand, "@sku", DbType.String, sku);
+            _database.AddOutParameter(sqlCommand, "@beginDate", DbType.String, 10);
+            _database.AddOutParameter(sqlCommand, "@endDate", DbType.String, 10);
             sqlCommand.CommandTimeout = 300;
 
             DataSet data = _database.ExecuteDataSet(sqlCommand);
+
+            lostSalesRequest.BeginDate = Convert.ToDateTime(_database.GetParameterValue(sqlCommand, "@beginDate"));
+            lostSalesRequest.EndDate = Convert.ToDateTime(_database.GetParameterValue(sqlCommand, "@endDate"));
 
             LostSalesFactory lostSalesFactory = new LostSalesFactory();
 
@@ -35,7 +40,7 @@ namespace Footlocker.Logistics.Allocation.Services
                 List<DataRow> tempList = new List<DataRow>(); //temporary list to store enough data for a single LostSalesRequest
                 String product_id = Convert.ToString(data.Tables[0].Rows[0]["PRODUCT_ID"]); //variable to check each row's product id
                 String location_id = Convert.ToString(data.Tables[0].Rows[0]["LOCATION_ID"]); //variable to check each row's location id
-                LostSalesRequest lsr = new LostSalesRequest(); 
+                LostSalesInstance lsi = new LostSalesInstance(); 
 
                 for (int i = 0; i < data.Tables[0].Rows.Count; i++)
                 {
@@ -47,8 +52,8 @@ namespace Footlocker.Logistics.Allocation.Services
                         tempList.Add(dataRow);
 
                         //create a LostSalesRequest which represents a single row in the excel sheet and add to the returned list
-                        lsr = lostSalesFactory.Create(tempList);
-                        lostSalesList.Add(lsr);
+                        lsi = lostSalesFactory.Create(tempList);
+                        lostSalesRequest.LostSales.Add(lsi);
                     }
                     //check to make sure the row has the same product and location id, if so add to temp list
                     else if ((Convert.ToString(dataRow["PRODUCT_ID"]) == product_id) && (Convert.ToString(dataRow["LOCATION_ID"]) == location_id)) 
@@ -63,8 +68,8 @@ namespace Footlocker.Logistics.Allocation.Services
                         location_id = Convert.ToString(dataRow["LOCATION_ID"]);
 
                         //create a LostSalesRequest which represents a single row in the excel sheet and add to the returned list
-                        lsr = lostSalesFactory.Create(tempList);
-                        lostSalesList.Add(lsr);
+                        lsi = lostSalesFactory.Create(tempList);
+                        lostSalesRequest.LostSales.Add(lsi);
 
                         //clear temporary list and add the first element of the next product_id
                         tempList.Clear();
@@ -72,7 +77,7 @@ namespace Footlocker.Logistics.Allocation.Services
                     } 
                 }   
             }
-            return lostSalesList;
+            return lostSalesRequest;
         }
 
          public List<WSM> GetWSM(string sku)
