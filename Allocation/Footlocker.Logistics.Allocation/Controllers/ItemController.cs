@@ -835,7 +835,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (submitAction == "LostSales")
             {
-                DateTime start = default(DateTime);
+                DateTime start = default(DateTime); //Day 1 of the 14 day span to initialize excel headings
+                Double weeklySales = 0; //Variable to store prior week lost sales
                 
                 request = dao.GetLostSales(model.Sku);
 
@@ -851,12 +852,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 foreach (LostSalesInstance ls in request.LostSales)
                 {
-                    mySheet.Cells[row, 0].PutValue(ls.LocationId.Substring(3)); //eliminate 'S' and 'division' from location id
-                    mySheet.Cells[row, 1].PutValue(model.Sku + ls.ProductId.Substring(7)); //add shoe size from product id to end of sku
-                    mySheet.Cells[row, 2].PutValue(ls.WeeklySales);
+                    //eliminate 'S' and 'division' from location id, then put in store location column
+                    mySheet.Cells[row, 0].PutValue(ls.LocationId.Substring(3)); 
+
+                    //add shoe size from product id to end of sku, then put in sku column
+                    mySheet.Cells[row, 1].PutValue(model.Sku + ls.ProductId.Substring(7));
+
+                    //sum weekly lost sales from daily lost sales array, then put in appropriate column
+                    for (int i = 0; i < 7; i++ )
+                    {
+                        weeklySales += ls.DailySales[request.WeeklySalesEndIndex - i];
+                    }
+                    mySheet.Cells[row, 2].PutValue(weeklySales);
+                    //reset for the next lostsalesinstance
+                    weeklySales = 0;
+
+                    //put daily lost sales in the appropriate day column
                     for (int i = 0; i < 14; i++)
                     {
-                       mySheet.Cells[row, i + 3].PutValue(ls.DailySales[i]);
+                       mySheet.Cells[row, i + 3].PutValue(ls.DailySales[i]); 
                     }
                     row++;
                     if (row > 60000)
@@ -865,7 +879,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         row = 1;
                         page++;
 
-                        //auto fit columns before adding a new sheet
+                        //auto fit columns of current sheet before adding a new sheet
                         for (int i = 0; i < 17; i++)
                         {
                             mySheet.AutoFitColumn(i);
@@ -874,7 +888,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                 }
 
-                //auto fit columns 
+                //auto fit columns of current sheet before creating the excel file
                 for (int i = 0; i < 17; i++)
                 {
                     mySheet.AutoFitColumn(i);

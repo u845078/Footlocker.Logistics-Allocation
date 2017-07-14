@@ -26,20 +26,28 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.AddInParameter(sqlCommand, "@sku", DbType.String, sku);
             _database.AddOutParameter(sqlCommand, "@beginDate", DbType.String, 10);
             _database.AddOutParameter(sqlCommand, "@endDate", DbType.String, 10);
+            _database.AddOutParameter(sqlCommand, "@weekEndDateIndex", DbType.String, 10);
             sqlCommand.CommandTimeout = 300;
 
             DataSet data = _database.ExecuteDataSet(sqlCommand);
 
             lostSalesRequest.BeginDate = Convert.ToDateTime(_database.GetParameterValue(sqlCommand, "@beginDate"));
             lostSalesRequest.EndDate = Convert.ToDateTime(_database.GetParameterValue(sqlCommand, "@endDate"));
+            lostSalesRequest.WeeklySalesEndIndex = Convert.ToInt16(_database.GetParameterValue(sqlCommand, "@weekEndDateIndex"));
 
             LostSalesFactory lostSalesFactory = new LostSalesFactory();
+            List<DataRow> tempList; //temporary list to store enough data for a single LostSalesInstance
+            String product_id; //variable to check each row's product id
+            String location_id; //variable to check each row's location id
 
-            if (data.Tables.Count > 0)
+            //check to see if there is a table returned and that the table has at least one value
+            if (data.Tables.Count > 0 && data.Tables[0].Rows.Count > 0)
             {
-                List<DataRow> tempList = new List<DataRow>(); //temporary list to store enough data for a single LostSalesRequest
-                String product_id = Convert.ToString(data.Tables[0].Rows[0]["PRODUCT_ID"]); //variable to check each row's product id
-                String location_id = Convert.ToString(data.Tables[0].Rows[0]["LOCATION_ID"]); //variable to check each row's location id
+                tempList = new List<DataRow>();
+                //assign variable to first row's product_id
+                product_id = Convert.ToString(data.Tables[0].Rows[0]["PRODUCT_ID"]);
+                //assign variable to first row's location_id
+                location_id = Convert.ToString(data.Tables[0].Rows[0]["LOCATION_ID"]); 
                 LostSalesInstance lsi = new LostSalesInstance(); 
 
                 for (int i = 0; i < data.Tables[0].Rows.Count; i++)
@@ -63,7 +71,7 @@ namespace Footlocker.Logistics.Allocation.Services
                     //check to see if product_id OR location_id has changed, if so reassign id's and send the temp list to the LostSalesFactory
                     else if ((Convert.ToString(dataRow["PRODUCT_ID"]) != product_id) || (Convert.ToString(dataRow["LOCATION_ID"]) != location_id))
                     {
-                        //reassign product_id and location_id 
+                        //reassign product_id and location_id
                         product_id = Convert.ToString(dataRow["PRODUCT_ID"]);
                         location_id = Convert.ToString(dataRow["LOCATION_ID"]);
 
