@@ -1820,6 +1820,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                      on new { a.Division, a.Store } equals new { b.Division, b.Store }
                                      where a.ID == planID
                                      select a).Count();
+
+            var instanceQuery = from ad in db.AllocationDrivers
+                                join id in db.InstanceDivisions
+                                on ad.Division equals id.Division
+                                join cd in db.ControlDates
+                                on id.InstanceID equals cd.InstanceID
+                                where ad.ConvertDate < cd.RunDate &&
+                                      ad.OrderPlanningDate != null &&
+                                      cd.RunDate >= ad.OrderPlanningDate &&
+                                      ad.Division == model.Plan.Division &&
+                                      ad.Department == model.Plan.Department
+                                select ad;
+
+            if (instanceQuery.Count() > 0)
+                model.Plan.OPDepartment = true;
+            else
+                model.Plan.OPDepartment = false;
+
             db.SaveChanges();
 
             return model;
@@ -3345,12 +3363,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
             OrderPlanningRequest model = new OrderPlanningRequest();
             model.PlanID = planID;
             DateTime start = (from p in db.RangePlans
-                              join i in db.ItemMasters on p.ItemID equals i.ID
-                              join id in db.InstanceDivisions on i.Div equals id.Division
-                              join cd in db.ControlDates on id.InstanceID equals cd.InstanceID
+                              join i in db.ItemMasters 
+                                on p.ItemID equals i.ID
+                              join id in db.InstanceDivisions 
+                                on i.Div equals id.Division
+                              join cd in db.ControlDates 
+                                on id.InstanceID equals cd.InstanceID
+                              where p.Id == planID
                               select cd.RunDate).First();
 
-            model.StartSend = start.AddDays(2);//warehouse pick day is control date + 2
+            model.StartSend = start;
             model.EndSend = start.AddDays(12);
             return View(model);
         }

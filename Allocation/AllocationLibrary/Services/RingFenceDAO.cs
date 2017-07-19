@@ -79,17 +79,17 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             else
             {
                 var reductionsQuery = (from a in db.InventoryReductions
-                                       where ((a.Sku == sku) &&
-                                              (a.Size == det.Size) &&
-                                              (a.MFCode == warehouseCode) &&
-                                              (a.PO == det.PO))
-                                       select a.Qty);
+                                where ((a.Sku == sku) &&
+                                       (a.Size == det.Size) &&
+                                       (a.MFCode == warehouseCode) &&
+                                       (a.PO == det.PO))
+                                select a.Qty);
                 int testQty = reductionsQuery.Count();
 
                 if (testQty == 0)
                     existingRingFenceQty = 0;
-                else
-                    existingRingFenceQty = reductionsQuery.FirstOrDefault();
+                else               
+                    existingRingFenceQty = reductionsQuery.FirstOrDefault();                        
             }
 
             currentRingFenceQty = 0;
