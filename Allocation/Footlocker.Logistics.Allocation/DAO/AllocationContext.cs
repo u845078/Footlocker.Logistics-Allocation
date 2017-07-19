@@ -93,6 +93,7 @@ namespace Footlocker.Logistics.Allocation.DAO
         public DbSet<BrandIDs> BrandIDs { get; set; }
         public DbSet<RingFenceStatusCodes> RingFenceStatusCodes { get; set; }
         public DbSet<PurchaseOrder> POs { get; set; }
+        public DbSet<AllocationDriver> AllocationDrivers { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

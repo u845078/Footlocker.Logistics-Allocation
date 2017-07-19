@@ -8,7 +8,9 @@ namespace Footlocker.Logistics.Allocation.Models
 {
     public class AllocationDriver
     {
+        [Key, Column(Order=0)]
         public string Division { get; set; }
+        [Key, Column(Order=1)]
         public string Department { get; set; }
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]

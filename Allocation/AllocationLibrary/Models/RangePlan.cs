@@ -127,7 +127,7 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         [NotMapped]
-        public bool OPInstance { get; set; }
+        public bool OPDepartment { get; set; }
 
         [NotMapped]
         public string Department

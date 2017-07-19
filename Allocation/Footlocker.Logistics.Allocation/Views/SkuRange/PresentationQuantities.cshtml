@@ -181,7 +181,7 @@
     @Html.ActionLink("Show Stores", "ShowStoresWithoutDeliveryGroup", new { planID = Model.PlanID }, new { @class = "t-button" })
 }
 
-@if (Model.Plan.OPInstance)
+@if (Model.Plan.OPDepartment)
 {
     <fieldset style="width:765px">
         <legend>Order Planning Request</legend>

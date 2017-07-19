@@ -1821,17 +1821,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                      where a.ID == planID
                                      select a).Count();
 
-            var instanceQuery = from c in db.Configs
-                                join cp in db.ConfigParams
-                                on c.ParamID equals cp.ParamID
-                                where cp.Name == "ORDER_PLANNING" &&
-                                      c.InstanceID == i.InstanceID
-                                select c.Value;
+            var instanceQuery = from ad in db.AllocationDrivers
+                                join id in db.InstanceDivisions
+                                on ad.Division equals id.Division
+                                join cd in db.ControlDates
+                                on id.InstanceID equals cd.InstanceID
+                                where ad.ConvertDate < cd.RunDate &&
+                                      ad.OrderPlanningDate != null &&
+                                      cd.RunDate >= ad.OrderPlanningDate &&
+                                      ad.Division == model.Plan.Division &&
+                                      ad.Department == model.Plan.Department
+                                select ad;
 
-            if (instanceQuery.FirstOrDefault() == "true")
-                model.Plan.OPInstance = true;
+            if (instanceQuery.Count() > 0)
+                model.Plan.OPDepartment = true;
             else
-                model.Plan.OPInstance = false;
+                model.Plan.OPDepartment = false;
 
             db.SaveChanges();
 
