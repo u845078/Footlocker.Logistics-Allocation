@@ -3372,7 +3372,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                               where p.Id == planID
                               select cd.RunDate).First();
 
-            model.StartSend = start;
+            model.StartSend = start.AddDays(2);
             model.EndSend = start.AddDays(12);
             return View(model);
         }
