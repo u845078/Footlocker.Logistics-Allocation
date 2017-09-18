@@ -3395,9 +3395,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private string ValidateOrderPlanningRequest(OrderPlanningRequest model, Boolean edit)
         {
             DateTime start = (from p in db.RangePlans
-                              join i in db.ItemMasters on p.ItemID equals i.ID
-                              join id in db.InstanceDivisions on i.Div equals id.Division
-                              join cd in db.ControlDates on id.InstanceID equals cd.InstanceID
+                              join i in db.ItemMasters 
+                                 on p.ItemID equals i.ID
+                              join id in db.InstanceDivisions 
+                                 on i.Div equals id.Division
+                              join cd in db.ControlDates 
+                                 on id.InstanceID equals cd.InstanceID
+                              where p.Id == model.PlanID
                               select cd.RunDate).First();
 
             if (model.StartSend < start.AddDays(2))
