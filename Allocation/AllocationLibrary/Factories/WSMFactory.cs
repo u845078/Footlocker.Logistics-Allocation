@@ -28,15 +28,5 @@ namespace Footlocker.Logistics.Allocation.Factories
 
             return newObject;
         }
-
-        public QuantumSeasonalityData CreateSeasonalData(DataRow dr)
-        {
-            QuantumSeasonalityData newObject = new QuantumSeasonalityData();
-            newObject.locationFinalNodeID = Convert.ToString(dr["location_final_node_id"]);
-            newObject.weekBeginDate = Convert.ToDateTime(dr["week_begin_dt"]);
-            newObject.indexValue = Convert.ToSingle(dr["index_value"]);
-
-            return newObject;
-        }
     }
 }

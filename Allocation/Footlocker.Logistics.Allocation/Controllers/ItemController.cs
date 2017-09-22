@@ -7,7 +7,6 @@ using Aspose.Excel;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Models.Services;
-
 using Telerik.Web.Mvc;
 
 namespace Footlocker.Logistics.Allocation.Controllers
@@ -809,20 +808,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         #endregion  
 
-
-        #region WMS Request
+        #region Quantum Data Download
 
         [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes, Head Merchandiser")]
-        public ActionResult RequestWSM()
+        public ActionResult QuantumDataDownload()
         {
-            WSMRequestModel model = new WSMRequestModel();
-            //model.Instances = db.Instances.ToList();
+            QuantumDataDownloadModel model = new QuantumDataDownloadModel();
             return View(model);
         }
 
         [HttpPost]
-        [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes, Head Merchandiser")]
-        public ActionResult RequestWSM(WSMRequestModel model, string submitAction)
+        public ActionResult QuantumDataDownload(QuantumDataDownloadModel model, string submitAction)
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
             //Set the license 
@@ -830,22 +826,90 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             Excel excelDocument = new Excel();
 
-            WSMDAO dao = new WSMDAO();
+            QuantumDAO dao = new QuantumDAO();
 
-            if (submitAction == "WSM")
+            LostSalesRequest request = new LostSalesRequest();
+
+            int row = 1;
+            int page = 0;
+
+            if (submitAction == "LostSales")
             {
-                List<WSM> list = dao.GetWSM(model.Sku);
+                DateTime start = default(DateTime); //Day 1 of the 14 day span to initialize excel headings
+                Double weeklySales = 0; //Variable to store prior week lost sales
+                
+                request = dao.GetLostSales(model.Sku);
 
-                int row = 1;
-                int page = 0;
-                Worksheet mySheet = InitializeNewSheet(excelDocument, 0);
-
-                for (int i = 0; i < 12; i++)
+                //If lost sales query returns no results then inform user
+                if (!request.LostSales.Any()) 
                 {
-                    mySheet.Cells[0, i].Style.Font.IsBold = true;
+                    ViewBag.NoDataFound = "There was no data found for Sku " + model.Sku;
+                    return View(model);
                 }
 
-                foreach (WSM w in list)
+                start = request.BeginDate;
+                Worksheet mySheet = InitializeNewLostSalesSheet(excelDocument, page, start);
+
+                foreach (LostSalesInstance ls in request.LostSales)
+                {
+                    //eliminate 'S' and 'division' from location id, then put in store location column
+                    mySheet.Cells[row, 0].PutValue(ls.LocationId.Substring(3)); 
+
+                    //add shoe size from product id to end of sku, then put in sku column
+                    mySheet.Cells[row, 1].PutValue(model.Sku + ls.ProductId.Substring(7));
+
+                    //sum weekly lost sales from daily lost sales array, then put in appropriate column
+                    for (int i = 0; i < 7; i++ )
+                    {
+                        weeklySales += ls.DailySales[request.WeeklySalesEndIndex - i];
+                    }
+                    mySheet.Cells[row, 2].PutValue(weeklySales);
+                    //reset for the next lostsalesinstance
+                    weeklySales = 0;
+
+                    //put daily lost sales in the appropriate day column
+                    for (int i = 0; i < 14; i++)
+                    {
+                       mySheet.Cells[row, i + 3].PutValue(ls.DailySales[i]); 
+                    }
+                    row++;
+                    if (row > 60000)
+                    {
+                        //new page
+                        row = 1;
+                        page++;
+
+                        //auto fit columns of current sheet before adding a new sheet
+                        for (int i = 0; i < 17; i++)
+                        {
+                            mySheet.AutoFitColumn(i);
+                        }
+                        mySheet = InitializeNewLostSalesSheet(excelDocument, page, start);
+                    }
+                }
+
+                //auto fit columns of current sheet before creating the excel file
+                for (int i = 0; i < 17; i++)
+                {
+                    mySheet.AutoFitColumn(i);
+                }
+
+                excelDocument.Save(model.Sku + "-LostSales.xls", SaveType.OpenInExcel, FileFormatType.Default,
+                    System.Web.HttpContext.Current.Response);
+            } else if (submitAction == "WSM")
+            {
+                List<WSM> wsmList = dao.GetWSM(model.Sku);
+
+                //If wsm query returns no results then inform user
+                if (!wsmList.Any())
+                {
+                    ViewBag.NoDataFound = "There was no data found for Sku " + model.Sku;
+                    return View(model);
+                }
+
+                Worksheet mySheet = InitializeNewWSMSheet(excelDocument, page);
+
+                foreach (WSM w in wsmList)
                 {
                     mySheet.Cells[row, 0].PutValue(w.RunDate);
                     mySheet.Cells[row, 1].PutValue(w.TargetProduct);
@@ -866,74 +930,81 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         //new page
                         row = 1;
                         page++;
+
+                        //auto fit columns before adding a new sheet
                         for (int i = 0; i < 12; i++)
                         {
                             mySheet.AutoFitColumn(i);
                         }
-                        mySheet = InitializeNewSheet(excelDocument, page);
+                        mySheet = InitializeNewWSMSheet(excelDocument, page);
                     }
                 }
 
+                //auto fit columns 
                 for (int i = 0; i < 12; i++)
                 {
                     mySheet.AutoFitColumn(i);
                 }
+
                 excelDocument.Save(model.Sku + "-WSM.xls", SaveType.OpenInExcel, FileFormatType.Default,
                     System.Web.HttpContext.Current.Response);
             }
-            else if (submitAction == "LocClus")
-            {
-                List<QuantumSeasonalityData> results = dao.getQuantumSeasonalityData(model.Sku);
-
-                int row = 1;
-                int page = 0;
-                Worksheet mySheet = InitializeNewSheetForSeasonalDownload(excelDocument, 0);
-
-                for (int i = 0; i < 3; i++)
-                {
-                    mySheet.Cells[0, i].Style.Font.IsBold = true;
-                }
-
-                foreach (QuantumSeasonalityData qsd in results)
-                {
-                    mySheet.Cells[row, 0].PutValue(qsd.locationFinalNodeID);
-                    mySheet.Cells[row, 1].PutValue(qsd.weekBeginDate);
-                    mySheet.Cells[row, 1].Style.Number = 14;
-                    mySheet.Cells[row, 2].PutValue(qsd.indexValue);
-                    mySheet.Cells[row, 2].Style.Number = 2;
-
-                    row++;
-                    if (row > 60000)
-                    {
-                        //new page
-                        row = 1;
-                        page++;
-                        for (int i = 0; i < 3; i++)
-                        {
-                            mySheet.AutoFitColumn(i);
-                        }
-                        mySheet = InitializeNewSheetForSeasonalDownload(excelDocument, page);
-                    }
-                }
-
-                for (int i = 0; i < 3; i++)
-                {
-                    mySheet.AutoFitColumn(i);
-                }
-                excelDocument.Save(model.Sku + "-LocClus.xls", SaveType.OpenInExcel, FileFormatType.Default,
-                    System.Web.HttpContext.Current.Response);
-            }
-            //model.Instances = db.Instances.ToList();
             return View(model);
         }
 
-        private Worksheet InitializeNewSheet(Excel excelDocument, int page)
+        //method to create a new excel worksheet for lost sales
+        private Worksheet InitializeNewLostSalesSheet(Excel excelDocument, int page, DateTime start)
         {
             if (page > 0)
             {
                 excelDocument.Worksheets.Add();
             }
             Worksheet mySheet = excelDocument.Worksheets[page];
+
+            //assign header names
+            for (int i = 0; i < 17; i++)
+            {
+                //make the headers of excel sheet bold
+                mySheet.Cells[0, i].Style.Font.IsBold = true;
+
+                if (i == 0) //column 1 header
+                {
+                    mySheet.Cells[0, 0].PutValue("Location Id");
+                }
+                else if (i == 1) //column 2 header
+                {
+                    mySheet.Cells[0, 1].PutValue("Sku");
+                }
+                else if (i == 2) //column 3 header
+                {
+                    mySheet.Cells[0, 2].PutValue("Prior Week Lost Sales");
+                }
+                else //all other column headers
+                {
+                    //format cells to datetime type
+                    mySheet.Cells[0, i].Style.Number = 14;
+                    mySheet.Cells[0, i].PutValue(start.AddDays(i - 3));
+                }
+            }
+            return mySheet;
+        }
+
+        //method to create a new excel worksheet for wsm
+        private Worksheet InitializeNewWSMSheet(Excel excelDocument, int page)
+        {
+            if (page > 0)
+            {
+                excelDocument.Worksheets.Add();
+            }
+            Worksheet mySheet = excelDocument.Worksheets[page];
+
+            //make the headers of excel sheet bold
+            for (int i = 0; i < 12; i++)
+            {
+                mySheet.Cells[0, i].Style.Font.IsBold = true;
+            }
+
+            //assign header names
             mySheet.Cells[0, 0].PutValue("RunDate");
             mySheet.Cells[0, 1].PutValue("TargetProduct");
             mySheet.Cells[0, 2].PutValue("TargetProductID");
@@ -950,19 +1021,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return mySheet;
         }
 
-        private Worksheet InitializeNewSheetForSeasonalDownload(Excel excelDocument, int page)
-        {
-            if (page > 0)
-            {
-                excelDocument.Worksheets.Add();
-            }
-            Worksheet mySheet = excelDocument.Worksheets[page];
-            mySheet.Cells[0, 0].PutValue("Location Node ID");
-            mySheet.Cells[0, 1].PutValue("Week Begin Date");
-            mySheet.Cells[0, 2].PutValue("Index Value");
-            return mySheet;
-        }
         #endregion
-
     }
 }

@@ -56,9 +56,9 @@
 
 </table>*@
 
-@if (Model.Details.Count() > 0)
+@if (Model.HasDetails)
 {
-@(Html.Telerik().Grid(Model.Details)
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.VendorGroupDetail>()
         .Name("VendorGroupDetails")
         .Columns(columns =>
         {
@@ -71,7 +71,7 @@
                 commands
                 .Custom("Delete")
                 .Text("Delete")
-                .DataRouteValues(route => { route.Add(o => o.VendorNumber).RouteKey("vendorNumber"); route.Add(o => Model.Header.ID).RouteKey("ID"); })
+                .DataRouteValues(route => { route.Add(o => o.VendorNumber).RouteKey("vendorNumber"); route.Add(o => o.GroupID).RouteKey("ID"); })
                 .Ajax(false)
                 .Action("DeleteDetail", "DTSVendorGroup").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
             }).HtmlAttributes(new { style = "text-align: left" }).Width(100);

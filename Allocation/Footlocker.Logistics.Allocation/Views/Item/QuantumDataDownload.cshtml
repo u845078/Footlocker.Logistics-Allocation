@@ -1,10 +1,14 @@
-﻿@model Footlocker.Logistics.Allocation.Models.WSMRequestModel
+﻿@model Footlocker.Logistics.Allocation.Models.QuantumDataDownloadModel
 
 @{
     ViewBag.Title = "Download Quantum Data";
 }
 
 <h2>@ViewBag.Title</h2>
+
+<font color="Red">
+    <div id="errorMessage">@ViewBag.NoDataFound </div>
+</font>
 
 @using (Html.BeginForm()) {
     @Html.AntiForgeryToken()
@@ -22,15 +26,19 @@
         </div>
 
         <p>
-            <button type="submit" name="submitAction" value="WSM">Download WSM Data</button>            
-            &nbsp;&nbsp;&nbsp;
-            <button type="submit" name="submitAction" value="LocClus">Download Seasonality Data</button>
+            <button type="submit" name="submitAction" value="WSM" onclick="Submit_OnClick()">Download WSM Data</button>     
+            <button type="submit" name ="submitAction" value="LostSales" onclick="Submit_OnClick()">Download Lost Sales</button>       
         </p>
 
 
     </fieldset>
 }
 
-@section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
-}
+
+
+
+<script type="text/javascript">
+    function Submit_OnClick() {
+        $('#errorMessage').html("");
+    };
+</script>

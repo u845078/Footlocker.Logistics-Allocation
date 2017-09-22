@@ -3,7 +3,7 @@
   <siteMapNode title="Home" controller="Home" action="Overview">
 	  <siteMapNode title="Admin">
 		  <siteMapNode title="Control Date" controller="Driver" action="Control" />
-      <siteMapNode title="Quantum Data Download" controller="Item" action="RequestWSM" />
+      <siteMapNode title="Quantum Data Download" controller="Item" action="QuantumDataDownload" />
       <siteMapNode title="Instance Config" controller="Config" action="Index" />
       <siteMapNode title="Item Lookup" controller="Item" action="Lookup" />
 		  <siteMapNode title="Setup Dept" controller="Driver" action="Index" />
@@ -24,7 +24,7 @@
 
 	  <siteMapNode title="Network">
 		  <siteMapNode title="Blackouts" controller="WarehouseBlackout" action="Index"/>
-		  <siteMapNode title="CrossDock Exclusion" controller="CrossDockExclusion" action="Index"/>
+		  <siteMapNode title="CrossDock Exclusions" controller="CrossDockExclusion" action="Index"/>
 		  <siteMapNode title="Distribution Centers" controller="Route" action="DCIndex"/>
 		  <siteMapNode title="Routes" controller="Route" action="Index"/>
 		  <siteMapNode title="Store Network Schedule" controller="Route" action="StoreLeadTimes"/>

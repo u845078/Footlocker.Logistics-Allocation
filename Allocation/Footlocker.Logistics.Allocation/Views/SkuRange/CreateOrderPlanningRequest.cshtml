@@ -6,13 +6,21 @@
 
 <h2>CreateOrderPlanningRequest</h2>
 
+
 @if (ViewData["message"] != null)
-{ 
+{
     @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
 }
 
 @using (Html.BeginForm()) {
     @Html.ValidationSummary(true)
+
+    <script type="text/javascript">
+        $('form').submit(function () {
+            // On submit disable its submit button
+            $('input[type=submit]', this).attr('disabled', 'disabled');
+        });
+    </script>
 
     <fieldset>
         <legend>Order Planning Request</legend>

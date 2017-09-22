@@ -32,29 +32,19 @@
             columns.Bound(o => o.CreateDate);
             columns.Template(@<text>
                             <button class="t-button t-button-icon" onclick='Delete(@item.Division, @item.Store)'>
-                                <span class="t-icon t-delete">Without RDQs</span>
+                                <span class="t-icon t-delete">Delete Held RDQs</span>
                             </button>
                             <button class="t-button t-button-icon" onclick='DeleteLeaveRDQs(@item.Division, @item.Store)'>
-                                <span class="t-icon t-delete">With RDQs</span>
+                                <span class="t-icon t-delete">Keep Held RDQs</span>
                             </button>
 
                         </text>)
-                    .ClientTemplate("<button class=\"t-button\" onclick=\"Delete('<#= Division #>', '<#= Store #>')\"><span class=\"t-delete\">With RDQs</span></button>&nbsp;<button class=\"t-button\" onclick=\"DeleteLeaveRDQs('<#= Division #>', '<#= Store #>')\"><span class=\"t-delete\">Without RDQs</span></button>")
+                    .ClientTemplate("<button class=\"t-button\" onclick=\"Delete('<#= Division #>', '<#= Store #>')\"><span class=\"t-delete\">Delete Held RDQs</span></button>&nbsp;<button class=\"t-button\" onclick=\"DeleteLeaveRDQs('<#= Division #>', '<#= Store #>')\"><span class=\"t-delete\">Keep Held RDQs</span></button>")
                     .HtmlAttributes(new { @class = "grid-action-column" })
                     .HeaderHtmlAttributes(new { @class = "grid-action-column-header" })
-                    .Title("Delete")
-                    .Width(250);
-@*            columns.Template(@<text>
-                            <button class="t-button t-button-icon" onclick='Delete(@item.Division, @item.Store)'>
-                                <span class="t-icon t-delete">Delete</span>
-                            </button>
-                        </text>)
-                    .ClientTemplate("<button class=\"t-button\" onclick=\"DeleteLeaveRDQs('<#= Division #>', '<#= Store #>')\"><span class=\"t-delete\">Delete (keep RDQs)</span></button>")
-                    .HtmlAttributes(new { @class = "grid-action-column" })
-                    .HeaderHtmlAttributes(new { @class = "grid-action-column-header" })
-                    .Title("")
-                    .Width(5);
-*@        })
+                    .Title("Delete Crossdock Exclusion")
+                    .Width(300);
+        })
         .DataBinding(dataBinding =>
         {
             dataBinding.Ajax().Select("_Index", "CrossDockExclusion");

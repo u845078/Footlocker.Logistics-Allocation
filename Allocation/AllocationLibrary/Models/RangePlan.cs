@@ -127,6 +127,9 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         [NotMapped]
+        public bool OPDepartment { get; set; }
+
+        [NotMapped]
         public string Department
         {
             get { return _sku.Substring(3, 2); }
