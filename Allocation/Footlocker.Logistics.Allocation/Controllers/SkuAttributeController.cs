@@ -380,14 +380,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult ExportAllAttributes()
         {
-            // retrieve data
-            List<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders.Include("SkuAttributeDetails")
-                                                where Departments().Contains(new Department { DivCode = a.Division, DeptNumber = a.Dept })
-                                                orderby a.Division, a.Dept, a.Category
-                                                select a).ToList();
-            Excel excelDocument = CreateSkuAttributeExport(headers);
-            excelDocument.Save("SkuAttributes.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
-            return RedirectToAction("Index");
+            try
+            {
+                // retrieve data
+                List<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders.Include("SkuAttributeDetails")
+                                                    where Departments().Contains(new Department { DivCode = a.Division, DeptNumber = a.Dept })
+                                                    orderby a.Division, a.Dept, a.Category
+                                                    select a).ToList();
+                Excel excelDocument = CreateSkuAttributeExport(headers);
+                excelDocument.Save("SkuAttributes.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                return Content(ex.Message);
+            }
+
         }
 
         public ActionResult Export(int ID)
