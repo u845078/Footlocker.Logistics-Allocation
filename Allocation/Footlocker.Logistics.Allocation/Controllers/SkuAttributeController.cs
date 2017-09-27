@@ -18,7 +18,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Index(bool? showMessage)
         {
             ViewData["hasEditRole"] = HasEditRole();
-            List<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders where 1 == 1 orderby a.Division, a.Dept, a.Category select a).ToList();
+            List<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders.AsEnumerable()
+                                                join d in Divisions()
+                                                    on new { Division = a.Division } equals
+                                                       new { Division = d.DivCode }
+                                                orderby a.Division, a.Dept, a.Category
+                                                select a).ToList();
 
             if (showMessage != null)
             {
@@ -30,7 +35,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _Index()
         {
-            List<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders where 1 == 1 orderby a.Division, a.Dept, a.Category select a).ToList();
+            List<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders.AsEnumerable()
+                                                join d in Divisions()
+                                                    on new { Division = a.Division } equals
+                                                       new { Division = d.DivCode }
+                                                orderby a.Division, a.Dept, a.Category
+                                                select a).ToList();
             return View(new GridModel(headers));
         }
 
@@ -384,14 +394,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 // retrieve data
                 List<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders.Include("SkuAttributeDetails").AsEnumerable()
-                                join d in Departments()
-                                    on new { Division = a.Division, Department = a.Dept } equals
-                                       new { Division = d.DivCode, Department = d.DeptNumber }
-                                orderby a.Division, a.Dept, a.Category
-                                select a).ToList();
-
-                // limit by user div/depts
-
+                                                    join d in Divisions()
+                                                        on new { Division = a.Division } equals
+                                                           new { Division = d.DivCode }
+                                                    orderby a.Division, a.Dept, a.Category
+                                                    select a).ToList();
                 Excel excelDocument = CreateSkuAttributeExport(headers);
                 excelDocument.Save("SkuAttributes.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
                 return RedirectToAction("Index");
