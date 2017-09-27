@@ -110,6 +110,8 @@ namespace Footlocker.Logistics.Allocation.Services
 
             modelBuilder.Entity<SizeAllocation>().Property(x => x.RangeFromDB).HasColumnName("Range");
 
+            modelBuilder.Entity<SkuAttributeHeader>().HasMany(x => x.SkuAttributeDetails).WithRequired(y => y.header).HasForeignKey(z => z.HeaderID);
+
             modelBuilder.Entity<ValidStoreLookup>().Map(m =>
             {
                 m.MapInheritedProperties();

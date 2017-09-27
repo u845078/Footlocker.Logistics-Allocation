@@ -59,5 +59,7 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [NotMapped]
         public Int32 WeightInactive { get { return Convert.ToInt32(1 - WeightActive * 100); } }
+
+        public List<SkuAttributeDetail> SkuAttributeDetails { get; set; }
     }
 }

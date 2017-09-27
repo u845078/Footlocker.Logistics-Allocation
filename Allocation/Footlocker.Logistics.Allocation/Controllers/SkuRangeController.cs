@@ -3607,16 +3607,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     int validCount = 0;
                     int errorCount = 0;
                     if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Division")) &&
-                        (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Store")) &&
-                        (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Sku")) &&
-                        (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Size"))
-                        && (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Range Start Date")) &&
-                        (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Delivery Group Name"))
-                        && (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Min")) &&
-                        (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Max"))
-                        && (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Base Demand")) &&
-                        (Convert.ToString(mySheet.Cells[0, 9].Value).Contains("Min End Date")) &&
-                        (Convert.ToString(mySheet.Cells[0, 9].Value).Contains("End Date"))
+                        (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("League")) &&
+                        (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Region")) &&
+                        (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Store")) &&
+                        (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Sku")) &&
+                        (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Size"))
+                        && (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Range Start Date")) &&
+                        (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Delivery Group Name"))
+                        && (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Min")) &&
+                        (Convert.ToString(mySheet.Cells[0, 9].Value).Contains("Max"))
+                        && (Convert.ToString(mySheet.Cells[0, 10].Value).Contains("Base Demand")) &&
+                        (Convert.ToString(mySheet.Cells[0, 11].Value).Contains("Min End Date")) &&
+                        (Convert.ToString(mySheet.Cells[0, 12].Value).Contains("End Date"))
                         )
                     {
                         division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0');
@@ -3638,7 +3640,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             }
                             range = new BulkRange();
                             range.Division = division;
-                            range.Store = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(5, '0');
+                            range.Store = Convert.ToString(mySheet.Cells[row, 3].Value).PadLeft(5, '0');
 
                             //ensure the store is valid
                             if (!ValidateStore(range.Division, range.Store))
@@ -3647,10 +3649,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 return Content(message);
                             }
 
-                            range.Sku = Convert.ToString(mySheet.Cells[row, 2].Value);
-                            range.Size = Convert.ToString(mySheet.Cells[row, 3].Value).PadLeft(3, '0').ToUpper();
-                            range.RangeStartDate = Convert.ToString(mySheet.Cells[row, 4].Value);
-                            range.DeliveryGroupName = Convert.ToString(mySheet.Cells[row, 5].Value);
+                            range.Sku = Convert.ToString(mySheet.Cells[row, 4].Value);
+                            range.Size = Convert.ToString(mySheet.Cells[row, 5].Value).PadLeft(3, '0').ToUpper();
+                            range.RangeStartDate = Convert.ToString(mySheet.Cells[row, 6].Value);
+                            range.DeliveryGroupName = Convert.ToString(mySheet.Cells[row, 7].Value);
                             //range.Range = Convert.ToString(mySheet.Cells[row, 5].Value);
                             //if (range.Range.ToUpper().Equals("TRUE"))
                             //{
@@ -3660,11 +3662,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             //{
                             //    range.Range = "0";
                             //}
-                            range.Min = Convert.ToString(mySheet.Cells[row, 6].Value);
-                            range.Max = Convert.ToString(mySheet.Cells[row, 7].Value);
-                            range.BaseDemand = Convert.ToString(mySheet.Cells[row, 8].Value);
-                            range.MinEndDateOverride = Convert.ToString(mySheet.Cells[row, 9].Value);
-                            range.EndDate = Convert.ToString(mySheet.Cells[row, 10].Value);
+                            range.Min = Convert.ToString(mySheet.Cells[row, 8].Value);
+                            range.Max = Convert.ToString(mySheet.Cells[row, 9].Value);
+                            range.BaseDemand = Convert.ToString(mySheet.Cells[row, 10].Value);
+                            range.MinEndDateOverride = Convert.ToString(mySheet.Cells[row, 11].Value);
+                            range.EndDate = Convert.ToString(mySheet.Cells[row, 12].Value);
                             //doing this to preserve nulls for blank
                             if (range.Min == "")
                             {
@@ -3781,18 +3783,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
             foreach (BulkRange p in errorList)
             {
                 mySheet.Cells[row, 0].PutValue(p.Division);
-                mySheet.Cells[row, 1].PutValue(p.Store);
-                mySheet.Cells[row, 2].PutValue(p.Sku);
-                mySheet.Cells[row, 3].PutValue(p.Size);
-                mySheet.Cells[row, 4].PutValue(p.RangeStartDate);
-                mySheet.Cells[row, 5].PutValue(p.DeliveryGroupName);
-                mySheet.Cells[row, 6].PutValue(p.Min);
-                mySheet.Cells[row, 7].PutValue(p.Max);
-                mySheet.Cells[row, 8].PutValue(p.BaseDemand);
-                mySheet.Cells[row, 9].PutValue(p.MinEndDateOverride);
-                mySheet.Cells[row, 10].PutValue(p.EndDate);
-                mySheet.Cells[row, 11].PutValue(p.Error);
-                mySheet.Cells[row, 11].Style.Font.Color = Color.Red;
+                mySheet.Cells[row, 1].PutValue(p.League);
+                mySheet.Cells[row, 2].PutValue(p.Region);
+                mySheet.Cells[row, 3].PutValue(p.Store);
+                mySheet.Cells[row, 4].PutValue(p.Sku);
+                mySheet.Cells[row, 5].PutValue(p.Size);
+                mySheet.Cells[row, 6].PutValue(p.RangeStartDate);
+                mySheet.Cells[row, 7].PutValue(p.DeliveryGroupName);
+                mySheet.Cells[row, 8].PutValue(p.Min);
+                mySheet.Cells[row, 9].PutValue(p.Max);
+                mySheet.Cells[row, 10].PutValue(p.BaseDemand);
+                mySheet.Cells[row, 11].PutValue(p.MinEndDateOverride);
+                mySheet.Cells[row, 12].PutValue(p.EndDate);
+                mySheet.Cells[row, 13].PutValue(p.Error);
+                mySheet.Cells[row, 14].Style.Font.Color = Color.Red;
                 row++;
             }
 
@@ -3840,21 +3844,72 @@ namespace Footlocker.Logistics.Allocation.Controllers
             foreach (BulkRange p in list)
             {
                 mySheet.Cells[row, 0].PutValue(p.Division);
-                mySheet.Cells[row, 1].PutValue(p.Store);
-                mySheet.Cells[row, 2].PutValue(p.Sku);
-                mySheet.Cells[row, 3].PutValue(p.Size);
-                mySheet.Cells[row, 4].PutValue(p.RangeStartDate);
-                mySheet.Cells[row, 5].PutValue(p.DeliveryGroupName);
-                mySheet.Cells[row, 6].PutValue(p.Min);
-                mySheet.Cells[row, 7].PutValue(p.Max);
-                mySheet.Cells[row, 8].PutValue(p.BaseDemand);
-                mySheet.Cells[row, 9].PutValue(p.MinEndDateOverride);
-                mySheet.Cells[row, 10].PutValue(p.EndDate);
+                mySheet.Cells[row, 1].PutValue(p.League);
+                mySheet.Cells[row, 2].PutValue(p.Region);
+                mySheet.Cells[row, 3].PutValue(p.Store);
+                mySheet.Cells[row, 4].PutValue(p.Sku);
+                mySheet.Cells[row, 5].PutValue(p.Size);
+                mySheet.Cells[row, 6].PutValue(p.RangeStartDate);
+                mySheet.Cells[row, 7].PutValue(p.DeliveryGroupName);
+                mySheet.Cells[row, 8].PutValue(p.Min);
+                mySheet.Cells[row, 9].PutValue(p.Max);
+                mySheet.Cells[row, 10].PutValue(p.BaseDemand);
+                mySheet.Cells[row, 11].PutValue(p.MinEndDateOverride);
+                mySheet.Cells[row, 12].PutValue(p.EndDate);
                 row++;
             }
 
             excelDocument.Save("RangeUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             
+            return View();
+        }
+
+        public ActionResult ExcelDeliveryGroup(int deliveryGroupID)
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+            Excel excelDocument = new Excel();
+            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["RangeTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
+            Byte[] data1 = new Byte[file.Length];
+            file.Read(data1, 0, data1.Length);
+            file.Close();
+            MemoryStream memoryStream1 = new MemoryStream(data1);
+            excelDocument.Open(memoryStream1);
+
+            // retrieve specific delivery group
+            DeliveryGroup dg = (from a in db.DeliveryGroups where a.ID == deliveryGroupID select a).FirstOrDefault();
+
+            // retrieve sku for delivery group to feed into stored procedure
+            string sku = (from a in db.RangePlans where a.Id == dg.PlanID select a).Select(rp => rp.Sku).FirstOrDefault();
+
+            List <BulkRange> list = (new RangePlanDetailDAO()).GetBulkRangesForSku(sku).Where(q => q.DeliveryGroupName.Equals(dg.Name)).ToList();
+
+            int row = 1;
+            Worksheet mySheet = excelDocument.Worksheets[0];
+
+            foreach (BulkRange br in list)
+            {
+                mySheet.Cells[row, 0].PutValue(br.Division);
+                mySheet.Cells[row, 1].PutValue(br.League);
+                mySheet.Cells[row, 2].PutValue(br.Region);
+                mySheet.Cells[row, 3].PutValue(br.Store);
+                mySheet.Cells[row, 4].PutValue(br.Sku);
+                mySheet.Cells[row, 5].PutValue(br.Size);
+                mySheet.Cells[row, 6].PutValue(br.RangeStartDate);
+                mySheet.Cells[row, 7].PutValue(br.DeliveryGroupName);
+                mySheet.Cells[row, 8].PutValue(br.Min);
+                mySheet.Cells[row, 9].PutValue(br.Max);
+                mySheet.Cells[row, 10].PutValue(br.BaseDemand);
+                mySheet.Cells[row, 11].PutValue(br.MinEndDateOverride);
+                mySheet.Cells[row, 12].PutValue(br.EndDate);
+                row++;
+            }
+
+            excelDocument.Save(sku + "-" + dg.Name + ".xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+
+
             return View();
         }
     }

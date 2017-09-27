@@ -12,6 +12,8 @@
     {
         @Html.ActionLink("Create New", "Create", null, new {@class = "t-button"})
     }
+
+    @Html.ActionLink("Export All", "ExportAllAttributes", null, new { @class="t-button" })
 </p>
 @*<table>
     <tr>
@@ -94,10 +96,14 @@
                 columns.Bound(o => o.CreateDate).Title("UpdateDate");
                 columns.Template(@<text>
                         <a class='t-button' href="@Url.Content("~/SkuAttribute/Edit/" + @item.ID)">Edit</a>
+                        <a class='t-button' href="@Url.Content("~/SkuAttribute/Export/" + @item.ID)">Export</a>
                         @Html.Raw("<a class=\"t-button\" href='javascript:Delete(\"" + item.ID + "\");'>Delete</a>")
                 </text>).ClientTemplate("<a class='t-button' href='"
                         + Url.Content("~/SkuAttribute/Edit/<#= ID #>")
                         + "'>Edit</a>"
+                        + "<a class='t-button' href='"
+                        + Url.Content("~/SkuAttribute/Export/<#= ID #>")
+                        + "'>Export</a>"
                         + "<a class='t-button' href='"
                         + Url.Content("~/SkuAttribute/Delete/<#= ID #>")
                         + "'>Delete</a>"
