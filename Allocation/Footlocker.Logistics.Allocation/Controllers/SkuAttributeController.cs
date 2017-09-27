@@ -383,10 +383,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
             try
             {
                 // retrieve data
-                List<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders.Include("SkuAttributeDetails")
-                                                    where Departments().Contains(new Department { DivCode = a.Division, DeptNumber = a.Dept })
-                                                    orderby a.Division, a.Dept, a.Category
-                                                    select a).ToList();
+                List<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders.Include("SkuAttributeDetails").AsEnumerable()
+                                join d in Departments()
+                                    on new { Division = a.Division, Department = a.Dept } equals
+                                       new { Division = d.DivCode, Department = d.DeptNumber }
+                                orderby a.Division, a.Dept, a.Category
+                                select a).ToList();
+
+                // limit by user div/depts
+
                 Excel excelDocument = CreateSkuAttributeExport(headers);
                 excelDocument.Save("SkuAttributes.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
                 return RedirectToAction("Index");
