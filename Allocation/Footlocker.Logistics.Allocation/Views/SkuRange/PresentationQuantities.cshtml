@@ -130,11 +130,12 @@
                 .Text("Edit")
                 .DataRouteValues(route =>
                 {
-                    route.Add(o => o.Name).RouteKey("deliveryGroupID");
+                    route.Add(o => o.ID).RouteKey("deliveryGroupID");
                     route.Add(o => o.PlanID).RouteKey("planID");
                 })
                 .Ajax(false)
                 .Action("EditDeliveryGroup", "SkuRange");
+
                 commands
                 .Custom("Export")
                 .Text("Export")

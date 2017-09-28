@@ -446,35 +446,36 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 mySheet.Cells[row, 0].Style.HorizontalAlignment = TextAlignmentType.Right;
                 mySheet.Cells[row, 1].PutValue(header.Dept);
                 mySheet.Cells[row, 1].Style.HorizontalAlignment = TextAlignmentType.Right;
-                mySheet.Cells[row, 2].PutValue(header.CreateDate);
-                mySheet.Cells[row, 2].Style.Number = 14;
+                mySheet.Cells[row, 2].PutValue(header.CategoryForDisplay);
                 mySheet.Cells[row, 2].Style.HorizontalAlignment = TextAlignmentType.Right;
-                mySheet.Cells[row, 3].PutValue(header.Category);
+                mySheet.Cells[row, 3].PutValue(header.BrandForDisplay);
                 mySheet.Cells[row, 3].Style.HorizontalAlignment = TextAlignmentType.Right;
-                mySheet.Cells[row, 4].PutValue(header.WeightActiveInt);
-                mySheet.Cells[row, 4].Style.HorizontalAlignment = TextAlignmentType.Right;
-                AddBorder(row, 4, mySheet);
+                mySheet.Cells[row, 4].PutValue(header.CreateDate);
+                mySheet.Cells[row, 4].Style.Number = 14;
+                mySheet.Cells[row, 5].PutValue(header.WeightActiveInt);
+                mySheet.Cells[row, 5].Style.HorizontalAlignment = TextAlignmentType.Right;
+                AddBorder(row, 5, mySheet);
 
                 // attribute weighting
-                PopulateRowValue(row, 5, header, mySheet, "department");
-                PopulateRowValue(row, 6, header, mySheet, "category");
-                PopulateRowValue(row, 7, header, mySheet, "vendornumber");
-                PopulateRowValue(row, 8, header, mySheet, "brandid");
-                PopulateRowValue(row, 9, header, mySheet, "size");
-                PopulateRowValue(row, 10, header, mySheet, "sizerange");
-                PopulateRowValue(row, 11, header, mySheet, "color1");
-                PopulateRowValue(row, 12, header, mySheet, "color2");
-                PopulateRowValue(row, 13, header, mySheet, "color3");
-                PopulateRowValue(row, 14, header, mySheet, "gender");
-                PopulateRowValue(row, 15, header, mySheet, "lifeofsku");
-                PopulateRowValue(row, 16, header, mySheet, "material");
-                PopulateRowValue(row, 17, header, mySheet, "playerid");
-                PopulateRowValue(row, 18, header, mySheet, "skuid1");
-                PopulateRowValue(row, 19, header, mySheet, "skuid2");
-                PopulateRowValue(row, 20, header, mySheet, "skuid3");
-                PopulateRowValue(row, 21, header, mySheet, "skuid4");
-                PopulateRowValue(row, 22, header, mySheet, "skuid5");
-                PopulateRowValue(row, 23, header, mySheet, "teamcode");
+                PopulateRowValue(row, 6, header, mySheet, "department");
+                PopulateRowValue(row, 7, header, mySheet, "category");
+                PopulateRowValue(row, 8, header, mySheet, "vendornumber");
+                PopulateRowValue(row, 9, header, mySheet, "brandid");
+                PopulateRowValue(row, 10, header, mySheet, "size");
+                PopulateRowValue(row, 11, header, mySheet, "sizerange");
+                PopulateRowValue(row, 12, header, mySheet, "color1");
+                PopulateRowValue(row, 13, header, mySheet, "color2");
+                PopulateRowValue(row, 14, header, mySheet, "color3");
+                PopulateRowValue(row, 15, header, mySheet, "gender");
+                PopulateRowValue(row, 16, header, mySheet, "lifeofsku");
+                PopulateRowValue(row, 17, header, mySheet, "material");
+                PopulateRowValue(row, 18, header, mySheet, "playerid");
+                PopulateRowValue(row, 19, header, mySheet, "skuid1");
+                PopulateRowValue(row, 20, header, mySheet, "skuid2");
+                PopulateRowValue(row, 21, header, mySheet, "skuid3");
+                PopulateRowValue(row, 22, header, mySheet, "skuid4");
+                PopulateRowValue(row, 23, header, mySheet, "skuid5");
+                PopulateRowValue(row, 24, header, mySheet, "teamcode");
                 row++;
             }
 
@@ -504,12 +505,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             Worksheet mySheet = excelDocument.Worksheets[0];
 
-            Aspose.Excel.Range range = mySheet.Cells.CreateRange("E1", "X1");
+            Aspose.Excel.Range range = mySheet.Cells.CreateRange("F1", "Y1");
             range.Merge();
-            mySheet.Cells[0, 4].PutValue("Attribute Weighting");
-            mySheet.Cells[0, 4].Style.HorizontalAlignment = TextAlignmentType.Center;
-            mySheet.Cells[0, 4].Style.Font.Size = 12;
-            mySheet.Cells[0, 4].Style.Font.IsBold = true;
+            mySheet.Cells[0, 5].PutValue("Attribute Weighting");
+            mySheet.Cells[0, 5].Style.HorizontalAlignment = TextAlignmentType.Center;
+            mySheet.Cells[0, 5].Style.Font.Size = 12;
+            mySheet.Cells[0, 5].Style.Font.IsBold = true;
             range.SetOutlineBorder(BorderType.BottomBorder, CellBorderType.Thin, System.Drawing.Color.Black);
             range.SetOutlineBorder(BorderType.TopBorder, CellBorderType.Thin, System.Drawing.Color.Black);
             range.SetOutlineBorder(BorderType.LeftBorder, CellBorderType.Thin, System.Drawing.Color.Black);
@@ -518,33 +519,34 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             mySheet.Cells[1, 0].PutValue("Division");
             mySheet.Cells[1, 1].PutValue("Department");
-            mySheet.Cells[1, 2].PutValue("Update Date");
-            mySheet.Cells[1, 3].PutValue("Category");
-            mySheet.Cells[1, 4].PutValue("Active");
-            mySheet.Cells[1, 5].PutValue("Department");
-            mySheet.Cells[1, 6].PutValue("Category");
-            mySheet.Cells[1, 7].PutValue("VendorNumber");
-            mySheet.Cells[1, 8].PutValue("BrandID");
-            mySheet.Cells[1, 9].PutValue("Size");
-            mySheet.Cells[1, 10].PutValue("SizeRange");
-            mySheet.Cells[1, 11].PutValue("Color1");
-            mySheet.Cells[1, 12].PutValue("Color2");
-            mySheet.Cells[1, 13].PutValue("Color3");
-            mySheet.Cells[1, 14].PutValue("Gender");
-            mySheet.Cells[1, 15].PutValue("LifeOfSku");
-            mySheet.Cells[1, 16].PutValue("Material");
-            mySheet.Cells[1, 17].PutValue("PlayerID");
-            mySheet.Cells[1, 18].PutValue("SkuID1");
-            mySheet.Cells[1, 19].PutValue("SkuID2");
-            mySheet.Cells[1, 20].PutValue("SkuID3");
-            mySheet.Cells[1, 21].PutValue("SkuID4");
-            mySheet.Cells[1, 22].PutValue("SkuID5");
-            mySheet.Cells[1, 23].PutValue("Team Code");
+            mySheet.Cells[1, 2].PutValue("Category");
+            mySheet.Cells[1, 3].PutValue("BrandID");
+            mySheet.Cells[1, 4].PutValue("Update Date");
+            mySheet.Cells[1, 5].PutValue("Active");
+            mySheet.Cells[1, 6].PutValue("Department");
+            mySheet.Cells[1, 7].PutValue("Category");
+            mySheet.Cells[1, 8].PutValue("VendorNumber");
+            mySheet.Cells[1, 9].PutValue("BrandID");
+            mySheet.Cells[1, 10].PutValue("Size");
+            mySheet.Cells[1, 11].PutValue("SizeRange");
+            mySheet.Cells[1, 12].PutValue("Color1");
+            mySheet.Cells[1, 13].PutValue("Color2");
+            mySheet.Cells[1, 14].PutValue("Color3");
+            mySheet.Cells[1, 15].PutValue("Gender");
+            mySheet.Cells[1, 16].PutValue("LifeOfSku");
+            mySheet.Cells[1, 17].PutValue("Material");
+            mySheet.Cells[1, 18].PutValue("PlayerID");
+            mySheet.Cells[1, 19].PutValue("SkuID1");
+            mySheet.Cells[1, 20].PutValue("SkuID2");
+            mySheet.Cells[1, 21].PutValue("SkuID3");
+            mySheet.Cells[1, 22].PutValue("SkuID4");
+            mySheet.Cells[1, 23].PutValue("SkuID5");
+            mySheet.Cells[1, 24].PutValue("Team Code");
 
-            for (int i = 0; i < 24; i++)
+            for (int i = 0; i < 25; i++)
             {
                 mySheet.Cells[1, i].Style.Font.IsBold = true;
-                if (i > 3)
+                if (i > 4)
                 {
                     AddBorder(1, i, mySheet);
                 }
