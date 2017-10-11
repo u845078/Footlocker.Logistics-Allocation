@@ -40,6 +40,12 @@
 <fieldset>
     <legend>RDQs to MF</legend>
 
+	@if (!string.IsNullOrEmpty(Model.Sku))
+	{
+	<div>
+		@Html.ActionLink("Export", "ExportTroubleshootRDQ", new { sku = Model.Sku, controlDate = Model.ControlDate }, new { @class = "t-button" })
+	</div>
+	}
 
 @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQ>()
             .Name("TroubleshootRDQForSkuToMF")

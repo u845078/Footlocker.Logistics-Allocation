@@ -508,14 +508,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             //lazy loading was causing invalid circular references
             db.Configuration.ProxyCreationEnabled = false;
-            List<RDQ> model = (from a in
-                                   db.RDQs
-                                   .Include("DistributionCenter")
-                               where
-                               a.Sku == sku
-                               select a).OrderBy(x => x.Store).ThenBy(x => x.Size).ThenBy(x => x.PO).ToList();
 
-            foreach (RDQ r in model)
+			var templist = (from a in db.RDQs.Include("DistributionCenter")
+							join p in db.ItemPacks on new { ItemID = (long)a.ItemID, Size = a.Size } equals new { ItemID = p.ItemID, Size = p.Name } into itempacks
+							from p in itempacks.DefaultIfEmpty()
+							where a.Sku == sku
+							select new { rdq = a, UnitQty = p == null ? a.Qty : p.TotalQty * a.Qty }).ToList();
+
+			//update unitqty
+			foreach (var item in templist)
+			{
+				item.rdq.UnitQty = item.UnitQty;
+			}
+
+			List<RDQ> model = templist.Select(m => m.rdq)
+				.OrderBy(x => x.Store).ThenBy(x => x.Size).ThenBy(x => x.PO).ToList();
+
+			foreach (RDQ r in model)
             {
                 if (r.DistributionCenter != null)
                 {
@@ -795,7 +804,86 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(new GridModel(model));
         }
 
-        private List<RDQ> GetRDQExtractForSkuDate(string sku, DateTime? controldate)
+		public ActionResult ExportTroubleshootRDQ(string sku, DateTime? controldate)
+		{
+			try
+			{
+				// retrieve data
+				List<RDQ> items = GetRDQExtractForSkuDate(sku, controldate);
+				Excel excelDocument = CreateRDQExport(items);
+				excelDocument.Save("TroubleshootRDQs.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+				return RedirectToAction("TroubleshootRDQForSku");
+			}
+			catch (Exception ex)
+			{
+				return Content(ex.Message);
+			}
+
+		}
+
+		private Excel CreateRDQExport(List<RDQ> items)
+		{
+			Excel excelDocument = GetRDQExcelFile();
+
+			int row = 4;
+			Worksheet mySheet = excelDocument.Worksheets[0];
+			foreach (var rdq in items)
+			{
+				// rdq values
+
+				mySheet.Cells[row, 0].PutValue(rdq.Status);
+				mySheet.Cells[row, 1].PutValue(rdq.Division);
+				mySheet.Cells[row, 1].Style.HorizontalAlignment = TextAlignmentType.Center;
+				mySheet.Cells[row, 2].PutValue(rdq.Store);
+				mySheet.Cells[row, 3].PutValue(rdq.Sku);
+				mySheet.Cells[row, 4].PutValue(rdq.Size);
+				mySheet.Cells[row, 5].PutValue(rdq.Qty);
+				mySheet.Cells[row, 5].Style.HorizontalAlignment = TextAlignmentType.Center;
+				mySheet.Cells[row, 6].PutValue(rdq.DC);
+				mySheet.Cells[row, 7].PutValue(rdq.PO);
+				mySheet.Cells[row, 8].PutValue(rdq.RecordType);
+				mySheet.Cells[row, 8].Style.HorizontalAlignment = TextAlignmentType.Center;
+
+				row++;
+			}
+
+			for (int i = 0; i < 9; i++)
+			{
+				mySheet.AutoFitColumn(i);
+			}
+
+			return excelDocument;
+		}
+
+		private Excel GetRDQExcelFile()
+		{
+			Aspose.Excel.License license = new Aspose.Excel.License();
+			// set license
+			license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+			Excel excelDocument = new Excel();
+
+			Worksheet mySheet = excelDocument.Worksheets[0];
+
+			mySheet.Cells[1, 3].PutValue("RDQs to MF");
+//			mySheet.Cells[1, 3].Style.HorizontalAlignment = TextAlignmentType.Center;
+			mySheet.Cells[1, 3].Style.Font.Size = 12;
+			mySheet.Cells[1, 3].Style.Font.IsBold = true;
+
+			mySheet.Cells[3, 0].PutValue("Status");
+			mySheet.Cells[3, 1].PutValue("Division");
+			mySheet.Cells[3, 2].PutValue("Store");
+			mySheet.Cells[3, 3].PutValue("Sku");
+			mySheet.Cells[3, 4].PutValue("Size/Caselot");
+			mySheet.Cells[3, 5].PutValue("Qty");
+			mySheet.Cells[3, 6].PutValue("DC");
+			mySheet.Cells[3, 7].PutValue("PO");
+			mySheet.Cells[3, 8].PutValue("RecordType");
+
+			return excelDocument;
+		}
+
+		private List<RDQ> GetRDQExtractForSkuDate(string sku, DateTime? controldate)
         {
 
             RDQDAO dao = new RDQDAO();
