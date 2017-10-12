@@ -485,22 +485,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             //lazy loading was causing invalid circular references
             db.Configuration.ProxyCreationEnabled = false;
-            List<RDQ> model = (from a in
-                                   db.RDQs
-                                   .Include("DistributionCenter")
-                               where
-                               ((a.Division == div) && ((a.Store == store)) || (a.Store == null))
-                               select a).ToList();
+			List<RDQ> model = new List<RDQ>();
 
-            foreach (RDQ r in model)
-            {
-                if (r.DistributionCenter != null)
-                {
-                    r.WarehouseName = r.DistributionCenter.Name;
-                }
-            }
+			var templist = (from a in db.RDQs
+							join d in db.DistributionCenters on a.DCID equals d.ID
+							join p in db.ItemPacks on new { ItemID = (long)a.ItemID, Size = a.Size } equals new { ItemID = p.ItemID, Size = p.Name } into itempacks
+							from p in itempacks.DefaultIfEmpty()
+							where
+							((a.Division == div) && ((a.Store == store)) || (a.Store == null))
+							select new { rdq = a, DistCenter = d.Name, UnitQty = p == null ? a.Qty : p.TotalQty * a.Qty }).ToList();
+
+			//update unitqty
+			foreach (var item in templist)
+			{
+				item.rdq.UnitQty = item.UnitQty;
+				item.rdq.WarehouseName = item.DistCenter;
+				model.Add(item.rdq);
+			}
+
             return View(new GridModel(model));
-
         }
 
         [GridAction]
@@ -509,28 +512,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //lazy loading was causing invalid circular references
             db.Configuration.ProxyCreationEnabled = false;
 
-			var templist = (from a in db.RDQs.Include("DistributionCenter")
+			var templist = (from a in db.RDQs
+							join d in db.DistributionCenters on a.DCID equals d.ID
 							join p in db.ItemPacks on new { ItemID = (long)a.ItemID, Size = a.Size } equals new { ItemID = p.ItemID, Size = p.Name } into itempacks
 							from p in itempacks.DefaultIfEmpty()
 							where a.Sku == sku
-							select new { rdq = a, UnitQty = p == null ? a.Qty : p.TotalQty * a.Qty }).ToList();
+							select new { rdq = a, DistCenter = d.Name, UnitQty = p == null ? a.Qty : p.TotalQty * a.Qty }).ToList();
 
 			//update unitqty
 			foreach (var item in templist)
 			{
 				item.rdq.UnitQty = item.UnitQty;
+				item.rdq.WarehouseName = item.DistCenter;
 			}
 
 			List<RDQ> model = templist.Select(m => m.rdq)
 				.OrderBy(x => x.Store).ThenBy(x => x.Size).ThenBy(x => x.PO).ToList();
 
-			foreach (RDQ r in model)
-            {
-                if (r.DistributionCenter != null)
-                {
-                    r.WarehouseName = r.DistributionCenter.Name;
-                }
-            }
 
             if ((store != null) && (store != ""))
             {
@@ -839,10 +837,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 				mySheet.Cells[row, 4].PutValue(rdq.Size);
 				mySheet.Cells[row, 5].PutValue(rdq.Qty);
 				mySheet.Cells[row, 5].Style.HorizontalAlignment = TextAlignmentType.Center;
-				mySheet.Cells[row, 6].PutValue(rdq.DC);
-				mySheet.Cells[row, 7].PutValue(rdq.PO);
-				mySheet.Cells[row, 8].PutValue(rdq.RecordType);
-				mySheet.Cells[row, 8].Style.HorizontalAlignment = TextAlignmentType.Center;
+				mySheet.Cells[row, 6].PutValue(rdq.UnitQty);
+				mySheet.Cells[row, 6].Style.HorizontalAlignment = TextAlignmentType.Center;
+				mySheet.Cells[row, 7].PutValue(rdq.DC);
+				mySheet.Cells[row, 8].PutValue(rdq.PO);
+				mySheet.Cells[row, 9].PutValue(rdq.RecordType);
+				mySheet.Cells[row, 9].Style.HorizontalAlignment = TextAlignmentType.Center;
 
 				row++;
 			}
@@ -875,10 +875,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 			mySheet.Cells[3, 2].PutValue("Store");
 			mySheet.Cells[3, 3].PutValue("Sku");
 			mySheet.Cells[3, 4].PutValue("Size/Caselot");
-			mySheet.Cells[3, 5].PutValue("Qty");
-			mySheet.Cells[3, 6].PutValue("DC");
-			mySheet.Cells[3, 7].PutValue("PO");
-			mySheet.Cells[3, 8].PutValue("RecordType");
+			mySheet.Cells[3, 5].PutValue("PickQty");
+			mySheet.Cells[3, 6].PutValue("UnitQty");
+			mySheet.Cells[3, 7].PutValue("DC");
+			mySheet.Cells[3, 8].PutValue("PO");
+			mySheet.Cells[3, 9].PutValue("RecordType");
 
 			return excelDocument;
 		}
