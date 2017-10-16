@@ -455,7 +455,8 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             }
             else if (!(WebSecurityService.UserHasDepartment(userName, "Allocation", rf.Division, rf.Department)))
             {
-                errorMessage = "You do not have permission to ring fence for department " + rf.Department;
+				result = false;
+				errorMessage = "You do not have permission to ring fence for department " + rf.Department;
             }
 
             return result;
