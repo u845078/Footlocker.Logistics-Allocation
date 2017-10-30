@@ -512,30 +512,32 @@
 
 
 @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQ>()
-            .Name("RDQ")
-        .Columns(columns =>
-        {
-            columns.Bound(o => o.WarehouseName);
-            columns.Bound(o => o.Division);
-            columns.Bound(o => o.Store);
-            columns.Bound(o => o.Sku);
-            columns.Bound(o => o.Size);
-            columns.Bound(o => o.PO);
-            columns.Bound(o => o.Qty).Aggregate(aggreages => aggreages.Sum())
-                   .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
-            columns.Bound(o => o.Type);
-            columns.Bound(o => o.Status);
-            columns.Bound(o => o.CreatedBy);
-            columns.Bound(o => o.CreateDate);
-        })
-        .DataBinding(dataBinding =>
-        {
-            dataBinding.Ajax().Select("_ItemRDQs", "item", new { sku = Model.Sku, store = Model.Store });
-        })
-        .Sortable()
-        .Pageable()
-        .Filterable()
-            .Footer(true)
+			.Name("RDQ")
+		.Columns(columns =>
+		{
+			columns.Bound(o => o.WarehouseName);
+			columns.Bound(o => o.Division);
+			columns.Bound(o => o.Store);
+			columns.Bound(o => o.Sku);
+			columns.Bound(o => o.Size);
+			columns.Bound(o => o.PO);
+			columns.Bound(o => o.Qty).Title("Pick Qty").Aggregate(aggreages => aggreages.Sum())
+				   .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
+			columns.Bound(o => o.UnitQty).Aggregate(aggreages => aggreages.Sum())
+					   .ClientFooterTemplate("Filtered UnitQty: <#= Sum #>");
+			columns.Bound(o => o.Type);
+			columns.Bound(o => o.Status);
+			columns.Bound(o => o.CreatedBy);
+			columns.Bound(o => o.CreateDate);
+		})
+		.DataBinding(dataBinding =>
+		{
+			dataBinding.Ajax().Select("_ItemRDQs", "item", new { sku = Model.Sku, store = Model.Store });
+		})
+		.Sortable()
+		.Pageable()
+		.Filterable()
+			.Footer(true)
 )
 
 </fieldset>

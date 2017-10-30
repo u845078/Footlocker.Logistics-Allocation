@@ -72,7 +72,8 @@ namespace Footlocker.Logistics.Allocation.Factories
             _newObject.ItemID = Convert.ToInt64(dr["ItemID"]);
             _newObject.PO = Convert.ToString(dr["PO"]);
             _newObject.Qty = Convert.ToInt32(dr["Qty"]);
-            if (dr.Table.Columns.Contains("type"))
+			_newObject.UnitQty = Convert.ToInt32(dr["UnitQty"]);
+			if (dr.Table.Columns.Contains("type"))
             {
                 _newObject.Type = Convert.ToString(dr["type"]);
             }

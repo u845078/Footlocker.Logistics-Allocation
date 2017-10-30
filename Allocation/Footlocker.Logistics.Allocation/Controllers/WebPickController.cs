@@ -280,10 +280,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private List<RDQ> GetRDQsForSession(int instance, string div, string department, string category, string sku, string status, string po, string store, Int64 ruleset)
         {
             List<RDQ> model;
-            //if (div == "00")
-            //{
-            //    div = null;
-            //}
 
             if ((Session["searchresult"] != null) &&
                 ((Int32)Session["searchresult"] > 0))
@@ -292,27 +288,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                //if ((department != null)&&(department.Contains("-")))
-                //{ 
-                //    string[] tokens = department.Split('-');
-                //    div = tokens[0];
-                //    department = tokens[1];
-                //}
-
-                //List<RDQ> list = (from a in db.RDQs
-                //                  join b in db.InstanceDivisions on a.Division equals b.Division
-                //                  join c in db.ItemMasters on a.ItemID equals c.ID
-                //                  where ((b.InstanceID == instance)
-                //                    && ((c.Div == div) || (div == null))
-                //                    && ((c.Dept == department) || (department == null))
-                //                    && ((c.Category == category) || (category == null))
-                //                    && ((a.Sku == sku) || (sku == null))
-                //                    && ((a.PO == po) || (po == null))
-                //                    && ((a.Store == store) || (store == null))
-                //                    && ((a.Status == status) || (status == "All"))
-                //                    )
-                //                  select a).ToList();
-
                 List<RDQ> list = new List<RDQ>();
 
                 if (department == "00")
@@ -322,7 +297,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     var templist = (from a in db.RDQs
                             join b in db.InstanceDivisions on a.Division equals b.Division
                             join c in db.ItemMasters on a.ItemID equals c.ID
-                            where ((b.InstanceID == instance)
+							join p in db.ItemPacks on new { ItemID = (long)a.ItemID, Size = a.Size } equals new { ItemID = p.ItemID, Size = p.Name } into itempacks
+							from p in itempacks.DefaultIfEmpty()
+					where ((b.InstanceID == instance)
                             && (c.Div == div)
                             && ((c.Category == category) || (category == null))
                             && ((a.Sku == sku) || (sku == null))
@@ -330,19 +307,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             && ((a.Store == store) || (store == null))
                             && ((a.Status == status) || (status == "All"))
                             )
-                            select new { rdq = a, dept = c.Dept} ).ToList();
+					select new { rdq = a, dept = c.Dept, UnitQty = p == null ? a.Qty : p.TotalQty * a.Qty } ).ToList();
 
-                    //filter by valid departments
-                    list = (from a in templist
-                            join d in depts on a.dept equals d.DeptNumber
-                            select a.rdq).ToList();
-                }
+					//update unitqty
+					foreach (var item in templist)
+					{
+						item.rdq.UnitQty = item.UnitQty;
+					}
+
+					//filter by valid departments
+					list = (from a in templist
+							join d in depts on a.dept equals d.DeptNumber
+							select a.rdq).ToList();
+				}
                 else
                 {
-                    list = (from a in db.RDQs
+					var templist = (from a in db.RDQs
                             join b in db.InstanceDivisions on a.Division equals b.Division
                             join c in db.ItemMasters on a.ItemID equals c.ID
-                            where ((b.InstanceID == instance)
+							join p in db.ItemPacks on new { ItemID = (long)a.ItemID, Size = a.Size } equals new { ItemID = p.ItemID, Size = p.Name } into itempacks
+							from p in itempacks.DefaultIfEmpty()
+							where ((b.InstanceID == instance)
                             && (c.Div == div)
                             && (c.Dept == department)
                             && ((c.Category == category) || (category == null))
@@ -351,49 +336,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             && ((a.Store == store) || (store == null))
                             && ((a.Status == status) || (status == "All"))
                             )
-                            select a).ToList();
-                }
-                
-                RuleDAO dao = new RuleDAO();
+							select new { rdq = a, UnitQty = p == null ? a.Qty : p.TotalQty * a.Qty }).ToList();
+
+					//update unitqty
+					foreach (var item in templist)
+					{
+						item.rdq.UnitQty = item.UnitQty;
+					}
+
+					list = templist.Select(m => m.rdq).ToList();
+				}
+
+				RuleDAO dao = new RuleDAO();
                 if (ruleset > 0)
                 {
                     List<StoreLookup> stores = dao.GetStoresInRuleSet(ruleset);
                     list = (from a in list join b in stores on new { a.Division, a.Store } equals new { b.Division, b.Store } select a).ToList();
                 }
-                int qty;
 
-                if (list.Count() < 6000)
-                {
-                    List<RDQ> updateList = new List<RDQ>();
-                    List<string> caselots = new List<string>();
-                    foreach (RDQ r in list)
-                    {
-                        if (r.Size.Length > 3)
-                        {
-                            updateList.Add(r);
-                            caselots.Add(r.Size);
-                        }
-                        else
-                        {
-                            r.UnitQty = r.Qty;
-                        }
-                    }
-
-                    List<ItemPack> qtyPerCase = db.ItemPacks.Where(p => caselots.Contains(p.Name)).ToList();
-                    foreach (RDQ r in updateList)
-                    {
-                        try
-                        {
-                            r.UnitQty = (from a in qtyPerCase where a.Name == r.Size select a.TotalQty).First() * r.Qty;
-                        }
-                        catch
-                        {
-                            //    //don't know per qty, so we'll just leave blank
-                        }
-                    }
-                }
-
-                model = list.Select(x => new RDQ(x)).ToList();
+				model = list; 
 
                 Session["searchresult"] = 1;
                 Session["searchresultlist"] = model;
