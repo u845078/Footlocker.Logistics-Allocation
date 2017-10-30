@@ -204,6 +204,7 @@
     <Compile Include="Common\AjaxValidationException.cs" />
     <Compile Include="Common\DeleteValidationException.cs" />
     <Compile Include="Common\ExistsValidationException.cs" />
+    <Compile Include="Common\Extensions.cs" />
     <Compile Include="Common\Filters\HandleAjaxError.cs" />
     <Compile Include="Common\Filters\HandleAjaxValidationError.cs" />
     <Compile Include="Common\Filters\LogError.cs" />
@@ -578,6 +579,7 @@
     <Content Include="Views\ProductHierarchyOverride\FormLayout.cshtml" />
     <Content Include="Views\PurgeArchive\Index.cshtml" />
     <Content Include="Views\PurgeArchive\Create.cshtml" />
+    <Content Include="Views\SkuAttribute\Upload.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />

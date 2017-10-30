@@ -1,0 +1,68 @@
+﻿@using Telerik.Web.Mvc
+@{
+    ViewBag.Title = "Sku Attributes Upload";
+}
+
+<fieldset>
+    <legend> Quantum Attribute Matching Upload </legend>
+    <br />
+    @Html.ActionLink("Download Template", "GetSkuAttributeTemplate", "SkuAttribute", new { }, new { @class = "t-button" })
+    <br />
+    <br />
+    <b>This upload will create/modify Sku Attributes.</b>
+    <br />
+    <b>The following validations must pass before the upload:</b>
+    <br />
+    <ul>
+        <li>Must provide Division and Department for each row</li>
+        <li>Any row that already exists must provide replacement values for every column</li>
+        <li>If you provide a Category or Category/Brand, then their respective attributes must be mandatory</li>
+        <li>The weight of all attributes provided must equal 100</li>
+    </ul>
+    <b>Please select spreadsheet with Sku Attributes to upload: </b>
+    <br />
+    <br />
+    @(Html.Telerik().Upload()
+        .Name("attachments")
+        .Multiple(false)
+        .Async(async => async
+            .Save("UploadSkuAttributes", "SkuAttribute")
+            .AutoUpload(false))
+            .ShowFileList(true)
+        .ClientEvents(events => events
+            .OnError("onError")
+            .OnSelect("onSelect")
+            .OnSuccess("onSuccess")
+            )
+     )
+
+    <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width: 150px; visibility: hidden; display: none;"/>
+    <br />
+    <h4> <div id="message"></div></h4>
+</fieldset>
+
+<script type="text/javascript">
+
+    function onSelect(e) {
+        var files = e.files;
+        if (files[0].extension != ".xls") {
+            alert("Document must be a spreadsheet with an xls extension");
+            e.preventDefault();
+        } else {
+            document.getElementById('spreadsheet').style.visibility = 'visible';
+        }
+        $('#message').empty();
+    }
+
+    function onError(e) {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>" + message + "</font>");
+        e.preventDefault();
+    }
+
+    function onSuccess(e) {
+        var response = JSON.parse(e.XMLHttpRequest.responseText);
+        $('#message').empty().append("<font color='red'>Success <br /> " + response.message + "</font>");
+        e.preventDefault();
+    }
+</script>
