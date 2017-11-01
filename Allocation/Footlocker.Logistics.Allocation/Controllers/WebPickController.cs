@@ -775,22 +775,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             string message = "";
             //Int32 qtyAvailable = InventoryAvailableToPick(rdq, ref pickAnyway);
-            if (validateInventory)
-            {
-                Int32 qtyAvailable = InventoryAvailableToPick(rdq);
-                if (qtyAvailable < rdq.Qty)
-                {
-                    message = "Not enough inventory.  Amount available (for size) is " + qtyAvailable;
-                    //if (pickAnyway)
-                    //{
-                    //    message = message + "(noringfence)";
-                    //}
-                    //else
-                    //{
-                    //    message = message + "(ringfence)";
-                    //}
-                }
-            }
             
             if (rdq.Division != rdq.Sku.Substring(0, 2))
             {
@@ -807,6 +791,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
+            if (message == "")
+            {
+                if (validateInventory)
+                {
+                    Int32 qtyAvailable = InventoryAvailableToPick(rdq);
+                    if (qtyAvailable < rdq.Qty)
+                    {
+                        message = "Not enough inventory.  Amount available (for size) is " + qtyAvailable;
+                        //if (pickAnyway)
+                        //{
+                        //    message = message + "(noringfence)";
+                        //}
+                        //else
+                        //{
+                        //    message = message + "(ringfence)";
+                        //}
+                    }
+                }
+            }
             return message;
         }
 
@@ -1031,22 +1034,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
-            int instance = (from a in db.InstanceDivisions
-                            where a.Division == Division
-                            select a.InstanceID).First();
-            RDQDAO rdqDAO = new RDQDAO();
-            int holdcount = rdqDAO.ApplyHolds(rdqGood, instance);
-
-            if (holdcount > 0)
+            if (rdqGood.Count > 0)
             {
-                errorMessages.Add(holdcount + " on hold.  Please go to Release Held RDQs to view held RDQs.");
-            }
+                int instance = (from a in db.InstanceDivisions
+                                where a.Division == Division
+                                select a.InstanceID).First();
+                RDQDAO rdqDAO = new RDQDAO();
+                int holdcount = rdqDAO.ApplyHolds(rdqGood, instance);
 
-            int cancelholdcount = rdqDAO.ApplyCancelHolds(rdqGood);
+                if (holdcount > 0)
+                {
+                    errorMessages.Add(holdcount + " on hold.  Please go to Release Held RDQs to view held RDQs.");
+                }
 
-            if (cancelholdcount > 0)
-            {
-                errorMessages.Add(cancelholdcount + " rejected by cancel inventory hold.  ");
+                int cancelholdcount = rdqDAO.ApplyCancelHolds(rdqGood);
+
+                if (cancelholdcount > 0)
+                {
+                    errorMessages.Add(cancelholdcount + " rejected by cancel inventory hold.  ");
+                }
             }
 
             if (errorMessages.Count > 0)
