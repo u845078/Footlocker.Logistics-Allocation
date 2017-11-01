@@ -54,6 +54,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Troubleshoot(string sku)
         {
             TroubleshootModel model = new TroubleshootModel();
+            model.Warehouse = -1;
             SetDCs(model);
             if (sku != null)
             {
@@ -295,9 +296,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (warehouseNum == -1)
                 warehouseID = "-1";
             else
+            {
                 warehouseID = (from w in db.DistributionCenters
                                where w.ID == warehouseNum
-                               select w.MFCode).First().ToString();
+                               select w.MFCode).FirstOrDefault().ToString();
+            }
 
             WarehouseInventoryDAO dao = new WarehouseInventoryDAO();
 
