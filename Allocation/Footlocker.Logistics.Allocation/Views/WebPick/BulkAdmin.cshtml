@@ -155,7 +155,6 @@
 @if (Model.HaveResults)
 {
     @Html.Raw("Selected RDQs:<br>")
-    @Html.Raw("* Note:  If Unit RDQ is 0, filter to less results to have value populated.<br>")
     
     @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQGroup>()
     .Name("RDQGrid")

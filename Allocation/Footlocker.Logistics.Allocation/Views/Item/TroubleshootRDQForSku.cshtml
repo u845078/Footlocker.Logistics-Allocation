@@ -40,31 +40,39 @@
 <fieldset>
     <legend>RDQs to MF</legend>
 
+	@if (!string.IsNullOrEmpty(Model.Sku))
+	{
+	<div>
+		@Html.ActionLink("Export", "ExportTroubleshootRDQ", new { sku = Model.Sku, controlDate = Model.ControlDate }, new { @class = "t-button" })
+	</div>
+	}
 
 @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQ>()
-            .Name("TroubleshootRDQForSkuToMF")
-        .Columns(columns =>
-        {
-            columns.Bound(o => o.Status);
-            columns.Bound(o => o.Division);
-            columns.Bound(o => o.Store);
-            columns.Bound(o => o.Sku);
-            columns.Bound(o => o.Size);
-            columns.Bound(o => o.Qty).Aggregate(aggreages => aggreages.Sum())
-                   .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
-            columns.Bound(o => o.DC);
-            columns.Bound(o => o.PO);
-            columns.Bound(o => o.RecordType);
-        })
-        .DataBinding(dataBinding =>
-        {
-            dataBinding.Ajax().Select("_TroubleshootRDQForSkuToMF", "item", new { sku = Model.Sku, controldate = Model.ControlDate });
-        })
-        .Sortable(sorting => sorting.Enabled(true))
-        .Pageable(paging => paging.Enabled(true))
-        .Filterable(filtering => filtering.Enabled(true))
-        .Groupable(grouping => grouping.Enabled(false))
-            .Footer(true)
+			.Name("TroubleshootRDQForSkuToMF")
+		.Columns(columns =>
+		{
+			columns.Bound(o => o.Status);
+			columns.Bound(o => o.Division);
+			columns.Bound(o => o.Store);
+			columns.Bound(o => o.Sku);
+			columns.Bound(o => o.Size);
+			columns.Bound(o => o.Qty).Title("Pick Qty").Aggregate(aggreages => aggreages.Sum())
+					   .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
+			columns.Bound(o => o.UnitQty).Aggregate(aggreages => aggreages.Sum())
+					   .ClientFooterTemplate("Filtered UnitQty: <#= Sum #>");
+			columns.Bound(o => o.DC);
+			columns.Bound(o => o.PO);
+			columns.Bound(o => o.RecordType);
+		})
+		.DataBinding(dataBinding =>
+		{
+			dataBinding.Ajax().Select("_TroubleshootRDQForSkuToMF", "item", new { sku = Model.Sku, controldate = Model.ControlDate });
+		})
+		.Sortable(sorting => sorting.Enabled(true))
+		.Pageable(paging => paging.Enabled(true))
+		.Filterable(filtering => filtering.Enabled(true))
+		.Groupable(grouping => grouping.Enabled(false))
+			.Footer(true)
 )
 
 </fieldset>
