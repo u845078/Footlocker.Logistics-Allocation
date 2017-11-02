@@ -863,7 +863,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 MemoryStream memoryStream1 = new MemoryStream(data1);
                 workbook.Open(memoryStream1);
                 Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-                string mainDivision;
+                string mainDivision = "";
 
                 if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Store")) &&
                     (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("SKU")) &&
@@ -873,14 +873,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Pick from Ring Fence Store"))
                     )
                 {
-                    Division = (Convert.ToString(mySheet.Cells[row, 1].Value)).Substring(0, 2);
-                    mainDivision = Division;
-
-                    if (!(Footlocker.Common.WebSecurityService.UserHasDivision(User.Identity.Name.Split('\\')[1], "Allocation", Division)))
+                    if (mySheet.Cells[row, 1].Value != null)
                     {
-                        return Content("You do not have permission to update this division.");
-                    }
+                        Division = (Convert.ToString(mySheet.Cells[row, 1].Value)).Substring(0, 2);
+                        mainDivision = Division;
 
+                        if (!(Footlocker.Common.WebSecurityService.UserHasDivision(User.Identity.Name.Split('\\')[1], "Allocation", Division)))
+                        {
+                            return Content("You do not have permission to update this division.");
+                        }
+                    }
                     // Validate records and create lists of OK and not OK RDQs
                     RDQ rdq;
                     while (mySheet.Cells[row, 0].Value != null)
