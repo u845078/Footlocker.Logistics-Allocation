@@ -354,9 +354,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     list = (from a in list join b in stores on new { a.Division, a.Store } equals new { b.Division, b.Store } select a).ToList();
                 }
 
-				model = list; 
+				model = list.Select(x => new RDQ(x)).ToList();
 
-                Session["searchresult"] = 1;
+				Session["searchresult"] = 1;
                 Session["searchresultlist"] = model;
             }
             return model;
