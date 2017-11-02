@@ -44,6 +44,10 @@
         window.location = "/Ringfence/PickFOB?div=" + div + "&store=" + store;
     }
 
+    function ExportExcel(div, store) {
+        //redirecting them to show them RDQs with ability to release them
+        window.location = "/RingFence/DestExport?div=" + div + "&store=" + store;
+    }
 </script>
 
 <h2>Ring Fences</h2>
@@ -89,6 +93,7 @@
                 + "<a class=\"t-button\" href='javascript:MassPickGrid(\"<#= Division #> \",\"<#= Store #>\");'>Pick All</a>"
                 + "<a class=\"t-button\" href='javascript:MassPickWarehouseGrid(\"<#= Division #> \",\"<#= Store #>\");'>Pick Warehouse</a>"
                 + "<a class=\"t-button\" href='javascript:PickFOB(\"<#= Division #> \",\"<#= Store #>\");'>FOB</a>"
+                + "<a class=\"t-button\" href='javascript:ExportExcel(\"<#= Division #> \",\"<#= Store #>\");'>Export to Excel</a>"
             ).Width(350);
         })
         .DataBinding(dataBinding =>
@@ -158,8 +163,6 @@
                         .ToHtmlString()
                         ))
         )
-
-
 </div>                
 </div>
 </div>
