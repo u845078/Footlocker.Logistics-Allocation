@@ -151,9 +151,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _RingFenceStores()
         {
             List<Division> divs = Divisions();
-            List<StoreLookup> list = (from a in db.RingFences join b in db.StoreLookups on new { a.Division, a.Store } equals new { b.Division, b.Store } where a.Qty > 0 select b).ToList();
+            List<StoreLookup> list = (from a in db.RingFences
+                                      join b in db.StoreLookups 
+                                        on new { a.Division, a.Store } equals new { b.Division, b.Store }
+                                      where a.Qty > 0 select b).ToList();
             list = (from a in list
-                    join d in divs on a.Division equals d.DivCode
+                    join d in divs 
+                      on a.Division equals d.DivCode
                     select a).Distinct().ToList();
 
             return PartialView(new GridModel(list));
@@ -221,7 +225,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             else
             {
                 List<Division> divs = Divisions();
-                list = (from a in db.RingFences where ((a.Qty > 0) && (a.Division == div)&& (a.Store == store)) select a).ToList();
+                list = (from a in db.RingFences
+                        where ((a.Qty > 0) && (a.Division == div) && (a.Store == store))
+                        select a).ToList();
                 list = (from a in list
                         join d in divs on a.Division equals d.DivCode
                         select new RingFence
@@ -2613,33 +2619,47 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            excelDocument.Worksheets[0].Cells[0, 0].PutValue("Div (##)");
-            excelDocument.Worksheets[0].Cells[0, 1].PutValue("Store (#####)");
-            excelDocument.Worksheets[0].Cells[0, 2].PutValue("SKU (##-##-#####-##)");
-            excelDocument.Worksheets[0].Cells[0, 3].PutValue("EndDate (DD/MM/YYYY)");
-            excelDocument.Worksheets[0].Cells[0, 4].PutValue("PO (######)");
-            excelDocument.Worksheets[0].Cells[0, 5].PutValue("Warehouse (##)");
-            excelDocument.Worksheets[0].Cells[0, 6].PutValue("Size/Caselot (### or #####)");
-            excelDocument.Worksheets[0].Cells[0, 7].PutValue("Qty");
-            excelDocument.Worksheets[0].Cells[0, 8].PutValue("Comments");
-            excelDocument.Worksheets[0].Cells[0, 9].PutValue("Error");
+            excelDocument.Worksheets[0].Cells[0, 0].PutValue("Store");
+            excelDocument.Worksheets[0].Cells[0, 1].PutValue("SKU");
+            excelDocument.Worksheets[0].Cells[0, 2].PutValue("Size");
+            excelDocument.Worksheets[0].Cells[0, 3].PutValue("Pick Quantity");
+            excelDocument.Worksheets[0].Cells[0, 4].PutValue("");
+            excelDocument.Worksheets[0].Cells[0, 5].PutValue("");
+            excelDocument.Worksheets[0].Cells[0, 6].PutValue("Ring Fence Status");
+            excelDocument.Worksheets[0].Cells[0, 7].PutValue("Quantity");
+            excelDocument.Worksheets[0].Cells[0, 8].PutValue("Start Date");
+            excelDocument.Worksheets[0].Cells[0, 9].PutValue("End Date");
+            excelDocument.Worksheets[0].Cells[0, 10].PutValue("PO");
+            excelDocument.Worksheets[0].Cells[0, 11].PutValue("Created By");
+            excelDocument.Worksheets[0].Cells[0, 12].PutValue("Create Date");
+            excelDocument.Worksheets[0].Cells[0, 13].PutValue("Comments");
             int row = 1;
 
-            //foreach (RingFenceUploadModel model in errors)
-            //{
-            //    excelDocument.Worksheets[0].Cells[row, 0].PutValue(model.Division);
-            //    excelDocument.Worksheets[0].Cells[row, 1].PutValue(model.Store);
-            //    excelDocument.Worksheets[0].Cells[row, 2].PutValue(model.SKU);
-            //    excelDocument.Worksheets[0].Cells[row, 3].PutValue(model.EndDate);
-            //    excelDocument.Worksheets[0].Cells[row, 4].PutValue(model.PO);
-            //    excelDocument.Worksheets[0].Cells[row, 5].PutValue(model.Warehouse);
-            //    excelDocument.Worksheets[0].Cells[row, 6].PutValue(model.Size);
-            //    excelDocument.Worksheets[0].Cells[row, 7].PutValue(model.Qty);
-            //    excelDocument.Worksheets[0].Cells[row, 8].PutValue(model.Comments);
-            //    excelDocument.Worksheets[0].Cells[row, 9].PutValue(model.ErrorMessage);
 
-            //    row++;
-            //}
+            var ringFenceStoreList = (from a in db.RingFences
+                                      where ((a.Qty > 0) && (a.Division == div) && (a.Store == store))
+                                      select a).ToList();
+            foreach (var rfStore in ringFenceStoreList)
+            {
+                foreach (var rfStoreDetail in rfStore.ringFenceDetails.Where(d => d.ActiveInd == "1"))
+                {
+                    excelDocument.Worksheets[0].Cells[row, 0].PutValue(rfStore.Store);
+                    excelDocument.Worksheets[0].Cells[row, 1].PutValue(rfStore.Sku);
+                    excelDocument.Worksheets[0].Cells[row, 2].PutValue(rfStoreDetail.Size);
+                    excelDocument.Worksheets[0].Cells[row, 3].PutValue(rfStoreDetail.Qty);
+
+                    excelDocument.Worksheets[0].Cells[row, 6].PutValue(rfStoreDetail.RingFenceStatus.ringFenceStatusDesc);
+                    
+                    excelDocument.Worksheets[0].Cells[row, 8].PutValue(rfStore.StartDate);
+                    excelDocument.Worksheets[0].Cells[row, 9].PutValue(rfStore.EndDate);
+                    excelDocument.Worksheets[0].Cells[row, 10].PutValue(rfStoreDetail.PO);
+                    excelDocument.Worksheets[0].Cells[row, 11].PutValue(rfStore.CreatedBy);
+                    excelDocument.Worksheets[0].Cells[row, 12].PutValue(rfStore.CreateDate);
+                    excelDocument.Worksheets[0].Cells[row, 13].PutValue(rfStore.Comments);
+
+                    row++;
+                }
+            }
 
             excelDocument.Save("RingFenceWebUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
 
