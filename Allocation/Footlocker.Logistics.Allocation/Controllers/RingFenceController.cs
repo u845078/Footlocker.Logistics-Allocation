@@ -2649,12 +2649,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     excelDocument.Worksheets[0].Cells[row, 3].PutValue(rfStoreDetail.Qty);
 
                     excelDocument.Worksheets[0].Cells[row, 6].PutValue(rfStoreDetail.RingFenceStatus.ringFenceStatusDesc);
-                    
-                    excelDocument.Worksheets[0].Cells[row, 8].PutValue(rfStore.StartDate);
-                    excelDocument.Worksheets[0].Cells[row, 9].PutValue(rfStore.EndDate);
+
+                    excelDocument.Worksheets[0].Cells[row, 8].PutValue(rfStore.StartDate.ToShortDateString());
+
+                    if (rfStore.EndDate.HasValue)
+                        excelDocument.Worksheets[0].Cells[row, 9].PutValue(rfStore.EndDate.Value.ToShortDateString());
+
                     excelDocument.Worksheets[0].Cells[row, 10].PutValue(rfStoreDetail.PO);
                     excelDocument.Worksheets[0].Cells[row, 11].PutValue(rfStore.CreatedBy);
-                    excelDocument.Worksheets[0].Cells[row, 12].PutValue(rfStore.CreateDate);
+                    excelDocument.Worksheets[0].Cells[row, 12].PutValue(rfStore.CreateDate.Value.ToShortDateString() + ' ' +
+                        rfStore.CreateDate.Value.ToLongTimeString());
                     excelDocument.Worksheets[0].Cells[row, 13].PutValue(rfStore.Comments);
 
                     row++;
