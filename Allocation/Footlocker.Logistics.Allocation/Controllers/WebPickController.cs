@@ -960,20 +960,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 else
                                 {
                                     var ringFenceDetails = (from r in ringFence
-                                                            join rfd in db.RingFenceDetails
-                                                             on r.ID equals rfd.RingFenceID
+                                                            from rfd in r.ringFenceDetails                                                                  
                                                             where rfd.Size == rdq.Size &&
                                                                   rfd.ActiveInd == "1" &&
-                                                                  rfd.ringFenceStatusCode == "4"
+                                                                  rfd.ringFenceStatusCode == "4" &&
+                                                                  rfd.PO == ""
                                                             orderby rfd.RingFenceID
                                                             select rfd).ToList();
-
-
-                                   //List < RingFenceDetail > ringFenceDetails = ringFence.ringFenceDetails.Where(d => d.Size == rdq.Size &&
-                                   //                                                           d.ActiveInd == "1" &&
-                                   //                                                           d.ringFenceStatusCode == "4")
-                                   //                                                        .OrderBy(c => c.RingFenceID)
-                                   //                                                        .ToList();
                                                                                     
                                     if (ringFenceDetails.Count() == 0)
                                     {
