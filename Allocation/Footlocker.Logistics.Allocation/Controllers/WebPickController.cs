@@ -951,21 +951,31 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                        r.Store == ringFenceStore &&
                                                        (r.EndDate == null ||
                                                        r.EndDate >= DateTime.Now)
-                                                 select r).FirstOrDefault();
+                                                 select r).ToList();
 
-                                if (ringFence == null)
+                                if (ringFence.Count() == 0)
                                 {
                                     message = "No ring fences for the SKU and pick store were found. ";
                                 }
                                 else
                                 {
-                                    List<RingFenceDetail> ringFenceDetails = ringFence.ringFenceDetails.Where(d => d.Size == rdq.Size &&
-                                                                                            d.ActiveInd == "1" &&
-                                                                                            d.ringFenceStatusCode == "4")
-                                                                                            .OrderBy(c => c.RingFenceID)
-                                                                                            .ToList();
+                                    var ringFenceDetails = (from r in ringFence
+                                                            join rfd in db.RingFenceDetails
+                                                             on r.ID equals rfd.RingFenceID
+                                                            where rfd.Size == rdq.Size &&
+                                                                  rfd.ActiveInd == "1" &&
+                                                                  rfd.ringFenceStatusCode == "4"
+                                                            orderby rfd.RingFenceID
+                                                            select rfd).ToList();
+
+
+                                   //List < RingFenceDetail > ringFenceDetails = ringFence.ringFenceDetails.Where(d => d.Size == rdq.Size &&
+                                   //                                                           d.ActiveInd == "1" &&
+                                   //                                                           d.ringFenceStatusCode == "4")
+                                   //                                                        .OrderBy(c => c.RingFenceID)
+                                   //                                                        .ToList();
                                                                                     
-                                    if (ringFenceDetails == null)
+                                    if (ringFenceDetails.Count() == 0)
                                     {
                                         message = "No active warehouse ring fences were found for the requested size, SKU, and store";
                                     }
@@ -973,6 +983,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     {
                                         if (ringFenceDetails.Where(d => d.Qty >= rdq.Qty).Count() == 0)
                                         {
+
                                             int maxAmount = (from rfd in ringFenceDetails
                                                              select rfd.Qty).Max();
 
