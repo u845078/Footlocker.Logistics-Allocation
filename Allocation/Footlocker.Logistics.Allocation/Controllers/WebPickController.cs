@@ -948,7 +948,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 var ringFence = (from r in db.RingFences
                                                  where r.Sku == rdq.Sku &&
                                                        r.Division == rdq.Division &&
-                                                       r.Store == ringFenceStore
+                                                       r.Store == ringFenceStore &&
+                                                       (r.EndDate == null ||
+                                                       r.EndDate >= DateTime.Now)
                                                  select r).FirstOrDefault();
 
                                 if (ringFence == null)
@@ -957,23 +959,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 }
                                 else
                                 {
-                                    var ringFenceDetails = ringFence.ringFenceDetails.Where(d => d.Size == rdq.Size &&
+                                    List<RingFenceDetail> ringFenceDetails = ringFence.ringFenceDetails.Where(d => d.Size == rdq.Size &&
                                                                                             d.ActiveInd == "1" &&
                                                                                             d.ringFenceStatusCode == "4")
-                                                                                     .FirstOrDefault();
+                                                                                            .OrderBy(c => c.RingFenceID)
+                                                                                            .ToList();
+                                                                                    
                                     if (ringFenceDetails == null)
                                     {
                                         message = "No active warehouse ring fences were found for the requested size, SKU, and store";
                                     }
                                     else
                                     {
-                                        if (ringFenceDetails.Qty < rdq.Qty)
+                                        if (ringFenceDetails.Where(d => d.Qty >= rdq.Qty).Count() == 0)
                                         {
                                             message = "The ring fenced quantity cannot satisfy the requested distribution. Amount available for size is " + ringFenceDetails.Qty.ToString();
                                         }
                                         else
                                         {
-                                            rdq.DCID = ringFenceDetails.DCID;
+                                            rdq.DCID = ringFenceDetails[0].DCID;
                                         }
                                     }
                                 }
@@ -1012,7 +1016,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                            rf.Store == ringFenceStore &&
                                                            rfd.Size == rdq.Size &&
                                                            rfd.ActiveInd == "1" &&
-                                                           rfd.ringFenceStatusCode == "4"
+                                                           rfd.Qty >= rdq.Qty &&
+                                                           rfd.ringFenceStatusCode == "4" &&
+                                                           (rf.EndDate == null ||
+                                                           rf.EndDate >= DateTime.Now)                                                    
+                                                     orderby rfd.RingFenceID
                                                      select rfd;
                                 var ringFenceDetailRec = ringFenceQuery.FirstOrDefault();
 
