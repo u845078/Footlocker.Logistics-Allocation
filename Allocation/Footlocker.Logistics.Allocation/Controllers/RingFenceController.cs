@@ -2619,20 +2619,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            excelDocument.Worksheets[0].Cells[0, 0].PutValue("Store");
-            excelDocument.Worksheets[0].Cells[0, 1].PutValue("SKU");
-            excelDocument.Worksheets[0].Cells[0, 2].PutValue("Size");
-            excelDocument.Worksheets[0].Cells[0, 3].PutValue("Pick Quantity");
-            excelDocument.Worksheets[0].Cells[0, 4].PutValue("");
-            excelDocument.Worksheets[0].Cells[0, 5].PutValue("");
-            excelDocument.Worksheets[0].Cells[0, 6].PutValue("Ring Fence Status");
-            excelDocument.Worksheets[0].Cells[0, 7].PutValue("Quantity");
-            excelDocument.Worksheets[0].Cells[0, 8].PutValue("Start Date");
-            excelDocument.Worksheets[0].Cells[0, 9].PutValue("End Date");
-            excelDocument.Worksheets[0].Cells[0, 10].PutValue("PO");
-            excelDocument.Worksheets[0].Cells[0, 11].PutValue("Created By");
-            excelDocument.Worksheets[0].Cells[0, 12].PutValue("Create Date");
-            excelDocument.Worksheets[0].Cells[0, 13].PutValue("Comments");
+            //excelDocument.Worksheets[0].Cells[0, 0].PutValue("Store");
+            excelDocument.Worksheets[0].Cells[0, 0].PutValue("SKU");
+            excelDocument.Worksheets[0].Cells[0, 1].PutValue("Size");
+            excelDocument.Worksheets[0].Cells[0, 2].PutValue("Pick Quantity");
+            excelDocument.Worksheets[0].Cells[0, 3].PutValue("");
+            excelDocument.Worksheets[0].Cells[0, 4].PutValue("Ring Fence Store");
+            excelDocument.Worksheets[0].Cells[0, 5].PutValue("Ring Fence Status");
+            excelDocument.Worksheets[0].Cells[0, 6].PutValue("Quantity");
+            excelDocument.Worksheets[0].Cells[0, 7].PutValue("Start Date");
+            excelDocument.Worksheets[0].Cells[0, 8].PutValue("End Date");
+            excelDocument.Worksheets[0].Cells[0, 9].PutValue("PO");
+            excelDocument.Worksheets[0].Cells[0, 10].PutValue("Created By");
+            excelDocument.Worksheets[0].Cells[0, 11].PutValue("Create Date");
+            excelDocument.Worksheets[0].Cells[0, 12].PutValue("Comments");
             int row = 1;
 
 
@@ -2641,25 +2641,39 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                       select a).ToList();
             foreach (var rfStore in ringFenceStoreList)
             {
-                foreach (var rfStoreDetail in rfStore.ringFenceDetails.Where(d => d.ActiveInd == "1"))
-                {
-                    excelDocument.Worksheets[0].Cells[row, 0].PutValue(rfStore.Store);
-                    excelDocument.Worksheets[0].Cells[row, 1].PutValue(rfStore.Sku);
-                    excelDocument.Worksheets[0].Cells[row, 2].PutValue(rfStoreDetail.Size);
-                    excelDocument.Worksheets[0].Cells[row, 3].PutValue(rfStoreDetail.Qty);
+                foreach (var rfStoreDetail in rfStore.ringFenceDetails.Where(d => d.ActiveInd == "1" && d.Qty > 0))
+                {                    
+                    excelDocument.Worksheets[0].Cells[row, 0].PutValue(rfStore.Sku);
+                    excelDocument.Worksheets[0].Cells[row, 1].PutValue(rfStoreDetail.Size);
+                    excelDocument.Worksheets[0].Cells[row, 2].PutValue(rfStoreDetail.Qty);
 
-                    excelDocument.Worksheets[0].Cells[row, 6].PutValue(rfStoreDetail.RingFenceStatus.ringFenceStatusDesc);
+                    excelDocument.Worksheets[0].Cells[row, 4].PutValue(rfStore.Store);
+                    excelDocument.Worksheets[0].Cells[row, 5].PutValue(rfStoreDetail.RingFenceStatus.ringFenceStatusDesc);
 
-                    excelDocument.Worksheets[0].Cells[row, 8].PutValue(rfStore.StartDate.ToShortDateString());
+                    int totalQuantity = 0;
+                    if (rfStoreDetail.Size.Length > _CASELOT_SIZE_INDICATOR_VALUE_LENGTH)
+                    {                        
+                        int itemPackQty = (from i in db.ItemPacks
+                                           where //i.ItemID == rfStore.ItemID &&
+                                                 i.Name == rfStoreDetail.Size
+                                           select i.TotalQty).FirstOrDefault();
+                        totalQuantity = itemPackQty * rfStoreDetail.Qty;
+                    }
+                    else
+                        totalQuantity = rfStoreDetail.Qty;
+
+                    excelDocument.Worksheets[0].Cells[row, 6].PutValue(totalQuantity);
+
+                    excelDocument.Worksheets[0].Cells[row, 7].PutValue(rfStore.StartDate.ToShortDateString());
 
                     if (rfStore.EndDate.HasValue)
-                        excelDocument.Worksheets[0].Cells[row, 9].PutValue(rfStore.EndDate.Value.ToShortDateString());
+                        excelDocument.Worksheets[0].Cells[row, 8].PutValue(rfStore.EndDate.Value.ToShortDateString());
 
-                    excelDocument.Worksheets[0].Cells[row, 10].PutValue(rfStoreDetail.PO);
-                    excelDocument.Worksheets[0].Cells[row, 11].PutValue(rfStore.CreatedBy);
-                    excelDocument.Worksheets[0].Cells[row, 12].PutValue(rfStore.CreateDate.Value.ToShortDateString() + ' ' +
+                    excelDocument.Worksheets[0].Cells[row, 9].PutValue(rfStoreDetail.PO);
+                    excelDocument.Worksheets[0].Cells[row, 10].PutValue(rfStore.CreatedBy);
+                    excelDocument.Worksheets[0].Cells[row, 11].PutValue(rfStore.CreateDate.Value.ToShortDateString() + ' ' +
                         rfStore.CreateDate.Value.ToLongTimeString());
-                    excelDocument.Worksheets[0].Cells[row, 13].PutValue(rfStore.Comments);
+                    excelDocument.Worksheets[0].Cells[row, 12].PutValue(rfStore.Comments);
 
                     row++;
                 }

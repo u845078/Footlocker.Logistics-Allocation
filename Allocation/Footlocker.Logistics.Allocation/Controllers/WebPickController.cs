@@ -870,7 +870,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Size")) &&
                     (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Quantity")) &&
                     (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Pick from DC")) &&
-                    (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Pick from Ring Fence Store"))
+                    (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Ring Fence Store"))
                     )
                 {
                     if (mySheet.Cells[row, 1].Value != null)
