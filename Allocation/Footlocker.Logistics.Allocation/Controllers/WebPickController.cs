@@ -973,7 +973,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     {
                                         if (ringFenceDetails.Where(d => d.Qty >= rdq.Qty).Count() == 0)
                                         {
-                                            message = "The ring fenced quantity cannot satisfy the requested distribution. Amount available for size is " + ringFenceDetails.Qty.ToString();
+                                            int maxAmount = (from rfd in ringFenceDetails
+                                                             select rfd.Qty).Max();
+
+                                            message = "The ring fenced quantity cannot satisfy the requested distribution. Amount available for size is " + maxAmount.ToString();
                                         }
                                         else
                                         {
