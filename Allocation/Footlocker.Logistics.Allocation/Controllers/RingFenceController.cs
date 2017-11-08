@@ -152,9 +152,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<Division> divs = Divisions();
             List<StoreLookup> list = (from a in db.RingFences
+                                      join rfd in db.RingFenceDetails
+                                        on a.ID equals rfd.RingFenceID
                                       join b in db.StoreLookups 
                                         on new { a.Division, a.Store } equals new { b.Division, b.Store }
-                                      where a.Qty > 0 select b).ToList();
+                                      where a.Qty > 0 &&
+                                            rfd.ActiveInd == "1"
+                                      select b).ToList();
             list = (from a in list
                     join d in divs 
                       on a.Division equals d.DivCode
