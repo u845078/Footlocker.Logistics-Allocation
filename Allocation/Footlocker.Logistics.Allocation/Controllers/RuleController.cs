@@ -1305,7 +1305,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <param name="ruleSetID"></param>
         /// <returns></returns>
         [GridAction]
-        public ActionResult _StoreLookupList(Int64 ruleSetID, string gridtype)//, string ruleType)
+        public ActionResult _StoreLookupList(long ruleSetID, string gridtype)//, string ruleType)
         {
             List<StoreLookupModel> list;// = new List<StoreLookupModel>();
             //ViewData["planID"] = planID;
@@ -1328,7 +1328,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     list = new List<StoreLookupModel>();
                     //ShowError(ex);
                 }
-                List<StoreLookupModel> currStores = GetStoresInRuleSet(ruleSetID);
+                var ruleSet = (from a in db.RuleSets where a.RuleSetID == ruleSetID select a).FirstOrDefault();
+                //List<StoreLookupModel> currStores = GetStoresInRuleSet(ruleSetID);
+                List < StoreLookupModel > currStores = db.GetStoreLookupsForPlan((long)ruleSet.PlanID, DivisionList(User.Identity.Name));
 
                 var currlist =
                         from n in list

@@ -171,6 +171,8 @@ namespace Footlocker.Logistics.Allocation.Services
                     dg.Store = Convert.ToString(dr["Store"]);
                     dg.Division = Convert.ToString(dr["Division"]);
                     dg.DeliveryGroupName = Convert.ToString(dr["deliverygroupname"]);
+                    dg.League = Convert.ToString(dr["League"]);
+                    dg.Region = Convert.ToString(dr["Region"]);
                     _que.Add(dg);
                 }
             }
