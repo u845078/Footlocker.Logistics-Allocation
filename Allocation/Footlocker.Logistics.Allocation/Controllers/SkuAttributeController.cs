@@ -513,6 +513,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             {
                                 existentHeader.WeightActiveInt = header.WeightActiveInt;
                                 existentHeader.CreateDate = DateTime.Now;
+                                existentHeader.CreatedBy = User.Identity.Name;
                                 header.ID = existentHeader.ID;
                                 // delete existing detail records.
                                 List<SkuAttributeDetail> deleteDetailRecords = (from a in db.SkuAttributeDetails
