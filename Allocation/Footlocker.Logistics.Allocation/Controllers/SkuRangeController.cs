@@ -3626,7 +3626,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         List<BulkRange> errorList = new List<BulkRange>();
                         BulkRange range;
 
-                        while (mySheet.Cells[row, 0].Value != null)
+                        while (HasDataOnRow(mySheet, row))
                         {
                             if (division != Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0'))
                             {
@@ -3745,6 +3745,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             return Content("");
+        }
+
+        private bool HasDataOnRow(Worksheet sheet, int row)
+        {
+            return sheet.Cells[row, 0].Value != null ||
+                   sheet.Cells[row, 1].Value != null ||
+                   sheet.Cells[row, 2].Value != null ||
+                   sheet.Cells[row, 3].Value != null ||
+                   sheet.Cells[row, 4].Value != null ||
+                   sheet.Cells[row, 5].Value != null ||
+                   sheet.Cells[row, 6].Value != null ||
+                   sheet.Cells[row, 7].Value != null ||
+                   sheet.Cells[row, 8].Value != null ||
+                   sheet.Cells[row, 9].Value != null ||
+                   sheet.Cells[row, 10].Value != null ||
+                   sheet.Cells[row, 11].Value != null ||
+                   sheet.Cells[row, 12].Value != null;
         }
 
         /// <summary>
@@ -3884,7 +3901,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // retrieve sku for delivery group to feed into stored procedure
             string sku = (from a in db.RangePlans where a.Id == dg.PlanID select a).Select(rp => rp.Sku).FirstOrDefault();
 
-            List <BulkRange> list = (new RangePlanDetailDAO()).GetBulkRangesForSku(sku).Where(q => q.DeliveryGroupName.Equals(dg.Name)).ToList();
+            List <BulkRange> list = (new RangePlanDetailDAO()).GetBulkRangesForSku(sku)
+                                        .Where(q => q.DeliveryGroupName.Equals(dg.Name))
+                                        .OrderBy(br => br.Division).ThenBy(br => br.Store).ThenBy(br => br.Size)
+                                        .ToList();
 
             int row = 1;
             Worksheet mySheet = excelDocument.Worksheets[0];
