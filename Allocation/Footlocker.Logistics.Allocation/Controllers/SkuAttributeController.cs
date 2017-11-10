@@ -665,7 +665,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     errorsFound += "The Division/Department/Category/Brand combination is not associated with any Sku  <br />";
                 }
-            }          
+            }
+
+            // department MUST be mandatory.
+            var departmentAttributeDetail = header.SkuAttributeDetails.Where(sad => sad.AttributeType.ToLower().Equals("department")).SingleOrDefault();
+            if (!departmentAttributeDetail.Mandatory)
+            {
+                errorsFound += "The department attribute must be mandatory. <br />";
+            }
 
             // if category or brand is supplied then the attributes for category and brand MUST be mandatory.
             var categoryAttributeDetail = header.SkuAttributeDetails.Where(sad => sad.AttributeType.ToLower().Equals("category")).SingleOrDefault();
@@ -844,15 +851,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
             range.RowHeight = 25;
 
             mySheet.Cells[1, 0].PutValue("Division");
+            PutComment(mySheet, "A2", "Division is mandatory.");
             mySheet.Cells[1, 1].PutValue("Department");
+            PutComment(mySheet, "B2", "Department is mandatory.");
             mySheet.Cells[1, 2].PutValue("Category");
             mySheet.Cells[1, 3].PutValue("BrandID");
             mySheet.Cells[1, 4].PutValue("Update Date");
             mySheet.Cells[1, 5].PutValue("Active");
             mySheet.Cells[1, 6].PutValue("Department");
+            PutComment(mySheet, "G2", "Department must have a mandatory value (M).");
             mySheet.Cells[1, 7].PutValue("Category");
+            PutComment(mySheet, "H2", "If a Category was supplied, then this field must be mandatory (M).");
             mySheet.Cells[1, 8].PutValue("VendorNumber");
             mySheet.Cells[1, 9].PutValue("BrandID");
+            PutComment(mySheet, "J2", "If a BrandID was supplied, then this field must be mandatory (M).");
             mySheet.Cells[1, 10].PutValue("Size");
             mySheet.Cells[1, 11].PutValue("SizeRange");
             mySheet.Cells[1, 12].PutValue("Color1");
@@ -880,6 +892,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             return excelDocument;
+        }
+
+        private void PutComment(Worksheet mySheet, string cellLocation, string comment)
+        {
+            int commentIndex = mySheet.Comments.Add(cellLocation);
+            Comment c = mySheet.Comments[commentIndex];
+            c.Note = comment;
         }
 
         /// <summary>
