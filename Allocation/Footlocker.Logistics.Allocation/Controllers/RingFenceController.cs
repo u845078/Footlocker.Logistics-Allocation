@@ -151,9 +151,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _RingFenceStores()
         {
             List<Division> divs = Divisions();
-            List<StoreLookup> list = (from a in db.RingFences join b in db.StoreLookups on new { a.Division, a.Store } equals new { b.Division, b.Store } where a.Qty > 0 select b).ToList();
+            List<StoreLookup> list = (from a in db.RingFences
+                                      join rfd in db.RingFenceDetails
+                                        on a.ID equals rfd.RingFenceID
+                                      join b in db.StoreLookups 
+                                        on new { a.Division, a.Store } equals new { b.Division, b.Store }
+                                      where a.Qty > 0 &&
+                                            rfd.ActiveInd == "1"
+                                      select b).ToList();
             list = (from a in list
-                    join d in divs on a.Division equals d.DivCode
+                    join d in divs 
+                      on a.Division equals d.DivCode
                     select a).Distinct().ToList();
 
             return PartialView(new GridModel(list));
@@ -221,7 +229,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             else
             {
                 List<Division> divs = Divisions();
-                list = (from a in db.RingFences where ((a.Qty > 0) && (a.Division == div)&& (a.Store == store)) select a).ToList();
+                list = (from a in db.RingFences
+                        where ((a.Qty > 0) && (a.Division == div) && (a.Store == store))
+                        select a).ToList();
                 list = (from a in list
                         join d in divs on a.Division equals d.DivCode
                         select new RingFence
@@ -2604,6 +2614,78 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             StoreLookup model = (from a in db.StoreLookups where ((a.Division == div) && (a.Store == store)) select a).First();
             return View(model);
+        }
+
+        public ActionResult DestExport(string div, string store)
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+            Excel excelDocument = new Excel();
+            //excelDocument.Worksheets[0].Cells[0, 0].PutValue("Store");
+            excelDocument.Worksheets[0].Cells[0, 0].PutValue("SKU");
+            excelDocument.Worksheets[0].Cells[0, 1].PutValue("Size");
+            excelDocument.Worksheets[0].Cells[0, 2].PutValue("Pick Quantity");
+            excelDocument.Worksheets[0].Cells[0, 3].PutValue("");
+            excelDocument.Worksheets[0].Cells[0, 4].PutValue("Ring Fence Store");
+            excelDocument.Worksheets[0].Cells[0, 5].PutValue("Ring Fence Status");
+            excelDocument.Worksheets[0].Cells[0, 6].PutValue("Quantity");
+            excelDocument.Worksheets[0].Cells[0, 7].PutValue("Start Date");
+            excelDocument.Worksheets[0].Cells[0, 8].PutValue("End Date");
+            excelDocument.Worksheets[0].Cells[0, 9].PutValue("PO");
+            excelDocument.Worksheets[0].Cells[0, 10].PutValue("Created By");
+            excelDocument.Worksheets[0].Cells[0, 11].PutValue("Create Date");
+            excelDocument.Worksheets[0].Cells[0, 12].PutValue("Comments");
+            int row = 1;
+
+
+            var ringFenceStoreList = (from a in db.RingFences
+                                      where ((a.Qty > 0) && (a.Division == div) && (a.Store == store))
+                                      select a).ToList();
+            foreach (var rfStore in ringFenceStoreList)
+            {
+                foreach (var rfStoreDetail in rfStore.ringFenceDetails.Where(d => d.ActiveInd == "1" && d.Qty > 0))
+                {                    
+                    excelDocument.Worksheets[0].Cells[row, 0].PutValue(rfStore.Sku);
+                    excelDocument.Worksheets[0].Cells[row, 1].PutValue(rfStoreDetail.Size);
+                    excelDocument.Worksheets[0].Cells[row, 2].PutValue(rfStoreDetail.Qty);
+
+                    excelDocument.Worksheets[0].Cells[row, 4].PutValue(rfStore.Store);
+                    excelDocument.Worksheets[0].Cells[row, 5].PutValue(rfStoreDetail.RingFenceStatus.ringFenceStatusDesc);
+
+                    int totalQuantity = 0;
+                    if (rfStoreDetail.Size.Length > _CASELOT_SIZE_INDICATOR_VALUE_LENGTH)
+                    {                        
+                        int itemPackQty = (from i in db.ItemPacks
+                                           where //i.ItemID == rfStore.ItemID &&
+                                                 i.Name == rfStoreDetail.Size
+                                           select i.TotalQty).FirstOrDefault();
+                        totalQuantity = itemPackQty * rfStoreDetail.Qty;
+                    }
+                    else
+                        totalQuantity = rfStoreDetail.Qty;
+
+                    excelDocument.Worksheets[0].Cells[row, 6].PutValue(totalQuantity);
+
+                    excelDocument.Worksheets[0].Cells[row, 7].PutValue(rfStore.StartDate.ToShortDateString());
+
+                    if (rfStore.EndDate.HasValue)
+                        excelDocument.Worksheets[0].Cells[row, 8].PutValue(rfStore.EndDate.Value.ToShortDateString());
+
+                    excelDocument.Worksheets[0].Cells[row, 9].PutValue(rfStoreDetail.PO);
+                    excelDocument.Worksheets[0].Cells[row, 10].PutValue(rfStore.CreatedBy);
+                    excelDocument.Worksheets[0].Cells[row, 11].PutValue(rfStore.CreateDate.Value.ToShortDateString() + ' ' +
+                        rfStore.CreateDate.Value.ToLongTimeString());
+                    excelDocument.Worksheets[0].Cells[row, 12].PutValue(rfStore.Comments);
+
+                    row++;
+                }
+            }
+
+            excelDocument.Save("RingFenceWebUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+
+            return View();
         }
     }
 }

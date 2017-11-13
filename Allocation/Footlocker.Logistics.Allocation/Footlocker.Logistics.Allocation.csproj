@@ -25,6 +25,7 @@
     <IISExpressWindowsAuthentication>enabled</IISExpressWindowsAuthentication>
     <IISExpressUseClassicPipelineMode />
     <UseGlobalApplicationHostFile />
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -508,6 +509,7 @@
     <None Include="Content\Templates\SkuTypeUpload.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="Content\Templates\WebPickUploadTemplate.xls" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="readme.txt" />
     <Content Include="Views\Shared\EditorTemplates\Date.cshtml" />

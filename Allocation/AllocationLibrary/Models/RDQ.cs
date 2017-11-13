@@ -174,6 +174,10 @@ namespace Footlocker.Logistics.Allocation.Models
         public string DC { get; set; }
 
         [NotMapped]
+        public string RingFencePickStore { get; set; }
+
+
+        [NotMapped]
         public Boolean CanPick
         {
             get

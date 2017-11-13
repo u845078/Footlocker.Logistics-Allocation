@@ -96,11 +96,12 @@ namespace Footlocker.Logistics.Allocation.Models
         public DateTime LastModifiedDate { get; set; }
 
         public string ActiveInd { get; set; }
-
+        
+        [ForeignKey("RingFenceStatus")]
         public string ringFenceStatusCode { get; set; }
 
-        [NotMapped]
-        public RingFenceStatusCodes ringFenceStatus { get; set; }
+       
+        public virtual RingFenceStatusCodes RingFenceStatus { get; set; }
 
         public virtual RingFence RingFence { get; set; }
     }

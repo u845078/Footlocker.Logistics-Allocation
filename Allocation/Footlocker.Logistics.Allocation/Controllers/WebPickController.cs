@@ -372,7 +372,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             foreach (RDQ r in updated)
             {
                 if (r.Release)
-                { 
+                {
                     //need to pick this
                     updateRDQ = (from a in db.RDQs where a.ID == r.ID select a).First();
                     updateRDQ.Status = "HOLD-REL";
@@ -411,24 +411,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
 
-/*                using (db)
-                {
-                    var rdqsToRelease = db.RDQs.ToList().Where(r => groupRDQs.Any(g => g.ID == r.ID));
+                /*                using (db)
+                                {
+                                    var rdqsToRelease = db.RDQs.ToList().Where(r => groupRDQs.Any(g => g.ID == r.ID));
 
-                    //to release back to the warehouse all we need to do is delete it
-                    //the result will be that we no longer decrease the inventory we send to Q, 
-                    //so it will see more available to allocate to whoever it would like
-                    rdqsToRelease.ToList().ForEach(rdq => 
-                        {
-                            db.RDQs.Remove(rdq);
-                        });
+                                    //to release back to the warehouse all we need to do is delete it
+                                    //the result will be that we no longer decrease the inventory we send to Q, 
+                                    //so it will see more available to allocate to whoever it would like
+                                    rdqsToRelease.ToList().ForEach(rdq => 
+                                        {
+                                            db.RDQs.Remove(rdq);
+                                        });
 
-                    groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
+                                    groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
 
-                    // Persist changes
-                    db.SaveChanges(User.Identity.Name);
-                }
-                */
+                                    // Persist changes
+                                    db.SaveChanges(User.Identity.Name);
+                                }
+                                */
                 Session["searchresultlist"] = holdRDQs;
                 // Return JSON representing Success
                 return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
@@ -542,7 +542,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
 
-        public ActionResult AuditIndex() 
+        public ActionResult AuditIndex()
         {
             AuditRDQModel model = new AuditRDQModel();
             model.StartDate = DateTime.Now.AddDays(-7);
@@ -563,7 +563,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             DateTime start = Convert.ToDateTime(startdate);
             DateTime end = Convert.ToDateTime(enddate);
-            List<AuditRDQ> list = (from a in db.AuditRDQs where ((a.PickDate >= start)&&(a.PickDate <= end)) select a).ToList();
+            List<AuditRDQ> list = (from a in db.AuditRDQs where ((a.PickDate >= start) && (a.PickDate <= end)) select a).ToList();
 
             List<DistributionCenter> dcs = (from a in db.DistributionCenters select a).ToList();
             foreach (AuditRDQ a in list)
@@ -592,10 +592,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Create(WebPickModel model)
         {
             string message = "";
-            Boolean pickAnyway = model.AllowPickAnyway;
+            //Boolean pickAnyway = model.AllowPickAnyway;
 
-            int size = (from a in db.Sizes where ((a.Sku == model.RDQ.Sku) && (a.Size == model.RDQ.Size)) select a).Count();
-            size += (from a in db.ItemPacks join b in db.ItemMasters on a.ItemID equals b.ID where ((b.MerchantSku == model.RDQ.Sku)&&(a.Name == model.RDQ.Size)) select a).Count();
+            int size = (from a in db.Sizes
+                        where ((a.Sku == model.RDQ.Sku) && 
+                              (a.Size == model.RDQ.Size))
+                        select a).Count();
+
+            size += (from a in db.ItemPacks
+                     join b in db.ItemMasters 
+                     on a.ItemID equals b.ID
+                     where ((b.MerchantSku == model.RDQ.Sku) && 
+                            (a.Name == model.RDQ.Size))
+                     select a).Count();
 
             if (size == 0)
             {
@@ -608,23 +617,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
             else
             {
 
-                message = CreateRDQ(model.RDQ, ref pickAnyway);
-                                //.Replace("(noringfence)", "<BR>If you would like to pick anyway, click &quot;Create&quot; again below.")
-                                //.Replace("(ringfence)", "<BR>Since this item is ringfenced, you cannot pick it.")
-                                //;
+                //message = CreateRDQ(model.RDQ, ref pickAnyway);
+                message = CreateRDQ(model.RDQ, true);
+                //.Replace("(noringfence)", "<BR>If you would like to pick anyway, click &quot;Create&quot; again below.")
+                //.Replace("(ringfence)", "<BR>Since this item is ringfenced, you cannot pick it.")
+                //;
 
-                model.AllowPickAnyway = pickAnyway;
+                //model.AllowPickAnyway = pickAnyway;
                 if (message == "")
                 {
                     //call to apply holds
                     List<RDQ> list = new List<RDQ>();
                     list.Add(model.RDQ);
-                    int instance = (from a in db.InstanceDivisions where a.Division == model.RDQ.Division select a.InstanceID).First();
+                    int instance = (from a in db.InstanceDivisions
+                                    where a.Division == model.RDQ.Division
+                                    select a.InstanceID).First();
 
                     RDQDAO rdqDAO = new RDQDAO();
                     int holdcount = rdqDAO.ApplyHolds(list, instance);
                     int cancelholdcount = rdqDAO.ApplyCancelHolds(list);
-                    message = "Web pick generated.  "; 
+                    message = "Web pick generated.  ";
                     if (cancelholdcount > 0)
                     {
                         message = message + cancelholdcount + " rejected by cancel inventory hold.  ";
@@ -650,14 +662,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <param name="pickAnyway">returns true if inventory can go negative (no ringfences)</param>
         /// <param name="message">reason we can't create this pick</param>
         /// <returns></returns>
-        private string CreateRDQ(RDQ rdq, ref Boolean pickAnyway)
+        //private string CreateRDQ(RDQ rdq, ref Boolean pickAnyway)
+        private string CreateRDQ(RDQ rdq, bool validateInventory)
         {
-            string message="";
+            string message = "";
             if (TryUpdateModel(rdq, "RDQ"))
             {
                 //if (!(pickAnyway))
                 //{
-                message = AdditionalValidations(rdq, ref pickAnyway);
+                //message = AdditionalValidations(rdq, ref pickAnyway);
+                message = AdditionalValidations(rdq, validateInventory);
                 //}
                 if (message == "")
                 {
@@ -668,7 +682,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     rdq.Type = "user";
                     try
                     {
-                        rdq.ItemID = (from a in db.ItemMasters where a.MerchantSku == rdq.Sku select a.ID).First();
+                        rdq.ItemID = (from a in db.ItemMasters
+                                      where a.MerchantSku == rdq.Sku
+                                      select a.ID).First();
                     }
                     catch
                     {
@@ -692,11 +708,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return message;
         }
 
-        private Int32 InventoryAvailableToPick(RDQ rdq, ref Boolean pickAnyway)
+        //private Int32 InventoryAvailableToPick(RDQ rdq, ref Boolean pickAnyway)
+        private Int32 InventoryAvailableToPick(RDQ rdq)
         {
             //find maximum qty
             RDQDAO dao = new RDQDAO();
-            string warehouse = (from a in db.DistributionCenters where a.ID == rdq.DCID select a.MFCode).FirstOrDefault();
+            string warehouse = (from a in db.DistributionCenters
+                                where a.ID == rdq.DCID
+                                select a.MFCode).FirstOrDefault();
             if (warehouse == null)
                 return 0;
             Int32 QtyAvailable = dao.GetWarehouseAvailable(rdq.Sku, rdq.Size, warehouse);
@@ -710,42 +729,53 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <param name="rdq">information for pick</param>
         /// <param name="pickAnyway">returns true if no RDQs (inventory is allowed to go negative), false means there are rdqs (inventory is not allowed to go negative)</param>
         /// <returns></returns>
-        public string AdditionalValidations(RDQ rdq, ref Boolean pickAnyway)
+        //public string AdditionalValidations(RDQ rdq, ref Boolean pickAnyway)
+        public string AdditionalValidations(RDQ rdq, bool validateInventory)
         {
             string message = "";
-            Int32 qtyAvailable = InventoryAvailableToPick(rdq, ref pickAnyway);
-            if (qtyAvailable < rdq.Qty)
-            {
-                message = "Not enough inventory.  Amount available (for size) is " + qtyAvailable;
-                if (pickAnyway)
-                {
-                    message = message + "(noringfence)";
-                }
-                else
-                {
-                    message = message + "(ringfence)";
-                }
-            }
-            else if (rdq.Division != rdq.Sku.Substring(0, 2))
+            //Int32 qtyAvailable = InventoryAvailableToPick(rdq, ref pickAnyway);
+            
+            if (rdq.Division != rdq.Sku.Substring(0, 2))
             {
                 message = "Division must be same for sku and store " + rdq.Division + " " + rdq.Sku.Substring(0, 2);
             }
             else
             {
-
-                if ((from a in db.vValidStores where ((a.Division == rdq.Division) && (a.Store == rdq.Store)) select a).Count() == 0)
+                if ((from a in db.vValidStores
+                     where ((a.Division == rdq.Division) &&
+                            (a.Store == rdq.Store))
+                     select a).Count() == 0)
                 {
                     message = rdq.Division + "-" + rdq.Store + " is not a valid store.";
                 }
             }
 
+            if (message == "")
+            {
+                if (validateInventory)
+                {
+                    Int32 qtyAvailable = InventoryAvailableToPick(rdq);
+                    if (qtyAvailable < rdq.Qty)
+                    {
+                        message = "Not enough inventory.  Amount available (for size) is " + qtyAvailable;
+                        //if (pickAnyway)
+                        //{
+                        //    message = message + "(noringfence)";
+                        //}
+                        //else
+                        //{
+                        //    message = message + "(ringfence)";
+                        //}
+                    }
+                }
+            }
             return message;
         }
 
         public ActionResult Delete(Int64 ID)
         {
             RDQ rdq = (from a in db.RDQs where a.ID == ID select a).First();
-            
+
             string message = "";
             try
             {
@@ -776,6 +806,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //Set the license 
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
             string Division = "";
+            bool validateInventory = true;
             int row = 1;
             List<RDQ> rdqErrors = new List<RDQ>();
             List<RDQ> rdqGood = new List<RDQ>();
@@ -791,73 +822,183 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 MemoryStream memoryStream1 = new MemoryStream(data1);
                 workbook.Open(memoryStream1);
                 Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-                string mainDivision;
+                string mainDivision = "";
 
                 if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Store")) &&
-                    (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Div")) &&
-                    (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Dept")) &&
-                    (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Stock")) &&
-                    (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Width")) &&
-                    (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Size")) &&
-                    (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Qty")) &&
-                    (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("DC"))
+                    (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("SKU")) &&
+                    (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Size")) &&
+                    (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Quantity")) &&
+                    (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Pick from DC")) &&
+                    (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Ring Fence Store"))
                     )
                 {
-                    Division = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(2, '0');
-                    mainDivision = Division;
-                    if (!(Footlocker.Common.WebSecurityService.UserHasDivision(User.Identity.Name.Split('\\')[1], "Allocation", Division)))
+                    if (mySheet.Cells[row, 1].Value != null)
                     {
-                        return Content("You do not have permission to update this division.");
+                        Division = (Convert.ToString(mySheet.Cells[row, 1].Value)).Substring(0, 2);
+                        mainDivision = Division;
+
+                        if (!(Footlocker.Common.WebSecurityService.UserHasDivision(User.Identity.Name.Split('\\')[1], "Allocation", Division)))
+                        {
+                            return Content("You do not have permission to update this division.");
+                        }
                     }
+                    // Validate records and create lists of OK and not OK RDQs
                     RDQ rdq;
                     while (mySheet.Cells[row, 0].Value != null)
                     {
-                        Division = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(2, '0');
+                        Division = (Convert.ToString(mySheet.Cells[row, 1].Value)).Substring(0, 2);
+
                         if (!(Division.Equals(mainDivision)))
                         {
                             return Content("Spreadsheet must be for one division only.");
                         }
+
                         //create RDQ
                         rdq = new RDQ();
                         rdq.Division = Division;
                         rdq.Store = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(5, '0');
-                        rdq.Size = Convert.ToString(mySheet.Cells[row, 5].Value).PadLeft(3, '0');
-                        rdq.Qty = Convert.ToInt32(mySheet.Cells[row, 6].Value);
-
-                        rdq.Sku = Division + "-" + Convert.ToString(mySheet.Cells[row, 2].Value).PadLeft(2, '0')
-                                            + "-" + Convert.ToString(mySheet.Cells[row, 3].Value).PadLeft(5, '0')
-                                            + "-" + Convert.ToString(mySheet.Cells[row, 4].Value).PadLeft(2, '0');
-
+                        rdq.Sku = Convert.ToString(mySheet.Cells[row, 1].Value);
+                        rdq.Size = Convert.ToString(mySheet.Cells[row, 2].Value).PadLeft(3, '0');
+                        rdq.Qty = Convert.ToInt32(mySheet.Cells[row, 3].Value);                        
                         rdq.Status = "WEB PICK";
-                        string dc = Convert.ToString(mySheet.Cells[row, 7].Value).PadLeft(2, '0');
+                        string dc = Convert.ToString(mySheet.Cells[row, 4].Value).PadLeft(2, '0');
+                        string ringFenceStore = Convert.ToString(mySheet.Cells[row, 5].Value).PadLeft(5, '0');
+
                         string message = "";
-                        var dcQuery = (from a in db.DistributionCenters where a.MFCode == dc select a.ID);
-                        if (dcQuery.Count() == 0)
+
+                        if ((dc == "00") && (ringFenceStore == "00000"))
                         {
-                            message = "invalid DC.  ";
+                            message = "You must supply either a DC or a Ring Fence Store to pick from";
+                        }
+                        else if ((dc != "00") && (ringFenceStore != "00000"))
+                        {
+                            rdq.RingFencePickStore = ringFenceStore;
+                            rdq.DC = dc;
+                            message = "You can't supply both a DC and a Ring Fence Store to pick from. It must be one or the other.";
                         }
                         else
                         {
-                            rdq.DCID = (from a in db.DistributionCenters where a.MFCode == dc select a.ID).First();
+                            if (dc != "00")
+                            {
+                                rdq.DC = dc;
+                                rdq.RingFencePickStore = string.Empty;
+                                validateInventory = true;
+
+                                var dcQuery = from a in db.DistributionCenters
+                                              where a.MFCode == dc &&
+                                                    a.Type != "CROSSDOCK"
+                                              select a.ID;
+
+                                if (dcQuery.Count() == 0)
+                                {
+                                    message = "DC is invalid or only supports crossdocking.  ";
+                                }
+                                else
+                                {
+                                    rdq.DCID = dcQuery.First();
+                                }
+                            }
+                            else
+                            {
+                                rdq.DC = string.Empty;
+                                rdq.RingFencePickStore = ringFenceStore;
+                                validateInventory = false;
+
+                                var ringFence = (from r in db.RingFences
+                                                 where r.Sku == rdq.Sku &&
+                                                       r.Division == rdq.Division &&
+                                                       r.Store == ringFenceStore &&
+                                                       (r.EndDate == null ||
+                                                       r.EndDate >= DateTime.Now)
+                                                 select r).ToList();
+
+                                if (ringFence.Count() == 0)
+                                {
+                                    message = "No ring fences for the SKU and pick store were found. ";
+                                }
+                                else
+                                {
+                                    var ringFenceDetails = (from r in ringFence
+                                                            from rfd in r.ringFenceDetails                                                                  
+                                                            where rfd.Size == rdq.Size &&
+                                                                  rfd.ActiveInd == "1" &&
+                                                                  rfd.ringFenceStatusCode == "4" &&
+                                                                  rfd.PO == ""
+                                                            orderby rfd.RingFenceID
+                                                            select rfd).ToList();
+                                                                                    
+                                    if (ringFenceDetails.Count() == 0)
+                                    {
+                                        message = "No active warehouse ring fences were found for the requested size, SKU, and store";
+                                    }
+                                    else
+                                    {
+                                        if (ringFenceDetails.Where(d => d.Qty >= rdq.Qty).Count() == 0)
+                                        {
+
+                                            int maxAmount = (from rfd in ringFenceDetails
+                                                             select rfd.Qty).Max();
+
+                                            message = "The ring fenced quantity cannot satisfy the requested distribution. Amount available for size is " + maxAmount.ToString();
+                                        }
+                                        else
+                                        {
+                                            rdq.DCID = ringFenceDetails[0].DCID;
+                                        }
+                                    }
+                                }
+                            }
                         }
-                        Boolean pickAnyway = false;
-                        if ((Convert.ToString(mySheet.Cells[0, 9].Value).Contains("AllowNegative")))
+
+                        //Boolean pickAnyway = false;
+                        //if ((Convert.ToString(mySheet.Cells[0, 9].Value).Contains("AllowNegative")))
+                        //{
+                        //    pickAnyway = Convert.ToBoolean(mySheet.Cells[row, 9].Value);
+                        //}
+
+                        //message = CreateRDQ(rdq, ref pickAnyway);
+                        if (message == "")
                         {
-                            pickAnyway = Convert.ToBoolean(mySheet.Cells[row, 9].Value);
+                            message = CreateRDQ(rdq, validateInventory);
                         }
-                        message = CreateRDQ(rdq, ref pickAnyway)
-                            .Replace("(noringfence)", "  If you would like to pick anyway, put TRUE in AllowNegative column and reupload")
-                            .Replace("(ringfence)", "  Since this item is ringfenced, you cannot pick it.")
-                            ;
+                        //    .Replace("(noringfence)", "  If you would like to pick anyway, put TRUE in AllowNegative column and reupload")
+                        //    .Replace("(ringfence)", "  Since this item is ringfenced, you cannot pick it.");
+
                         if (message != "")
                         {
                             rdqErrors.Add(rdq);
-                            message = message;
+                            //message = message;
                             errorMessages.Add(message);
                         }
                         else
                         {
+                            if (ringFenceStore != "00000")
+                            {
+                                var ringFenceQuery = from rf in db.RingFences
+                                                     join rfd in db.RingFenceDetails
+                                                      on rf.ID equals rfd.RingFenceID
+                                                     where rf.Sku == rdq.Sku &&
+                                                           rf.Division == rdq.Division &&
+                                                           rf.Store == ringFenceStore &&
+                                                           rfd.Size == rdq.Size &&
+                                                           rfd.ActiveInd == "1" &&
+                                                           rfd.Qty >= rdq.Qty &&
+                                                           rfd.ringFenceStatusCode == "4" &&
+                                                           (rf.EndDate == null ||
+                                                           rf.EndDate >= DateTime.Now)                                                    
+                                                     orderby rfd.RingFenceID
+                                                     select rfd;
+                                var ringFenceDetailRec = ringFenceQuery.FirstOrDefault();
+
+                                ringFenceDetailRec.Qty = ringFenceDetailRec.Qty - rdq.Qty;
+
+                                if (ringFenceDetailRec.Qty == 0)
+                                {
+                                    db.RingFenceDetails.Remove(ringFenceDetailRec);
+                                }
+                            }
                             rdqGood.Add(rdq);
+                            db.SaveChanges(User.Identity.Name);
                         }
 
                         row++;
@@ -868,26 +1009,33 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     return Content("Incorrect header, please use template.");
                 }
             }
-            int instance = (from a in db.InstanceDivisions where a.Division == Division select a.InstanceID).First();
-            RDQDAO rdqDAO = new RDQDAO();
-            int holdcount = rdqDAO.ApplyHolds(rdqGood, instance);
-            if (holdcount > 0)
-            {
-                errorMessages.Add(holdcount + " on hold.  Please go to ReleaseHeldRDQs to view held RDQs.");
-            }
-            int cancelholdcount = rdqDAO.ApplyCancelHolds(rdqGood);
-            if (cancelholdcount > 0)
-            {
-                errorMessages.Add(cancelholdcount + " rejected by cancel inventory hold.  ");
-            }
 
+            if (rdqGood.Count > 0)
+            {
+                int instance = (from a in db.InstanceDivisions
+                                where a.Division == Division
+                                select a.InstanceID).First();
+                RDQDAO rdqDAO = new RDQDAO();
+                int holdcount = rdqDAO.ApplyHolds(rdqGood, instance);
 
+                if (holdcount > 0)
+                {
+                    errorMessages.Add(holdcount + " on hold.  Please go to Release Held RDQs to view held RDQs.");
+                }
+
+                int cancelholdcount = rdqDAO.ApplyCancelHolds(rdqGood);
+
+                if (cancelholdcount > 0)
+                {
+                    errorMessages.Add(cancelholdcount + " rejected by cancel inventory hold.  ");
+                }
+            }
 
             if (errorMessages.Count > 0)
             {
                 Session["errorList"] = rdqErrors;
                 Session["errorMessageList"] = errorMessages;
-                return Content(rdqErrors.Count() + " Errors on spreadsheet (" + (row - rdqErrors.Count() -1) + " successfully uploaded)");
+                return Content(rdqErrors.Count() + " Errors on spreadsheet (" + (row - rdqErrors.Count() - 1) + " successfully uploaded)");
             }
             else
             {
@@ -902,32 +1050,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            Worksheet mySheet = excelDocument.Worksheets[0];
-            int i = 0;
-            mySheet.Cells[0, i].PutValue("Store (#####)");
-            mySheet.Cells[0, i].Style.Font.IsBold = true;
-            i++;
-            mySheet.Cells[0, i].PutValue("Div (##)");
-            mySheet.Cells[0, i].Style.Font.IsBold = true;
-            i++;
-            mySheet.Cells[0, i].PutValue("Dept (##)");
-            mySheet.Cells[0, i].Style.Font.IsBold = true;
-            i++;
-            mySheet.Cells[0, i].PutValue("Stock (#####)");
-            mySheet.Cells[0, i].Style.Font.IsBold = true;
-            i++;
-            mySheet.Cells[0, i].PutValue("WidthCode (##)");
-            mySheet.Cells[0, i].Style.Font.IsBold = true;
-            i++;
-            mySheet.Cells[0, i].PutValue("Size Caselot (### or #####)");
-            mySheet.Cells[0, i].Style.Font.IsBold = true;
-            i++;
-            mySheet.Cells[0, i].PutValue("Qty (#)");
-            mySheet.Cells[0, i].Style.Font.IsBold = true;
-            i++;
-            mySheet.Cells[0, i].PutValue("DC (##)");
-            mySheet.Cells[0, i].Style.Font.IsBold = true;
-            excelDocument.Save("WebPicks.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["WebPickTemplate"]);
+            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
+
+            Byte[] data1 = new Byte[file.Length];
+            file.Read(data1, 0, data1.Length);
+            file.Close();
+            MemoryStream memoryStream1 = new MemoryStream(data1);
+            excelDocument.Open(memoryStream1);
+            excelDocument.Save("WebPickUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
 
@@ -943,37 +1074,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
             mySheet.Cells[0, col].PutValue("Store (#####)");
             mySheet.Cells[0, col].Style.Font.IsBold = true;
             col++;
-            mySheet.Cells[0, col].PutValue("Div (##)");
-            mySheet.Cells[0, col].Style.Font.IsBold = true;
-            col++;
-            mySheet.Cells[0, col].PutValue("Dept (##)");
-            mySheet.Cells[0, col].Style.Font.IsBold = true;
-            col++;
-            mySheet.Cells[0, col].PutValue("Stock (#####)");
-            mySheet.Cells[0, col].Style.Font.IsBold = true;
-            col++;
-            mySheet.Cells[0, col].PutValue("WidthCode (##)");
+            mySheet.Cells[0, col].PutValue("SKU (##-##-#####-##)");
             mySheet.Cells[0, col].Style.Font.IsBold = true;
             col++;
             mySheet.Cells[0, col].PutValue("Size Caselot (### or #####)");
             mySheet.Cells[0, col].Style.Font.IsBold = true;
             col++;
-            mySheet.Cells[0, col].PutValue("Qty (#)");
+            mySheet.Cells[0, col].PutValue("Quantity (#)");
             mySheet.Cells[0, col].Style.Font.IsBold = true;
             col++;
-            mySheet.Cells[0, col].PutValue("DC (##)");
+            mySheet.Cells[0, col].PutValue("Pick from DC (##)");
+            mySheet.Cells[0, col].Style.Font.IsBold = true;
+            col++;
+            mySheet.Cells[0, col].PutValue("Pick from Ring Fence Store (#####)");
             mySheet.Cells[0, col].Style.Font.IsBold = true;
             col++;
             mySheet.Cells[0, col].PutValue("Message");
             mySheet.Cells[0, col].Style.Font.IsBold = true;
-            col++;
-            mySheet.Cells[0, col].PutValue("AllowNegative (TRUE/FALSE)");
-            mySheet.Cells[0, col].Style.Font.IsBold = true;
+            //col++;
+            //mySheet.Cells[0, col].PutValue("AllowNegative (TRUE/FALSE)");
+            //mySheet.Cells[0, col].Style.Font.IsBold = true;
 
             List<RDQ> errors = (List<RDQ>)Session["errorList"];
             List<string> errorMessages = (List<string>)Session["errorMessageList"];
-            int row = 1;
-            string[] tokens;
+            int row = 1;           
             if (errors != null)
             {
                 foreach (RDQ rdq in errors)
@@ -981,21 +1105,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     col = 0;
                     mySheet.Cells[row, col].PutValue(rdq.Store);
                     col++;
-                    mySheet.Cells[row, col].PutValue(rdq.Division);
-                    col++;
-                    tokens = rdq.Sku.Split('-');
-                    mySheet.Cells[row, col].PutValue(tokens[1]);
-                    col++;
-                    mySheet.Cells[row, col].PutValue(tokens[2]);
-                    col++;
-                    mySheet.Cells[row, col].PutValue(tokens[3]);
+                    mySheet.Cells[row, col].PutValue(rdq.Sku);
                     col++;
                     mySheet.Cells[row, col].PutValue(rdq.Size);
                     col++;
                     mySheet.Cells[row, col].PutValue(rdq.Qty);
                     col++;
-                    mySheet.Cells[row, col].PutValue(
-                        (from a in db.DistributionCenters where a.ID == rdq.DCID select a.MFCode).First());
+                    mySheet.Cells[row, col].PutValue(rdq.DC);
+                    col++;
+                    mySheet.Cells[row, col].PutValue(rdq.RingFencePickStore);
                     col++;
                     mySheet.Cells[row, col].PutValue(errorMessages[row - 1]);
 
@@ -1007,7 +1125,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 col = 0;
                 mySheet.Cells[row, col].PutValue("Session timed out");
             }
-            
+
             excelDocument.Save("WebPicks.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
