@@ -81,5 +81,7 @@ namespace Footlocker.Logistics.Allocation.Models
                 }
             }
         }
+
+        public SkuAttributeHeader header { get; set; }
     }
 }

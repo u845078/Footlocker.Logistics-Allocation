@@ -135,6 +135,17 @@
                 })
                 .Ajax(false)
                 .Action("EditDeliveryGroup", "SkuRange");
+
+                commands
+                .Custom("Export")
+                .Text("Export")
+                .DataRouteValues(route =>
+                {
+                    route.Add(o => o.ID).RouteKey("deliveryGroupID");
+                })
+                .Ajax(false)
+                .Action("ExcelDeliveryGroup", "SkuRange");
+
                 commands
                 .Custom("Delete")
                 .Text("Delete")
@@ -145,7 +156,7 @@
                 })
                 .Ajax(false)
                 .Action("DeleteDeliveryGroup", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
-            }).HtmlAttributes(new { style = "text-align: left" }).Width(150);
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(170);
             //columns.Bound(o => o.ALRStartDate)
             //.Template(@<text>
             //                    @if (item.ALRStartDate != null)

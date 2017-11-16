@@ -8,6 +8,11 @@ namespace Footlocker.Logistics.Allocation.Models
 {
     public class SkuAttributeHeader
     {
+
+        public SkuAttributeHeader()
+        {
+            this.SkuAttributeDetails = new List<SkuAttributeDetail>();
+        }
         public int ID { get; set; }
         public string Division { get; set; }
         public string Dept { get; set; }
@@ -59,5 +64,7 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [NotMapped]
         public Int32 WeightInactive { get { return Convert.ToInt32(1 - WeightActive * 100); } }
+
+        public List<SkuAttributeDetail> SkuAttributeDetails { get; set; }
     }
 }
