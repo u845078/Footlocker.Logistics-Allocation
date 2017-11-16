@@ -503,6 +503,7 @@
     <None Include="Content\Templates\ProductTypeTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="Content\Templates\RingFenceDeleteTemplate.xls" />
     <None Include="Content\Templates\SkuIdUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -583,6 +584,7 @@
     <Content Include="Views\PurgeArchive\Index.cshtml" />
     <Content Include="Views\PurgeArchive\Create.cshtml" />
     <Content Include="Views\SkuAttribute\Upload.cshtml" />
+    <Content Include="Views\RingFence\UploadDeletes.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />
