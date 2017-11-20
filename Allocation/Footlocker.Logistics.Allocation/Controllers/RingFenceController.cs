@@ -2263,7 +2263,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 Errors.Add(model);
                             }
                             
-                            if (model.ErrorMessage != string.Empty)
+                            if (string.IsNullOrEmpty(model.ErrorMessage))
                                 ProcessList.Add(model);
                         }
 
@@ -2284,7 +2284,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
                     }
 
-                    ProcessList = ProcessList.Where(x => x.ErrorMessage == string.Empty).ToList();
+                    ProcessList = ProcessList.Where(x => string.IsNullOrEmpty(x.ErrorMessage)).ToList();
 
                     if (ProcessList.Count > 0)
                     {

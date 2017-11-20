@@ -14,6 +14,6 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public string ringFenceStatusDesc { get; set; }
 
-        public virtual List<RingFenceDetail> RingFenceDetails { get; set; }
+        //public virtual List<RingFenceDetail> RingFenceDetails { get; set; }
     }
 }
