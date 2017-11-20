@@ -2313,6 +2313,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             }
                         }
 
+                        // clear out session variables since something changed
+                        Session["rfStore"] = null;
+                        Session["rfStoreList"] = null;
+
                         db.SaveChanges(UserName);
                     }
 
