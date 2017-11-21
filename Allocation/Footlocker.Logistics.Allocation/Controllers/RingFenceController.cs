@@ -2094,6 +2094,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
+        public ActionResult UploadDeletes()
+        {
+            return View();
+        }
+
         private RingFenceUploadModel createModelFromSpreadsheet(Cells spreadsheet, int row)
         {
             RingFenceUploadModel model = new RingFenceUploadModel();
@@ -2197,6 +2202,152 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             CreateOrUpdateRingFence(tempRingFence.Division, tempRingFence.Store, tempRingFence.Sku, ProcessList, 
                 Errors, Available, FuturePOs);
+        }
+
+        public ActionResult DeleteRingFences(IEnumerable<HttpPostedFileBase> attachments)
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            string division = "";
+            string sku;
+            string store;
+
+            RingFenceDAO rfDAO = new RingFenceDAO();
+            foreach (HttpPostedFileBase file in attachments)
+            {
+                //Instantiate a Workbook object that represents an Excel file
+                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+                Byte[] data1 = new Byte[file.InputStream.Length];
+                file.InputStream.Read(data1, 0, data1.Length);
+                file.InputStream.Close();
+                MemoryStream memoryStream1 = new MemoryStream(data1);
+                workbook.Open(memoryStream1);
+                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+
+                int row = 1;
+                if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Store")) && (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("SKU")))
+                {                    
+                    List<RingFenceUploadModel> ProcessList = new List<RingFenceUploadModel>();
+                    List<RingFenceUploadModel> DeleteList = new List<RingFenceUploadModel>();
+                    List<RingFenceUploadModel> Errors = new List<RingFenceUploadModel>();
+                    RingFenceUploadModel model;
+
+                    while (mySheet.Cells[row, 0].Value != null)
+                    {
+                        sku = Convert.ToString(mySheet.Cells[row, 1].Value);
+                        division = sku.Substring(0, 2);
+                        store = Convert.ToString(mySheet.Cells[row, 0].Value);
+
+                        model = new RingFenceUploadModel
+                        {
+                            Store = store,
+                            Division = division,
+                            SKU = sku
+                        };
+
+                        if (!validateUploadSecurity(model))
+                        {
+                            Errors.Add(model);
+                        }
+                        else
+                        {
+                            int rfCount = (from r in db.RingFences
+                                           where r.Store == store &&
+                                                 r.Sku == sku &&
+                                                 r.Division == division
+                                           select r).Count();
+                            if (rfCount == 0)
+                            {
+                                model.ErrorMessage = "There was no ring fence found for this store and SKU";
+                                Errors.Add(model);
+                            }
+                            
+                            if (string.IsNullOrEmpty(model.ErrorMessage))
+                                ProcessList.Add(model);
+                        }
+
+                        row++;
+                    }
+
+                    var duplicates = (from p in ProcessList
+                                      group p by new { f1 = p.SKU, f2 = p.Store } into g
+                                      where g.Count() > 1
+                                      select g).ToList();
+
+                    foreach (var dup in duplicates)
+                    {
+                        foreach (var plDup in ProcessList.Where(x => x.SKU == dup.Key.f1 && x.Store == dup.Key.f2))
+                        {
+                            plDup.ErrorMessage = "Duplicate ring fence record";
+                            Errors.Add(plDup);
+                        }
+                    }
+
+                    ProcessList = ProcessList.Where(x => string.IsNullOrEmpty(x.ErrorMessage)).ToList();
+
+                    if (ProcessList.Count > 0)
+                    {
+                        foreach (var rfDel in ProcessList)
+                        {
+                            var rfToDelete = (from r in db.RingFences
+                                              where r.Store == rfDel.Store &&
+                                                    r.Sku == rfDel.SKU &&
+                                                    r.Division == rfDel.Division
+                                              select r).ToList();
+                            if (rfToDelete.Count == 0)
+                            {
+                                rfDel.ErrorMessage = "There was no ring fence found for this store and SKU";
+                                Errors.Add(rfDel);
+                            }
+                            else
+                            {
+                                foreach (var rf in rfToDelete)
+                                {
+                                    var deleteRFD = rf.ringFenceDetails.ToList();
+                                    foreach (var rfd in deleteRFD)
+                                        db.RingFenceDetails.Remove(rfd);
+
+                                    db.RingFences.Remove(rf);
+                                }
+                            }
+                        }
+
+                        // clear out session variables since something changed
+                        Session["rfStore"] = null;
+                        Session["rfStoreList"] = null;
+
+                        db.SaveChanges(UserName);
+                    }
+
+                    if (Errors.Count() > 0)
+                    {
+                        Session["errorList"] = Errors;
+                        int count = (from a in Errors
+                                     where (!(a.ErrorMessage.StartsWith("Warning")))
+                                     select a).Count();
+
+                        string msg = (row - count - 1) + " successfully uploaded";
+                        if (count > 0)
+                        {
+                            msg += ", " + count + " Errors";
+                        }
+                        if (Errors.Count() > count)
+                        {
+                            //have warnings
+                            msg += ", " + (Errors.Count() - count) + " Warnings";
+                        }
+                        return Content(msg);
+                    }
+                }
+                else
+                {
+                    // Inform of missing/bad header row
+                    return Content("Incorrectly formatted or missing header row. Please correct and re-process.");
+                }
+            }
+
+            return Content("");
         }
 
         public ActionResult SaveRingFences(IEnumerable<HttpPostedFileBase> attachments)
@@ -2547,6 +2698,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
+        public ActionResult ExcelDeleteTemplate()
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+            Excel excelDocument = new Excel();
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["RingFenceDeleteTemplate"]);
+            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
+
+            Byte[] data1 = new Byte[file.Length];
+            file.Read(data1, 0, data1.Length);
+            file.Close();
+            MemoryStream memoryStream1 = new MemoryStream(data1);
+            excelDocument.Open(memoryStream1);
+            excelDocument.Save("RingFenceDeleteUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            return View();
+        }
+
         public ActionResult ExcelTemplate()
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -2607,6 +2777,36 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             excelDocument.Save("RingFenceUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            return View();
+        }
+
+        public ActionResult DownloadDeleteErrors()
+        {
+            List<RingFenceUploadModel> errors = (List<RingFenceUploadModel>)Session["errorList"];
+
+            if (errors != null)
+            {
+                Aspose.Excel.License license = new Aspose.Excel.License();
+                //Set the license 
+                license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+                Excel excelDocument = new Excel();
+                excelDocument.Worksheets[0].Cells[0, 0].PutValue("Store (#####)");
+                excelDocument.Worksheets[0].Cells[0, 1].PutValue("SKU (##-##-#####-##)");
+                excelDocument.Worksheets[0].Cells[0, 2].PutValue("Error");
+                int row = 1;
+
+                foreach (RingFenceUploadModel model in errors)
+                {
+                    excelDocument.Worksheets[0].Cells[row, 0].PutValue(model.Store);
+                    excelDocument.Worksheets[0].Cells[row, 1].PutValue(model.SKU);
+                    excelDocument.Worksheets[0].Cells[row, 2].PutValue(model.ErrorMessage);
+
+                    row++;
+                }
+
+                excelDocument.Save("RingFenceDeleteErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            }
             return View();
         }
 
