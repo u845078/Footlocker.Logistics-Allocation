@@ -1329,8 +1329,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     //ShowError(ex);
                 }
                 var ruleSet = (from a in db.RuleSets where a.RuleSetID == ruleSetID select a).FirstOrDefault();
-                //List<StoreLookupModel> currStores = GetStoresInRuleSet(ruleSetID);
-                List < StoreLookupModel > currStores = db.GetStoreLookupsForPlan((long)ruleSet.PlanID, DivisionList(User.Identity.Name));
+                List<StoreLookupModel> currStores = new List<StoreLookupModel>();
+                if (ruleSet.PlanID != null)
+                {
+                    currStores = db.GetStoreLookupsForPlan((long)ruleSet.PlanID, DivisionList(User.Identity.Name));
+                }
+                else
+                {
+                    currStores = GetStoresInRuleSet(ruleSetID);
+                }
 
                 var currlist =
                         from n in list
