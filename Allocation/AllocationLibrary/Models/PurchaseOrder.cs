@@ -36,6 +36,7 @@ namespace Footlocker.Logistics.Allocation.Models
         
         public virtual POStockStatus POStockStatus { get; set; }
 
-
+        [Column("BlanketPOInd")]
+        public bool BlanketPOInd { get; set; }
     }
 }
