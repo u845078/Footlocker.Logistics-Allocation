@@ -25,5 +25,20 @@ namespace Footlocker.Logistics.Allocation.Models
         public string vendorNumber { get; set; }
         public DateTime createDate { get; set; }
         public int receivedQuantity { get; set; }
+
+        public string POStatus { get; set; }
+
+        public bool BlanketPOInd { get; set; }
+
+        public string BlanketPODesc
+        {
+            get
+            {
+                if (BlanketPOInd)
+                    return "Yes";
+                else
+                    return "No";
+            }
+        }
     }
 }

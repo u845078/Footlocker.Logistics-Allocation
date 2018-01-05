@@ -340,7 +340,8 @@
             columns.Bound(o => o.OverrideDate).Format("{0:MM/dd/yyyy}");
             columns.Bound(o => o.Retail).Title("Retail Value");
             columns.Bound(o => o.Units);
-            columns.Bound(o => o.POStatusCode);
+            columns.Bound(o => o.POStatus);
+            columns.Bound(o => o.BlanketPODesc).Title("Blanket PO?");
             columns.Bound(o => o.receivedQuantity);
             columns.Bound(o => o.WarehouseNumber);
             columns.Bound(o => o.DirectToStore);

@@ -46,6 +46,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             SQL = SQL + " and d.RETL_OPER_DIV_CODE = c.RETL_OPER_DIV_CODE and d.stk_dept_num = c.stk_dept_num and d.stk_num = c.stk_num";
             SQL = SQL + " and b.WDTH_COLOR_NUM = d.WDTH_COLOR_NUM and d.PO_NUM = C.PO_NUM ";
             SQL = SQL + " and a.PO_STATUS_CODE in ('O','R','P',' ')";
+            SQL = SQL + " and a.BLANKET_PO_CODE != 'X'";
             //SQL = SQL + " and d.WHSE_ID_NUM != ' '";
             SQL = SQL + " and a.PO_NUM = '" + PO + "'";
             SQL = SQL + " and a.RETL_OPER_DIV_CODE = '" + div + "'";
@@ -64,6 +65,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             SQL = SQL + " and d.RETL_OPER_DIV_CODE = c.RETL_OPER_DIV_CODE and d.stk_dept_num = c.stk_dept_num and d.stk_num = c.stk_num";
             SQL = SQL + " and b.WDTH_COLOR_NUM = d.WDTH_COLOR_NUM and d.PO_NUM = C.PO_NUM ";
             SQL = SQL + " and a.PO_STATUS_CODE in ('O','R','P',' ')";
+            SQL = SQL + " and a.BLANKET_PO_CODE != 'X'";
             //SQL = SQL + " and d.WHSE_ID_NUM != ' '";
             SQL = SQL + " and a.PO_NUM = '" + PO + "'";
             SQL = SQL + " and a.RETL_OPER_DIV_CODE = '" + div + "'";
@@ -109,6 +111,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 SQL = SQL + " and d.RETL_OPER_DIV_CODE = c.RETL_OPER_DIV_CODE and d.stk_dept_num = c.stk_dept_num and d.stk_num = c.stk_num";
                 SQL = SQL + " and b.WDTH_COLOR_NUM = d.WDTH_COLOR_NUM and d.PO_NUM = C.PO_NUM ";
                 SQL = SQL + " and a.PO_STATUS_CODE in ('O','R','P',' ')";
+                SQL = SQL + " and a.BLANKET_PO_CODE != 'X'";
                 //SQL = SQL + " and d.WHSE_ID_NUM != ' '";
                 SQL = SQL + " and a.PO_NUM = '" + PO + "'";
                 SQL = SQL + " and a.RETL_OPER_DIV_CODE = '" + div + "'";
@@ -166,6 +169,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             SQL = SQL + " and b.stk_dept_num = '" + tokens[1] + "'";
             SQL = SQL + " and b.stk_num = '" + tokens[2] + "'";
             SQL = SQL + " and a.RETL_OPER_DIV_CODE = '" + div + "'";
+            SQL = SQL + " and a.BLANKET_PO_CODE != 'X'";
             SQL = SQL + " group by d.WHSE_ID_NUM, a.PO_NUM, a.EXPECTED_DELV_DATE, b.RETL_OPER_DIV_CODE, b.stk_dept_num,";
             SQL = SQL + " b.stk_num, b.WDTH_COLOR_NUM, b.TOT_WC_RETL_AMT, c.GENL_STK_DESC, a.po_status_code, a.vend_num, a.crte_date";
 
@@ -189,6 +193,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             SQL = SQL + " and b.stk_dept_num = '" + tokens[1] + "'";
             SQL = SQL + " and b.stk_num = '" + tokens[2] + "'";
             SQL = SQL + " and a.RETL_OPER_DIV_CODE = '" + div + "'";
+            SQL = SQL + " and a.BLANKET_PO_CODE != 'X'";
             SQL = SQL + " and e.CASELOT_NUM = d.CASELOT_NUMBER";
             SQL = SQL + " and e.RETL_OPER_DIV_CODE = d.RETL_OPER_DIV_CODE";
             SQL = SQL + " group by d.WHSE_ID_NUM, a.PO_NUM, a.EXPECTED_DELV_DATE, b.RETL_OPER_DIV_CODE, ";

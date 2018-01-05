@@ -253,6 +253,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
+            List<POStatus> poStatusCodes = (from ps in db.POStatusCodes
+                                            select ps).ToList();
+
             foreach (ExistingPO epo in model)
             {
                 List<ExpeditePO> overridePOs = (from a in db.ExpeditePOs
@@ -261,6 +264,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                 select a).ToList();
                 if (overridePOs.Count > 0)
                     epo.OverrideDate = overridePOs[0].OverrideDate;
+
+                var codeDesc = (from d in poStatusCodes
+                                where d.Code == epo.POStatusCode
+                                select d.Description).FirstOrDefault();
+
+                if (epo.POStatusCode == " ")
+                    epo.POStatus = codeDesc;
+                else
+                    epo.POStatus = epo.POStatusCode + " - " + codeDesc;
+
+                var blanketVal = (from p in db.POs
+                                  where p.PO == epo.PO
+                                  select p.BlanketPOInd).FirstOrDefault();
+                epo.BlanketPOInd = blanketVal;
             }
 
             return View(new GridModel(model));
