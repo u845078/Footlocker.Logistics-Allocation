@@ -174,51 +174,127 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult DCIndex(string instanceID)
         {
             DCList model = new DCList();
-            model.AvailableInstances = (from a in db.Instances select a).ToList();
+            model.AvailableInstances = (from a in db.Instances
+                                        select a).ToList();
             
             model.InstanceID = Convert.ToInt32(instanceID);
             if (model.InstanceID == 0)
             {
                 model.InstanceID = 1;
             }
-            model.DCs = (from a in db.DistributionCenters join b in db.InstanceDistributionCenters on a.ID equals b.DCID where b.InstanceID == model.InstanceID select a).ToList();
+            model.DCs = (from a in db.DistributionCenters
+                         join b in db.InstanceDistributionCenters 
+                           on a.ID equals b.DCID
+                         where b.InstanceID == model.InstanceID
+                         select a).ToList();
+
             return View(model);
         }
 
         public ActionResult EditDC(int id)
         {
-            DistributionCenter model = (from a in db.DistributionCenters where a.ID == id select a).First();
-            return View(model);
+            DistributionCenterModel model = new DistributionCenterModel();
+
+            model.DC = (from a in db.DistributionCenters
+                        where a.ID == id
+                        select a).First();
+
+            model.WarehouseAllocationTypes = (from w in db.WarehouseAllocationTypes
+                                              select w).ToList();
+
+            model.AvailableInstances = (from i in db.Instances
+                                        select i).ToList();
+
+            model.SelectedInstances = new List<CheckBoxModel>();
+            bool instChecked;
+            foreach (var inst in model.AvailableInstances)
+            {
+                instChecked = db.InstanceDistributionCenters.Any(i => i.DCID == id && i.InstanceID == inst.ID);
+                model.SelectedInstances.Add(new CheckBoxModel { ID = inst.ID, Desc = inst.Name, Checked = instChecked });
+            }
+            return View(model);          
         }
 
         [HttpPost]
-        public ActionResult EditDC(DistributionCenter model)
+        public ActionResult EditDC(DistributionCenterModel model)
         {
-            model.CreateDate = DateTime.Now;
-            model.CreatedBy = User.Identity.Name;
-            db.Entry(model).State = System.Data.EntityState.Modified;
+            model.DC.LastModifiedDate = DateTime.Now;
+            model.DC.LastModifiedUser = User.Identity.Name;
+            db.Entry(model.DC).State = System.Data.EntityState.Modified;
+
+            foreach (var selInst in model.SelectedInstances)
+            {
+                bool alreadyThere;
+                alreadyThere = db.InstanceDistributionCenters.Any(i => i.DCID == model.DC.ID && 
+                                                                       i.InstanceID == selInst.ID);
+                if (selInst.Checked && !alreadyThere)
+                {
+                    db.InstanceDistributionCenters.Add(new InstanceDistributionCenter
+                    {
+                        DCID = model.DC.ID,
+                        InstanceID = selInst.ID
+                    });
+                }
+
+                if (!selInst.Checked && alreadyThere)
+                {
+                    db.InstanceDistributionCenters.Remove((from id in db.InstanceDistributionCenters
+                                                          where id.DCID == model.DC.ID && 
+                                                                id.InstanceID == selInst.ID
+                                                          select id).FirstOrDefault());
+                }
+            }
 
             db.SaveChanges();
-            return RedirectToAction("DCIndex", new { instanceID = model.InstanceID });
+            return RedirectToAction("DCIndex", new { instanceID = model.DC.InstanceID });
         }
 
 
         public ActionResult CreateDC(int instanceID)
         {
-            DistributionCenter model = new DistributionCenter();
-            model.InstanceID = instanceID;
+            DistributionCenterModel model = new DistributionCenterModel();
+            model.DC = new DistributionCenter();
+            model.DC.InstanceID = instanceID;
+            model.WarehouseAllocationTypes = (from w in db.WarehouseAllocationTypes
+                                              select w).ToList();
+
+            model.AvailableInstances = (from i in db.Instances
+                                        select i).ToList();
+
+            model.SelectedInstances = new List<CheckBoxModel>();
+            foreach (var inst in model.AvailableInstances)
+            {
+                model.SelectedInstances.Add(new CheckBoxModel { ID = inst.ID, Desc = inst.Name, Checked = false });
+            }
             return View(model);
         }
 
         [HttpPost]
-        public ActionResult CreateDC(DistributionCenter model)
+        public ActionResult CreateDC(DistributionCenterModel model)
         {
-            model.CreateDate = DateTime.Now;
-            model.CreatedBy = User.Identity.Name;
+            model.DC.CreateDate = DateTime.Now;
+            model.DC.CreatedBy = User.Identity.Name;
+            model.DC.LastModifiedDate = DateTime.Now;
+            model.DC.LastModifiedUser = User.Identity.Name;
 
-            db.DistributionCenters.Add(model);
+            db.DistributionCenters.Add(model.DC);
+
             db.SaveChanges();
-            return RedirectToAction("DCIndex", new { instanceID = model.InstanceID });
+
+            foreach (var selInst in model.SelectedInstances)
+            {
+                if (selInst.Checked)
+                {
+                    db.InstanceDistributionCenters.Add(new InstanceDistributionCenter
+                    {
+                        DCID = model.DC.ID,
+                        InstanceID = selInst.ID
+                    });
+                }
+            }
+
+            db.SaveChanges();
+            return RedirectToAction("DCIndex", new { instanceID = model.DC.InstanceID });
         }
 
 

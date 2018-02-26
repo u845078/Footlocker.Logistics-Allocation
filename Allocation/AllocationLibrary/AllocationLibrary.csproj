@@ -241,6 +241,7 @@
     <Compile Include="Models\VendorGroup.cs" />
     <Compile Include="Models\VendorGroupDetail.cs" />
     <Compile Include="Models\VendorGroupLeadTime.cs" />
+    <Compile Include="Models\WarehouseAllocationType.cs" />
     <Compile Include="Models\WarehouseBlackout.cs" />
     <Compile Include="Models\WarehouseInventory.cs" />
     <Compile Include="Models\wsm.cs" />

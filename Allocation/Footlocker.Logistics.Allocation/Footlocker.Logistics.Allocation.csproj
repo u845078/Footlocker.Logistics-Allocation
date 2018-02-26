@@ -255,6 +255,7 @@
     </Compile>
     <Compile Include="Models\AuditRDQModel.cs" />
     <Compile Include="Models\BulkRDQModel.cs" />
+    <Compile Include="Models\CheckBoxModel.cs" />
     <Compile Include="Models\InstanceModel.cs" />
     <Compile Include="Models\QuantumDataDownloadModel.cs" />
     <Compile Include="Models\ProductHierarchyOverrideModel.cs" />
