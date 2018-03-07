@@ -32,7 +32,7 @@ namespace Footlocker.Logistics.Allocation.Factories
             {
                 _newObject.CheckNormals = Convert.ToBoolean(dr["CheckNormals"]);
             }
-
+            _newObject.StockedInMinihub = Convert.ToBoolean(dr["MinihubInd"]);
             return _newObject;
         }
     }

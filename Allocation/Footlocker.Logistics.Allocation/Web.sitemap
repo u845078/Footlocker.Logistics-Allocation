@@ -6,7 +6,7 @@
       <siteMapNode title="Quantum Data Download" controller="Item" action="QuantumDataDownload" />
       <siteMapNode title="Instance Config" controller="Config" action="Index" />
       <siteMapNode title="Item Lookup" controller="Item" action="Lookup" />
-		  <siteMapNode title="Setup Dept" controller="Driver" action="Index" />
+		  <siteMapNode title="Department Config" controller="Driver" action="Index" />
       <siteMapNode title="Seasonality Overrides" controller="ProductHierarchyOverride" action="Index" />
       <siteMapNode title="Purge Criteria" controller="PurgeArchive" action="Index"/>
     </siteMapNode>

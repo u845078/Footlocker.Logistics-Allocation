@@ -5,7 +5,7 @@
     ViewBag.Title = "Quantum Allocation Driver";
 }
 
-<h2>Quantum Allocation Driver</h2>
+<h2>Department Config</h2>
 <script>
     function autopostback(dropdown) {
         window.location = '/Driver/Index?div=' + dropdown.value;
@@ -21,28 +21,31 @@
 @Html.Raw("<a onclick=\"create()\" class=\"t-button\">Create</a>")
 <br />
 <br />
-<table>
+<table style="width: 100%">
     <tr>
         <th>
             Department
         </th>
         <th title="Date to create default range">
-            ConvertDate
+            Convert Date
         </th>
         <th title="Date to start allocating this sku">
-            AllocateDate
+            Allocate Date
         </th>
         <th title="Date to start allocating this sku">
-            OrderPlanningDate
+            Order Planning Date
         </th>
         <th>
-            CreatedBy
+            Last Modified User
         </th>
         <th>
-            CreateDate
+            Last Modified Date
         </th>
         <th>
             Check Normals
+        </th>
+        <th title="Can this product be stocked in the minihub?">
+            Minihub Product
         </th>
         <th></th>
     </tr>
@@ -69,6 +72,9 @@
         </td>
         <td>
             @Html.DisplayFor(modelItem => item.CheckNormals)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.StockedInMinihub)
         </td>
         <td>
             @Html.ActionLink("Edit", "Edit", new { div = item.Division, dept = item.Department }) |

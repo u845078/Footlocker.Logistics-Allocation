@@ -83,6 +83,7 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.AddInParameter(SQLCommand, "@ConvertDate", DbType.DateTime, objectToSave.ConvertDate);
             _database.AddInParameter(SQLCommand, "@OrderPlanningDate", DbType.DateTime, objectToSave.OrderPlanningDate);
             _database.AddInParameter(SQLCommand, "@CheckNormals", DbType.Boolean, objectToSave.CheckNormals);
+            _database.AddInParameter(SQLCommand, "@MinihubInd", DbType.Boolean, objectToSave.StockedInMinihub);
             _database.AddInParameter(SQLCommand, "@CHANGE_BY", DbType.String, user);
 
             _database.ExecuteNonQuery(SQLCommand);
