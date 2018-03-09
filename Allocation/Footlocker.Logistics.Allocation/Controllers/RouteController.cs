@@ -478,7 +478,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult EditStoreLeadTime(string div, string store)
         {
-            var query = (from a in db.StoreLeadTimes where ((a.Division == div) && (a.Store == store)) select a);
+            var query = (from a in db.StoreLeadTimes
+                         where ((a.Division == div) && (a.Store == store))
+                         select a);
             EditStoreLeadTimeModel model = new EditStoreLeadTimeModel();
 
             List<StoreLeadTime> list = new List<StoreLeadTime>();
@@ -488,7 +490,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (query.Count() == 0)
             {
                 list = new List<StoreLeadTime>();
-                foreach (DistributionCenter dc in (from a in db.DistributionCenters join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a))
+                foreach (DistributionCenter dc in (from a in db.DistributionCenters
+                                                   join b in db.InstanceDistributionCenters
+                                                   on a.ID equals b.DCID
+                                                   join c in db.InstanceDivisions                                                                                                       
+                                                   on b.InstanceID equals c.InstanceID
+                                                   where c.Division == div
+                                                   select a).ToList())
                 {
                     lt = new StoreLeadTime();
                     lt.DCID = dc.ID;
@@ -504,9 +512,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 list = query.ToList();
                 rank = list.Count() + 1;
-                foreach (DistributionCenter dc in (from a in db.DistributionCenters join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a))
+                var datar = (from a in db.DistributionCenters
+                             join b in db.InstanceDistributionCenters
+                             on a.InstanceID equals b.InstanceID
+                             join c in db.InstanceDivisions
+                             on b.InstanceID equals c.InstanceID
+                             where c.Division == div
+                             select a).ToList();
+
+                foreach (DistributionCenter dc in (from a in db.DistributionCenters
+                                                   join b in db.InstanceDistributionCenters
+                                                   on a.ID equals b.DCID
+                                                   join c in db.InstanceDivisions
+                                                   on b.InstanceID equals c.InstanceID
+                                                   where c.Division == div
+                                                   select a).ToList())
                 {
-                    if ((from a in list where a.DCID == dc.ID select a).Count() == 0)
+                    if ((from a in list
+                         where a.DCID == dc.ID
+                         select a).Count() == 0)
                     {
                         lt = new StoreLeadTime();
                         lt.DCID = dc.ID;
@@ -519,17 +543,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         rank++;
                     }
                 }
-
             }
 
             model.LeadTimes = list;
 
             foreach (StoreLeadTime slt in list)
             {
-                slt.Warehouse = (from a in db.DistributionCenters where a.ID == slt.DCID select a.Name).First();
+                slt.Warehouse = (from a in db.DistributionCenters
+                                 where a.ID == slt.DCID
+                                 select a.Name).First();
             }
             //model.Warehouses = (from a in db.DistributionCenters select a).ToList();
-            model.Store = (from a in db.StoreLookups where ((a.Store == store) && (a.Division == div)) select a).First(); ;
+            model.Store = (from a in db.StoreLookups
+                           where ((a.Store == store) && (a.Division == div))
+                           select a).First();
 
             return View(model);
         }
