@@ -162,6 +162,7 @@
     <Compile Include="Models\MandatoryCrossdock.cs" />
     <Compile Include="Models\MandatoryCrossdockDefault.cs" />
     <Compile Include="Models\MaxLeadTime.cs" />
+    <Compile Include="Models\MinihubStore.cs" />
     <Compile Include="Models\OrderPlanningRequest.cs" />
     <Compile Include="Models\POStatus.cs" />
     <Compile Include="Models\POStockStatus.cs" />

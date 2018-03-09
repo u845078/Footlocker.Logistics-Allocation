@@ -800,7 +800,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (model.ControlDate == null)
             {
                 string div = model.Sku.Substring(0, 2);
-                model.ControlDate = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).FirstOrDefault();
+                model.ControlDate = (from a in db.ControlDates
+                                     join b in db.InstanceDivisions 
+                                     on a.InstanceID equals b.InstanceID
+                                     where b.Division == div
+                                     select a.RunDate).FirstOrDefault();
             }
             return View(model);
         }

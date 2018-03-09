@@ -360,24 +360,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //            orderby subStore.ZoneID
             //            select new { a.Division, a.Store, a.Mall, a.State, ZoneName = (subStore.Store == null ? "<unassigned>" : subStore.Name) };
 
-            var query1 =                      
-                    (
-                         from a in db.vValidStores
-                         join b in db.NetworkZoneStores on new { a.Division, a.Store } equals new { b.Division, b.Store } into gj
-                         from subset in gj.DefaultIfEmpty()
-                         where a.Division == div
-                         select new { a.Division, a.Store, a.State, a.Mall, a.City, subset.ZoneID }
-                    );
+            var query1 = (from a in db.vValidStores
+                          join b in db.NetworkZoneStores 
+                            on new { a.Division, a.Store } equals new { b.Division, b.Store } into gj
+                          from subset in gj.DefaultIfEmpty()
+                          where a.Division == div
+                          select new { a.Division, a.Store, a.State, a.Mall, a.City, subset.ZoneID });
 
-            var query2 =
-                (from c in query1
-                 join d in db.NetworkZones on c.ZoneID equals d.ID into g2
-                 from subset2 in g2.DefaultIfEmpty()
-                 orderby subset2.Name
-                 select new { c.Division, c.Store, c.State, c.Mall, c.City, ZoneName = (subset2 == null ? "<unassigned>" : subset2.Name) }
-                );
+            var query2 = (from c in query1
+                          join d in db.NetworkZones 
+                             on c.ZoneID equals d.ID into g2
+                          from subset2 in g2.DefaultIfEmpty()
+                          orderby subset2.Name
+                          select new { c.Division, c.Store, c.State, c.Mall, c.City,
+                              ZoneName = (subset2 == null ? "<unassigned>" : subset2.Name) });
 
-            foreach (var item in query2.ToList())
+            var query3 = (from e in query2
+                          join f in db.MinihubStores
+                            on new { e.Division, e.Store } equals new { f.Division, f.Store } into oj
+                          from f in oj.DefaultIfEmpty()
+                          select new { e.Division, e.Store, e.State, e.Mall, e.City, e.ZoneName,
+                                       MinihubStore = (f == null ? false : true) });
+
+            foreach (var item in query3.ToList())
             {
                 StoreZoneModel m = new StoreZoneModel();
                 m.Division = item.Division;
@@ -386,7 +391,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 m.Mall = item.Mall;
                 m.City = item.City;
                 m.ZoneName = item.ZoneName;
-                Boolean ecommwarehouse = ((from a in db.EcommWarehouses where ((a.Division == m.Division) && (a.Store == m.Store)) select a).Count() > 0);
+                m.IsMinihubStore = item.MinihubStore;
+
+                Boolean ecommwarehouse = ((from a in db.EcommWarehouses
+                                           where ((a.Division == m.Division) && (a.Store == m.Store))
+                                           select a).Count() > 0);
                 if ((m.Store == "00900") && (m.Division == "31"))
                 {
                     //alshaya

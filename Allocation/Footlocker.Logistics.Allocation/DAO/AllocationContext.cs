@@ -98,6 +98,7 @@ namespace Footlocker.Logistics.Allocation.DAO
 
         public DbSet<WarehouseAllocationType> WarehouseAllocationTypes { get; set; }
 
+        public DbSet<MinihubStore> MinihubStores { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
