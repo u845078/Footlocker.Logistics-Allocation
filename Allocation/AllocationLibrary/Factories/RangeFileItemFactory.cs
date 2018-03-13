@@ -63,8 +63,8 @@ namespace Footlocker.Logistics.Allocation.Factories
             _newObject.Ranged = (dr["Range"] as int? == 1);
 
             //_newObject.MarkdownRetail = "0";
-            _newObject.Attribute1 = "0";
-            _newObject.Attribute2 = "0";
+            _newObject.Attribute1 = Convert.ToString(dr["Attribute1"]);
+            _newObject.Attribute2 = Convert.ToString(dr["Attribute2"]);
             _newObject.Attribute3 = "0";
             _newObject.Attribute4 = "0";
             _newObject.Attribute5 = "0";

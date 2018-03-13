@@ -9,28 +9,6 @@ namespace Footlocker.Logistics.Allocation.Services
 {
     public class RangeReformat
     {
-        //private const int _productIdent = 0;
-        //private const int _locationType = 1;
-        //private const int _locationID = 2;
-        //private const int _onRange = 3;
-        //private const int _offRange = 4;
-        //private const int _todayUnitCost = 5;
-        //private const int _todayUnitRetail = 6;
-        //private const int _lifeCycle = 7;
-        //private const int _min = 8;
-        //private const int _max = 9;
-        //private const int _initialDemand = 10;
-        //private const int _range = 11;
-        //private const int _launch = 12;
-        //private const int _firstReceivableDt = 13;
-        //private const int _minEndDate = 14;
-        //private const int _attribute_15 = 15;
-        //private const int _attribute_9 = 16;
-        //private const int _learningTransitionCode = 17;
-        //private const int _mld = 18;
-        //private Boolean _InstanceOnOrderPlanning = false;
-        //private const int _markdown = 20;
-
         public RangeReformat()
         { }
 
@@ -57,28 +35,6 @@ namespace Footlocker.Logistics.Allocation.Services
             line = line + ",,,,";
             line = line + "\"" + Convert.ToString(dr["OnRangeDt"]).Trim() + "\",";
 
-
-            //string productIdent = Convert.ToString(dr["ProductIdent"]);
-            //string markdown = "";
-            //if (!productIdent.StartsWith("3440049-") && !productIdent.StartsWith("3306940-") &&
-            //    !productIdent.StartsWith("3331343-") && !productIdent.StartsWith("3294248-"))
-            //{
-            //    markdown = "\"99991231\",";
-            //}
-            //else
-            //{
-            //    markdown = ",";
-            //}
-            //line = line + markdown;
-
-            //if (Convert.IsDBNull(dr["Markdown"]))
-            //{
-            //	line = line + ",";
-            //}
-            //else
-            //{
-            //	line = line + "\"" + Convert.ToString(dr["Markdown"]).Trim() + "\",";
-            //}
             line = line + "\"99991231\",";
 
 			line = line + "\"" + Convert.ToString(dr["OffRangeDt1"]).Trim() + "\",";            
@@ -126,9 +82,13 @@ namespace Footlocker.Logistics.Allocation.Services
             {
                 initDemand = "";
             }
-            
-            line = line + initDemand + "," + "\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",,";
 
+            line = line + initDemand + ",\"";
+
+            line += Convert.ToString(dr["Attribute1"]) + "\",\"";
+            line += Convert.ToString(dr["Attribute2"]) + "\"";
+
+            line += ",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",,";
             if (Convert.IsDBNull(dr["Launch"]))
             {
                 line = line + "\"REGULAR\",";
@@ -147,8 +107,6 @@ namespace Footlocker.Logistics.Allocation.Services
   
             line = line + ",,,,";
 
-            //if (_InstanceOnOrderPlanning)
-            //{
             if (Convert.IsDBNull(dr["Attribute_15"]))
             {
                 line = line + ",";
@@ -161,7 +119,6 @@ namespace Footlocker.Logistics.Allocation.Services
             {
                 MLD = Convert.ToString(dr["MLD"]);
             }
-            //}
 
             line = line + ",,,," + MLD + ",";
 
@@ -174,26 +131,24 @@ namespace Footlocker.Logistics.Allocation.Services
                 line = line + "\"" + Convert.ToString(dr["FirstReceivableDt"]).Trim() + "\",";
             }
 
-            //if (Convert.IsDBNull(dr["LearningTransitionCode"]))
-            //{
-            //    line = line + ",";
-            //}
-            //else
-            //{
-            //    line = line + "\"" + Convert.ToString(dr["LearningTransitionCode"]).Trim() + "\",";
-            //}
+            if (Convert.IsDBNull(dr["LearningTransitionCode"]))
+            {
+                line = line + ",";
+            }
+            else
+            {
+                line = line + "\"" + Convert.ToString(dr["LearningTransitionCode"]).Trim() + "\",";
+            }
 
-            //if (Convert.IsDBNull(dr["MinEndDate"]))
-            //{
-            //    line = line + ",";
-            //}
-            //else
-            //{
-            //    line = line + "\"" + Convert.ToString(dr["MinEndDate"]).Trim() + "\",";
-            //}
+            if (Convert.IsDBNull(dr["MinEndDate"]))
+            {
+                line = line + ",";
+            }
+            else
+            {
+                line = line + "\"" + Convert.ToString(dr["MinEndDate"]).Trim() + "\",";
+            }
 
-            
-            
             return line;
         }
 
