@@ -15,5 +15,9 @@ namespace Footlocker.Logistics.Allocation.Models
         [Key]
         [Column(Order = 2)]
         public string Store { get; set; }
+
+        public int MinihubID { get; set; }
+
+        public string MinihubCode { get; set; }
     }
 }
