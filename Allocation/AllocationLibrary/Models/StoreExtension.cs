@@ -17,6 +17,9 @@ namespace Footlocker.Logistics.Allocation.Models
         public int? PriorityTypeID { get; set; }
         public int? StrategyTypeID { get; set; }
 
+        [Display(Name = "Use Minihub Strategy")]
+        public bool MinihubStrategyInd { get; set; }
+
         public Boolean ExcludeStore { get; set; }
         public DateTime? FirstReceipt { get; set; }
 

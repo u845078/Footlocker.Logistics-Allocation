@@ -208,7 +208,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         {
                             sl.StoreExtension.ExcludeStore = (model.SelectedExcludeStore == 1); 
                         }
-
+                        sl.StoreExtension.MinihubStrategyInd = model.SelectedMinihubStrategyInd;
                     });
 
                 db.SaveChanges();

@@ -15,6 +15,8 @@ namespace Footlocker.Logistics.Allocation.Models
         public int SelectedPriorityTypeID { get; set; }
         public int SelectedStrategyTypeID { get; set; }
 
+        public bool SelectedMinihubStrategyInd { get; set; }
+
         public int SelectedExcludeStore { get; set; }
         public DateTime? FirstReceipt { get; set; }
 
