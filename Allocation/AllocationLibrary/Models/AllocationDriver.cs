@@ -24,5 +24,9 @@ namespace Footlocker.Logistics.Allocation.Models
         public string CreatedBy { get; set; }
         public DateTime CreateDate { get; set; }
         public Boolean CheckNormals { get; set; }
+
+        [Column("MinihubInd")]
+        [Display(Name ="Stock In Minihub?")]
+        public Boolean StockedInMinihub { get; set; }
     }
 }

@@ -28,6 +28,7 @@
             columns.Bound(o => o.Mall);
             columns.Bound(o => o.City);
             columns.Bound(o => o.State);
+            columns.Bound(o => o.IsMinihubStore);
             columns.Bound(o => o.ZoneName);
             columns.Template(@<text>
                     <a class='t-button' href="@Url.Content("~/Route/EditStoreLeadTime?div=" + @item.Division + "&store=" + @item.Store)">Edit</a>

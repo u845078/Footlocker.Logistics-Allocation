@@ -96,6 +96,7 @@
                 columns.Bound(o => o.StoreExtension.ConceptType.Name).ClientTemplate("<#= StoreExtension ? (StoreExtension.ConceptType ? StoreExtension.ConceptType.Name : '') : '' #>").Title("Concept");
                 columns.Bound(o => o.StoreExtension.StrategyType.Name).ClientTemplate("<#= StoreExtension ? (StoreExtension.StrategyType ? StoreExtension.StrategyType.Name : '') : '' #>").Title("Store Strategy");
                 columns.Bound(o => o.StoreExtension.PriorityType.Name).ClientTemplate("<#= StoreExtension ? (StoreExtension.PriorityType ? StoreExtension.PriorityType.Name : '') : '' #>").Title("XDock Priority");
+                columns.Bound(o => o.StoreExtension.MinihubStrategyInd).ClientTemplate("<input type='checkbox' <#= StoreExtension.MinihubStrategyInd ? 'checked' : '' #> disabled />");
             })
             .DataBinding(dataBinding =>
             {
@@ -124,6 +125,9 @@
                 <div class="form-input form-input-label">
                     @Html.LabelFor(m => m.SelectedStrategyTypeID, "Store Strategy: ")
                 </div>
+                <div class="form-input form-input-label">
+                    @Html.LabelFor(m => m.SelectedMinihubStrategyInd, "Use Minihub Strategy: ")
+                </div>
             </div>
     
             @*Input Controls - Left*@
@@ -133,6 +137,9 @@
                 </div>
                 <div class="form-input">
                     @Html.DropDownListFor(m => m.SelectedStrategyTypeID, new SelectList(Model.StrategyTypes, "ID", "Name"), new { @class = "batch-dropdown", style = "width: 130px;" })
+                </div>
+                <div class="form-input">
+                    @Html.CheckBoxFor(m => m.SelectedMinihubStrategyInd)
                 </div>
             </div>
         </div>

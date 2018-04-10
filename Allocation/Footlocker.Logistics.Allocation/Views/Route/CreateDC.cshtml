@@ -1,50 +1,76 @@
-﻿@model Footlocker.Logistics.Allocation.Models.DistributionCenter
+﻿@model Footlocker.Logistics.Allocation.Models.DistributionCenterModel
 
 @{
     ViewBag.Title = "CreateDC";
 }
 
-<h2>Create DC</h2>
+<h2>Create Distribution Center</h2>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
 
-    <fieldset>
-        <legend>Distribution Center</legend>
+<fieldset>
+    <legend>Distribution Center</legend>
 
-        <div class="editor-label">
-            @Html.LabelFor(model => model.Name)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Name)
-            @Html.ValidationMessageFor(model => model.Name)
-        </div>
+    <div class="editor-label">
+        @Html.LabelFor(model => model.DC.Name)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(model => model.DC.Name)
+        @Html.ValidationMessageFor(model => model.DC.Name)
+    </div>
 
-        <div class="editor-label">
-            @Html.LabelFor(model => model.MFCode)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.MFCode)
-            @Html.ValidationMessageFor(model => model.MFCode)
-        </div>
+    <div class="editor-label">
+        @Html.LabelFor(model => model.DC.MFCode)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(model => model.DC.MFCode)
+        @Html.ValidationMessageFor(model => model.DC.MFCode)
+    </div>
 
-        <div class="editor-label">
-            @Html.LabelFor(model => model.Type)
-        </div>
-        <div class="editor-field">
-            @Html.DropDownListFor(model => model.Type, new List<SelectListItem> { new SelectListItem { Text = "BOTH", Value = "BOTH" }, new SelectListItem { Text = "BIN", Value = "BIN" }, new SelectListItem { Text = "CROSSDOCK", Value = "CROSSDOCK" } })
-        </div>
+    <div class="editor-label">
+        @Html.LabelFor(model => model.DC.Type)
+    </div>
+    <div class="editor-field">
+        @Html.DropDownListFor(model => model.DC.Type, new List<SelectListItem> { new SelectListItem { Text = "BOTH", Value = "BOTH" }, new SelectListItem { Text = "BIN", Value = "BIN" }, new SelectListItem { Text = "CROSSDOCK", Value = "CROSSDOCK" } })
+    </div>
 
-        @Html.HiddenFor(model => model.InstanceID)
+    <div class="editor-label">
+        @Html.LabelFor(model => model.DC.WarehouseAllocationType)
+    </div>
+    <div class="editor-field">
+        @Html.DropDownListFor(model => model.DC.WarehouseAllocationTypeCode, new SelectList(Model.WarehouseAllocationTypes, "Code", "Description"))
+        @Html.ValidationMessageFor(model => model.DC.WarehouseAllocationType)
+    </div>
 
-        <p>
-            <input type="submit" value="Create" class="t-button"/>
-        </p>
-    </fieldset>
+    <div class="editor-label">
+        @Html.LabelFor(model => model.DC.IsMinihub)
+    </div>
+    <div class="editor-field">
+        @Html.CheckBoxFor(model => model.DC.IsMinihub)
+    </div>
+
+    <br />
+    <p>This Distribution Center can be used with the following Instances:</p>
+    @for (var i = 0; i < Model.SelectedInstances.Count(); i++)
+    {
+        @Html.CheckBoxFor(it => it.SelectedInstances[i].Checked)
+        @Html.HiddenFor(it => it.SelectedInstances[i].ID)
+        @Html.DisplayFor(it => it.SelectedInstances[i].Desc)
+        <br />
+     }    
+
+    @Html.HiddenFor(model => model.DC.InstanceID)
+
+    <p>
+        <input type="submit" value="Create" class="t-button" />
+    </p>
+</fieldset>
 }
 
 <div>
-    @Html.ActionLink("Back to List", "DCIndex", new { instanceID = Model.InstanceID }, new { @class = "t-button" })
+    @Html.ActionLink("Back to List", "DCIndex", new { instanceID = Model.DC.InstanceID }, new { @class = "t-button" })
 </div>
 
 @section Scripts {

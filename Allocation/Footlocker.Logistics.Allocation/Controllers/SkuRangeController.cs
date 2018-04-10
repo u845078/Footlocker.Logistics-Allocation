@@ -592,7 +592,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             try
             {
-                RuleSet r = (from a in db.RuleSets where ((a.PlanID == planID) && (a.Type == "SizeAlc")) select a).First();
+                RuleSet r = (from a in db.RuleSets
+                             where a.PlanID == planID && 
+                                   a.Type == "SizeAlc"
+                             select a).First();
                 //check spreadsheet upload
                 stores = (new RuleDAO()).GetStoresInRuleSet(r.RuleSetID);
                 if (stores.Count() == 0)
@@ -603,7 +606,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             catch
             {
                 //invalid rules, so we pull all the stores in the plan
-                stores = (from a in db.StoreLookups join b in db.RangePlanDetails on new {a.Division, a.Store} equals new {b.Division, b.Store} where b.ID == planID select a).ToList();
+                stores = (from a in db.StoreLookups
+                          join b in db.RangePlanDetails 
+                          on new {a.Division, a.Store} equals new {b.Division, b.Store}
+                          where b.ID == planID
+                          select a).ToList();
             }
             List<SizeAllocation> allocs = (List<SizeAllocation>)Session["pqAllocs"];
             //find stores in selected delivery groups
@@ -621,22 +628,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             //reduce allocs to only selected stores.
             allocs = (from a in allocs
-                      join b in selectedStores on new { a.Division, a.Store } equals new { b.Division, b.Store }
+                      join b in selectedStores 
+                      on new { a.Division, a.Store } equals new { b.Division, b.Store }
                       select a).ToList();
 
-            stores = (from a in stores join b in allocs on new {a.Division, a.Store} equals new {b.Division, b.Store} select a).Distinct().ToList();
+            stores = (from a in stores
+                      join b in allocs 
+                      on new {a.Division, a.Store} equals new {b.Division, b.Store}
+                      select a).Distinct().ToList();
             int processedCount = 0;
             
             List<SizeAllocationTotal> totals = (List<SizeAllocationTotal>)Session["totals"];
             foreach (SizeAllocationTotal t in list)
             {
                 planID = t.PlanID;
-                int count = (from a in totals where 
-                                ((a.Size == t.Size)&&
-                                    ((a.Min != t.Min)
-                                    )
-                                ) 
-                select a).Count();
+                int count = (from a in totals
+                             where a.Size == t.Size &&
+                                   a.Min != t.Min
+                             select a).Count();
 
                 if (count > 0)
                 {
@@ -646,10 +655,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 count = (from a in totals
-                         where
-                             ((a.Size == t.Size) &&
-                             (a.Max != t.Max) 
-                             )
+                         where a.Size == t.Size &&
+                               a.Max != t.Max 
                          select a).Count();
 
                 if (count > 0)
@@ -660,10 +667,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 count = (from a in totals
-                         where
-                             ((a.Size == t.Size) &&
-                             (a.InitialDemand != t.InitialDemand)
-                             )
+                         where a.Size == t.Size &&
+                               a.InitialDemand != t.InitialDemand
                          select a).Count();
 
                 if (count > 0)
@@ -674,10 +679,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 count = (from a in totals
-                         where
-                             ((a.Size == t.Size) &&
-                             (a.Range != t.Range)
-                             )
+                         where a.Size == t.Size &&
+                             a.Range != t.Range
                          select a).Count();
 
                 if (count > 0)
@@ -688,10 +691,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 count = (from a in totals
-                         where
-                             ((a.Size == t.Size) &&
-                             (a.MinEndDate != t.MinEndDate)
-                             )
+                         where a.Size == t.Size &&
+                              a.MinEndDate != t.MinEndDate
                          select a).Count();
 
                 if (count > 0)
@@ -700,10 +701,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     processedCount++;
                     dao.SaveMinEndDate((SizeAllocation)t, stores);
                 }
-
             }
 
-            if ((list[0].EndDate != null)||(list[0].RangeType != "N/A"))
+            if ((list[0].EndDate != null) || (list[0].RangeType != "N/A"))
             {
                 processedCount++;
                 return SaveTotalDates(list);

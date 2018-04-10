@@ -15,5 +15,6 @@ namespace Footlocker.Logistics.Allocation.Models
         public string ZoneName { get; set; }
         public int ZoneID { get; set; }
 
+        public bool IsMinihubStore { get; set; }
     }
 }

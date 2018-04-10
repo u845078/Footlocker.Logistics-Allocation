@@ -174,51 +174,127 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult DCIndex(string instanceID)
         {
             DCList model = new DCList();
-            model.AvailableInstances = (from a in db.Instances select a).ToList();
+            model.AvailableInstances = (from a in db.Instances
+                                        select a).ToList();
             
             model.InstanceID = Convert.ToInt32(instanceID);
             if (model.InstanceID == 0)
             {
                 model.InstanceID = 1;
             }
-            model.DCs = (from a in db.DistributionCenters join b in db.InstanceDistributionCenters on a.ID equals b.DCID where b.InstanceID == model.InstanceID select a).ToList();
+            model.DCs = (from a in db.DistributionCenters
+                         join b in db.InstanceDistributionCenters 
+                           on a.ID equals b.DCID
+                         where b.InstanceID == model.InstanceID
+                         select a).ToList();
+
             return View(model);
         }
 
         public ActionResult EditDC(int id)
         {
-            DistributionCenter model = (from a in db.DistributionCenters where a.ID == id select a).First();
-            return View(model);
+            DistributionCenterModel model = new DistributionCenterModel();
+
+            model.DC = (from a in db.DistributionCenters
+                        where a.ID == id
+                        select a).First();
+
+            model.WarehouseAllocationTypes = (from w in db.WarehouseAllocationTypes
+                                              select w).ToList();
+
+            model.AvailableInstances = (from i in db.Instances
+                                        select i).ToList();
+
+            model.SelectedInstances = new List<CheckBoxModel>();
+            bool instChecked;
+            foreach (var inst in model.AvailableInstances)
+            {
+                instChecked = db.InstanceDistributionCenters.Any(i => i.DCID == id && i.InstanceID == inst.ID);
+                model.SelectedInstances.Add(new CheckBoxModel { ID = inst.ID, Desc = inst.Name, Checked = instChecked });
+            }
+            return View(model);          
         }
 
         [HttpPost]
-        public ActionResult EditDC(DistributionCenter model)
+        public ActionResult EditDC(DistributionCenterModel model)
         {
-            model.CreateDate = DateTime.Now;
-            model.CreatedBy = User.Identity.Name;
-            db.Entry(model).State = System.Data.EntityState.Modified;
+            model.DC.LastModifiedDate = DateTime.Now;
+            model.DC.LastModifiedUser = User.Identity.Name;
+            db.Entry(model.DC).State = System.Data.EntityState.Modified;
+
+            foreach (var selInst in model.SelectedInstances)
+            {
+                bool alreadyThere;
+                alreadyThere = db.InstanceDistributionCenters.Any(i => i.DCID == model.DC.ID && 
+                                                                       i.InstanceID == selInst.ID);
+                if (selInst.Checked && !alreadyThere)
+                {
+                    db.InstanceDistributionCenters.Add(new InstanceDistributionCenter
+                    {
+                        DCID = model.DC.ID,
+                        InstanceID = selInst.ID
+                    });
+                }
+
+                if (!selInst.Checked && alreadyThere)
+                {
+                    db.InstanceDistributionCenters.Remove((from id in db.InstanceDistributionCenters
+                                                          where id.DCID == model.DC.ID && 
+                                                                id.InstanceID == selInst.ID
+                                                          select id).FirstOrDefault());
+                }
+            }
 
             db.SaveChanges();
-            return RedirectToAction("DCIndex", new { instanceID = model.InstanceID });
+            return RedirectToAction("DCIndex", new { instanceID = model.DC.InstanceID });
         }
 
 
         public ActionResult CreateDC(int instanceID)
         {
-            DistributionCenter model = new DistributionCenter();
-            model.InstanceID = instanceID;
+            DistributionCenterModel model = new DistributionCenterModel();
+            model.DC = new DistributionCenter();
+            model.DC.InstanceID = instanceID;
+            model.WarehouseAllocationTypes = (from w in db.WarehouseAllocationTypes
+                                              select w).ToList();
+
+            model.AvailableInstances = (from i in db.Instances
+                                        select i).ToList();
+
+            model.SelectedInstances = new List<CheckBoxModel>();
+            foreach (var inst in model.AvailableInstances)
+            {
+                model.SelectedInstances.Add(new CheckBoxModel { ID = inst.ID, Desc = inst.Name, Checked = false });
+            }
             return View(model);
         }
 
         [HttpPost]
-        public ActionResult CreateDC(DistributionCenter model)
+        public ActionResult CreateDC(DistributionCenterModel model)
         {
-            model.CreateDate = DateTime.Now;
-            model.CreatedBy = User.Identity.Name;
+            model.DC.CreateDate = DateTime.Now;
+            model.DC.CreatedBy = User.Identity.Name;
+            model.DC.LastModifiedDate = DateTime.Now;
+            model.DC.LastModifiedUser = User.Identity.Name;
 
-            db.DistributionCenters.Add(model);
+            db.DistributionCenters.Add(model.DC);
+
             db.SaveChanges();
-            return RedirectToAction("DCIndex", new { instanceID = model.InstanceID });
+
+            foreach (var selInst in model.SelectedInstances)
+            {
+                if (selInst.Checked)
+                {
+                    db.InstanceDistributionCenters.Add(new InstanceDistributionCenter
+                    {
+                        DCID = model.DC.ID,
+                        InstanceID = selInst.ID
+                    });
+                }
+            }
+
+            db.SaveChanges();
+            return RedirectToAction("DCIndex", new { instanceID = model.DC.InstanceID });
         }
 
 
@@ -284,24 +360,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //            orderby subStore.ZoneID
             //            select new { a.Division, a.Store, a.Mall, a.State, ZoneName = (subStore.Store == null ? "<unassigned>" : subStore.Name) };
 
-            var query1 =                      
-                    (
-                         from a in db.vValidStores
-                         join b in db.NetworkZoneStores on new { a.Division, a.Store } equals new { b.Division, b.Store } into gj
-                         from subset in gj.DefaultIfEmpty()
-                         where a.Division == div
-                         select new { a.Division, a.Store, a.State, a.Mall, a.City, subset.ZoneID }
-                    );
+            var query1 = (from a in db.vValidStores
+                          join b in db.NetworkZoneStores 
+                            on new { a.Division, a.Store } equals new { b.Division, b.Store } into gj
+                          from subset in gj.DefaultIfEmpty()
+                          where a.Division == div
+                          select new { a.Division, a.Store, a.State, a.Mall, a.City, subset.ZoneID });
 
-            var query2 =
-                (from c in query1
-                 join d in db.NetworkZones on c.ZoneID equals d.ID into g2
-                 from subset2 in g2.DefaultIfEmpty()
-                 orderby subset2.Name
-                 select new { c.Division, c.Store, c.State, c.Mall, c.City, ZoneName = (subset2 == null ? "<unassigned>" : subset2.Name) }
-                );
+            var query2 = (from c in query1
+                          join d in db.NetworkZones 
+                             on c.ZoneID equals d.ID into g2
+                          from subset2 in g2.DefaultIfEmpty()
+                          orderby subset2.Name
+                          select new { c.Division, c.Store, c.State, c.Mall, c.City,
+                              ZoneName = (subset2 == null ? "<unassigned>" : subset2.Name) });
 
-            foreach (var item in query2.ToList())
+            var query3 = (from e in query2
+                          join f in db.MinihubStores
+                            on new { e.Division, e.Store } equals new { f.Division, f.Store } into oj
+                          from f in oj.DefaultIfEmpty()
+                          select new { e.Division, e.Store, e.State, e.Mall, e.City, e.ZoneName,
+                                       MinihubStore = (f == null ? false : true) });
+
+            foreach (var item in query3.ToList())
             {
                 StoreZoneModel m = new StoreZoneModel();
                 m.Division = item.Division;
@@ -310,7 +391,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 m.Mall = item.Mall;
                 m.City = item.City;
                 m.ZoneName = item.ZoneName;
-                Boolean ecommwarehouse = ((from a in db.EcommWarehouses where ((a.Division == m.Division) && (a.Store == m.Store)) select a).Count() > 0);
+                m.IsMinihubStore = item.MinihubStore;
+
+                Boolean ecommwarehouse = ((from a in db.EcommWarehouses
+                                           where ((a.Division == m.Division) && (a.Store == m.Store))
+                                           select a).Count() > 0);
                 if ((m.Store == "00900") && (m.Division == "31"))
                 {
                     //alshaya
@@ -402,7 +487,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult EditStoreLeadTime(string div, string store)
         {
-            var query = (from a in db.StoreLeadTimes where ((a.Division == div) && (a.Store == store)) select a);
+            var query = (from a in db.StoreLeadTimes
+                         where ((a.Division == div) && (a.Store == store))
+                         select a);
             EditStoreLeadTimeModel model = new EditStoreLeadTimeModel();
 
             List<StoreLeadTime> list = new List<StoreLeadTime>();
@@ -412,7 +499,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (query.Count() == 0)
             {
                 list = new List<StoreLeadTime>();
-                foreach (DistributionCenter dc in (from a in db.DistributionCenters join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a))
+                foreach (DistributionCenter dc in (from a in db.DistributionCenters
+                                                   join b in db.InstanceDistributionCenters
+                                                   on a.ID equals b.DCID
+                                                   join c in db.InstanceDivisions                                                                                                       
+                                                   on b.InstanceID equals c.InstanceID
+                                                   where c.Division == div
+                                                   select a).ToList())
                 {
                     lt = new StoreLeadTime();
                     lt.DCID = dc.ID;
@@ -428,9 +521,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 list = query.ToList();
                 rank = list.Count() + 1;
-                foreach (DistributionCenter dc in (from a in db.DistributionCenters join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a))
+                var datar = (from a in db.DistributionCenters
+                             join b in db.InstanceDistributionCenters
+                             on a.InstanceID equals b.InstanceID
+                             join c in db.InstanceDivisions
+                             on b.InstanceID equals c.InstanceID
+                             where c.Division == div
+                             select a).ToList();
+
+                foreach (DistributionCenter dc in (from a in db.DistributionCenters
+                                                   join b in db.InstanceDistributionCenters
+                                                   on a.ID equals b.DCID
+                                                   join c in db.InstanceDivisions
+                                                   on b.InstanceID equals c.InstanceID
+                                                   where c.Division == div
+                                                   select a).ToList())
                 {
-                    if ((from a in list where a.DCID == dc.ID select a).Count() == 0)
+                    if ((from a in list
+                         where a.DCID == dc.ID
+                         select a).Count() == 0)
                     {
                         lt = new StoreLeadTime();
                         lt.DCID = dc.ID;
@@ -443,17 +552,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         rank++;
                     }
                 }
-
             }
 
             model.LeadTimes = list;
 
             foreach (StoreLeadTime slt in list)
             {
-                slt.Warehouse = (from a in db.DistributionCenters where a.ID == slt.DCID select a.Name).First();
+                slt.Warehouse = (from a in db.DistributionCenters
+                                 where a.ID == slt.DCID
+                                 select a.Name).First();
             }
             //model.Warehouses = (from a in db.DistributionCenters select a).ToList();
-            model.Store = (from a in db.StoreLookups where ((a.Store == store) && (a.Division == div)) select a).First(); ;
+            model.Store = (from a in db.StoreLookups
+                           where ((a.Store == store) && (a.Division == div))
+                           select a).First();
 
             return View(model);
         }
