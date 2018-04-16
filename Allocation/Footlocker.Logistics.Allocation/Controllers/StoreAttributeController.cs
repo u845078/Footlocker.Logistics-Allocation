@@ -57,68 +57,44 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             FamilyOfBusinessDAO dao = new FamilyOfBusinessDAO();
             model.newStoreAttribute.Store = model.newStoreAttribute.Store.PadLeft(5, '0');
-            model.newStoreAttribute.LikeStore = model.newStoreAttribute.LikeStore.PadLeft(5, '0');
-
-            if (model.newStoreAttribute.Store == model.newStoreAttribute.LikeStore)
-            {
-                ViewData["message"] = "Like store number must be a different store.";
-                ResetStoreAttributeModel(model, dao);
-                return View(model);
-            }
-            if (model.newStoreAttribute.Level == "FOB")
-            {
-                System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^\d{3}$");
-                if (!(regex.IsMatch(model.newStoreAttribute.Value)))
-                {
-                    ViewData["message"] = "Invalid format, expected ###";
-                    ResetStoreAttributeModel(model, dao);
-                    return View(model);
-                }
-            }
-            else if ((model.newStoreAttribute.Level == "Dept"))
-            {
-                System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^\d{2}$");
-                if (!(regex.IsMatch(model.newStoreAttribute.Value)))
-                {
-                    ViewData["message"] = "Invalid format, expected ##";
-                    ResetStoreAttributeModel(model, dao);
-                    return View(model);
-
-                }
-            }
             model.FOBs = dao.GetFOBs(model.newStoreAttribute.Division);
-
-            model.newStoreAttribute.CreateDate = DateTime.Now;
-            model.newStoreAttribute.CreatedBy = User.Identity.Name;
-
-            string message = VerifyStoreAttribute(model.newStoreAttribute);
+            string message = ValidateStoreAttribute(model.newStoreAttribute);
             if (message != "")
             {
-                return RedirectToAction("Edit", new { div = model.newStoreAttribute.Division, store = model.newStoreAttribute.Store, message = message });
+                ViewData["message"] = message;
+                model.Divisions = this.Divisions();
+                model.FOBs = dao.GetFOBs(model.newStoreAttribute.Division);
+                model.StoreAttributes = (from a in db.StoreAttributes where ((a.Division == model.newStoreAttribute.Division) && (a.Store == model.newStoreAttribute.Store)) select a).ToList();
+                return View(model);
+                //return RedirectToAction("Edit", new { div = model.newStoreAttribute.Division, store = model.newStoreAttribute.Store, message = message });
             }
-
-            db.StoreAttributes.Add(model.newStoreAttribute);
-            db.SaveChanges();
-            string div = model.newStoreAttribute.Division;
-            string store = model.newStoreAttribute.Store;
-            model.StoreAttributes = (from a in db.StoreAttributes where ((a.Division == div) && (a.Store == store)) select a).ToList();
-
-            foreach (StoreAttribute sa in model.StoreAttributes)
+            else
             {
-                if (sa.Level == "FOB")
+                model.newStoreAttribute.CreateDate = DateTime.Now;
+                model.newStoreAttribute.CreatedBy = User.Identity.Name;
+                db.StoreAttributes.Add(model.newStoreAttribute);
+                db.SaveChanges();
+                string div = model.newStoreAttribute.Division;
+                string store = model.newStoreAttribute.Store;
+                model.StoreAttributes = (from a in db.StoreAttributes where ((a.Division == div) && (a.Store == store)) select a).ToList();
+
+                foreach (StoreAttribute sa in model.StoreAttributes)
                 {
-                    sa.ValueDescription = (from a in model.FOBs where a.Code == sa.Value select a.Description).First();
+                    if (sa.Level == "FOB")
+                    {
+                        sa.ValueDescription = (from a in model.FOBs where a.Code == sa.Value select a.Description).First();
+                    }
                 }
+
+                model.newStoreAttribute = new StoreAttribute();
+                model.newStoreAttribute.Division = div;
+                model.newStoreAttribute.Store = store;
+                model.newStoreAttribute.StartDate = DateTime.Now;
+                model.newStoreAttribute.Weight = 100;
+                model.Divisions = this.Divisions();
+
+                return View(model);
             }
-
-            model.newStoreAttribute = new StoreAttribute();
-            model.newStoreAttribute.Division = div;
-            model.newStoreAttribute.Store = store;
-            model.newStoreAttribute.StartDate = DateTime.Now;
-            model.newStoreAttribute.Weight = 100;
-            model.Divisions = this.Divisions();
-
-            return View(model);
         }
 
         private void ResetStoreAttributeModel(EditStoreAttributeModel model, FamilyOfBusinessDAO dao)
@@ -146,43 +122,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             try
             {
-                if (model.StoreAttribute.Level == "FOB")
-                {
-                    System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^\d{3}$");
-                    if (!(regex.IsMatch(model.StoreAttribute.Value)))
-                    {
-                        ViewData["message"] = "Invalid format, expected ###";
-                        model.Divisions = this.Divisions();
-                        return View(model);
-
-                    }
-                }
-                else if ((model.StoreAttribute.Level == "Dept"))
-                {
-                    System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^\d{2}$");
-                    if (!(regex.IsMatch(model.StoreAttribute.Value)))
-                    {
-                        ViewData["message"] = "Invalid format, expected ##";
-                        model.Divisions = this.Divisions();
-                        return View(model);
-
-                    }
-                }
-                model.StoreAttribute.Store = model.StoreAttribute.Store.PadLeft(5, '0');
-                model.StoreAttribute.LikeStore = model.StoreAttribute.LikeStore.PadLeft(5, '0');
-
-                model.StoreAttribute.CreateDate = DateTime.Now;
-                model.StoreAttribute.CreatedBy = User.Identity.Name;
-
-                string message = VerifyStoreAttribute(model.StoreAttribute);
+                FamilyOfBusinessDAO fobDAO = new FamilyOfBusinessDAO();
+                string message = ValidateStoreAttribute(model.StoreAttribute, true);
                 if (message != "")
                 {
-                    return RedirectToAction("Edit", new { div = model.StoreAttribute.Division, store = model.StoreAttribute.Store, message = message });
+                    ViewData["message"] = message;
+                    model.Divisions = this.Divisions();
+                    model.FOBs = fobDAO.GetFOBs("");
+                    return View(model);
+                    //return RedirectToAction("Edit", new { div = model.StoreAttribute.Division, store = model.StoreAttribute.Store, message = message });
                 }
-                model.StoreAttribute.LikeDivision = model.StoreAttribute.Division;
-                db.StoreAttributes.Add(model.StoreAttribute);
-                db.SaveChanges();
-                return RedirectToAction("Edit", new { div = model.StoreAttribute.Division, store = model.StoreAttribute.Store });
+                else
+                {
+                    model.StoreAttribute.Store = model.StoreAttribute.Store.PadLeft(5, '0');
+                    model.StoreAttribute.LikeStore = model.StoreAttribute.LikeStore.PadLeft(5, '0');
+                    model.StoreAttribute.LikeDivision = model.StoreAttribute.Division;
+                    model.StoreAttribute.CreateDate = DateTime.Now;
+                    model.StoreAttribute.CreatedBy = User.Identity.Name;
+                    db.StoreAttributes.Add(model.StoreAttribute);
+                    db.SaveChanges();
+                    return RedirectToAction("Edit", new { div = model.StoreAttribute.Division, store = model.StoreAttribute.Store });
+                }
             }
             catch (Exception ex)
             {
@@ -210,13 +170,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             EditStoreAttributeModel model = new EditStoreAttributeModel();
+            FamilyOfBusinessDAO dao = new FamilyOfBusinessDAO();
+            model.FOBs = dao.GetFOBs(div);
             model.StoreAttributes = (from a in db.StoreAttributes where ((a.Division == div) && (a.Store == store)) select a).ToList();
+            foreach (StoreAttribute s in model.StoreAttributes)
+            {
+                if (s.Level == "FOB")
+                {
+                    s.ValueDescription = (from a in model.FOBs where a.Code == s.Value select a.Description).First();
+                }
+            }
             model.newStoreAttribute = new StoreAttribute();
             model.newStoreAttribute.Division = div;
             model.newStoreAttribute.Store = store;
             model.newStoreAttribute.LikeDivision = div;
-            FamilyOfBusinessDAO dao = new FamilyOfBusinessDAO();
-            model.FOBs = dao.GetFOBs(div);
+            model.newStoreAttribute.Weight = 100;
+            model.newStoreAttribute.StartDate = DateTime.Now;
 
             return View("Edit", model);
         }
@@ -264,8 +233,240 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             return "";
-                
         }
 
+        private string ValidateStoreAttribute(StoreAttribute sa, bool onCreation = false)
+        {
+            string errorMessage = "";
+            if (onCreation)
+            {
+                // verify the store was provided
+                if (string.IsNullOrEmpty(sa.Store))
+                {
+                    errorMessage = SetErrorMessage(errorMessage, "The \"Store\" field must be provided.");
+                }
+                else
+                {
+                    // verify the division and store combination is valid
+                    if (!IsValidStore(sa.Division, sa.Store))
+                    {
+                        string invalidErrorMessage = string.Format(
+                            "The division and store combination {0}-{1} is not an existing or valid store."
+                            , sa.Division
+                            , sa.Store);
+
+                        errorMessage = SetErrorMessage(errorMessage, invalidErrorMessage);
+                    }
+                }
+                
+                // verify that there are no existing store attributes with the passed div/store combo
+                bool storeAttributeExists = (  from a in db.StoreAttributes
+                                              where a.Store.Equals(sa.Store) && a.Division.Equals(sa.Division)
+                                             select a).Any();
+                if (storeAttributeExists)
+                {
+                    string storeExistsErrorMessage = string.Format(
+                        "There is already an existing store attribute for division {0}, store {1}."
+                        , sa.Division
+                        , sa.Store);
+
+                    errorMessage = SetErrorMessage(errorMessage, storeExistsErrorMessage);
+                }
+            }
+
+            // ensure the like store was populated
+            if (string.IsNullOrEmpty(sa.LikeStore))
+            {
+                errorMessage = SetErrorMessage(errorMessage, "The \"Like Store\" field must be provided.");
+            }
+            else
+            {
+                // verify the like store/division combination is valid
+                if (!IsValidStore(sa.Division, sa.LikeStore))
+                {
+                    string likeStoreExistsErrorMessage = string.Format(
+                        "The division and like store combination {0}-{1} is not an existing or valid store."
+                        , sa.Division
+                        , sa.LikeStore);
+                    errorMessage = SetErrorMessage(errorMessage, likeStoreExistsErrorMessage);
+                }
+            }
+
+            // ensure the new attributes startdate is less than or equal to the enddate
+            if (sa.StartDate > sa.EndDate)
+            {
+                errorMessage = SetErrorMessage(errorMessage, "The Start Date must be less than or equal to the End Date.");
+            }
+
+            // ensure the new attributes weight is not less than or equal to zero
+            if (sa.Weight <= 0)
+            {
+                errorMessage = SetErrorMessage(errorMessage, "The like store weight cannot be less than or equal to 0.");
+            }
+
+            // ensure the store is not equal to the like store
+            if (!string.IsNullOrEmpty(sa.Store) && sa.Store.Equals(sa.LikeStore))
+            {
+                errorMessage = SetErrorMessage(errorMessage, "The like store number must be a different store.");
+            }
+
+            // ensure the level's value is of the right length and has the correct characters.
+            if (sa.Level.Equals("FOB"))
+            {
+                System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^\d{3}$");
+                if (!(regex.IsMatch(sa.Value)))
+                {
+                    errorMessage = SetErrorMessage(errorMessage, "Invalid format for \"FOB\" level, expected ###.");
+                }
+            }
+            else if (sa.Level.Equals("Dept"))
+            {
+                System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^\d{2}$");
+                if (!(regex.IsMatch(sa.Value)))
+                {
+                    errorMessage = SetErrorMessage(errorMessage, "Invalid format for \"Dept\" level, expected ##.");
+                }
+                else
+                {
+                    if (!this.Departments().Any(d => d.DivCode.Equals(sa.Division) && d.DeptNumber.Equals(sa.Value)))
+                    {
+                        errorMessage = SetErrorMessage(errorMessage, "The provided department does not exist or you do not have permission for this department.");
+                    }
+                }
+            }
+
+            // retrieve existing store attributes that have the same division, store, like store, level
+            List<StoreAttribute> existingStoreAttributes = (from esa in db.StoreAttributes
+                                                            where esa.Division.Equals(sa.Division) &&
+                                                                    esa.Store.Equals(sa.Store) &&
+                                                                    esa.LikeStore.Equals(sa.LikeStore) &&
+                                                                    esa.Level.Equals(sa.Level)
+                                                            select esa).ToList();
+            if (existingStoreAttributes.Count() > 0)
+            {
+                StoreAttribute intersectingAttr = existingStoreAttributes.Where(esa => IntersectsExistingDateRange(esa, sa)).FirstOrDefault();
+                string existingErrorMessage = "";
+                if (sa.Level.Equals("DEPT") || sa.Level.Equals("FOB"))
+                {
+                    if (existingStoreAttributes.Any(esa => esa.Value.Equals(sa.Value)))
+                    {
+                        // retrieve fobs
+                        FamilyOfBusinessDAO dao = new FamilyOfBusinessDAO();
+                        List<FamilyOfBusiness> fobs = dao.GetFOBs(sa.Division);
+                        string valueDescription = (from a in fobs where a.Code == sa.Value select a.Description).First();
+                        if (intersectingAttr != null)
+                        {
+                            existingErrorMessage = string.Format(
+                                "Already have an existing attribute with like store \"{0}\", level \"{1}\", and value \"{2}\" that intersects with the provided date range."
+                                , intersectingAttr.LikeStore
+                                , intersectingAttr.Level
+                                , valueDescription);
+                        }
+                        else
+                        {
+                            existingErrorMessage = string.Format(
+                                "Already have an existing attribute with like store \"{0}\", level \"{1}\", and value \"{2}\"."
+                                , sa.LikeStore
+                                , sa.Level
+                                , valueDescription);
+                        }
+                    }
+                }
+                // Level 'All' will have a NULL value, therefore no need to compare the values of the attributes
+                else if (sa.Level.Equals("All"))
+                {
+                    if (intersectingAttr != null)
+                    {
+                        existingErrorMessage = string.Format(
+                            "Already have an existing attribute with like store \"{0}\", and level \"{1}\" that intersects with the provided date range."
+                            , sa.LikeStore
+                            , sa.Level);
+                    }
+                    else
+                    {
+                        existingErrorMessage = string.Format(
+                            "Already have an existing attribute for like store \"{0}\", and level \"{1}\"."
+                            , sa.LikeStore
+                            , sa.Level);
+                    }
+                }
+
+                if (existingErrorMessage != "")
+                {
+                    errorMessage = SetErrorMessage(errorMessage, existingErrorMessage);
+                }
+            }
+
+            return errorMessage;
+        }
+
+        /// <summary>
+        /// Check to see if the new store attribute that is being created intersects with
+        /// an existing store attribute that is provided.  The comments above each
+        /// if statement is defined as such: 
+        /// a = the existing
+        /// </summary>
+        /// <param name="existingAttr">The existing store attribute</param>
+        /// <param name="newAttr">The new store attribute</param>
+        /// <returns></returns>
+        private bool IntersectsExistingDateRange(StoreAttribute existingAttr, StoreAttribute newAttr)
+        {
+            // b[ a[  b] a] => such that a is existing and b is new
+            if (existingAttr.StartDate >= newAttr.StartDate && existingAttr.EndDate >= newAttr.EndDate && existingAttr.StartDate <= newAttr.EndDate)
+            {
+                return true;
+            }
+
+            // a[ b[  a] b]
+            if (existingAttr.StartDate <= newAttr.StartDate && existingAttr.EndDate <= newAttr.EndDate)
+            {
+                return true;
+            }
+
+            // a[ b[  b] a]
+            if (existingAttr.StartDate <= newAttr.StartDate && existingAttr.EndDate >= newAttr.EndDate)
+            {
+                return true;
+            }
+
+            // b[ a[  a] --->b] (b's enddate is null) OR
+            // a[ b[  a] --->b] (b's enddate is null)
+            if (existingAttr.EndDate >= newAttr.StartDate && newAttr.EndDate is null)
+            {
+                return true;
+            }
+
+            if (existingAttr.EndDate is null && newAttr.EndDate is null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Check to see if the division/store combination will return any results
+        /// within the vValidStores view.  If so return true, else return false
+        /// </summary>
+        /// <param name="division">the division being validated</param>
+        /// <param name="store">the store being validated</param>
+        /// <returns></returns>
+        private bool IsValidStore(string division, string store)
+        {
+            return db.vValidStores.Any(vs => vs.Division == division && vs.Store == store);
+        }
+
+        /// <summary>
+        /// If the existing error message is empty this means no other errors have occured yet. Therefore
+        /// just put the new message.  If it is not empty, then put the existing error message +
+        /// a line break + the new error message
+        /// </summary>
+        /// <param name="existingErrorMessage">existing error message</param>
+        /// <param name="newErrorMessage">new error message</param>
+        /// <returns></returns>
+        private string SetErrorMessage(string existingErrorMessage, string newErrorMessage)
+        {
+            return (existingErrorMessage.Equals(string.Empty)) ? newErrorMessage : existingErrorMessage + @"<br />" + newErrorMessage;
+        }
     }
 }

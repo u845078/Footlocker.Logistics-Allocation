@@ -27,11 +27,13 @@ namespace Footlocker.Logistics.Allocation.Models
         public Int32 Weight { get; set; }
         
         [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]       
+        [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)] 
+        [Display(Name = "Start Date")]
         public DateTime StartDate { get; set; }
 
         [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]       
+        [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]   
+        [Display(Name = "End Date")]
         public DateTime? EndDate { get; set; }
         public string CreatedBy { get; set; }
         public DateTime? CreateDate { get; set; }
