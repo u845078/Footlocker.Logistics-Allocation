@@ -22,7 +22,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Level { get; set; }
         public string Value { get; set; }
 
-        [Range(0,100)]
+        [Range(1,100)]
         [Display(Name="Like Store Weight")]
         public Int32 Weight { get; set; }
         

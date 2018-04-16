@@ -298,12 +298,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 errorMessage = SetErrorMessage(errorMessage, "The Start Date must be less than or equal to the End Date.");
             }
 
-            // ensure the new attributes weight is not less than or equal to zero
-            if (sa.Weight <= 0)
-            {
-                errorMessage = SetErrorMessage(errorMessage, "The like store weight cannot be less than or equal to 0.");
-            }
-
             // ensure the store is not equal to the like store
             if (!string.IsNullOrEmpty(sa.Store) && sa.Store.Equals(sa.LikeStore))
             {
