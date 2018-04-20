@@ -35,7 +35,14 @@ namespace Footlocker.Logistics.Allocation.Services
             line = line + ",,,,";
             line = line + "\"" + Convert.ToString(dr["OnRangeDt"]).Trim() + "\",";
 
-            line = line + "\"99991231\",";
+            if (Convert.IsDBNull(dr["Markdown"]))
+            {
+                line = line + ",";
+            }
+            else
+            {
+                line = line + "\"" + Convert.ToString(dr["Markdown"]).Trim() + "\",";
+            }
 
 			line = line + "\"" + Convert.ToString(dr["OffRangeDt1"]).Trim() + "\",";            
 
