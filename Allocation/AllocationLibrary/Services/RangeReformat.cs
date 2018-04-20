@@ -86,9 +86,19 @@ namespace Footlocker.Logistics.Allocation.Services
             line = line + initDemand + ",\"";
 
             line += Convert.ToString(dr["Attribute1"]) + "\",\"";
-            line += Convert.ToString(dr["Attribute2"]) + "\"";
+            line += Convert.ToString(dr["Attribute2"]) + "\",";
 
-            line += ",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",,";
+            line += "\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",";
+
+            if (!(Convert.IsDBNull(dr["attribute_9"])))
+            {
+                line = line + Convert.ToString(dr["attribute_9"]) + ",";
+            }
+            else
+            {
+                line = line + ",";
+            }
+
             if (Convert.IsDBNull(dr["Launch"]))
             {
                 line = line + "\"REGULAR\",";
