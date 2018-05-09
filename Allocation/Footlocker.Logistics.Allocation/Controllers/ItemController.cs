@@ -87,7 +87,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 string div = model.Sku.Substring(0, 2);
 
-                DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).First();
+                DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).FirstOrDefault();
 
                 //List<RingFence> ringFences = (from a in db.RingFences where ((a.StartDate < today) && ((a.EndDate > today) || (a.EndDate == null))) select a).ToList();
 
@@ -121,7 +121,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             try
             {
-                ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == model.Sku select a).First();
+                ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == model.Sku select a).FirstOrDefault();
                 model.ItemMaster = item;
                 AllocationDriverDAO dao = new AllocationDriverDAO();
                 model.AllocationDriver = (from a in dao.GetAllocationDriverList(item.Div) where a.Department == item.Dept select a).FirstOrDefault();
@@ -187,7 +187,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 model.Store = "";
             }
-            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == model.Division select a.RunDate).First();
+            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == model.Division select a.RunDate).FirstOrDefault();
+            
 
             model.Divisions = this.Divisions();
 
@@ -361,7 +362,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _ItemPacks(string sku, string store)
         {
-            long itemid = (from a in db.ItemMasters where a.MerchantSku == sku select a.ID).First();
+            long itemid = (from a in db.ItemMasters where a.MerchantSku == sku select a.ID).FirstOrDefault();
 
             List<ItemPack> model = (from a in db.ItemPacks where a.ItemID == itemid select a).ToList();
 
@@ -403,7 +404,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             //lazy loading was causing invalid circular references
             db.Configuration.ProxyCreationEnabled = false;
-            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).First();
+            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).FirstOrDefault();
 
             List<RingFence> model = (from a in db.RingFenceDetails
                                      join b in db.RingFences 
@@ -427,7 +428,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                               join b in db.InstanceDivisions 
                               on a.InstanceID equals b.InstanceID
                               where b.Division == div
-                              select a.RunDate).First();
+                              select a.RunDate).FirstOrDefault();
 
             //lazy loading was causing invalid circular references
             db.Configuration.ProxyCreationEnabled = false;
@@ -562,7 +563,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _StoreHolds(string div, string store)
         {
-            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).First();
+            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).FirstOrDefault();
 
             List<Hold> model = (from a in db.Holds where ((a.Division == div) && ((a.Store == store) || (a.Store == null))) select a).ToList();
             model = (from a in model where ((a.StartDate <= today) && ((a.EndDate >= today) || (a.EndDate == null))) select a).ToList();
@@ -575,11 +576,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _ItemHolds(string sku, string store)
         {
             string div = sku.Substring(0, 2);
-            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).First().AddDays(2);
+            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).FirstOrDefault().AddDays(2);
             //List<Hold> holds = (from a in db.Holds where ((a.StartDate <= today) && ((a.EndDate >= today) || (a.EndDate == null))) select a).ToList();
             List<Hold> holds = (from a in db.Holds select a).ToList();
 
-            ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == sku select a).First();
+            ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == sku select a).FirstOrDefault();
             AllocationDriverDAO dao = new AllocationDriverDAO();
 
             holds = (from a in holds
