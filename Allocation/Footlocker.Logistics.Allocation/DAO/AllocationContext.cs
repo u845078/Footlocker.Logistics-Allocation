@@ -172,6 +172,15 @@ namespace Footlocker.Logistics.Allocation.DAO
         public void HistoryRingFenceDetail(RingFenceDetail det, string user, System.Data.EntityState state)
         {
             RingFenceHistory history = new RingFenceHistory();
+            RingFence rf = this.RingFences.Where(r => r.ID.Equals(det.RingFenceID)).FirstOrDefault();
+            if (rf != null)
+            {
+                history.Division = rf.Division;
+                history.Sku = rf.Sku;
+                history.Store = rf.Store;
+                history.StartDate = rf.StartDate;
+                history.EndDate = rf.EndDate;
+            }
             history.RingFenceID = det.RingFenceID;
             history.DCID = det.DCID;
             history.PO = det.PO;
