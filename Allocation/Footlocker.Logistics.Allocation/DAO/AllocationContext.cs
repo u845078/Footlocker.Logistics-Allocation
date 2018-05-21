@@ -121,7 +121,7 @@ namespace Footlocker.Logistics.Allocation.DAO
 
             // NOTE: RuleSet->RuleSelectedStore relationship is 1 to many, defined on specified FK field
             modelBuilder.Entity<RuleSet>().HasMany(rss => rss.Stores).WithRequired().HasForeignKey(rss => rss.RuleSetID);
-            
+
             // NOTE: StoreSeasonalityDetail-> ValidStoreLookup relationship defined on constraint that IS NOT ALL of principal's composite PK (no groupID), so multiplicity must be * to 1 (even though really 1to1)
             modelBuilder.Entity<StoreSeasonalityDetail>().HasRequired(ssd => ssd.ValidStore).WithMany().HasForeignKey(ssd => new { ssd.Division, ssd.Store });
 
@@ -129,7 +129,7 @@ namespace Footlocker.Logistics.Allocation.DAO
             modelBuilder.Entity<InvalidTransaction>().HasRequired(it => it.Location).WithMany().HasForeignKey(it => new { it.LocationDiv, it.LocationStore });
 
 
-            
+
             modelBuilder.Entity<VendorGroupLeadTime>().HasRequired(o => o.Zone).WithMany().HasForeignKey(c => c.ZoneID);
 
             modelBuilder.Entity<VendorGroupLeadTime>().HasRequired(o => o.Group).WithMany().HasForeignKey(c => c.VendorGroupID);
@@ -169,7 +169,7 @@ namespace Footlocker.Logistics.Allocation.DAO
             this.RingFenceHistory.Add(history);
         }
 
-        public void HistoryRingFenceDetail(RingFenceDetail det, string user, System.Data.EntityState state)
+        public void HistoryRingFenceDetail(RingFenceDetail det, string user, System.Data.EntityState state, string division = "")
         {
             RingFenceHistory history = new RingFenceHistory();
             RingFence rf = this.RingFences.Where(r => r.ID.Equals(det.RingFenceID)).FirstOrDefault();
@@ -180,6 +180,10 @@ namespace Footlocker.Logistics.Allocation.DAO
                 history.Store = rf.Store;
                 history.StartDate = rf.StartDate;
                 history.EndDate = rf.EndDate;
+            }
+            if (history.Division == null)
+            {
+                history.Division = division;
             }
             history.RingFenceID = det.RingFenceID;
             history.DCID = det.DCID;
@@ -194,7 +198,7 @@ namespace Footlocker.Logistics.Allocation.DAO
 
         private int GetQtyForRingFenceWithChange(RingFenceDetail det, RingFence rf, System.Data.EntityState state)
         {
-            int qty=0;
+            int qty = 0;
             var details = (from a in this.RingFenceDetails
                            where ((a.RingFenceID == det.RingFenceID) &&
                                (a.Size.Length == 3) &&
@@ -211,7 +215,7 @@ namespace Footlocker.Logistics.Allocation.DAO
             }
 
             var caselots = (from a in this.RingFenceDetails
-                            where ((a.RingFenceID == det.RingFenceID) && 
+                            where ((a.RingFenceID == det.RingFenceID) &&
                                    (a.Size.Length == 5)) &&
                                    a.ActiveInd == "1" &&
                                   ((a.Size != det.Size) || (a.PO != det.PO) || (a.DCID != det.DCID))
@@ -223,7 +227,7 @@ namespace Footlocker.Logistics.Allocation.DAO
                     var query = ((from a in this.ItemPacks where (a.Name == cs.Size) select a.TotalQty));
 
                     qty += (det.Qty * query.First());
-               
+
                 }
                 catch
                 {
@@ -261,6 +265,10 @@ namespace Footlocker.Logistics.Allocation.DAO
 
         public void PreCommitRingFenceDetail(RingFenceDetail det, string user, System.Data.EntityState state)
         {
+            // the name of this method could be read as commit a ringfence detail early - as in, before it would normally happen
+            // maybe a better way to read it is run this bethod before you committ a ringfence detail
+            // this method touches the ringfence header that is affected by the detail that's presently being changed
+            // 05/15/2018 this looks like it is unused. (it's commented out in SaveChanges)
             RingFence rf = (from a in this.RingFences where a.ID == det.RingFenceID select a).First();
 
             //rf.Qty = GetQtyForRingFenceWithChange(det, rf, state);
@@ -406,14 +414,14 @@ namespace Footlocker.Logistics.Allocation.DAO
             //    }
 
             //}
-        
+
         }
 
         public int SaveChanges(string user)
         {
             CheckBatchRunning();
 
-            var audits = this.ChangeTracker.Entries().Where(p => ((p.State == System.Data.EntityState.Added || p.State == System.Data.EntityState.Deleted || p.State == System.Data.EntityState.Modified) && (p.Entity.GetType().Name.StartsWith("RingFence") || 
+            var audits = this.ChangeTracker.Entries().Where(p => ((p.State == System.Data.EntityState.Added || p.State == System.Data.EntityState.Deleted || p.State == System.Data.EntityState.Modified) && (p.Entity.GetType().Name.StartsWith("RingFence") ||
                 //p.Entity.GetType().Name.StartsWith("RDQ") || 
                 p.Entity.GetType().Name.StartsWith("RangePlanDetail"))));
 
@@ -434,11 +442,104 @@ namespace Footlocker.Logistics.Allocation.DAO
             List<System.Data.EntityState> states = new List<System.Data.EntityState>();
             List<long> ringFenceUpdates = new List<long>();
             Boolean needUser = false;
-            foreach (var ent in this.ChangeTracker.Entries().Where(p => p.State == System.Data.EntityState.Added || p.State == System.Data.EntityState.Deleted || p.State == System.Data.EntityState.Modified))
+
+
+            // ----------------------------------------------------------    prior logic     -------------------------------------------------------
+            //                                                     select added || modified || deleted
+            //
+            // ----------------------------------------------------------      new logic     -------------------------------------------------------
+            //                                                     select added || modified || deleted not rf/rfdetail
+            //                                                                              select deleted rf/rfdetail
+
+
+            foreach (var ent in this.ChangeTracker.Entries().Where(p => p.State == System.Data.EntityState.Deleted && p.Entity.GetType().Name.StartsWith("RingFenceDetail")))
             {
 
+                needUser = true;
+                // if the header for this detail is going to be deleted then we don't need to recompute the header qty, but knowing this seems hard
+                ringFenceUpdates.Add(((RingFenceDetail)ent.Entity).RingFenceID);
+                // below is needed because the header might be deleted, or it might not be.  if it is, we need to store the division for the history
+                RingFenceHistory tmp = new RingFenceHistory();
+                long tmpl = ((RingFenceDetail)ent.Entity).RingFenceID;
+
+                RingFence rf = this.RingFences.Where(r => r.ID.Equals(tmpl)).FirstOrDefault();
+                if (rf != null)
+                {
+                    tmp.Division = rf.Division;
+                    tmp.Sku = rf.Sku;
+                    tmp.Store = rf.Store;
+                    tmp.StartDate = rf.StartDate;
+                    tmp.EndDate = rf.EndDate;
+                }
+                tmp.RingFenceID = tmpl;
+                tmp.DCID = ((RingFenceDetail)ent.Entity).DCID;
+                tmp.PO = ((RingFenceDetail)ent.Entity).PO;
+                tmp.Qty = ((RingFenceDetail)ent.Entity).Qty;
+                tmp.Size = ((RingFenceDetail)ent.Entity).Size;
+                tmp.Action = ent.State.ToString() + " Det";
+                tmp.CreateDate = DateTime.Now;
+                tmp.CreatedBy = user;
+
+                auditRecords.Add(tmp);
+                states.Add(ent.State);
+
+            }
+
+
+            foreach (System.Data.Entity.Infrastructure.DbEntityEntry ent in this.ChangeTracker.Entries().Where(p => p.State == System.Data.EntityState.Deleted && p.Entity.GetType().Name.StartsWith("RingFence_")))
+            {
+
+                //added by mcg 2018/05/15 to separate audit logging out for detail / header (both were inside of 1 sp named setringfencehdrqty)
+                needUser = true;
+                //Write a history record to log the deletion of the header
+                auditRecords.Add(ent.Entity);
+                states.Add(ent.State);
+                long abc = ((RingFence)ent.Entity).ID;
+                //long tmpl = ((RingFenceDetail)ent.Entity).RingFenceID;
+
+
+                //
+                //
+                //
+
+                //RingFence rf = this.RingFences.Where(r => r.ID.Equals(tmpl)).FirstOrDefault();
+                //this.ChangeTracker.Entries().Where(p => p.RingFenceID.Equals(tmpl) = ((RingFenceDetail)ent.Entity).RingFenceID).delete();
+                //this.ChangeTracker.Entries().Where(p => p.CurrentValues<long>("r").huh?)
+                //this.//ChangeTracker.Entries().Where(p => p.CurrentValues["RingFenceID"].Equals this.Entry).select();
+                //var r =     ChangeTracker.Entries().Where(p => p.CurrentValues.PropertyNames["RingFenceID"] == this.Entry).select();
+
+                // .detach works but i don't think it's the right plan
+                //this.Entry(ent.Entity).State = System.Data.EntityState.Detached;
+                //
+                //
+
+                //.Where(x => x.environmentID == environmentid && x.ProcessName == processname
+                //var widgets = this.ChangeTracker.Entries().Where(w => w.ID == tmpl);
+
+                //this.ChangeTracker.Entries().Where(w => w.GetDatabaseValues("RingFenceID") == tmpl));
+
+                //this.ChangeTracker.Entries().Where(x => x.RingFenceID == tmpl).State = System.Data.EntityState.Detached;
+                //this.ChangeTracker.Entries().Where(x => x.Property("RingFenceID") == tmpl).State = System.Data.EntityState.Detached;
+
+
+                //maybe this is the solution - process the details foreach first, and then after that process the headers
+                // and if the header is being deleted, then we don't need to update it's qty
+                ringFenceUpdates.Remove(abc);
+            }
+
+
+            foreach (var ent in this.ChangeTracker.Entries().Where(p => p.State == System.Data.EntityState.Added || p.State == System.Data.EntityState.Modified || p.State == System.Data.EntityState.Deleted && !p.Entity.GetType().Name.StartsWith("RingFence_") && !p.Entity.GetType().Name.StartsWith("RingFenceDetail")))
+            {
                 if (ent.Entity.GetType().Name.StartsWith("RingFenceHistory"))
                 { }
+                else if (ent.Entity.GetType().Name.StartsWith("RingFence_"))
+                {
+                    //added by mcg 2018/05/15 to separate audit logging out for detail / header (both were inside of 1 sp named setringfencehdrqty)
+                    needUser = true;
+                    //Write a history record to log the deletion of the header
+                    auditRecords.Add(ent.Entity);
+                    states.Add(ent.State);
+                }
                 else if (ent.Entity.GetType().Name.StartsWith("RingFenceDetail"))
                 {
                     needUser = true;
@@ -459,6 +560,9 @@ namespace Footlocker.Logistics.Allocation.DAO
                     states.Add(ent.State);
                 }
             }
+
+
+
             if ((user == "unknown") && needUser)
             {
                 throw new Exception("Must call SaveChanges with Userid for this recordtype");
@@ -476,11 +580,20 @@ namespace Footlocker.Logistics.Allocation.DAO
                         {
                             HistoryRingFenceDetail((RingFenceDetail)obj, user, states[i]);
                         }
-                        //else if (obj.GetType().Name.StartsWith("RingFence"))
-                        //{
-                        //    HistoryRingFence((RingFence)obj, user, states[i]);
-
-                        //}
+                        else if (obj.GetType().Name.StartsWith("RingFence_"))
+                        {
+                            HistoryRingFence((RingFence)obj, user, states[i]);
+                        }
+                        else if (obj.GetType().Name.StartsWith("RingFenceHistory"))
+                        {
+                            RingFenceDetail tmp = new RingFenceDetail();
+                            tmp.RingFenceID = ((RingFenceHistory)obj).RingFenceID;
+                            if (((RingFenceHistory)obj).DCID != null) { tmp.DCID = ((RingFenceHistory)obj).DCID; }
+                            if (((RingFenceHistory)obj).PO != null) { tmp.PO = ((RingFenceHistory)obj).PO; }
+                            if (((RingFenceHistory)obj).Qty != null) { tmp.Qty = ((RingFenceHistory)obj).Qty; }
+                            if (((RingFenceHistory)obj).Size != null) { tmp.Size = ((RingFenceHistory)obj).Size; }
+                            HistoryRingFenceDetail((RingFenceDetail)tmp, user, states[i], ((RingFenceHistory)obj).Division);
+                        }
                         //else if (obj.GetType().Name.StartsWith("RDQ"))
                         //{
                         //    AuditRDQ((RDQ)obj, user, states[i]);
@@ -497,7 +610,6 @@ namespace Footlocker.Logistics.Allocation.DAO
                                     break;
                                 default:
                                     break;
-
                             }
                         }
 
@@ -563,9 +675,9 @@ namespace Footlocker.Logistics.Allocation.DAO
                                                           select a).FirstOrDefault();
                 }
                 catch
-                {}
+                { }
 
-                results.Add(new StoreLookupModel(s.Store,planID,true));
+                results.Add(new StoreLookupModel(s.Store, planID, true));
             }
             return results;
         }
@@ -578,13 +690,13 @@ namespace Footlocker.Logistics.Allocation.DAO
 
             //get list of div/store that are not in plan
             var templist = (from s in StoreLookups
-                            where (s.Division == p.Sku.Substring(0,2))
+                            where (s.Division == p.Sku.Substring(0, 2))
                             select new { s.Division, s.Store }).Except(from det in RangePlanDetails
                                                                        where det.ID == planID
                                                                        select new { det.Division, det.Store });
             //get StoreLookup objects for these div/stores
             var list = (from s in StoreLookups
-                        join det in templist 
+                        join det in templist
                             on new { s.Division, s.Store } equals new { det.Division, det.Store }
                         select new { Store = s, StoreExtension = s.StoreExtension });
 

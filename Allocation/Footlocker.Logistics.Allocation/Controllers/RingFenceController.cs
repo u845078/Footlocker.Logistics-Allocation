@@ -851,6 +851,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 //create RDQ's
                 RingFenceHistory history = new RingFenceHistory();
                 history.RingFenceID = rf.RingFence.ID;
+                history.Division = rf.Division;
+                history.Store = rf.Store;
                 history.Action = "Picked";
                 history.CreateDate = DateTime.Now;
                 history.CreatedBy = User.Identity.Name;
@@ -894,6 +896,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     history = new RingFenceHistory();
                     history.RingFenceID = det.RingFenceID;
+                    history.Division = rf.Division;
+                    history.Store = rf.Store;
                     history.DCID = det.DCID;
                     history.PO = det.PO;
                     history.Qty = det.AssignedQty;
@@ -1075,6 +1079,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RingFenceHistory history = new RingFenceHistory();
             history.RingFenceID = ID;
             history.Action = "Picked";
+            history.Division = rf.Division;
+            history.Store = rf.Store;
             history.CreateDate = DateTime.Now;
             history.CreatedBy = User.Identity.Name;
             db.RingFenceHistory.Add(history);
@@ -1109,6 +1115,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 history = new RingFenceHistory();
                 history.RingFenceID = det.RingFenceID;
+                history.Division = rf.Division;
+                history.Store = rf.Store;
                 history.DCID = det.DCID;
                 history.PO = det.PO;
                 history.Qty = det.Qty;
@@ -1220,6 +1228,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                         RingFenceHistory history = new RingFenceHistory();
                         history.RingFenceID = rf.ID;
+                        history.Division = rf.Division;
+                        history.Store = rf.Store;
                         history.Action = "Picked";
                         history.CreateDate = DateTime.Now;
                         history.CreatedBy = User.Identity.Name;
@@ -1258,6 +1268,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                             history = new RingFenceHistory();
                             history.RingFenceID = det.RingFenceID;
+                            history.Division = rf.Division;
+                            history.Store = rf.Store;
                             history.DCID = det.DCID;
                             history.PO = det.PO;
                             history.Qty = det.Qty;
