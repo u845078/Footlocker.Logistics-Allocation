@@ -265,9 +265,6 @@ namespace Footlocker.Logistics.Allocation.DAO
 
         public void PreCommitRingFenceDetail(RingFenceDetail det, string user, System.Data.EntityState state)
         {
-            // the name of this method could be read as commit a ringfence detail early - as in, before it would normally happen
-            // maybe a better way to read it is run this bethod before you committ a ringfence detail
-            // this method touches the ringfence header that is affected by the detail that's presently being changed
             // 05/15/2018 this looks like it is unused. (it's commented out in SaveChanges)
             RingFence rf = (from a in this.RingFences where a.ID == det.RingFenceID select a).First();
 
@@ -495,35 +492,7 @@ namespace Footlocker.Logistics.Allocation.DAO
                 auditRecords.Add(ent.Entity);
                 states.Add(ent.State);
                 long abc = ((RingFence)ent.Entity).ID;
-                //long tmpl = ((RingFenceDetail)ent.Entity).RingFenceID;
-
-
-                //
-                //
-                //
-
-                //RingFence rf = this.RingFences.Where(r => r.ID.Equals(tmpl)).FirstOrDefault();
-                //this.ChangeTracker.Entries().Where(p => p.RingFenceID.Equals(tmpl) = ((RingFenceDetail)ent.Entity).RingFenceID).delete();
-                //this.ChangeTracker.Entries().Where(p => p.CurrentValues<long>("r").huh?)
-                //this.//ChangeTracker.Entries().Where(p => p.CurrentValues["RingFenceID"].Equals this.Entry).select();
-                //var r =     ChangeTracker.Entries().Where(p => p.CurrentValues.PropertyNames["RingFenceID"] == this.Entry).select();
-
-                // .detach works but i don't think it's the right plan
-                //this.Entry(ent.Entity).State = System.Data.EntityState.Detached;
-                //
-                //
-
-                //.Where(x => x.environmentID == environmentid && x.ProcessName == processname
-                //var widgets = this.ChangeTracker.Entries().Where(w => w.ID == tmpl);
-
-                //this.ChangeTracker.Entries().Where(w => w.GetDatabaseValues("RingFenceID") == tmpl));
-
-                //this.ChangeTracker.Entries().Where(x => x.RingFenceID == tmpl).State = System.Data.EntityState.Detached;
-                //this.ChangeTracker.Entries().Where(x => x.Property("RingFenceID") == tmpl).State = System.Data.EntityState.Detached;
-
-
-                //maybe this is the solution - process the details foreach first, and then after that process the headers
-                // and if the header is being deleted, then we don't need to update it's qty
+                
                 ringFenceUpdates.Remove(abc);
             }
 
@@ -543,8 +512,6 @@ namespace Footlocker.Logistics.Allocation.DAO
                 else if (ent.Entity.GetType().Name.StartsWith("RingFenceDetail"))
                 {
                     needUser = true;
-                    //PreCommitRingFenceDetail((RingFenceDetail)ent.Entity, user, ent.State);
-                    //plan to just call a stored proc with a list of ringfences that need updating/history logs
                     ringFenceUpdates.Add(((RingFenceDetail)ent.Entity).RingFenceID);
 
                     auditRecords.Add(ent.Entity);
