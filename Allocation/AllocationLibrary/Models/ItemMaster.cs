@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
@@ -13,13 +11,19 @@ namespace Footlocker.Logistics.Allocation.Models
         [Key]
         public Int64 ID { get; set; }
         public string CurrentSku { get; set; }
+
+        [Display(Name = "SKU")]
         public string MerchantSku { get; set; }
         public string LifeCycle { get; set; }
         public DateTime? FirstReceipt { get; set; }
+
+        [Display(Name = "Service Code")]
         public string ServiceCode { get; set; }
         public string WarehouseReceived { get; set; }
         public string TargetSku { get; set; }
         public DateTime? RenumberDate { get; set; }
+
+        [Display(Name = "Team Code")]
         public string TeamCode { get; set; }
         public string Brand { get; set; }
         public string Category { get; set; }
@@ -40,6 +44,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Gender { get; set; }
         public string Material { get; set; }
         public string MaterialDesc { get; set; }
+        [Display(Name = "Size Range")]
         public string SizeRange { get; set; }
         public string Exclusive { get; set; }
         public string Description { get; set; }
@@ -48,6 +53,9 @@ namespace Footlocker.Logistics.Allocation.Models
         public Int32? Renumbers { get; set; }
         public string PlayerID { get; set; }
         public Int16? Deleted { get; set; }
+
+        [Display(Name = "Merchandise Season Code")]
+        public string MerchandiseSeasonCode { get; set; }
         //public virtual ICollection<RangePlan> RangePlans { get; set; }
         //public virtual ICollection<DirectToStoreSku> DirectToStoreSkus { get; set; }
     }

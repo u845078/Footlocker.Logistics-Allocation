@@ -11,6 +11,7 @@ namespace Footlocker.Logistics.Allocation.Models
     using System.Linq;
     using System.Text;
     using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
 
     /// <summary>
     /// Inventory from input file from legacy (mainframe) system.

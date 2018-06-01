@@ -19,14 +19,6 @@
             @Html.EditorFor(model => model.Sku)
             @Html.ValidationMessageFor(model => model.Sku)
         </div>
-@*        <div class="editor-label">
-            @Html.LabelFor(model => model.Size)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Size)
-            @Html.ValidationMessageFor(model => model.Size)
-        </div>*@
-
         <div class="editor-label">
             @Html.LabelFor(model => model.Store)
         </div>
@@ -54,91 +46,160 @@
 }
 
 @if (Model.ItemMaster != null)
-{    
+{
 <fieldset>
     <legend>Item</legend>
     <table>
-    @if (Model.AllocationDriver == null)
-    {
-    <tr>
-    <td colspan=4><font color="red">This item is still on Mainframe Allocation</font></td>
-    </tr>
-    }   
-    else
-    {
-    <tr>
-        @if (Model.AllocationDriver.AllocateDate <= Model.ControlDate.RunDate)
+        @if (Model.AllocationDriver == null)
         {
-            <td colspan=4>This item is on Q Allocation</td>
-        }
-        else if (Model.AllocationDriver.ConvertDate <= Model.ControlDate.RunDate)
-        { 
-            <td colspan=4><font color="red">This item is converted, but not yet allocating from Q</font></td>
+            <tr>
+                <td colspan=4><font color="red"><em>This item is still on Mainframe Allocation</em></font></td>
+            </tr>
         }
         else
-        { 
-            <td colspan=4><font color="red">This item is still on Mainframe Allocation</font></td>
+        {
+            <tr>
+                <td rowspan="12">
+                    @{ if (Model != null)
+                        {
+                            if (Model.ItemMaster != null)
+                            {
+                                <img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.ItemMaster.MerchantSku)" width="150" />
+                            }
+                        }
+                    }
+                </td>
+                @if (Model.AllocationDriver.AllocateDate <= Model.ControlDate.RunDate)
+                {
+                    <td colspan=4>This item is on Q Allocation</td>
+                }
+                else if (Model.AllocationDriver.ConvertDate <= Model.ControlDate.RunDate)
+                {
+                    <td colspan=4><font color="red">This item is converted, but not yet allocating from Q</font></td>
+                }
+                else
+                {
+                    <td colspan=4><font color="red">This item is still on Mainframe Allocation</font></td>
+                }
+            </tr>
+            <tr>
+                <td><strong>@Html.LabelFor(m => Model.AllocationDriver.ConvertDate)</strong></td>
+                <td>@Html.DisplayFor(m => Model.AllocationDriver.ConvertDate)</td>
+                <td><strong>@Html.LabelFor(m => Model.AllocationDriver.AllocateDate)</strong></td>
+                <td>@Html.DisplayFor(m => Model.AllocationDriver.AllocateDate)</td>
+            </tr>
         }
-    </tr>
-    <tr>
-        <td>@Html.LabelFor(m => Model.AllocationDriver.ConvertDate)</td>
-        <td>@Html.DisplayFor(m => Model.AllocationDriver.ConvertDate)</td>
-        <td>@Html.LabelFor(m => Model.AllocationDriver.AllocateDate)</td>
-        <td>@Html.DisplayFor(m => Model.AllocationDriver.AllocateDate)</td>
-    </tr>
-    }
-    <tr>
-        <td>@Html.LabelFor(m => Model.ItemMaster.ID)</td>
-        <td>@Html.DisplayFor(m => Model.ItemMaster.ID)</td>
-        <td>@Html.LabelFor(m => Model.ItemMaster.MerchantSku)</td>
-        <td>@Html.DisplayFor(m => Model.ItemMaster.MerchantSku)</td>
-    </tr>
-    <tr>
-        <td>@Html.LabelFor(m => Model.ItemMaster.ServiceCode)</td>
-        <td>@Html.DisplayFor(m => Model.ItemMaster.ServiceCode)</td>
-        <td>@Html.LabelFor(m => Model.ItemMaster.Category)</td>
-        <td>@Html.DisplayFor(m => Model.ItemMaster.Category)</td>
-    </tr>
-    <tr>
-        <td>@Html.LabelFor(m => Model.ItemMaster.Vendor)</td>
-        <td>@Html.DisplayFor(m => Model.ItemMaster.Vendor)</td>
-        <td>@Html.LabelFor(m => Model.ItemMaster.Brand)</td>
-        <td>@Html.DisplayFor(m => Model.ItemMaster.Brand)</td>
-    </tr>
-    <tr>
-        <td>@Html.LabelFor(m => Model.ItemMaster.TeamCode)</td>
-        <td>@Html.DisplayFor(m => Model.ItemMaster.TeamCode)</td>
-        <td>@Html.LabelFor(m => Model.ItemMaster.Description)</td>
-        <td>@Html.DisplayFor(m => Model.ItemMaster.Description)</td>
-    </tr>
-    <tr>
-        <td>@Html.LabelFor(m => Model.ItemMaster.Dept)</td>
-        <td>@Html.DisplayFor(m => Model.ItemMaster.Dept)</td>
-        <td></td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>@Html.LabelFor(m => Model.Sizes)</td>
-        <td colspan=3>
-            @foreach (Footlocker.Logistics.Allocation.Models.SizeObj s in Model.Sizes)
-            { 
-                @Html.Raw(s.Size + ",")   
-            }       
-        </td>
-    </tr>
-    @if (!(Model.ValidItem))
-    {
-        @Html.Raw("<tr><td colspan=2>");
-        @Html.Raw("<font color='red'>Item does not meet criteria to send to Q.<br>")
-        @Html.Raw("(Service Type must be 1,2.  Category not 098, 99#.)</font>")
-        @Html.Raw("</td></tr>")
-    }
-    @if (Model.ItemMaster.Deleted == 1)
-    {
-        @Html.Raw("<tr><td colspan=2>");
-        @Html.Raw("<font color='red'>Item has been deleted from mainframe.<br>")
-        @Html.Raw("</td></tr>")
-    }
+        <tr>
+            <td><strong>@Html.LabelFor(m => Model.ItemMaster.ID)</strong></td>
+            <td>@Html.DisplayFor(m => Model.ItemMaster.ID)</td>
+            <td><strong>@Html.LabelFor(m => Model.ItemMaster.MerchantSku)</strong></td>
+            <td>@Html.DisplayFor(m => Model.ItemMaster.MerchantSku)</td>
+        </tr>
+        <tr>
+            <td><strong>@Html.LabelFor(m => Model.ItemMaster.ServiceCode)</strong></td>
+            <td>@Html.DisplayFor(m => Model.ItemMaster.ServiceCode)</td>
+            <td><strong>@Html.LabelFor(m => Model.ItemMaster.Category)</strong></td>
+            <td>@Html.DisplayFor(m => Model.CategoryDisplay)</td>
+        </tr>
+        <tr>
+            <td><strong>@Html.LabelFor(m => Model.ItemMaster.Vendor)</strong></td>
+            <td>@Html.DisplayFor(m => Model.VendorDisplay)</td>
+            <td><strong>@Html.LabelFor(m => Model.ItemMaster.Brand)</strong></td>
+            <td>@Html.DisplayFor(m => Model.BrandIDDisplay)</td>
+        </tr>
+        <tr>
+            <td><strong>@Html.LabelFor(m => Model.ItemMaster.TeamCode)</strong></td>
+            <td>@Html.DisplayFor(m => Model.TeamCodeDisplay)</td>
+            <td><strong>@Html.LabelFor(m => Model.ItemMaster.Description)</strong></td>
+            <td>@Html.DisplayFor(m => Model.ItemMaster.Description)</td>
+        </tr>
+        <tr>
+            <td><strong>@Html.LabelFor(m => Model.ItemMaster.PlayerID)</strong></td>
+            <td>@Html.DisplayFor(m => Model.ItemMaster.PlayerID)</td>
+            <td style="width: 100px"><strong>@Html.LabelFor(m => Model.ItemMaster.MerchandiseSeasonCode)</strong></td>
+            <td>@Html.DisplayFor(m => Model.ItemMaster.MerchandiseSeasonCode)</td>
+        </tr>
+        <tr>
+            <td><strong>@Html.LabelFor(m => Model.ItemMaster.Dept)</strong></td>
+            <td>@Html.DisplayFor(m => Model.DepartmentDisplay)</td>
+            <td><strong>@Html.LabelFor(m => Model.ItemMaster.Material)</strong></td>
+            <td>@Html.DisplayFor(m => Model.MaterialDisplay)</td>
+        </tr>
+        <tr>
+            <td><strong>@Html.LabelFor(m => Model.ItemMaster.SizeRange)</strong></td>
+            <td>@Html.DisplayFor(m => Model.ItemMaster.SizeRange)</td>
+            <td><strong>@Html.LabelFor(m => Model.ItemMaster.Gender)</strong></td>
+            <td>@Html.DisplayFor(m => Model.ItemMaster.Gender)</td>
+        </tr>
+        <tr>
+            <td><strong>LifeCycle</strong></td>
+            <td colspan="3">@Html.DisplayFor(m => Model.LifeCycleDisplay)</td>
+        </tr>
+        <tr>
+            <td><strong>@Html.LabelFor(m => Model.Sizes)</strong></td>
+            <td colspan=4>
+                @{
+                    bool first = true;
+                    string sizeText = "";
+                    foreach (Footlocker.Logistics.Allocation.Models.SizeObj s in Model.Sizes)
+                    {
+                        if (first)
+                        {
+                            first = false;
+                            sizeText = s.Size;
+                        }
+                        else
+                        {
+                            sizeText += ", " + s.Size;
+                        }
+                    }
+                    <text>@sizeText</text>
+                }
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Colors</strong></td>
+            <td style="width: 300px">
+                @Html.DisplayFor(mbox => Model.ColorsDisplay)
+            </td>
+            <td><strong>SKU IDs</strong></td>
+            <td>
+                <table style="width: 100%">
+                    @*<tr>
+                        <td colspan="5" style="text-align: center;"><strong>SKU IDs</strong></td>
+                    </tr>*@
+                    <tr>
+                        <td><strong>1</strong></td>
+                        <td><strong>2</strong></td>
+                        <td><strong>3</strong></td>
+                        <td><strong>4</strong></td>
+                        <td><strong>5</strong></td>
+                    </tr>
+                    <tr>
+                        <td>@Html.DisplayFor(m => Model.ItemMaster.Skuid1)</td>
+                        <td>@Html.DisplayFor(m => Model.ItemMaster.Skuid2)</td>
+                        <td>@Html.DisplayFor(m => Model.ItemMaster.Skuid3)</td>
+                        <td>@Html.DisplayFor(m => Model.ItemMaster.Skuid4)</td>
+                        <td>@Html.DisplayFor(m => Model.ItemMaster.Skuid5)</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+
+        @if (!(Model.ValidItem))
+        {
+            @Html.Raw("<tr><td colspan=2>");
+            @Html.Raw("<font color='red'>Item does not meet criteria to send to Q.<br>")
+            @Html.Raw("(Service Type must be 1,2.  Category not 098, 99#.)</font>")
+            @Html.Raw("</td></tr>")
+        }
+        @if (Model.ItemMaster.Deleted == 1)
+        {
+            @Html.Raw("<tr><td colspan=2>");
+            @Html.Raw("<font color='red'>Item has been deleted from mainframe.<br>")
+            @Html.Raw("</td></tr>")
+        }
     </table>
 </fieldset>
 
@@ -272,57 +333,56 @@
          )
     </fieldset>
 
-<fieldset>
-    <legend>Sku Range Plans</legend>
+    <fieldset>
+        <legend>Sku Range Plans</legend>
+        <p>
+            @Html.ActionLink("Create New Range Plan", "CreateRangePlan", "SkuRange", null, new { @class = "t-button" })
+        </p>
+        @(Html.Telerik().Grid(Model.RangePlans)
+                    .Name("SkuRangeGrid")
+                    .DataKeys(keys =>
+                    {
+                        keys.Add(p => p.Id).RouteKey("planID");
+                    })
+                    .Columns(columns =>
+                    {
+                        columns.Bound(o => o.Sku).Width(100);
+                        columns.Bound(o => o.Description).Width(150).Title("Comment"); 
+                        columns.Bound(o => o.StoreCount).Width(10);
+                        columns.Bound(o => o.StartDate).Width(10).Format("{0:MM/dd/yyyy}");
+                        columns.Bound(o => o.EndDate).Width(10).Format("{0:MM/dd/yyyy}");
+                        columns.Bound(o => o.CreateDate).Width(10);
+                        columns.Bound(o => o.UpdateDate).Width(10);
+                        columns.Bound(o => o.UpdatedBy).Width(100);
+                        columns.Command(commands =>
+                        {
+                            commands
+                            .Custom("Stores")
+                            .Text("Stores")
+                            .Ajax(false)
+                            .Action("EditStores", "SkuRange");
+                            commands
+                            .Custom("PresentationQuantities")
+                            .Text("Details")
+                            .Ajax(false)
+                            .Action("PresentationQuantities", "SkuRange");
+                        }).HtmlAttributes(new { style = "text-align: left" }).Width(200);
+                    })
 
-@(Html.Telerik().Grid(Model.RangePlans)
-        .Name("SkuRangeGrid")
-        .DataKeys(keys =>
-        {
-            keys.Add(p => p.Id).RouteKey("planID");
-        })
-        .Columns(columns =>
-        {
-            columns.Template(
-                @<text>
-                    <img 
-                        src="@Url.Content("~/Image/ShowImage/?sku=" + item.Sku)"
-                      />
-                </text>
-            ).Title("Image").Width(25);
-            columns.Bound(o => o.Sku).Width(100);
-            columns.Bound(o => o.Description).Width(150);
-            columns.Bound(o => o.PlanType).Width(10);
-            columns.Bound(o => o.StoreCount).Width(10);
-            columns.Command(commands =>
-            {
-                commands
-                .Custom("Stores")
-                .Text("Stores")
-                .Ajax(false)
-                .Action("EditStores", "SkuRange");
-                commands
-                .Custom("PresentationQuantities")
-                .Text("Details")
-                .Ajax(false)
-                .Action("PresentationQuantities", "SkuRange");
-            }).HtmlAttributes(new { style = "text-align: left" }).Width(200);
-        })
 
-
-        //.DataBinding(dataBinding =>
-        //{
-        //    dataBinding.Server().Select("Index", "SkuRange");
-        //    //dataBinding.Ajax().Select("_Index", "SkuRange"); -- note, this breaks images
-        //})
-        //.Scrollable(scrolling => scrolling.Enabled(true))
-        .Sortable(sorting => sorting.Enabled(true))
-        .Pageable(paging => paging.Enabled(true))
-        .Filterable(filtering => filtering.Enabled(true))
-        .Groupable(grouping => grouping.Enabled(false))
-            .Footer(true)
-)
-</fieldset>
+                    //.DataBinding(dataBinding =>
+                    //{
+                    //    dataBinding.Server().Select("Index", "SkuRange");
+                    //    //dataBinding.Ajax().Select("_Index", "SkuRange"); -- note, this breaks images
+                    //})
+                    //.Scrollable(scrolling => scrolling.Enabled(true))
+                    .Sortable(sorting => sorting.Enabled(true))
+                    .Pageable(paging => paging.Enabled(true))
+                    .Filterable(filtering => filtering.Enabled(true))
+                    .Groupable(grouping => grouping.Enabled(false))
+                        .Footer(true)
+        )
+    </fieldset>
 
 <fieldset>
     <legend>POs</legend>
@@ -478,7 +538,7 @@
         .Name("HoldGrid")
         .Columns(columns =>
         {
-            columns.Bound(o => o.Division).Width(200);
+            columns.Bound(o => o.Division);
             columns.Bound(o => o.Store).Width(50);
             columns.Bound(o => o.Level);
             columns.Bound(o => o.Value);

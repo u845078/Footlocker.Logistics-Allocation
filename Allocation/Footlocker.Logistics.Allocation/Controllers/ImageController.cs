@@ -19,10 +19,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult ShowImage(string sku)
         {
-            SkuImage image = new SkuImage();
-            image.Sku = sku;
+            SkuImage image = new SkuImage
+            {
+                Sku = sku,
+                ImageUrl = System.Configuration.ConfigurationManager.AppSettings["imageURL"] + sku
+            };
 
-            image.ImageUrl = System.Configuration.ConfigurationManager.AppSettings["imageURL"] + sku;
             Response.Redirect(image.ImageUrl);
             return View(image);
         }

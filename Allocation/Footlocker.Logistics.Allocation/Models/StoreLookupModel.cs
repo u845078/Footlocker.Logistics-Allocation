@@ -4,7 +4,7 @@ using System.Linq;
 using System.Web;
 using Footlocker.Logistics.Allocation.Models;
 using System.Reflection;
-using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
 {

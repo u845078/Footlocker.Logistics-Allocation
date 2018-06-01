@@ -244,7 +244,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 foreach (var rec in categories)
                 {
-                    categoryList.Add(new SelectListItem { Text = rec.categoryDisplay, Value = rec.categoryCode });
+                    categoryList.Add(new SelectListItem { Text = rec.CategoryDisplay, Value = rec.categoryCode });
                 }
             }
 
@@ -330,7 +330,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                 where a.categoryCode == itemRec.Category &&
                                                       a.divisionCode == itemRec.Div &&
                                                       a.departmentCode == itemRec.Dept
-                                                select a).FirstOrDefault()).categoryDisplay;
+                                                select a).FirstOrDefault()).CategoryDisplay;
 
                 model.overrideBrandIDLabel = ((from a in db.BrandIDs
                                                where a.divisionCode == itemRec.Div &&

@@ -23,7 +23,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             try
             {
                 DirectoryEntry de = new DirectoryEntry("WinNT://" + Environment.UserDomainName + "/" + Environment.UserName);
-                return de.Properties["fullname"].Value.ToString();
+                if (de != null)
+                    return de.Properties["fullname"].Value.ToString();
+                else
+                    return null;
             }
             catch
             {
@@ -32,11 +35,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         public string getFullUserName(string fullUserID)
-        {
+        {            
             try
             {
                 DirectoryEntry de = new DirectoryEntry("WinNT://" + fullUserID);
-                return de.Properties["fullname"].Value.ToString();
+                if (de.Guid != null)
+                    return de.Properties["fullname"].Value.ToString();
+                else
+                    return null;
             }
             catch
             {

@@ -38,9 +38,8 @@
     <Reference Include="Aspose.Excel">
       <HintPath>C:\Footlocker\Aspose.Excel.dll</HintPath>
     </Reference>
-    <Reference Include="EntityFramework, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Footlocker\EntityFramework.dll</HintPath>
+    <Reference Include="EntityFramework, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.5.0.0\lib\net40\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="flcommon">
       <HintPath>C:\Footlocker\flcommon.dll</HintPath>
@@ -236,12 +235,14 @@
     <Compile Include="Models\StorePlan.cs" />
     <Compile Include="Models\StrategyType.cs" />
     <Compile Include="Models\StoreSeasonalityGroup.cs" />
+    <Compile Include="Models\TeamCodes.cs" />
     <Compile Include="Models\UploadRequest.cs" />
     <Compile Include="Models\ValidationSession.cs" />
     <Compile Include="Models\ValidStoreLookup.cs" />
     <Compile Include="Models\VendorGroup.cs" />
     <Compile Include="Models\VendorGroupDetail.cs" />
     <Compile Include="Models\VendorGroupLeadTime.cs" />
+    <Compile Include="Models\Vendors.cs" />
     <Compile Include="Models\WarehouseAllocationType.cs" />
     <Compile Include="Models\WarehouseBlackout.cs" />
     <Compile Include="Models\WarehouseInventory.cs" />
@@ -286,6 +287,7 @@
     <Compile Include="Validation\RequiredIfAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

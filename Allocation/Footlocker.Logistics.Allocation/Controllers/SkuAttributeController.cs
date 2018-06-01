@@ -116,7 +116,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 foreach (var rec in query)
                 {
-                    model.Categories.Add(new Categories { divisionCode = rec.divisionCode, departmentCode = rec.departmentCode, categoryCode = rec.categoryCode, categoryName = rec.categoryName });
+                    model.Categories.Add(new Categories { divisionCode = rec.divisionCode, departmentCode = rec.departmentCode, categoryCode = rec.categoryCode, CategoryName = rec.CategoryName });
                 }
             }
         }

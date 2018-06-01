@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -24,7 +25,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Division { get; set; }
 
         [Key]
-        [Column(Order = 0)]
+        [Column(Order = 1)]
         [StringLayoutDelimited(1)]
         public string PO { get; set; }
 

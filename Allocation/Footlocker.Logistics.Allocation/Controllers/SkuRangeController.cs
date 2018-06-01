@@ -2548,15 +2548,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult RemoveAllStores(Int64 planID)
         {
-            //var list = (from det in db.RangePlanDetails where det.ID == planID select det);
-            //int count = 0;
-            //foreach (RangePlanDetail det in list)
-            //{
-            //    db.RangePlanDetails.Remove(det);
-            //    count++;
-            //}
-            //db.SaveChanges();
-            //UpdateStoreCount(planID, 0-count);
             ClearStoreFromPlan(planID);
             return RedirectToAction("EditStores", new { planID = planID, message = "All stores removed" });
         }
@@ -3847,7 +3838,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["RangeTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["RangeTemplate"]);
+            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
             Byte[] data1 = new Byte[file.Length];
             file.Read(data1, 0, data1.Length);
             file.Close();
@@ -3867,6 +3859,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 mySheet.Cells[row, 4].PutValue(p.Sku);
                 mySheet.Cells[row, 5].PutValue(p.Size);
                 mySheet.Cells[row, 6].PutValue(p.RangeStartDate);
+                //mySheet.Cells[row, 7].PutValue(p.OnRangeDate);
                 mySheet.Cells[row, 7].PutValue(p.DeliveryGroupName);
                 mySheet.Cells[row, 8].PutValue(p.Min);
                 mySheet.Cells[row, 9].PutValue(p.Max);

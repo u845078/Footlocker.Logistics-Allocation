@@ -34,7 +34,7 @@
 	  </siteMapNode>
 
 	  <siteMapNode title="Product">
-		  <siteMapNode title="AR Skus" controller="DTS" action="Index" />
+		  <siteMapNode title="AR SKUs" controller="DTS" action="Index" />
 		  <siteMapNode title="AR Constraints Single Size Items" controller="DTS" action="OneSizeConstraints" />
 		  <siteMapNode title="AR Constraints All Items" controller="DTS" action="Constraints" />
 		  <siteMapNode title="Holds" controller="Hold" action="Index" />
@@ -42,8 +42,9 @@
       <siteMapNode title="Override PO" controller="OverridePO" action="Index" />
       <siteMapNode title="Release Held RDQs" controller="WebPick" action="BulkAdmin" />
       <siteMapNode title="Ring Fencing" controller="RingFence" action="Index" />
-      <siteMapNode title="Sku Attributes" controller="SkuAttribute" action="Index" />
-		  <siteMapNode title="Sku Setup" controller="SkuRange" action="Index" />
+      <siteMapNode title="WSM" controller="SkuAttribute" action="Index" />
+      <siteMapNode title="SKU Review" controller="Item" action="Troubleshoot" />
+		  <siteMapNode title="SKU Setup" controller="SkuRange" action="Index" />
       <siteMapNode title="Web Pick" controller="WebPick" action="Index" />
     </siteMapNode>
 
@@ -58,12 +59,12 @@
     </siteMapNode>
 
 	  <siteMapNode title="Uploads">
-      <siteMapNode title="AR Skus" controller="Upload" action="ARSkusUpload" />
+      <siteMapNode title="AR SKUs" controller="Upload" action="ARSkusUpload" />
       <siteMapNode title="AR Constraints" controller="Upload" action="ARConstraintsUpload" />
-      <siteMapNode title="Life Of Sku" controller="Upload" action="ProductTypeUpload" />
+      <siteMapNode title="Life Of SKU" controller="Upload" action="ProductTypeUpload" />
 		  <siteMapNode title="Service Type" controller="Upload" action="SkuTypeUpload" />
-      <siteMapNode title="Sku Id" controller="Upload" action="SkuIdUpload" />
-      <siteMapNode title="Sku Setup Upload" controller="SkuRange" action="UploadRange" />
+      <siteMapNode title="SKU Id" controller="Upload" action="SkuIdUpload" />
+      <siteMapNode title="SKU Setup Upload" controller="SkuRange" action="UploadRange" />
     </siteMapNode>
 
 	  <siteMapNode title="About" controller="Home" action="About" />

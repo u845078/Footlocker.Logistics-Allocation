@@ -87,31 +87,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 string div = model.Sku.Substring(0, 2);
 
-                DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).FirstOrDefault();
-
-                //List<RingFence> ringFences = (from a in db.RingFences where ((a.StartDate < today) && ((a.EndDate > today) || (a.EndDate == null))) select a).ToList();
-
-
-                //model.RingFences = (from a in ringFences
-                //                    join b in db.RingFenceDetails on a.ID equals b.RingFenceID
-                //                    where ((a.Sku == model.Sku)
-                //                        //&& ((a.Size == model.Size)||(model.Size == ""))
-                //                        && ((a.Store == model.Store) || (model.Store == "") || (a.Store == null))
-                //                        && ((b.DCID == model.Warehouse) || (model.Warehouse == -1)))
-                //                    select a).Distinct().ToList();
+                DateTime today = (from a in db.ControlDates
+                                  join b in db.InstanceDivisions 
+                                  on a.InstanceID equals b.InstanceID
+                                  where b.Division == div
+                                  select a.RunDate).FirstOrDefault();
 
                 model.RangePlans = (from a in db.RangePlans
-                                    join b in db.RangePlanDetails on a.Id equals b.ID
-                                    where
-                                    (a.Sku == model.Sku)
-                                    && ((b.Store == model.Store) || (model.Store == ""))
+                                    join b in db.RangePlanDetails 
+                                    on a.Id equals b.ID
+                                    where a.Sku == model.Sku && 
+                                    ((b.Store == model.Store) || (model.Store == ""))
                                     select a).Distinct().ToList();
 
-                //TODO, multisku POs aren't in here
-                //model.POOverrides = (from a in db.ExpeditePOs
-                //                     where
-                //                         a.Sku == model.Sku
-                //                     select a).ToList();
+                if (model.RangePlans.Count > 0)
+                {
+                    if (model.RangePlans.First().UpdatedBy.Contains("CORP"))
+                    {
+                        model.RangePlans.First().UpdatedBy = getFullUserName(model.RangePlans.First().UpdatedBy.Replace('\\', '/'));
+                    }
+                }
             }
             catch
             {
@@ -121,39 +116,67 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             try
             {
-                ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == model.Sku select a).FirstOrDefault();
+                ItemMaster item = (from a in db.ItemMasters
+                                   where a.MerchantSku == model.Sku
+                                   select a).FirstOrDefault();
+
                 model.ItemMaster = item;
+                model.Department = (from d in db.Departments
+                                    where d.instanceID == item.InstanceID &&
+                                          d.divisionCode == item.Div &&
+                                          d.departmentCode == item.Dept
+                                    select d).FirstOrDefault();
+
+                model.Category = (from c in db.Categories
+                                  where c.instanceID == item.InstanceID &&
+                                        c.divisionCode == item.Div &&
+                                        c.departmentCode == item.Dept &&
+                                        c.categoryCode == item.Category
+                                  select c).FirstOrDefault();
+
+                model.Vendor = (from v in db.Vendors
+                                where v.InstanceID == item.InstanceID &&
+                                      v.VendorCode == item.Vendor
+                                select v).FirstOrDefault();
+
+                model.BrandID = (from b in db.BrandIDs
+                                 where b.instanceID == item.InstanceID &&
+                                       b.divisionCode == item.Div &&
+                                       b.departmentCode == item.Dept &&
+                                       b.brandIDCode == item.Brand
+                                 select b).FirstOrDefault();
+
+                if (item.TeamCode != "000")
+                {
+                    model.TeamCode = (from t in db.TeamCodes
+                                      where t.InstanceID == item.InstanceID &&
+                                            t.DivisionCode == item.Div &&
+                                            t.TeamCode == item.TeamCode
+                                      select t).FirstOrDefault();
+                }
+
                 AllocationDriverDAO dao = new AllocationDriverDAO();
-                model.AllocationDriver = (from a in dao.GetAllocationDriverList(item.Div) where a.Department == item.Dept select a).FirstOrDefault();
-                model.ControlDate = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == item.Div select a).FirstOrDefault();
+                model.AllocationDriver = (from a in dao.GetAllocationDriverList(item.Div)
+                                          where a.Department == item.Dept
+                                          select a).FirstOrDefault();
+
+                model.ControlDate = (from a in db.ControlDates
+                                     join b in db.InstanceDivisions 
+                                     on a.InstanceID equals b.InstanceID
+                                     where b.Division == item.Div
+                                     select a).FirstOrDefault();
 
                 model.ValidItem = true;
-                if (item.Category.StartsWith("99"))
-                {
-                    model.ValidItem = false;
-                }
-                if (item.Category.Equals("098"))
-                {
-                    model.ValidItem = false;
-                }
-                if (Convert.ToInt32(item.ServiceCode) > 2)
-                {
-                    model.ValidItem = false;
-                }
 
-                //model.ItemPacks = (from a in db.ItemPacks where a.ItemID == item.ID select a).ToList();
+                if (item.Category.StartsWith("99") || item.Category.Equals("098") || 
+                    (Convert.ToInt32(item.ServiceCode) > 2))
+                {
+                    model.ValidItem = false;
+                }
             }
-            catch (Exception ex)
+            catch 
             {
                 ViewData["message"] = "invalid item";
-                //if (ex.Message.Contains("Sequence"))
-                //{
-                //    ViewData["message"] = "Error getting holds, item invalid";
-                //}
-                //else
-                //{
-                //    ViewData["message"] = "Error getting holds " + ex.Message;
-                //}
             }
 
             model.Sizes = (from a in db.Sizes where a.Sku == model.Sku select a).ToList();
@@ -438,15 +461,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             List<RingFenceSummary> ringFences = new List<RingFenceSummary>();
 
-            //List<RingFence> ringFences = (from a in db.RingFences where ((a.StartDate <= today) && ((a.EndDate >= today) || (a.EndDate == null))) select a).ToList();
-
-            //ringFences = (from a in ringFences
-            //                    join b in db.RingFenceDetails on a.ID equals b.RingFenceID
-            //                    where ((a.Sku == sku)
-            //                        //&& ((a.Size == model.Size)||(model.Size == ""))
-            //                        && ((a.Store == store) || (store == null) || (a.Store == null)))
-            //                    select a).Distinct().ToList();
-
             var newRingFences = (from rf in db.RingFences
                                      join rfd in db.RingFenceDetails
                                       on rf.ID equals rfd.RingFenceID
@@ -465,6 +479,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     ((rf.StartDate <= today) && ((rf.EndDate >= today) || (rf.EndDate == null))) &&
                                        ((rf.Store == store) || (store == null) || (rf.Store == null))
                                  select new { RingFence = rf, RingFenceDetail = rfd });
+            }
+
+            var distinctUsers = newRingFences.GroupBy(h => h.RingFence.CreatedBy)
+                .Select(group => group.FirstOrDefault()).ToList();
+
+            foreach (var rec in distinctUsers)
+            {
+                string fullName = "";
+                if (rec.RingFence.CreatedBy.Contains("CORP"))
+                    fullName = getFullUserName(rec.RingFence.CreatedBy.Replace('\\', '/'));
+                else
+                    fullName = rec.RingFence.CreatedBy;
+
+                newRingFences.Where(r => r.RingFence.CreatedBy == rec.RingFence.CreatedBy).ToList().ForEach(x => x.RingFence.CreatedBy = fullName);
             }
 
             foreach (var rf in newRingFences)
@@ -550,14 +578,28 @@ namespace Footlocker.Logistics.Allocation.Controllers
 			List<RDQ> model = templist.Select(m => m.rdq)
 				.OrderBy(x => x.Store).ThenBy(x => x.Size).ThenBy(x => x.PO).ToList();
 
-
             if ((store != null) && (store != ""))
             {
-                model = (from a in model where a.Store == store select a).ToList();
+                model = (from a in model
+                         where a.Store == store
+                         select a).ToList();
+            }
+
+            var distinctUsers = model.GroupBy(h => h.CreatedBy)
+                 .Select(group => group.FirstOrDefault()).ToList();
+
+            foreach (var rec in distinctUsers)
+            {
+                string fullName = "";
+                if (rec.CreatedBy.Contains("CORP"))
+                    fullName = getFullUserName(rec.CreatedBy.Replace('\\', '/'));
+                else
+                    fullName = rec.CreatedBy;
+
+                model.Where(r => r.CreatedBy == rec.CreatedBy).ToList().ForEach(x => x.CreatedBy = fullName);
             }
 
             return View(new GridModel(model));
-
         }
 
         [GridAction]
@@ -576,39 +618,59 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _ItemHolds(string sku, string store)
         {
             string div = sku.Substring(0, 2);
-            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).FirstOrDefault().AddDays(2);
-            //List<Hold> holds = (from a in db.Holds where ((a.StartDate <= today) && ((a.EndDate >= today) || (a.EndDate == null))) select a).ToList();
+            DateTime today = (from a in db.ControlDates
+                              join b in db.InstanceDivisions 
+                                on a.InstanceID equals b.InstanceID
+                              where b.Division == div
+                              select a.RunDate).FirstOrDefault().AddDays(2);
+            
             List<Hold> holds = (from a in db.Holds select a).ToList();
 
             ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == sku select a).FirstOrDefault();
             AllocationDriverDAO dao = new AllocationDriverDAO();
 
             holds = (from a in holds
-                     where (
-                         (a.Division == item.Div) &&
-                         ((a.Store == store) || (a.Store == null) || (store == "") || (store == null)) &&
-                         (
-                         (a.Level == "All") ||
-                         (a.Level == "Store") ||
-                         ((a.Level == "Dept") && (a.Value == item.Dept)) ||
-                         ((a.Level == "Category") && (a.Value == (item.Dept + "-" + item.Category))) ||
-                         ((a.Level == "VendorDept") && (a.Value == (item.Vendor + "-" + item.Dept))) ||
-                         ((a.Level == "VendorDeptCategory") && (a.Value == (item.Vendor + "-" + item.Dept + "-" + item.Category))) ||
-                         ((a.Level == "DivDeptBrand") && (a.Value == (item.Div + "-" + item.Dept + "-" + item.Brand))) ||
-                         ((a.Level == "Sku") && (a.Value == sku))
-                         )
-                         )
+                     where ((a.Division == item.Div) &&
+                            ((a.Store == store) || (a.Store == null) || (store == "") || (store == null)) &&
+                             ((a.Level == "All") ||
+                              (a.Level == "Store") ||
+                              ((a.Level == "Dept") && (a.Value == item.Dept)) ||
+                              ((a.Level == "Category") && (a.Value == (item.Dept + "-" + item.Category))) ||
+                              ((a.Level == "VendorDept") && (a.Value == (item.Vendor + "-" + item.Dept))) ||
+                              ((a.Level == "VendorDeptCategory") && 
+                               (a.Value == (item.Vendor + "-" + item.Dept + "-" + item.Category))) ||
+                             ((a.Level == "DivDeptBrand") && 
+                              (a.Value == (item.Div + "-" + item.Dept + "-" + item.Brand))) ||
+                             ((a.Level == "Sku") && (a.Value == sku))))
                      select a).ToList();
+
+            IEnumerable<Hold> distinctUsers = holds
+                .GroupBy(h => h.CreatedBy)
+                .Select(group => group.First());
+
+            foreach (Hold hold in distinctUsers)
+            {
+                string fullName = "";
+                if (hold.CreatedBy.Contains("CORP"))
+                    fullName = getFullUserName(hold.CreatedBy.Replace('\\', '/'));
+                else
+                    fullName = hold.CreatedBy;
+
+                holds.Where(h => h.CreatedBy == hold.CreatedBy).ToList().ForEach(x => x.CreatedBy = fullName);
+            }
 
             return View(new GridModel(holds));
         }
 
         private void SetDCs(TroubleshootModel model)
         {
-            model.AllDCs = (from a in db.DistributionCenters select a).ToList();
-            DistributionCenter dc = new DistributionCenter();
-            dc.ID = -1;
-            dc.Name = "Any";
+            model.AllDCs = (from a in db.DistributionCenters
+                            select a).ToList();
+            DistributionCenter dc = new DistributionCenter
+            {
+                ID = -1,
+                Name = "Any"
+            };
             model.AllDCs.Insert(0, dc);
         }
         #endregion

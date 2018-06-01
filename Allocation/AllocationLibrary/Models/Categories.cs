@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
@@ -22,14 +19,14 @@ namespace Footlocker.Logistics.Allocation.Models
         public string categoryCode { get; set; }
 
         [Column("Description")]
-        public string categoryName { get; set; }
+        public string CategoryName { get; set; }
 
         [NotMapped]
-        public string categoryDisplay
+        public string CategoryDisplay
         {
             get
             {
-                return categoryCode + " - " + categoryName;
+                return categoryCode + " - " + CategoryName;
             }
         }
     }
