@@ -3780,7 +3780,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["RangeTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["RangeTemplate"]);
+            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
             Byte[] data1 = new Byte[file.Length];
             file.Read(data1, 0, data1.Length);
             file.Close();
@@ -3820,7 +3821,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["RangeTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["RangeTemplate"]);
+            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
             Byte[] data1 = new Byte[file.Length];
             file.Read(data1, 0, data1.Length);
             file.Close();
@@ -3881,7 +3883,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["RangeTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["RangeTemplate"]);
+            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
             Byte[] data1 = new Byte[file.Length];
             file.Read(data1, 0, data1.Length);
             file.Close();
