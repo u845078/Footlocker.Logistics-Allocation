@@ -790,8 +790,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("Index", new { message = message });
         }
 
-        public ActionResult ExcelUpload()
+        public ActionResult ExcelUpload(string message)
         {
+            ViewData["errorMessage"] = message;
             return View();
         }
 
@@ -1401,8 +1402,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                var message = "No error list was found.";
-                return Content(message);
+                // if this message is hit that means there was an exception while processing
+                // check the log to see what the exception was
+                var message = "An unexpected error has occured.  Please try again or contact an administrator.";
+                return RedirectToAction("ExcelUpload", new { message = message });
             }
 
             return View();

@@ -27,7 +27,16 @@
         )
         <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
         <br />
-        <h4> <div id="message"></div> </h4>
+        <h4>
+            <div id="message">
+                @if (ViewData["errorMessage"] != null)
+                {
+                    <font color="red">
+                        @Html.Raw(Convert.ToString(ViewData["errorMessage"]))
+                    </font>
+                }
+            </div>
+        </h4>
     <div id="errors" style="display:none">
     @Html.ActionLink("Download Errors", "GetErrorsNew", null, new { @class = "t-button" })
     </div>
