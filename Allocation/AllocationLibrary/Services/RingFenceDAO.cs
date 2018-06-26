@@ -338,6 +338,159 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         }
 
         /// <summary>
+        /// Will generate SQL to be executed on the mainframe to determine the quantities for unique sizes OR caselots passed.
+        /// </summary>
+        /// <param name="uniqueCombos">the unique combos to create the where condition of the select statement.</param>
+        /// <param name="sizeCombos">The boolean to determine if the unique combos are size combos are caselot combos.</param>
+        /// <returns>The generated SQL to be executed on the mainframe.</returns>
+        private string BuildWarehouseAvailableQuery(List<Tuple<string, string, string>> uniqueCombos, bool sizeCombos)
+        {
+            StringBuilder builder = new StringBuilder();
+            string division, department, stockNumber, widthColor, whereConditionFormat, whereCondition;
+
+            if (sizeCombos)
+            {
+                builder.Append("SELECT RETL_OPER_DIV_CD, STK_DEPT_NUM, STK_NUM, STK_WC_NUM, WHSE_ID_NUM, STK_SIZE_NUM, ALLOCATABLE_BS_QTY FROM TC052002 WHERE ");
+                whereConditionFormat = " (RETL_OPER_DIV_CD = '{0}' AND STK_DEPT_NUM = '{1}' AND STK_NUM = '{2}' AND STK_WC_NUM = '{3}' AND STK_SIZE_NUM = '{4}'";
+            }
+            else
+            {
+                builder.Append("SELECT RETL_OPER_DIV_CD, STK_DEPT_NUM, STK_NUM, STK_WC_NUM, WHSE_ID_NUM, CL_SCHED_NUM, ALLOCATABLE_CL_QTY FROM TC052010 WHERE ");
+                whereConditionFormat = " (RETL_OPER_DIV_CD = '{0}' AND STK_DEPT_NUM = '{1}' AND STK_NUM = '{2}' AND STK_WC_NUM = '{3}' AND CL_SCHED_NUM = '{4}'";
+            }
+
+            foreach (var combo in uniqueCombos)
+            {
+                // split sku into tokens delimited by the '-' symbol and store them locally
+                string[] skuTokens = combo.Item1.Split('-');
+                division = skuTokens[0];
+                department = skuTokens[1];
+                stockNumber = skuTokens[2];
+                widthColor = skuTokens[3];
+
+                whereCondition = string.Format(whereConditionFormat, division, department, stockNumber, widthColor, combo.Item2);
+
+                if (!string.IsNullOrEmpty(combo.Item3))
+                {
+                    whereCondition += string.Format(" AND WHSE_ID_NUM = '{0}')", combo.Item3);
+                }
+                else
+                {
+                    whereCondition += ")";
+                }
+
+                if (uniqueCombos.Last().Equals(combo))
+                {
+                    builder.Append(whereCondition);
+                }
+                else
+                {
+                    builder.Append(whereCondition + " OR");
+                }
+            }
+            
+            return builder.ToString();
+        }
+
+        /// <summary>
+        /// Will execute the generated SQL and parse the values of returned from the mainframe.
+        /// </summary>
+        /// <param name="SQL">SQL to be executed.</param>
+        /// <param name="division">needed to grab the correct database for the mainframe.</param>
+        /// <param name="sizeCombos">To determine if this is a call to get the quantities for sizes or caselots (they come from two different tables).</param>
+        /// <returns>The parsed values from the mainframe.</returns>
+        private List<WarehouseAvailableInventory> ExecuteSQLAndParseValues(string SQL, string division, bool sizeCombos)
+        {
+            List<WarehouseAvailableInventory> returnValue = new List<WarehouseAvailableInventory>();
+            string parsedDivision, parsedDepartment, parsedStockNumber, parsedWidthColor, parsedSize, parsedDCID, quantityColumnName, sizeColumnName;
+            int parsedQuantity;
+            Database db = null;
+
+            db = (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(division)) ? _databaseEurope : _database;
+            if (sizeCombos)
+            {
+                quantityColumnName = "ALLOCATABLE_BS_QTY";
+                sizeColumnName = "STK_SIZE_NUM";
+            }
+            else
+            {
+                quantityColumnName = "ALLOCATABLE_CL_QTY";
+                sizeColumnName = "CL_SCHED_NUM";
+            }            
+
+            DbCommand SQLCommand = db.GetSqlStringCommand(SQL);
+            DataSet returnedData = db.ExecuteDataSet(SQLCommand);
+            if (returnedData.Tables.Count > 0)
+            {
+                foreach (DataRow dr in returnedData.Tables[0].Rows)
+                {
+
+                    parsedDivision = Convert.ToString(dr["RETL_OPER_DIV_CD"]);
+                    parsedDepartment = Convert.ToString(dr["STK_DEPT_NUM"]);
+                    parsedStockNumber = Convert.ToString(dr["STK_NUM"]);
+                    parsedWidthColor = Convert.ToString(dr["STK_WC_NUM"]);
+                    parsedSize = Convert.ToString(dr[sizeColumnName]).PadLeft(3, '0');
+                    parsedQuantity = Convert.ToInt32(dr[quantityColumnName]);
+                    parsedDCID = Convert.ToString(dr["WHSE_ID_NUM"]);
+                    returnValue.Add(new WarehouseAvailableInventory(parsedDivision, parsedDepartment, parsedStockNumber, parsedWidthColor, parsedSize, parsedDCID, parsedQuantity));
+                }
+            }
+
+            return returnValue;
+        }
+
+        /// <summary>
+        /// Respective tuple values
+        /// Item1 => Sku
+        /// Item2 => Size
+        /// Item3 => DC (MF Distribution Center ID, different than Allocation's DCID)
+        /// </summary>
+        /// <param name="uniqueCombos"></param>
+        public List<WarehouseAvailableInventory> GetWarehouseAvailableNew(List<Tuple<string, string, string>> uniqueCombos)
+        {
+            List<WarehouseAvailableInventory> returnValue = new List<WarehouseAvailableInventory>();
+            string division = string.Empty, SQL = string.Empty;
+            var uniqueSizeCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(3)).ToList();
+            var uniqueCaselotCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(5)).ToList();
+
+            if (uniqueSizeCombos.Count > 0)
+            {
+                division = uniqueSizeCombos.Select(sc => sc.Item1.Split('-')[0]).FirstOrDefault();
+                SQL = this.BuildWarehouseAvailableQuery(uniqueSizeCombos, true);
+                returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, true));
+            }
+
+            if (uniqueCaselotCombos.Count > 0)
+            {
+                division = uniqueCaselotCombos.Select(sc => sc.Item1.Split('-')[0]).FirstOrDefault();
+                SQL = this.BuildWarehouseAvailableQuery(uniqueCaselotCombos, false);
+                returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, false));
+            }
+
+            if (returnValue.Count > 0)
+            {
+                division = uniqueCombos.Select(uc => uc.Item1.Split('-')[0]).FirstOrDefault();
+                int instanceID = db.InstanceDivisions.Where(id => id.Division.Equals(division)).Select(id => id.InstanceID).FirstOrDefault();
+                // reduce available inventory by the view vInventoryReductions view
+                foreach (var rv in returnValue)
+                {
+                    var inventoryReduction = db.InventoryReductions.Where(ir => ir.Sku.Equals(rv.Sku) &&
+                                                                                ir.Size.Equals(rv.Size) &&
+                                                                                ir.MFCode.Equals(rv.MFCode) &&
+                                                                                ir.InstanceID.Equals(instanceID)).FirstOrDefault();
+                    if (inventoryReduction != null)
+                    {
+                        rv.Quantity -= inventoryReduction.Qty;
+                    }
+                }
+            }
+            
+
+            return returnValue;
+
+        }
+
+        /// <summary>
         /// This will find the warehouse available from the mainframe and reduce it by ringfenced quantities.
         /// </summary>
         /// <param name="sku">merchant sku 31-12-12345-00</param>

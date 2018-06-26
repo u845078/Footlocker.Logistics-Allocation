@@ -126,6 +126,7 @@
     <Compile Include="Models\BiExtractRequest.cs" />
     <Compile Include="Models\BrandIDs.cs" />
     <Compile Include="Models\BulkRange.cs" />
+    <Compile Include="Models\CancelInventoryHoldsNextBatch.cs" />
     <Compile Include="Models\Categories.cs" />
     <Compile Include="Models\ConceptType.cs" />
     <Compile Include="Models\ConceptTypeDivision.cs" />
@@ -244,6 +245,7 @@
     <Compile Include="Models\VendorGroupLeadTime.cs" />
     <Compile Include="Models\Vendors.cs" />
     <Compile Include="Models\WarehouseAllocationType.cs" />
+    <Compile Include="Models\WarehouseAvailableInventory.cs" />
     <Compile Include="Models\WarehouseBlackout.cs" />
     <Compile Include="Models\WarehouseInventory.cs" />
     <Compile Include="Models\wsm.cs" />

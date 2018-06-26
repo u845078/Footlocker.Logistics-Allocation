@@ -68,6 +68,7 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<ProductHierarchyOverrides> ProductOverrides { get; set; }
         public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
         public DbSet<MinihubStore> MinihubStores { get; set; }
+        public DbSet<CancelInventoryHoldsNextBatch> CancelInventoryHolds { get; set; }
 
         public DbSet<Vendors> Vendors { get; set; }
 

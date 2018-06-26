@@ -17,6 +17,7 @@ namespace Footlocker.Logistics.Allocation.Services
     public class RDQDAO
     {
         Database _database;
+        AllocationLibraryContext db = new AllocationLibraryContext();
 
         public RDQDAO()
         {
@@ -392,6 +393,55 @@ namespace Footlocker.Logistics.Allocation.Services
                 }
             }
             return holds;
+        }
+
+        public List<RDQ> ApplyCancelHoldsNew(List<RDQ> rdqs)
+        {
+            List<RDQ> returnValue = new List<RDQ>();
+            if (rdqs.Count > 0)
+            {
+                // unique skus
+                var uniqueSkus = rdqs.Select(r => r.Sku).Distinct().ToList();
+                var uniqueItemIDs = db.ItemMasters.Where(im => uniqueSkus.Contains(im.MerchantSku))
+                                                  .Select(im => new { InstanceID = im.InstanceID, Division = im.Div, ItemID = im.ID, Sku = im.MerchantSku })
+                                                  .ToList();
+
+                var uniqueStores = rdqs.Select(r => r.Store).Distinct().ToList();
+
+                foreach (var uniqueItem in uniqueItemIDs)
+                {
+                    var query = db.CancelInventoryHolds.Where(cih => cih.Division.Equals(uniqueItem.Division) &&
+                                                                          cih.InstanceID.Equals(uniqueItem.InstanceID) &&
+                                                                          cih.ItemID.Equals(uniqueItem.ItemID) &&
+                                                                          uniqueStores.Contains(cih.Store)).Distinct().ToList();
+                    
+
+                    foreach (var cih in query)
+                    {
+                        
+                        List<RDQ> updateRDQs = (from r in db.RDQs
+                                                join im in db.ItemMasters
+                                                  on r.Sku equals im.MerchantSku
+                                                join d in db.DistributionCenters
+                                                  on r.DCID equals d.ID
+                                                where r.Division.Equals(cih.Division) &&
+                                                      r.Store.Equals(cih.Store) &&
+                                                      im.ID.Equals(cih.ItemID)
+                                                select r).ToList();
+
+                        foreach (var r in updateRDQs)
+                        {
+                            r.Status = "REJECTED";
+                            db.Entry(r).State = System.Data.EntityState.Modified;
+                            returnValue.Add(r);
+                        }
+                    }
+                }
+            }
+
+            db.SaveChanges("");
+
+            return returnValue;
         }
 
         public int ApplyCancelHolds(List<RDQ> rdqs)

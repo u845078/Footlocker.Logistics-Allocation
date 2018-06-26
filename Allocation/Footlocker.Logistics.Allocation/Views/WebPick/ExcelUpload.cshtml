@@ -16,20 +16,20 @@
         .Name("attachments")
         .Multiple(true)
         .Async(async => async
-            .Save("Save", "WebPick")
+            .Save("SaveOptimized", "WebPick")
             .AutoUpload(false))
             .ShowFileList(true)
         .ClientEvents(events => events
             .OnError("onError")
             .OnSelect("onSelect")
-                    .OnSuccess("onSuccess")
+            .OnSuccess("onSuccess")
             )
         )
         <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
         <br />
         <h4> <div id="message"></div> </h4>
     <div id="errors" style="display:none">
-    @Html.ActionLink("Download Errors", "GetErrors", null, new { @class = "t-button" })
+    @Html.ActionLink("Download Errors", "GetErrorsNew", null, new { @class = "t-button" })
     </div>
 </fieldset>
  
@@ -47,7 +47,7 @@
              $('#message').empty();
         }
 
-        function onError(e) {
+         function onError(e) {
             var message = e.XMLHttpRequest.responseText;
             $('#message').empty().append("<font color='red'>"+message+"</font>");
             $('#errors').show();
@@ -55,9 +55,8 @@
          }
 
          function onSuccess(e) {
-             var message = e.XMLHttpRequest.responseText;
-             $('#message').empty().append("<font color='red'>Success</font>");
-
+             $('#message').empty().append("<font color='red'>Success! " + e.XMLHttpRequest.responseText + " RDQs were created.</font >");
+             $('#errors').hide();
              e.preventDefault();
          }
     </script>

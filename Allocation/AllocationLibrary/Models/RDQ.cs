@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Xml.Serialization;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
@@ -144,6 +145,7 @@ namespace Footlocker.Logistics.Allocation.Models
         [NotMapped]
         public string Category { get; set; }
 
+        [XmlIgnore]
         public virtual DistributionCenter DistributionCenter { get; set; }
 
         [NotMapped]
