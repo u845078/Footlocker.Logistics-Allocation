@@ -979,17 +979,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             RDQ returnValue = new RDQ();
 
-            returnValue.Sku = Convert.ToString(mySheet.Cells[row, 1].Value);
+            returnValue.Sku = Convert.ToString(mySheet.Cells[row, 1].Value).Trim();
             if (!string.IsNullOrEmpty(returnValue.Sku))
             {
                 returnValue.Division = returnValue.Sku.Substring(0, 2);
             }
-            returnValue.Store = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(5, '0');
-            returnValue.Size = Convert.ToString(mySheet.Cells[row, 2].Value).PadLeft(3, '0');
+            returnValue.Store = Convert.ToString(mySheet.Cells[row, 0].Value).Trim().PadLeft(5, '0');
+            returnValue.Size = Convert.ToString(mySheet.Cells[row, 2].Value).Trim().PadLeft(3, '0');
             returnValue.Qty = Convert.ToInt32(mySheet.Cells[row, 3].Value);
-            returnValue.DC = Convert.ToString(mySheet.Cells[row, 4].Value);
+            returnValue.DC = Convert.ToString(mySheet.Cells[row, 4].Value).Trim();
             returnValue.DC = (string.IsNullOrEmpty(returnValue.DC)) ? "" : returnValue.DC.PadLeft(2, '0');
-            returnValue.RingFencePickStore = Convert.ToString(mySheet.Cells[row, 5].Value);
+            returnValue.RingFencePickStore = Convert.ToString(mySheet.Cells[row, 5].Value).Trim();
             returnValue.RingFencePickStore = (string.IsNullOrEmpty(returnValue.RingFencePickStore)) ? "" : returnValue.RingFencePickStore.PadLeft(5, '0');
 
             returnValue.Status = "WEB PICK";
@@ -1196,7 +1196,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             // if errors occured, allow user to download them
                             if (errorList.Count > 0)
                             {
-                                string errorMessage = string.Format("{0} errors on spreadsheet ({1} successfully uploaded)", errorList.Count, validRDQs.Count);
+                                string errorMessage = string.Format(
+                                    "{0} errors were found and {1} lines were processed successfully. <br />You can review the quantity details on the Release Held RDQ page."
+                                    , errorList.Count
+                                    , validRDQs.Count);
                                 Session["errorList"] = errorList;
                                 return Content(errorMessage);
                             }
@@ -1207,13 +1210,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         message = "Upload failed: One or more columns has unexpected missing or invalid data.";
                         // clear out error list
                         Session["errorList"] = null;
-
                         return Content(message);
                     }
                 }
             }
-
-            return Content(validRDQs.Count.ToString());
+            message = string.Format("Success!  {0} lines were processed. <br />You can review the quantity details on the Release Held RDQ page.", validRDQs.Count.ToString());
+            return Json(new { successMessage = message }, "application/json");
         }
 
         private bool ValidateFile(List<RDQ> parsedRDQs, List<Tuple<RDQ, string>> errorList, out string errorMessage)
@@ -1383,7 +1385,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
                         else
                         {
-                            mySheet.Cells[row, col].PutValue(error.Item1.DC);   
+                            mySheet.Cells[row, col].PutValue(error.Item1.DC);
                         }
                         col++;
                         mySheet.Cells[row, col].PutValue(error.Item1.RingFencePickStore);
@@ -1402,7 +1404,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                // if this message is hit that means there was an exception while processing
+                // if this message is hit that means there was an exception while processing that was not accounted for
                 // check the log to see what the exception was
                 var message = "An unexpected error has occured.  Please try again or contact an administrator.";
                 return RedirectToAction("ExcelUpload", new { message = message });

@@ -64,7 +64,8 @@
          }
 
          function onSuccess(e) {
-             $('#message').empty().append("<font color='red'>Success! " + e.XMLHttpRequest.responseText + " RDQs were created.</font >");
+             var message = e.response.successMessage;
+             $('#message').empty().append("<font color='red'>" + message + "</font >");
              $('#errors').hide();
              e.preventDefault();
          }
