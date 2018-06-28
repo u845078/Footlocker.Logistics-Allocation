@@ -18,6 +18,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
     [CheckAuthorization(Roles = "allocation-gs")]
     public class AppController : Controller
     {
+        Footlocker.Logistics.Allocation.Services.FootLockerCommonContext flCommon = new Footlocker.Logistics.Allocation.Services.FootLockerCommonContext();
+
         public string getCurrentUserFullUserName()
         {
             try
@@ -43,6 +45,28 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     return de.Properties["fullname"].Value.ToString();
                 else
                     return null;
+            }
+            catch
+            {
+                return fullUserID;
+            }
+        }
+
+        public string getFullUserNameFromDatabase(string fullUserID)
+        {
+            string fullName = "";
+
+            try
+            {
+                string lookupUserID = fullUserID.Replace("CORP/", "");
+                fullName = (from au in flCommon.ApplicationUsers
+                            where au.UserName == lookupUserID
+                            select au.FullName).Distinct().FirstOrDefault();
+
+                if (string.IsNullOrEmpty(fullName))
+                    return fullUserID;
+                else
+                    return fullName;
             }
             catch
             {

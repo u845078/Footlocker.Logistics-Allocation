@@ -104,7 +104,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     if (model.RangePlans.First().UpdatedBy.Contains("CORP"))
                     {
-                        model.RangePlans.First().UpdatedBy = getFullUserName(model.RangePlans.First().UpdatedBy.Replace('\\', '/'));
+                        model.RangePlans.First().UpdatedBy = getFullUserNameFromDatabase(model.RangePlans.First().UpdatedBy.Replace('\\', '/'));
                     }
                 }
             }
@@ -488,7 +488,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 string fullName = "";
                 if (rec.RingFence.CreatedBy.Contains("CORP"))
-                    fullName = getFullUserName(rec.RingFence.CreatedBy.Replace('\\', '/'));
+                    fullName = getFullUserNameFromDatabase(rec.RingFence.CreatedBy.Replace('\\', '/'));
                 else
                     fullName = rec.RingFence.CreatedBy;
 
@@ -592,7 +592,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 string fullName = "";
                 if (rec.CreatedBy.Contains("CORP"))
-                    fullName = getFullUserName(rec.CreatedBy.Replace('\\', '/'));
+                    fullName = getFullUserNameFromDatabase(rec.CreatedBy.Replace('\\', '/'));
                 else
                     fullName = rec.CreatedBy;
 
@@ -652,7 +652,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 string fullName = "";
                 if (hold.CreatedBy.Contains("CORP"))
-                    fullName = getFullUserName(hold.CreatedBy.Replace('\\', '/'));
+                    fullName = getFullUserNameFromDatabase(hold.CreatedBy.Replace('\\', '/'));
                 else
                     fullName = hold.CreatedBy;
 

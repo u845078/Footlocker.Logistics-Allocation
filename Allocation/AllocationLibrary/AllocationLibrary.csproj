@@ -122,6 +122,7 @@
     <Compile Include="Factories\WSMFactory.cs" />
     <Compile Include="Models\AccessControl.cs" />
     <Compile Include="Models\AllocationDriver.cs" />
+    <Compile Include="Models\ApplicationUser.cs" />
     <Compile Include="Models\BiExtract.cs" />
     <Compile Include="Models\BiExtractRequest.cs" />
     <Compile Include="Models\BrandIDs.cs" />
@@ -256,6 +257,7 @@
     <Compile Include="Services\CategoryDAO.cs" />
     <Compile Include="Services\ConfigService.cs" />
     <Compile Include="Services\ConvertRangeDAO.cs" />
+    <Compile Include="Services\FootLockerCommonContext.cs" />
     <Compile Include="Services\ItemDAO.cs" />
     <Compile Include="Services\LegacyFutureInventoryDAO.cs" />
     <Compile Include="Services\EcommWeightDAO.cs" />
