@@ -817,15 +817,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                       .ForEach(r => SetErrorMessageNew(errorList, r
                           , string.Format("The division and store combination {0}-{1} is not an existing or valid combination.", r.Division, r.Store)));
 
-            // 2) size is the correct length (3 for size, 5 for caselot)
-            var uniqueSizeList = parsedRDQs.Select(pr => pr.Size).Distinct().ToList();
-            var invalidSizeList = uniqueSizeList.Where(sl => !sl.Length.Equals(3) && !sl.Length.Equals(5)).ToList();
-            parsedRDQs.Where(pr => invalidSizeList.Contains(pr.Size))
-                      .ToList()
-                      .ForEach(r => SetErrorMessageNew(errorList, r
-                          , string.Format("The size {0} is non-existing or invalid.", r.Size)));
 
-            // quantity is greater than zero
+
+            // 2) quantity is greater than zero
             parsedRDQs.Where(pr => pr.Qty <= 0)
                       .ToList()
                       .ForEach(r =>
@@ -850,6 +844,51 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     , r.Division
                     , r.Sku.Split('-')[0]);
                 SetErrorMessageNew(errorList, r, invalidSkuStoreDivErrorMessage);
+            }
+
+
+            // 5) size is the correct length (3 for size, 5 for caselot)
+            var uniqueSizeList = parsedRDQs.Select(pr => pr.Size).Distinct().ToList();
+            var invalidSizeList = uniqueSizeList.Where(sl => !sl.Length.Equals(3) && !sl.Length.Equals(5)).ToList();
+            parsedRDQs.Where(pr => invalidSizeList.Contains(pr.Size))
+                      .ToList()
+                      .ForEach(r =>
+                      {
+                          SetErrorMessageNew(errorList, r
+                          , string.Format("The size {0} has an incorrect format.", r.Size));
+                          parsedRDQs.Remove(r);
+                      });
+
+            var uniqueBinSkuSizeList = parsedRDQs.Where(pr => pr.Size.Length.Equals(3)).Select(pr => new { Sku = pr.Sku, Size = pr.Size }).Distinct().ToList();
+            var uniqueCaselotSizeList = parsedRDQs.Where(pr => pr.Size.Length.Equals(5)).Select(pr => new { Sku = pr.Sku, Size = pr.Size }).Distinct().ToList();
+            // check for bin sizes
+            var invalidBinSizes = uniqueBinSkuSizeList.Where(sl => !db.Sizes.Any(s => s.Sku.Equals(sl.Sku) && s.Size.Equals(sl.Size))).ToList();
+
+            parsedRDQs.Where(pr => invalidBinSizes.Contains(new { Sku = pr.Sku, Size = pr.Size }))
+                      .ToList()
+                      .ForEach(r =>
+                      {
+                          SetErrorMessageNew(errorList, r, string.Format("The bin size {0} could not be found in our system.", r.Size));
+                          parsedRDQs.Remove(r);
+                      });
+
+            // check for caselot schedules (need to rework)
+            foreach (var ucs in uniqueCaselotSizeList)
+            {
+                var isValid = (from ip in db.ItemPacks
+                               join im in db.ItemMasters
+                                 on ip.ItemID equals im.ID
+                               where ip.Name.Equals(ucs.Size) &&
+                                     im.MerchantSku.Equals(ucs.Sku)
+                              select ip).Any();
+                if (!isValid)
+                {
+                    parsedRDQs.Where(pr => pr.Sku.Equals(ucs.Sku) && pr.Size.Equals(ucs.Size)).ToList().ForEach(r =>
+                    {
+                        SetErrorMessageNew(errorList, r, string.Format("The caselot schedule {0} could not be found in our system.", r.Size));
+                        parsedRDQs.Remove(r);
+                    });
+                }
             }
 
             // 5) check to see if there was a supplied DC or RingFence
@@ -985,7 +1024,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 returnValue.Division = returnValue.Sku.Substring(0, 2);
             }
             returnValue.Store = Convert.ToString(mySheet.Cells[row, 0].Value).Trim().PadLeft(5, '0');
-            returnValue.Size = Convert.ToString(mySheet.Cells[row, 2].Value).Trim().PadLeft(3, '0');
+            returnValue.Size = Convert.ToString(mySheet.Cells[row, 2].Value).Trim();
             returnValue.Qty = Convert.ToInt32(mySheet.Cells[row, 3].Value);
             returnValue.DC = Convert.ToString(mySheet.Cells[row, 4].Value).Trim();
             returnValue.DC = (string.IsNullOrEmpty(returnValue.DC)) ? "" : returnValue.DC.PadLeft(2, '0');
