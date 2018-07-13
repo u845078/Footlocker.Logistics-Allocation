@@ -5,7 +5,7 @@
 
 <fieldset>
     <legend> RingFence Upload </legend>
-    Spreadsheet columns should be Div, Store, SKU, EndDate, PO, Warehouse, Size/Caselot, Qty,Comments.  <br />
+    Spreadsheet columns should be Div, Store, SKU, EndDate, PO, Warehouse, Size/Caselot, Qty, Comments.  <br />
     @Html.ActionLink("Download Template", "ExcelTemplate", new { }, new { @class = "t-button" })
     <br />
     <br />
@@ -27,7 +27,16 @@
         )
         <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
         <br />
-        <h4> <div id="message"></div> </h4>
+        <h4>
+            <div id="message">
+                @if (ViewData["errorMessage"] != null)
+                {
+                    <font color="red">
+                        @Html.Raw(Convert.ToString(ViewData["errorMessage"]))
+                    </font>
+                }
+            </div>
+        </h4>
 </fieldset>
 
 @Html.ActionLink("Back To List", "Index",null, new { @class="t-button"})
@@ -48,7 +57,7 @@
 
          function onError(e) {
              var message = e.XMLHttpRequest.responseText;
-             $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='DownloadErrors'>Download Errors</a>");
+             $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='DownloadErrorsNew'>Download Errors</a>");
 
              e.preventDefault();
          }

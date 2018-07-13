@@ -2101,8 +2101,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(new GridModel(updated));
         }
 
-        public ActionResult Upload()
+        public ActionResult Upload(string message)
         {
+            Session["errorMessage"] = message;
             return View();
         }
 
@@ -2801,6 +2802,96 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
+        public ActionResult DownloadErrorsNew()
+        {
+            var errorList = (List<Tuple<RingFenceUploadModelNew, string>>)Session["errorList"];
+            if (errorList != null)
+            {
+                Aspose.Excel.License license = new Aspose.Excel.License();
+                //Set the license
+                license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+                Excel excelDocument = new Excel();
+                Worksheet mySheet = excelDocument.Worksheets[0];
+                int col = 0;
+                mySheet.Cells[0, col].PutValue("Div (##)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("Store (#####)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("SKU (##-##-#####-##)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("EndDate (DD/MM/YYYY)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("PO (######)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("Warehouse (##)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("Size/Caselot (### or #####)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("Qty");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("Comments");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("Error");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+
+                int row = 1;
+                if (errorList != null && errorList.Count > 0)
+                {
+                    foreach (var error in errorList)
+                    {
+                        col = 0;
+                        mySheet.Cells[row, col].PutValue(error.Item1.Division);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.Store);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.Sku);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.EndDate);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.PO);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.DC);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.Size);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.Quantity);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.Comments);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item2);
+                        row++;
+                    }
+
+                    for (int i = 0; i < 10; i++)
+                    {
+                        mySheet.AutoFitColumn(i);
+                    }
+                }
+
+                excelDocument.Save("RingFences.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            }
+            else
+            {
+                // if this message is hit that means there was an exception while processing that was not accounted for
+                // check the log to see what the exception was
+                var message = "An unexpected error has occured.  Please try again or contact an administrator.";
+                return RedirectToAction("Upload", new { message = message });
+            }
+
+            return View();
+        }
+
         public ActionResult DownloadDeleteErrors()
         {
             List<RingFenceUploadModel> errors = (List<RingFenceUploadModel>)Session["errorList"];
@@ -2992,6 +3083,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     catch (Exception ex)
                     {
                         message = "Upload failed: One or more columns has unexpected missing or invalid data.";
+                        // clear out error list
+                        Session["errorList"] = null;
                         return Content(message);
                     }
                 }
