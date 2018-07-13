@@ -107,6 +107,215 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             return det;
         }
 
+        /// <summary>
+        /// Tuple is defined as such:
+        /// Item1 => Sku
+        /// Item2 => Size
+        /// Item3 => PO
+        /// Item4 => Warehouse ID
+        /// </summary>
+        /// <param name="uniqueCombos"></param>
+        /// <returns></returns>
+        public List<WarehouseAvailableInventory> GetFuturePOsNew(List<Tuple<string, string, string, string>> uniqueCombos)
+         {
+            List<Tuple<bool, string>> generatedSQLStatements = new List<Tuple<bool, string>>();
+            List<WarehouseAvailableInventory> returnValue = new List<WarehouseAvailableInventory>();
+
+            var futureSizes = uniqueCombos.Where(uc => uc.Item2.Length.Equals(3)).ToList();
+            var futureCaselots = uniqueCombos.Where(uc => uc.Item2.Length.Equals(5)).ToList();
+
+            if (futureSizes.Count > 0)
+            {
+                generatedSQLStatements = BuildFutureWarehouseAvailableQuery(futureSizes, true);
+                returnValue.AddRange(this.ExecuteFutureSQLandParseValues(generatedSQLStatements, true));
+            }
+
+            if (futureCaselots.Count > 0)
+            {
+                generatedSQLStatements = BuildFutureWarehouseAvailableQuery(futureCaselots, false);
+                returnValue.AddRange(this.ExecuteFutureSQLandParseValues(generatedSQLStatements, false));
+            }
+
+            return this.ReduceAvailableInventory(returnValue);
+        }
+
+        private List<WarehouseAvailableInventory> ExecuteFutureSQLandParseValues(List<Tuple<bool, string>> generatedSQLStatements, bool futureSizeCombos)
+        {
+            List<WarehouseAvailableInventory> returnValue = new List<WarehouseAvailableInventory>();
+            string parsedDivision, parsedDepartment, parsedStockNumber, parsedWidthColor, parsedSize, parsedPO, parsedDCID;
+            int parsedQuantity;
+            Database db = null;
+
+            foreach (var sqlStatement in generatedSQLStatements)
+            {
+                db = (sqlStatement.Item1) ? _databaseEurope : _database;
+                DbCommand SQLCommand = db.GetSqlStringCommand(sqlStatement.Item2);
+                DataSet returnedData = db.ExecuteDataSet(SQLCommand);
+
+                if (returnedData.Tables.Count > 0)
+                {
+                    foreach (DataRow dr in returnedData.Tables[0].Rows)
+                    {
+                        parsedDivision = Convert.ToString(dr["retl_oper_div_code"]);
+                        parsedDepartment = Convert.ToString(dr["stk_dept_num"]);
+                        parsedStockNumber = Convert.ToString(dr["stk_num"]);
+                        parsedWidthColor = Convert.ToString(dr["wdth_color_num"]);
+                        parsedSize = Convert.ToString(dr["stk_size_num"]);
+                        parsedPO = Convert.ToString(dr["po_num"]);
+                        parsedDCID = Convert.ToString(dr["whse_id_num"]);
+                        parsedQuantity = Convert.ToInt32(dr["quantity"]);
+
+                        returnValue.Add(new WarehouseAvailableInventory(parsedDivision, parsedDepartment, parsedStockNumber, 
+                                                                        parsedWidthColor, parsedSize, parsedDCID, parsedPO, parsedQuantity));
+                    }
+                }
+            }
+
+            return returnValue;
+        }
+
+        private List<Tuple<bool, string>> BuildFutureWarehouseAvailableQuery(List<Tuple<string, string, string, string>> uniqueCombos, bool futureSizeCombos)
+        {
+            List<Tuple<bool, string>> returnValue = new List<Tuple<bool, string>>();
+            StringBuilder builder = new StringBuilder();
+            string division, department, stockNumber, widthColor, whereConditionFormat, whereCondition, selectStatement, groupByStatement;
+            string europeDivision = System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"];
+
+            // this will create the select and where condition formats dependent if it is a size or caselot
+            if (futureSizeCombos)
+            {
+                // size combos come from table tkpod005 (solid detail)
+                selectStatement = @"select
+                                          wc.retl_oper_div_code
+                                        , wc.stk_dept_num
+                                        , wc.stk_num
+                                        , wc.wdth_color_num
+                                        , h.expected_delv_date
+                                        , h.retl_oper_div_code
+                                        , h.po_num
+                                        , wc.status_ind
+                                        , h.priority_code
+                                        , sd.whse_id_num
+                                        , rtrim(sd.stk_size_num) as stk_size_num
+                                        , SUM(sd.order_qty - sd.received_qty) as quantity
+                                   from TKPOD001 h, TKPOD003 wc, TKPOD005 sd
+                                  where ";
+                whereConditionFormat = @" (h.retl_oper_div_code = wc.retl_oper_div_code and
+                                           wc.retl_oper_div_code = sd.retl_oper_div_code and
+                                           h.po_num = wc.po_num and
+                                           wc.po_num = sd.po_num and
+                                           --wc.status_ind in (' ', 'P', 'R') and
+                                           wc.stk_dept_num = sd.stk_dept_num and
+                                           wc.stk_num = sd.stk_num and
+                                           wc.wdth_color_num = sd.wdth_color_num and
+                                           h.po_num = '{0}' and
+                                           h.retl_oper_div_code = '{1}' and
+                                           wc.stk_dept_num = '{2}' and
+                                           wc.stk_num = '{3}' and
+                                           wc.wdth_color_num = '{4}' and
+                                           sd.stk_size_num = '{5}' and
+                                           sd.whse_id_num = '{6}')";
+
+                groupByStatement = @"group by wc.retl_oper_div_code, wc.stk_dept_num, wc.stk_num, wc.wdth_color_num, h.expected_delv_date, h.retl_oper_div_code, h.po_num, wc.status_ind, h.priority_code, sd.whse_id_num, sd.stk_size_num";
+            }
+            else
+            {
+                // caselot combos come from table tkpod007
+                selectStatement = @"select
+                                          wc.retl_oper_div_code
+                                        , wc.stk_dept_num
+                                        , wc.stk_num
+                                        , wc.wdth_color_num
+                                        , h.expected_delv_date
+                                        , h.retl_oper_div_code
+                                        , h.po_num
+                                        , wc.status_ind
+                                        , h.priority_code
+                                        , rd.whse_id_num
+                                        , rd.caselot_number as stk_size_num
+                                        , sum(rd.order_qty - rd.received_qty) AS quantity
+                                   from TKPOD001 h, TKPOD003 wc, TKPOD007 rd
+                                  where ";
+                whereConditionFormat = @" (h.retl_oper_div_code = wc.retl_oper_div_code and
+                                           wc.retl_oper_div_code = rd.retl_oper_div_code and
+                                           h.po_num = wc.po_num and
+                                           wc.po_num = rd.po_num and
+                                           --wc.status_ind in (' ', 'P', 'R') and
+                                           wc.stk_dept_num = rd.stk_dept_num and
+                                           wc.stk_num = rd.stk_num and
+                                           wc.wdth_color_num = rd.wdth_color_num and
+                                           h.po_num = '{0}' and
+                                           h.retl_oper_div_code = '{1}' and
+                                           wc.stk_dept_num = '{2}' and
+                                           wc.stk_num = '{3}' and
+                                           wc.wdth_color_num = '{4}' and
+                                           rd.caselot_number = '{5}' and
+                                           rd.whse_id_num = '{6}')";
+
+                groupByStatement = "group by wc.retl_oper_div_code, wc.stk_dept_num, wc.stk_num, wc.wdth_color_num, h.expected_delv_date, h.retl_oper_div_code, h.po_num, wc.status_ind, h.priority_code, rd.whse_id_num, rd.caselot_number";
+            }
+
+            var europeCombos = uniqueCombos.Where(uc => europeDivision.Contains(uc.Item1.Split('-')[0])).ToList();
+            var nonEuropeCombos = uniqueCombos.Where(uc => !europeDivision.Contains(uc.Item1.Split('-')[0])).ToList();
+
+            if (europeCombos.Count > 0)
+            {
+                builder = builder.Clear();
+                builder.Append(selectStatement);
+                foreach (var combo in europeCombos)
+                {
+                    string[] skuTokens = combo.Item1.Split('-');
+                    division = skuTokens[0];
+                    department = skuTokens[1];
+                    stockNumber = skuTokens[2];
+                    widthColor = skuTokens[3];
+
+                    whereCondition = string.Format(whereConditionFormat, combo.Item3, division, department, stockNumber, widthColor, combo.Item2, combo.Item4);
+
+                    if (europeCombos.Last().Equals(combo))
+                    {
+                        builder.Append(whereCondition);
+                    }
+                    else
+                    {
+                        builder.Append(whereCondition + "OR");
+                    }
+                }
+                builder.Append(groupByStatement);
+                returnValue.Add(Tuple.Create(true, builder.ToString()));
+            }
+
+            if (nonEuropeCombos.Count > 0)
+            {
+                builder = builder.Clear();
+                builder.Append(selectStatement);
+                foreach (var combo in nonEuropeCombos)
+                {
+                    string[] skuTokens = combo.Item1.Split('-');
+                    division = skuTokens[0];
+                    department = skuTokens[1];
+                    stockNumber = skuTokens[2];
+                    widthColor = skuTokens[3];
+
+                    whereCondition = string.Format(whereConditionFormat, combo.Item3, division, department, stockNumber, widthColor, combo.Item2, combo.Item4);
+
+                    if (nonEuropeCombos.Last().Equals(combo))
+                    {
+                        builder.Append(whereCondition);
+                    }
+                    else
+                    {
+                        builder.Append(whereCondition + "OR");
+                    }
+                }
+
+                builder.Append(groupByStatement);
+                returnValue.Add(Tuple.Create(false, builder.ToString()));
+            }
+
+            return returnValue;
+        }
+
         public List<RingFenceDetail> GetFuturePOs(RingFence rf)
         {
             Database currDatabase=null;
@@ -252,9 +461,10 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 // if RFID = 0 then this is not a RF that is already in the DB
                 if (rf.ID != 0)
                 {
-                    if (rf.ringFenceDetails.Count() > 0)
+                    var ringfencedetails = db.RingFenceDetails.Where(rfd => rfd.RingFenceID.Equals(rf.ID)).ToList();
+                    if (ringfencedetails.Count > 0)
                     {
-                        foreach (RingFenceDetail rfd in rf.ringFenceDetails)
+                        foreach (RingFenceDetail rfd in ringfencedetails)
                         {
                             var newRow = data.Tables[0].AsEnumerable().Where(r => Convert.ToString(r["Size"]) == rfd.Size &&
                                                                                   Convert.ToString(r["InventoryID"]).Split('-')[0] == rfd.PO &&
@@ -335,6 +545,166 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             }
             else
                 return null;
+        }
+
+        /// <summary>
+        /// Will generate SQL to be executed on the mainframe to determine the quantities for unique sizes OR caselots passed.
+        /// </summary>
+        /// <param name="uniqueCombos">the unique combos to create the where condition of the select statement.</param>
+        /// <param name="sizeCombos">The boolean to determine if the unique combos are size combos are caselot combos.</param>
+        /// <returns>The generated SQL to be executed on the mainframe.</returns>
+        private string BuildWarehouseAvailableQuery(List<Tuple<string, string, string>> uniqueCombos, bool sizeCombos)
+        {
+            StringBuilder builder = new StringBuilder();
+            string division, department, stockNumber, widthColor, whereConditionFormat, whereCondition;
+
+            if (sizeCombos)
+            {
+                builder.Append("SELECT RETL_OPER_DIV_CD, STK_DEPT_NUM, STK_NUM, STK_WC_NUM, WHSE_ID_NUM, STK_SIZE_NUM, ALLOCATABLE_BS_QTY FROM TC052002 WHERE ");
+                whereConditionFormat = " (RETL_OPER_DIV_CD = '{0}' AND STK_DEPT_NUM = '{1}' AND STK_NUM = '{2}' AND STK_WC_NUM = '{3}' AND STK_SIZE_NUM = '{4}'";
+            }
+            else
+            {
+                builder.Append("SELECT RETL_OPER_DIV_CD, STK_DEPT_NUM, STK_NUM, STK_WC_NUM, WHSE_ID_NUM, CL_SCHED_NUM, ALLOCATABLE_CL_QTY FROM TC052010 WHERE ");
+                whereConditionFormat = " (RETL_OPER_DIV_CD = '{0}' AND STK_DEPT_NUM = '{1}' AND STK_NUM = '{2}' AND STK_WC_NUM = '{3}' AND CL_SCHED_NUM = '{4}'";
+            }
+
+            foreach (var combo in uniqueCombos)
+            {
+                // split sku into tokens delimited by the '-' symbol and store them locally
+                string[] skuTokens = combo.Item1.Split('-');
+                division = skuTokens[0];
+                department = skuTokens[1];
+                stockNumber = skuTokens[2];
+                widthColor = skuTokens[3];
+
+                whereCondition = string.Format(whereConditionFormat, division, department, stockNumber, widthColor, combo.Item2);
+
+                if (!string.IsNullOrEmpty(combo.Item3))
+                {
+                    whereCondition += string.Format(" AND WHSE_ID_NUM = '{0}')", combo.Item3);
+                }
+                else
+                {
+                    whereCondition += ")";
+                }
+
+                if (uniqueCombos.Last().Equals(combo))
+                {
+                    builder.Append(whereCondition);
+                }
+                else
+                {
+                    builder.Append(whereCondition + " OR");
+                }
+            }
+
+            return builder.ToString();
+        }
+
+        /// <summary>
+        /// Will execute the generated SQL and parse the values of returned from the mainframe.
+        /// </summary>
+        /// <param name="SQL">SQL to be executed.</param>
+        /// <param name="division">needed to grab the correct database for the mainframe.</param>
+        /// <param name="sizeCombos">To determine if this is a call to get the quantities for sizes or caselots (they come from two different tables).</param>
+        /// <returns>The parsed values from the mainframe.</returns>
+        private List<WarehouseAvailableInventory> ExecuteSQLAndParseValues(string SQL, string division, bool sizeCombos)
+        {
+            List<WarehouseAvailableInventory> returnValue = new List<WarehouseAvailableInventory>();
+            string parsedDivision, parsedDepartment, parsedStockNumber, parsedWidthColor, parsedSize, parsedDCID, quantityColumnName, sizeColumnName;
+            int parsedQuantity;
+            Database db = null;
+
+            db = (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(division)) ? _databaseEurope : _database;
+            if (sizeCombos)
+            {
+                quantityColumnName = "ALLOCATABLE_BS_QTY";
+                sizeColumnName = "STK_SIZE_NUM";
+            }
+            else
+            {
+                quantityColumnName = "ALLOCATABLE_CL_QTY";
+                sizeColumnName = "CL_SCHED_NUM";
+            }
+
+            DbCommand SQLCommand = db.GetSqlStringCommand(SQL);
+            DataSet returnedData = db.ExecuteDataSet(SQLCommand);
+            if (returnedData.Tables.Count > 0)
+            {
+                foreach (DataRow dr in returnedData.Tables[0].Rows)
+                {
+
+                    parsedDivision = Convert.ToString(dr["RETL_OPER_DIV_CD"]);
+                    parsedDepartment = Convert.ToString(dr["STK_DEPT_NUM"]);
+                    parsedStockNumber = Convert.ToString(dr["STK_NUM"]);
+                    parsedWidthColor = Convert.ToString(dr["STK_WC_NUM"]);
+                    parsedSize = Convert.ToString(dr[sizeColumnName]).PadLeft(3, '0');
+                    parsedQuantity = Convert.ToInt32(dr[quantityColumnName]);
+                    parsedDCID = Convert.ToString(dr["WHSE_ID_NUM"]);
+                    returnValue.Add(new WarehouseAvailableInventory(parsedDivision, parsedDepartment, parsedStockNumber, parsedWidthColor, parsedSize, parsedDCID, parsedQuantity));
+                }
+            }
+
+            return returnValue;
+        }
+
+        /// <summary>
+        /// Respective tuple values
+        /// Item1 => Sku
+        /// Item2 => Size
+        /// Item3 => DC (MF Distribution Center ID, different than Allocation's DCID)
+        /// </summary>
+        /// <param name="uniqueCombos"></param>
+        public List<WarehouseAvailableInventory> GetWarehouseAvailableNew(List<Tuple<string, string, string>> uniqueCombos)
+        {
+            List<WarehouseAvailableInventory> returnValue = new List<WarehouseAvailableInventory>();
+            string division = string.Empty, SQL = string.Empty;
+            var uniqueSizeCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(3)).ToList();
+            var uniqueCaselotCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(5)).ToList();
+
+            if (uniqueSizeCombos.Count > 0)
+            {
+                division = uniqueSizeCombos.Select(sc => sc.Item1.Split('-')[0]).FirstOrDefault();
+                SQL = this.BuildWarehouseAvailableQuery(uniqueSizeCombos, true);
+                returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, true));
+            }
+
+            if (uniqueCaselotCombos.Count > 0)
+            {
+                division = uniqueCaselotCombos.Select(sc => sc.Item1.Split('-')[0]).FirstOrDefault();
+                SQL = this.BuildWarehouseAvailableQuery(uniqueCaselotCombos, false);
+                returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, false));
+            }
+
+            // return the reduced available inventory
+            return this.ReduceAvailableInventory(returnValue);
+
+        }
+
+        private List<WarehouseAvailableInventory> ReduceAvailableInventory(List<WarehouseAvailableInventory> availableInventory)
+        {
+            int instanceID;
+            if (availableInventory.Count > 0)
+            {
+                foreach (var ai in availableInventory)
+                {
+                    instanceID = db.InstanceDivisions.Where(id => id.Division.Equals(ai.Division)).Select(id => id.InstanceID).FirstOrDefault();
+
+                    var inventoryReduction = db.InventoryReductions.Where(ir => ir.Sku.Equals(ai.Sku) &&
+                                                                                ir.Size.Equals(ai.Size) &&
+                                                                                ir.MFCode.Equals(ai.MFCode) &&
+                                                                                ir.PO.Equals(ai.PO) &&
+                                                                                ir.InstanceID.Equals(instanceID)).FirstOrDefault();
+                    if (inventoryReduction != null)
+                    {
+                        ai.Quantity -= inventoryReduction.Qty;
+                    }
+                }
+            }
+
+
+            return availableInventory;
         }
 
         /// <summary>

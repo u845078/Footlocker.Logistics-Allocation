@@ -16,7 +16,7 @@
         .Name("attachments")
         .Multiple(true)
         .Async(async => async
-            .Save("SaveRingFences", "RingFence")
+            .Save("SaveRingFencesOptimized", "RingFence")
             .AutoUpload(false))
             .ShowFileList(true)
         .ClientEvents(events => events
