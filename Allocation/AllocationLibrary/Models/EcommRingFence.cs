@@ -22,5 +22,25 @@ namespace Footlocker.Logistics.Allocation.Models
         public Int32 Qty { get; set; }
         public string EndDate { get; set; }
         public string Comments { get; set; }
+
+        public EcommRingFence()
+            : base()
+        {
+            this.Sku = string.Empty;
+            this.Size = string.Empty;
+            this.PO = string.Empty;
+            this.Qty = 0;
+            this.EndDate = string.Empty;
+            this.Comments = string.Empty;
+        }
+
+        public EcommRingFence(string sku, string size, string po, string comments)
+            : this()
+        {
+            this.Sku = sku;
+            this.Size = size;
+            this.PO = po;
+            this.Comments = comments;
+        }
     }
 }

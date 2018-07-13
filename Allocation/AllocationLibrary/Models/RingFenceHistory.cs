@@ -32,5 +32,46 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Action { get; set; }
         [NotMapped]
         public string Warehouse { get; set; }
+
+        public RingFenceHistory()
+            : base()
+        {
+            this.RingFenceID = 0;
+            this.Division = string.Empty;
+            this.Store = string.Empty;
+            this.Sku = string.Empty;
+            this.Size = string.Empty;
+            this.DCID = 0;
+            this.PO = string.Empty;
+            this.Qty = 0;
+            this.StartDate = DateTime.MinValue;
+            this.EndDate = DateTime.MinValue;
+            this.CreateDate = DateTime.MinValue;
+            this.CreatedBy = string.Empty;
+            this.Action = string.Empty;
+        }
+
+        public RingFenceHistory(long ringFenceID, string division, string store, string sku, int qty, DateTime? startDate, DateTime? endDate, DateTime createDate, string createdBy, string action)
+            : this()
+        {
+            this.RingFenceID = ringFenceID;
+            this.Division = division;
+            this.Store = store;
+            this.Sku = sku;
+            this.Qty = qty;
+            this.StartDate = startDate;
+            this.EndDate = endDate;
+            this.CreateDate = createDate;
+            this.CreatedBy = createdBy;
+            this.Action = action;
+        }
+
+        public RingFenceHistory(long ringFenceID, string division, string store, string sku, string size, int dcid, string po, int qty, DateTime? startDate, DateTime? endDate, DateTime createDate, string createdBy, string action)
+            : this(ringFenceID, division, store, sku, qty, startDate, endDate, createDate, createdBy, action)
+        {
+            this.Size = size;
+            this.DCID = dcid;
+            this.PO = po;
+        }
     }
 }
