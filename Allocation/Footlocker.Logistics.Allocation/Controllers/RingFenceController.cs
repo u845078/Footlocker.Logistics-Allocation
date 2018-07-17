@@ -2746,7 +2746,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
+            Worksheet mySheet = excelDocument.Worksheets[0];
             GenerateHeader(mySheet, 0, "Div (##)");
             GenerateHeader(mySheet, 1, "Store (#####)");
             GenerateHeader(mySheet, 2, "SKU (##-##-#####-##)");
@@ -2756,6 +2756,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
             GenerateHeader(mySheet, 6, "Size (### or #####)");
             GenerateHeader(mySheet, 7, "Qty");
             GenerateHeader(mySheet, 8, "Comments");
+
+            for (int i = 1; i < 10000; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    if (j != 7)
+                    {
+                        mySheet.Cells[i, j].Style.Number = 49;
+                    }
+                }
+            }
 
             excelDocument.Save("RingFenceUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();

@@ -469,6 +469,8 @@ namespace Footlocker.Logistics.Allocation.DAO
 
         public int SaveChangesBulk(string user)
         {
+            // hold inserted and modified records in separate list because once we savechanges, the entitystate
+            // will go from original state to "unchanged".
             // ringfencedetail records
             var insertedRingFenceDetails = this.ChangeTracker.Entries().Where(p => p.Entity is RingFenceDetail &&
                                                                                    p.State.Equals(System.Data.EntityState.Added)).ToList();
@@ -483,8 +485,26 @@ namespace Footlocker.Logistics.Allocation.DAO
             var modifiedRingFences = this.ChangeTracker.Entries().Where(p => p.Entity is RingFence &&
                                                                              p.State.Equals(System.Data.EntityState.Modified)).ToList();
 
+            
             // First off, save data before auditing so we can reference primary key IDs between ringfences and ringfencedetails
-            base.SaveChanges();
+            try
+            {
+                base.SaveChanges();
+            }
+            catch (System.Data.Entity.Validation.DbEntityValidationException ex)
+            {
+                string exceptionMessage = string.Empty;
+                foreach (var err in ex.EntityValidationErrors)
+                {
+                    foreach (var verr in err.ValidationErrors)
+                    {
+                        exceptionMessage += string.Format("{0}{1}: {2}.", err.ValidationErrors.Last().Equals(verr) ? "" : "  ", verr.PropertyName, verr.ErrorMessage);
+                    }
+                }
+
+                throw new Exception(exceptionMessage);
+            }
+            
 
             // find ringfence records that locally correlate to ringfencedetail records in order to save db call time
             // ringfencedetails casted to concrete type so we can compare ids for existing ring fence headers
