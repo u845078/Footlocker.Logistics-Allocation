@@ -204,7 +204,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                            wc.retl_oper_div_code = sd.retl_oper_div_code and
                                            h.po_num = wc.po_num and
                                            wc.po_num = sd.po_num and
-                                           --wc.status_ind in (' ', 'P', 'R') and
+                                           wc.status_ind in (' ', 'P', 'R') and
                                            wc.stk_dept_num = sd.stk_dept_num and
                                            wc.stk_num = sd.stk_num and
                                            wc.wdth_color_num = sd.wdth_color_num and
@@ -240,7 +240,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                            wc.retl_oper_div_code = rd.retl_oper_div_code and
                                            h.po_num = wc.po_num and
                                            wc.po_num = rd.po_num and
-                                           --wc.status_ind in (' ', 'P', 'R') and
+                                           wc.status_ind in (' ', 'P', 'R') and
                                            wc.stk_dept_num = rd.stk_dept_num and
                                            wc.stk_num = rd.stk_num and
                                            wc.wdth_color_num = rd.wdth_color_num and

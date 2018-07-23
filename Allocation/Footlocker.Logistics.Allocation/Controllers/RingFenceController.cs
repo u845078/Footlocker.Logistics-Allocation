@@ -3082,10 +3082,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 var errors = errorList.Except(warnings).ToList();
                                 
                                 string errorMessage = string.Format(
-                                    "{0} warnings and {1} errors were found. {2} lines were processed successfully."
+                                    "{2} lines were processed successfully. {0} warnings and {1} errors were found."
+                                    , validRFs.Count
                                     , warnings.Count
-                                    , errors.Count
-                                    , validRFs.Count);
+                                    , errors.Count);
                                 Session["errorList"] = errorList;
                                 return Content(errorMessage);
                             }
@@ -3101,7 +3101,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
             message = string.Format("Success! {0} lines were processed.", validRFs.Count);
-            return Json(new { successMessage = message }, "application/json");
+            return Json(new { message = message }, "application/json");
         }
 
         private void CreateOrUpdateRingFencesNew(List<RingFenceUploadModelNew> validRFs, List<Tuple<RingFenceUploadModelNew, string>> errorList)
@@ -3499,6 +3499,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                      .GroupBy(pr => new { Sku = pr.Sku, PO = pr.PO, Size = pr.Size, DC = pr.DC })
                                                      .Select(pr => new { Sku = pr.Key.Sku, PO = pr.Key.PO, Size = pr.Key.Size, DC = pr.Key.DC, Quantity = pr.Sum(rf => rf.Quantity) })
                                                      .ToList();
+
+            var nonExistentCombo = uniqueFutureCombosGrouped.Where(ucg => !details.Any(d => d.Sku.Equals(ucg.Sku) &&
+                                                                                                  d.PO.Equals(ucg.PO) &&
+                                                                                                  d.Size.Equals(ucg.Size) &&
+                                                                                                  d.MFCode.Equals(ucg.DC))).ToList();
+
+            foreach (var nec in nonExistentCombo)
+            {
+                var futureRFsToDelete = parsedRFs.Where(pr => pr.Sku.Equals(nec.Sku) &&
+                                                              pr.PO.Equals(nec.PO) &&
+                                                              pr.Size.Equals(nec.Size) &&
+                                                              pr.DC.Equals(nec.DC)).ToList();
+
+                futureRFsToDelete.ForEach(r =>
+                {
+                    SetErrorMessage(errorList, r, "Could not find any quantity within the system");
+                    parsedRFs.Remove(r);
+                });
+            }
 
             // summed quantity > mainframe quantity (details)
             var invalidFutureCombos = (from r in uniqueFutureCombosGrouped
