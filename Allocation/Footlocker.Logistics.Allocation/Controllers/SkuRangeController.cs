@@ -85,15 +85,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private List<RangePlan> GetRangesForUser()
         {
-            List<string> divs = (from a in Divisions() select a.DivCode).ToList();
-            List<string> temp = new List<String>();
+            //List<string> divs = (from a in Divisions() select a.DivCode).ToList();
+            //List<string> temp = new List<String>();
 
-            foreach (string div in divs)
-            {
-                temp.AddRange((from a in WebSecurityService.ListUserDepartments(UserName, "Allocation", div) select div + '-' + a.DeptNumber).ToList());
-            }
+            var udivdeptrps = db.RangePlans.Select(rp => new { Division = rp.Sku.Substring(0, 2), Dept = rp.Sku.Substring(3, 2) }).Distinct().ToList();
+            var depts = this.Departments().ToList();
 
-            List<RangePlan> model = db.RangePlans.Include("ItemMaster").Where(u => temp.Contains(u.Sku.Substring(0, 5))).OrderBy(a => a.Sku).ToList();
+            var rpsforUser = (from dp in depts
+                              join rp in udivdeptrps
+                                on new { Div = dp.DivCode, Dept = dp.DeptNumber } equals
+                                   new { Div = rp.Division, Dept = rp.Dept }
+                              select rp.Division + "-" + rp.Dept).ToList();
+
+            db.Configuration.AutoDetectChangesEnabled = false;
+            db.Configuration.LazyLoadingEnabled = false;
+            db.Configuration.ProxyCreationEnabled = false;
+            db.Configuration.ValidateOnSaveEnabled = false;
+
+            var model = db.RangePlans.Where(r => rpsforUser.Contains(r.Sku.Substring(0, 5))).OrderBy(a => a.Sku).ToList();
+
+            //List<RangePlan> model = db.RangePlans.Where(u => depts.Contains(u.Sku.Substring(0, 5))).OrderBy(a => a.Sku).ToList();
             return model;
         }
 
@@ -3602,12 +3613,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Region")) &&
                         (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Store")) &&
                         (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Sku")) &&
-                        (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Size"))
-                        && (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Range Start Date")) &&
-                        (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Delivery Group Name"))
-                        && (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Min")) &&
-                        (Convert.ToString(mySheet.Cells[0, 9].Value).Contains("Max"))
-                        && (Convert.ToString(mySheet.Cells[0, 10].Value).Contains("Base Demand")) &&
+                        (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Size")) &&
+                        (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Range Start Date")) &&
+                        (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Delivery Group Name")) &&
+                        (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Min")) &&
+                        (Convert.ToString(mySheet.Cells[0, 9].Value).Contains("Max")) &&
+                        (Convert.ToString(mySheet.Cells[0, 10].Value).Contains("Base Demand")) &&
                         (Convert.ToString(mySheet.Cells[0, 11].Value).Contains("Min End Date")) &&
                         (Convert.ToString(mySheet.Cells[0, 12].Value).Contains("End Date"))
                         )
