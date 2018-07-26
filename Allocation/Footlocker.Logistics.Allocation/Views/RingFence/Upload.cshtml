@@ -63,8 +63,8 @@
          }
 
          function onSuccess(e) {
-             var message = e.XMLHttpRequest.responseText;
-             $('#message').empty().append("<font color='red'>Success</font>");
+             var message = e.response.message;
+             $('#message').empty().append("<font color='red'>" + message + "</font>");
 
              e.preventDefault();
          }
