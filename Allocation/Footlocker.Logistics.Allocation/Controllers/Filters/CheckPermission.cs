@@ -14,7 +14,7 @@ namespace System.Web.Mvc
     {
         public string Roles { get; set; }
 
-        /// TODO:  Set "DefaultApplication" to your application name
+        
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             bool ok = false;

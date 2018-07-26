@@ -33,6 +33,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         //
         // GET: /MandatoryCrossdock/
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Admin,Support")]
         public ActionResult Index()
         {
             List<MandatoryCrossdock> model = GetMandatoryCrossdocksForUser();
