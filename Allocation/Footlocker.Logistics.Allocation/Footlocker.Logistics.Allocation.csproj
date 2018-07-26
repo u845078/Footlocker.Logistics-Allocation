@@ -756,8 +756,6 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>57766</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>
-          </IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

@@ -11,10 +11,11 @@
         @if (hasEditRole)
         {
             @Html.ActionLink("Create New", "Create", null, new { @class = "t-button" })
+            @Html.ActionLink("Upload", "Upload", "SkuAttribute", null, new { @class = "t-button" })
         }
         @*<button type="button" class="t-button" onclick="exportSelected()">Export All</button>*@
 
-        @Html.ActionLink("Upload", "Upload", "SkuAttribute", null, new { @class = "t-button" })
+
     </p>
     @*<table>
             <tr>
