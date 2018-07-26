@@ -34,12 +34,13 @@ namespace Footlocker.Logistics.Allocation.Models
             this.Comments = string.Empty;
         }
 
-        public EcommRingFence(string sku, string size, string po, string comments)
+        public EcommRingFence(string sku, string size, string po, int qty, string comments)
             : this()
         {
             this.Sku = sku;
             this.Size = size;
             this.PO = po;
+            this.Qty = qty;
             this.Comments = comments;
         }
     }

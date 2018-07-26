@@ -2890,7 +2890,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                 }
 
-                excelDocument.Save("RingFences.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                excelDocument.Save("RingFenceUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             }
             else
             {
@@ -3082,7 +3082,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 var errors = errorList.Except(warnings).ToList();
                                 
                                 string errorMessage = string.Format(
-                                    "{2} lines were processed successfully. {0} warnings and {1} errors were found."
+                                    "{0} lines were processed successfully. {1} warnings and {2} errors were found."
                                     , validRFs.Count
                                     , warnings.Count
                                     , errors.Count);
@@ -3100,7 +3100,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                 }
             }
-            message = string.Format("Success! {0} lines were processed.", validRFs.Count);
+            message = string.Format("Success! {0} lines were processed.", ecommRFs.Count + validRFs.Count);
             return Json(new { message = message }, "application/json");
         }
 
@@ -3178,7 +3178,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                      join ip in db.ItemPacks
                                        on new { Name = uic.Name, ItemID = uic.ItemID } equals 
                                           new { Name = ip.Name, ItemID = ip.ItemID }
-                                   select ip).ToList();
+                                   select ip).Distinct().ToList();
 
 
 
@@ -3198,6 +3198,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 rf.Sku = grf.Sku;
                 rf.ItemID = skuItemIDMapping.Where(r => r.Sku.Equals(rf.Sku)).Select(r => r.ItemID).FirstOrDefault();
                 rf.StartDate = divisionControlDateMapping.Where(cd => cd.Division.Equals(rf.Division)).Select(cd => cd.RunDate).FirstOrDefault().AddDays(1);
+                rf.Comments = (grf.Details.FirstOrDefault()) == null ? "" : grf.Details.FirstOrDefault().Comments;
                 rf.CreateDate = DateTime.Now;
                 rf.CreatedBy = User.Identity.Name;
                 rf.LastModifiedDate = DateTime.Now;
@@ -3282,7 +3283,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 }
                 db.Entry(erf).State = System.Data.EntityState.Modified;
-                this.CalculateHeaderQty(uniqueCaselotQtys, erf.ringFenceDetails);
+                erf.Qty = this.CalculateHeaderQty(uniqueCaselotQtys, erf.ringFenceDetails);
             }
 
             // save the changes for the already existing ringfences
@@ -3428,7 +3429,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                      .ToList()
                      .ForEach(pr =>
                      {
-                         ecommRFs.Add(new EcommRingFence(pr.Sku, pr.Size, pr.PO, pr.Comments));
+                         ecommRFs.Add(new EcommRingFence(pr.Sku, pr.Size, pr.PO, pr.Quantity, pr.Comments));
                          parsedRFs.Remove(pr);
                      });
 
@@ -3472,17 +3473,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                               on new { Sku = rf.Sku, Size = rf.Size, DC = rf.DC } equals
                                                  new { Sku = d.Sku, Size = d.Size, DC = d.MFCode }
                                             where rf.Quantity > d.Quantity
-                                           select rf).ToList();
+                                           select Tuple.Create(rf, d.Quantity)).ToList();
 
             foreach (var rf in invalidRingFenceQuantity)
             {
-                var rfsToDelete = parsedRFs.Where(pr => pr.Sku.Equals(rf.Sku) &&
-                                                        pr.Size.Equals(rf.Size) &&
-                                                        pr.DC.Equals(rf.DC)).ToList();
+                var rfsToDelete = parsedRFs.Where(pr => pr.Sku.Equals(rf.Item1.Sku) &&
+                                                        pr.Size.Equals(rf.Item1.Size) &&
+                                                        pr.DC.Equals(rf.Item1.DC)).ToList();
                 rfsToDelete.ForEach(drf =>
                 {
                     SetErrorMessage(errorList, drf
-                        , string.Format("Not enough inventory available for all sizes.  Available inventory: {0}", drf.Quantity));
+                        , string.Format("Not enough inventory available for all sizes.  Available inventory: {0}", rf.Item2));
                     parsedRFs.Remove(drf);
                 });
             }
