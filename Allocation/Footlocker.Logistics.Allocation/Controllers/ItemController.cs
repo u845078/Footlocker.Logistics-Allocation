@@ -4,7 +4,6 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Aspose.Excel;
-using Footlocker.Common;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Models.Services;
@@ -50,19 +49,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        
-        private bool HasEditRole()
-        {
-            string checkroles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning";
-            string[] roles = checkroles.Split(new char[] { ',' });
-            bool? ok = WebSecurityService.UserHasRole(UserName, "Allocation", roles);
-            return ok ?? false;
 
-
-        }
-
-        
-        [CheckPermission(Roles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning,TroubleShootingReadOnly")]
+        [CheckPermission(Roles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning")]
         public ActionResult Troubleshoot(string sku)
         {
             TroubleshootModel model = new TroubleshootModel();
@@ -73,21 +61,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.Sku = sku;
                 UpdateTroubleShootModel(model);
             }
-            
-
             return View(model);
         }
 
-        
         [HttpPost]
         public ActionResult Troubleshoot(TroubleshootModel model)
         {
-            if (HasEditRole())
-                ViewBag.HasEditRole = true;
-            else
-                ViewBag.HasEditRole = false;
-
             UpdateTroubleShootModel(model);
+
             SetDCs(model);
             return View(model);
         }

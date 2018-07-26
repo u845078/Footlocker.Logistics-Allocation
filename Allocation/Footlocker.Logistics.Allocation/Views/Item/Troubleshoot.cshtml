@@ -336,14 +336,7 @@
     <fieldset>
         <legend>Sku Range Plans</legend>
         <p>
-            @*I pasted this code from another page*@
-            
-            @if (ViewBag.HasEditRole)
-            {
-                Html.ActionLink("Create New Range Plan", "CreateRangePlan", "SkuRange", null, new { @class = "t-button" });
-            }
-            
-            
+            @Html.ActionLink("Create New Range Plan", "CreateRangePlan", "SkuRange", null, new { @class = "t-button" })
         </p>
         @(Html.Telerik().Grid(Model.RangePlans)
                     .Name("SkuRangeGrid")
@@ -361,22 +354,19 @@
                         columns.Bound(o => o.CreateDate).Width(10);
                         columns.Bound(o => o.UpdateDate).Width(10);
                         columns.Bound(o => o.UpdatedBy).Width(100);
-                        if (ViewBag.HasEditRole)
+                        columns.Command(commands =>
                         {
-                            columns.Command(commands =>
-                            {
-                                commands
-                                .Custom("Stores")
-                                .Text("Stores")
-                                .Ajax(false)
-                                .Action("EditStores", "SkuRange");
-                                commands
-                                .Custom("PresentationQuantities")
-                                .Text("Details")
-                                .Ajax(false)
-                                .Action("PresentationQuantities", "SkuRange");
-                            }).HtmlAttributes(new { style = "text-align: left" }).Width(200);
-                        }
+                            commands
+                            .Custom("Stores")
+                            .Text("Stores")
+                            .Ajax(false)
+                            .Action("EditStores", "SkuRange");
+                            commands
+                            .Custom("PresentationQuantities")
+                            .Text("Details")
+                            .Ajax(false)
+                            .Action("PresentationQuantities", "SkuRange");
+                        }).HtmlAttributes(new { style = "text-align: left" }).Width(200);
                     })
 
 
@@ -396,14 +386,9 @@
 
 <fieldset>
     <legend>POs</legend>
-    <p>
-        @if (ViewBag.HasEditRole)
-        {
-            Html.ActionLink("Create PO Override", "Create", "OverridePO", new { div = Model.Division }, new { @class = "t-button" });
-
-            Html.ActionLink("Create SKU Override", "CreateAllPOsForSku", "OverridePO", new { div = Model.Division }, new { @class = "t-button" });
-        }
-
+    <p>@Html.ActionLink("Create PO Override", "Create", "OverridePO", new { div = Model.Division }, new { @class = "t-button" })
+    
+       @Html.ActionLink("Create SKU Override", "CreateAllPOsForSku", "OverridePO", new { div = Model.Division }, new { @class = "t-button" })
     </p>
     @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.ExistingPO>()
         .Name("ExistingPO")
@@ -442,10 +427,7 @@
     )
 </fieldset><fieldset>
     <legend>Ring Fences</legend>
-    <p>
-        @if (ViewBag.HasEditRole)
-            {Html.ActionLink("Create Ring Fence", "Create", "RingFence", null, new { @class = "t-button" });}
-    </p>
+    <p>@Html.ActionLink("Create Ring Fence", "Create", "RingFence", null, new { @class = "t-button" })</p>
 
     @(Html.Telerik().TabStrip()
             .Name("TabStrip")
