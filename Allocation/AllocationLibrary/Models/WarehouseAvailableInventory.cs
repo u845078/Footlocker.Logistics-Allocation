@@ -15,6 +15,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public string MFCode { get; set; }
         public string PO { get; set; }
         public int Quantity { get; set; }
+        public int PickReserveQuantity { get; set; }
         public string Sku
         {
             get
@@ -54,6 +55,13 @@ namespace Footlocker.Logistics.Allocation.Models
             : this(division, department, stockNumber, widthColor, size, distributionCenterID, quantity)
         {
             this.PO = po;
+        }
+
+        public WarehouseAvailableInventory(string division, string department, string stockNumber
+                                           , string widthColor, string size, string distributionCenterID, int quantity, int pickReserve)
+            : this(division, department, stockNumber, widthColor, size, distributionCenterID, quantity)
+        {
+            this.PickReserveQuantity = pickReserve;
         }
 
         

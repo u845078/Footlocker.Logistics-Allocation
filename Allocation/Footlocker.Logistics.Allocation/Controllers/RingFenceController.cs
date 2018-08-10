@@ -3078,12 +3078,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             // if errors occured, allow user to download them
                             if (errorList.Count > 0)
                             {
+                                var successfulCount = validRFs.Count + ecommRFs.Count;
                                 var warnings = errorList.Where(el => el.Item2.StartsWith("Warning")).ToList();
                                 var errors = errorList.Except(warnings).ToList();
                                 
                                 string errorMessage = string.Format(
                                     "{0} lines were processed successfully. {1} warnings and {2} errors were found."
-                                    , validRFs.Count
+                                    , successfulCount
                                     , warnings.Count
                                     , errors.Count);
                                 Session["errorList"] = errorList;
@@ -3269,6 +3270,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         foreach (var neDetail in nonExistingDetails)
                         {
                             RingFenceDetail rfd = new RingFenceDetail();
+                            rfd.RingFenceID = erf.ID;
                             rfd.DCID = dcidMapping.Where(dc => neDetail.DC.Equals(dc.MFCode)).Select(dc => dc.DCID).FirstOrDefault();
                             rfd.PO = neDetail.PO;
                             rfd.Size = neDetail.Size;
@@ -3278,12 +3280,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             rfd.LastModifiedDate = DateTime.Now;
                             rfd.LastModifiedUser = User.Identity.Name;
                             erf.ringFenceDetails.Add(rfd);
+                            db.Entry(rfd).State = System.Data.EntityState.Added;
                         }
                     }
 
                 }
                 db.Entry(erf).State = System.Data.EntityState.Modified;
                 erf.Qty = this.CalculateHeaderQty(uniqueCaselotQtys, erf.ringFenceDetails);
+                erf.Comments = groupedRF.Details.FirstOrDefault().Comments;
             }
 
             // save the changes for the already existing ringfences
@@ -3429,14 +3433,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
                      .ToList()
                      .ForEach(pr =>
                      {
-                         ecommRFs.Add(new EcommRingFence(pr.Sku, pr.Size, pr.PO, pr.Quantity, pr.Comments));
+                         if (!errorList.Any(err => err.Item1.Equals(pr)))
+                         {
+                             ecommRFs.Add(new EcommRingFence(pr.Sku, pr.Size, pr.PO, pr.Quantity, pr.Comments));
+                         }
                          parsedRFs.Remove(pr);
                      });
 
             // 10) division / store combination is valid
-            var uniqueDivStoreList = parsedRFs.Select(pr => new { pr.Division, pr.Store }).Distinct().ToList();
+            var uniqueDivStoreList = parsedRFs.Select(pr => new { pr.Division, pr.Store }).Where(pr => !string.IsNullOrEmpty(pr.Store)).Distinct().ToList();
             var invalidDivStoreList = uniqueDivStoreList.Where(ds => !db.vValidStores.Any(vs => vs.Store.Equals(ds.Store) && vs.Division.Equals(ds.Division))).ToList();
-            parsedRFs.Where(pr => invalidDivStoreList.Contains(new { pr.Division, pr.Store }))
+            parsedRFs.Where(pr => invalidDivStoreList.Contains(new { pr.Division, pr.Store }) && !string.IsNullOrEmpty(pr.Store))
                      .ToList()
                      .ForEach(rf =>
                      {
@@ -3461,7 +3468,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             // unique combos excluding ringfences with POs (available)
             uniqueCombos = parsedRFs.Where(pr => string.IsNullOrEmpty(pr.PO)).Select(pr => Tuple.Create(pr.Sku, pr.Size, pr.DC)).Distinct().ToList();
-            List<WarehouseAvailableInventory> details = rfDAO.GetWarehouseAvailableNew(uniqueCombos);
+            List<WarehouseInventory> details = rfDAO.GetWarehouseAvailableNew(uniqueCombos);
 
             // unique non-future combos with summed quantity
             var uniqueRFsGrouped = parsedRFs.GroupBy(pr => new { Sku = pr.Sku, Size = pr.Size, DC = pr.DC })
@@ -3471,9 +3478,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             var invalidRingFenceQuantity = (from rf in uniqueRFsGrouped
                                             join d in details
                                               on new { Sku = rf.Sku, Size = rf.Size, DC = rf.DC } equals
-                                                 new { Sku = d.Sku, Size = d.Size, DC = d.MFCode }
-                                            where rf.Quantity > d.Quantity
-                                           select Tuple.Create(rf, d.Quantity)).ToList();
+                                                 new { Sku = d.Sku, Size = d.size, DC = d.DistributionCenterID }
+                                            where rf.Quantity > d.totalAvailableQuantity
+                                           select Tuple.Create(rf, d.totalAvailableQuantity)).ToList();
 
             foreach (var rf in invalidRingFenceQuantity)
             {
@@ -3503,8 +3510,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             var nonExistentCombo = uniqueFutureCombosGrouped.Where(ucg => !details.Any(d => d.Sku.Equals(ucg.Sku) &&
                                                                                                   d.PO.Equals(ucg.PO) &&
-                                                                                                  d.Size.Equals(ucg.Size) &&
-                                                                                                  d.MFCode.Equals(ucg.DC))).ToList();
+                                                                                                  d.size.Equals(ucg.Size) &&
+                                                                                                  d.DistributionCenterID.Equals(ucg.DC))).ToList();
 
             foreach (var nec in nonExistentCombo)
             {
@@ -3524,9 +3531,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             var invalidFutureCombos = (from r in uniqueFutureCombosGrouped
                                        join d in details
                                          on new { Sku = r.Sku, PO = r.PO, Size = r.Size, DC = r.DC }
-                                     equals new { Sku = d.Sku, PO = d.PO, Size = d.Size, DC = d.MFCode }
-                                      where r.Quantity > d.Quantity
-                                     select Tuple.Create(r, d.Quantity)).ToList();
+                                     equals new { Sku = d.Sku, PO = d.PO, Size = d.size, DC = d.DistributionCenterID }
+                                      where r.Quantity > d.quantity
+                                     select Tuple.Create(r, d.quantity)).ToList();
 
             foreach (var r in invalidFutureCombos)
             {

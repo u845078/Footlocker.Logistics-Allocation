@@ -116,10 +116,10 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         /// </summary>
         /// <param name="uniqueCombos"></param>
         /// <returns></returns>
-        public List<WarehouseAvailableInventory> GetFuturePOsNew(List<Tuple<string, string, string, string>> uniqueCombos)
+        public List<WarehouseInventory> GetFuturePOsNew(List<Tuple<string, string, string, string>> uniqueCombos)
          {
             List<Tuple<bool, string>> generatedSQLStatements = new List<Tuple<bool, string>>();
-            List<WarehouseAvailableInventory> returnValue = new List<WarehouseAvailableInventory>();
+            List<WarehouseInventory> returnValue = new List<WarehouseInventory>();
 
             var futureSizes = uniqueCombos.Where(uc => uc.Item2.Length.Equals(3)).ToList();
             var futureCaselots = uniqueCombos.Where(uc => uc.Item2.Length.Equals(5)).ToList();
@@ -136,12 +136,12 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 returnValue.AddRange(this.ExecuteFutureSQLandParseValues(generatedSQLStatements, false));
             }
 
-            return this.ReduceAvailableInventory(returnValue);
+            return returnValue;
         }
 
-        private List<WarehouseAvailableInventory> ExecuteFutureSQLandParseValues(List<Tuple<bool, string>> generatedSQLStatements, bool futureSizeCombos)
+        private List<WarehouseInventory> ExecuteFutureSQLandParseValues(List<Tuple<bool, string>> generatedSQLStatements, bool futureSizeCombos)
         {
-            List<WarehouseAvailableInventory> returnValue = new List<WarehouseAvailableInventory>();
+            List<WarehouseInventory> returnValue = new List<WarehouseInventory>();
             string parsedDivision, parsedDepartment, parsedStockNumber, parsedWidthColor, parsedSize, parsedPO, parsedDCID;
             int parsedQuantity;
             Database db = null;
@@ -164,9 +164,9 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                         parsedPO = Convert.ToString(dr["po_num"]);
                         parsedDCID = Convert.ToString(dr["whse_id_num"]);
                         parsedQuantity = Convert.ToInt32(dr["quantity"]);
+                        string sku = string.Format("{0}-{1}-{2}-{3}", parsedDivision, parsedDepartment, parsedStockNumber, parsedWidthColor);
 
-                        returnValue.Add(new WarehouseAvailableInventory(parsedDivision, parsedDepartment, parsedStockNumber, 
-                                                                        parsedWidthColor, parsedSize, parsedDCID, parsedPO, parsedQuantity));
+                        returnValue.Add(new WarehouseInventory(sku, parsedSize, parsedDCID, parsedPO, parsedQuantity));
                     }
                 }
             }
@@ -204,7 +204,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                            wc.retl_oper_div_code = sd.retl_oper_div_code and
                                            h.po_num = wc.po_num and
                                            wc.po_num = sd.po_num and
-                                           wc.status_ind in (' ', 'P', 'R') and
+                                           --wc.status_ind in (' ', 'P', 'R') and
                                            wc.stk_dept_num = sd.stk_dept_num and
                                            wc.stk_num = sd.stk_num and
                                            wc.wdth_color_num = sd.wdth_color_num and
@@ -560,12 +560,12 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
             if (sizeCombos)
             {
-                builder.Append("SELECT RETL_OPER_DIV_CD, STK_DEPT_NUM, STK_NUM, STK_WC_NUM, WHSE_ID_NUM, STK_SIZE_NUM, ALLOCATABLE_BS_QTY FROM TC052002 WHERE ");
+                builder.Append("SELECT RETL_OPER_DIV_CD, STK_DEPT_NUM, STK_NUM, STK_WC_NUM, WHSE_ID_NUM, STK_SIZE_NUM, ALLOCATABLE_BS_QTY, PICK_RSRV_BS_QTY FROM TC052002 WHERE ");
                 whereConditionFormat = " (RETL_OPER_DIV_CD = '{0}' AND STK_DEPT_NUM = '{1}' AND STK_NUM = '{2}' AND STK_WC_NUM = '{3}' AND STK_SIZE_NUM = '{4}'";
             }
             else
             {
-                builder.Append("SELECT RETL_OPER_DIV_CD, STK_DEPT_NUM, STK_NUM, STK_WC_NUM, WHSE_ID_NUM, CL_SCHED_NUM, ALLOCATABLE_CL_QTY FROM TC052010 WHERE ");
+                builder.Append("SELECT RETL_OPER_DIV_CD, STK_DEPT_NUM, STK_NUM, STK_WC_NUM, WHSE_ID_NUM, CL_SCHED_NUM, ALLOCATABLE_CL_QTY, PICK_RSRV_CL_QTY FROM TC052010 WHERE ");
                 whereConditionFormat = " (RETL_OPER_DIV_CD = '{0}' AND STK_DEPT_NUM = '{1}' AND STK_NUM = '{2}' AND STK_WC_NUM = '{3}' AND CL_SCHED_NUM = '{4}'";
             }
 
@@ -609,22 +609,24 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         /// <param name="division">needed to grab the correct database for the mainframe.</param>
         /// <param name="sizeCombos">To determine if this is a call to get the quantities for sizes or caselots (they come from two different tables).</param>
         /// <returns>The parsed values from the mainframe.</returns>
-        private List<WarehouseAvailableInventory> ExecuteSQLAndParseValues(string SQL, string division, bool sizeCombos)
+        private List<WarehouseInventory> ExecuteSQLAndParseValues(string SQL, string division, bool sizeCombos)
         {
-            List<WarehouseAvailableInventory> returnValue = new List<WarehouseAvailableInventory>();
-            string parsedDivision, parsedDepartment, parsedStockNumber, parsedWidthColor, parsedSize, parsedDCID, quantityColumnName, sizeColumnName;
-            int parsedQuantity;
+            List<WarehouseInventory> returnValue = new List<WarehouseInventory>();
+            string parsedDivision, parsedDepartment, parsedStockNumber, parsedWidthColor, parsedSize, parsedDCID, allocatableQuantityColumnName, sizeColumnName, pickReserveColumnName;
+            int parsedAllocatableQuantity, parsedPickReserveQuantity;
             Database db = null;
 
             db = (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(division)) ? _databaseEurope : _database;
             if (sizeCombos)
             {
-                quantityColumnName = "ALLOCATABLE_BS_QTY";
+                allocatableQuantityColumnName = "ALLOCATABLE_BS_QTY";
+                pickReserveColumnName = "PICK_RSRV_BS_QTY";
                 sizeColumnName = "STK_SIZE_NUM";
             }
             else
             {
-                quantityColumnName = "ALLOCATABLE_CL_QTY";
+                allocatableQuantityColumnName = "ALLOCATABLE_CL_QTY";
+                pickReserveColumnName = "PICK_RSRV_CL_QTY";
                 sizeColumnName = "CL_SCHED_NUM";
             }
 
@@ -640,9 +642,11 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                     parsedStockNumber = Convert.ToString(dr["STK_NUM"]);
                     parsedWidthColor = Convert.ToString(dr["STK_WC_NUM"]);
                     parsedSize = Convert.ToString(dr[sizeColumnName]).PadLeft(3, '0');
-                    parsedQuantity = Convert.ToInt32(dr[quantityColumnName]);
+                    parsedAllocatableQuantity = Convert.ToInt32(dr[allocatableQuantityColumnName]);
+                    parsedPickReserveQuantity = Convert.ToInt32(dr[pickReserveColumnName]);
                     parsedDCID = Convert.ToString(dr["WHSE_ID_NUM"]);
-                    returnValue.Add(new WarehouseAvailableInventory(parsedDivision, parsedDepartment, parsedStockNumber, parsedWidthColor, parsedSize, parsedDCID, parsedQuantity));
+                    string sku = string.Format("{0}-{1}-{2}-{3}", parsedDivision, parsedDepartment, parsedStockNumber, parsedWidthColor);
+                    returnValue.Add(new WarehouseInventory(sku, parsedSize, parsedDCID, parsedAllocatableQuantity, parsedPickReserveQuantity));
                 }
             }
 
@@ -656,30 +660,54 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         /// Item3 => DC (MF Distribution Center ID, different than Allocation's DCID)
         /// </summary>
         /// <param name="uniqueCombos"></param>
-        public List<WarehouseAvailableInventory> GetWarehouseAvailableNew(List<Tuple<string, string, string>> uniqueCombos)
+        public List<WarehouseInventory> GetWarehouseAvailableNew(List<Tuple<string, string, string>> uniqueCombos)
         {
-            List<WarehouseAvailableInventory> returnValue = new List<WarehouseAvailableInventory>();
-            string division = string.Empty, SQL = string.Empty;
-            var uniqueSizeCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(3)).ToList();
-            var uniqueCaselotCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(5)).ToList();
-
-            if (uniqueSizeCombos.Count > 0)
+            List<WarehouseInventory> returnValue = new List<WarehouseInventory>();
+            WarehouseInventoryDAO d = new WarehouseInventoryDAO();
+            foreach (var uc in uniqueCombos)
             {
-                division = uniqueSizeCombos.Select(sc => sc.Item1.Split('-')[0]).FirstOrDefault();
-                SQL = this.BuildWarehouseAvailableQuery(uniqueSizeCombos, true);
-                returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, true));
+                var inventory = d.GetWarehouseInventory(uc.Item1, uc.Item3);
+                var uniqueInventory = inventory.Where(i => i.size.Equals(uc.Item2)).FirstOrDefault();
+                if (uniqueInventory != null)
+                {
+                    uniqueInventory.Sku = uc.Item1;
+                    uniqueInventory.DistributionCenterID = uc.Item3;
+                    returnValue.Add(uniqueInventory);
+                }
             }
 
-            if (uniqueCaselotCombos.Count > 0)
-            {
-                division = uniqueCaselotCombos.Select(sc => sc.Item1.Split('-')[0]).FirstOrDefault();
-                SQL = this.BuildWarehouseAvailableQuery(uniqueCaselotCombos, false);
-                returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, false));
-            }
+            // map sku to inventory object from db
+            //var itemids = returnValue.Select(r => r.itemID).Distinct().ToList();
+            //var itemSkuMapping = db.ItemMasters.Where(im => itemids.Contains(im.ID)).Select(im => new { ItemID = im.ID, Sku = im.MerchantSku }).ToList();
 
-            // return the reduced available inventory
-            return this.ReduceAvailableInventory(returnValue);
+            //foreach (var r in returnValue)
+            //{
+            //    var sku = itemSkuMapping.Where(ism => ism.ItemID.Equals(r.itemID)).Select(ism => ism.Sku).FirstOrDefault();
 
+            //    if (sku != null)
+            //    {
+            //        r.Sku = sku;
+            //    }
+            //}
+            //string division = string.Empty, SQL = string.Empty;
+            //var uniqueSizeCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(3)).ToList();
+            //var uniqueCaselotCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(5)).ToList();
+
+            //if (uniqueSizeCombos.Count > 0)
+            //{
+            //    division = uniqueSizeCombos.Select(sc => sc.Item1.Split('-')[0]).FirstOrDefault();
+            //    SQL = this.BuildWarehouseAvailableQuery(uniqueSizeCombos, true);
+            //    returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, true));
+            //}
+
+            //if (uniqueCaselotCombos.Count > 0)
+            //{
+            //    division = uniqueCaselotCombos.Select(sc => sc.Item1.Split('-')[0]).FirstOrDefault();
+            //    SQL = this.BuildWarehouseAvailableQuery(uniqueCaselotCombos, false);
+            //    returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, false));
+            //}
+
+            return returnValue;
         }
 
         private List<WarehouseAvailableInventory> ReduceAvailableInventory(List<WarehouseAvailableInventory> availableInventory)
