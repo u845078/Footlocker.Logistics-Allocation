@@ -3013,7 +3013,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         #region RingFenceUpload Optimization
 
-        public ActionResult SaveRingFencesOptimized(IEnumerable<HttpPostedFileBase> attachments)
+        public ActionResult SaveRingFencesWithAccumulatedQuantity(IEnumerable<HttpPostedFileBase> attachments)
+        {
+            return SaveRingFencesOptimized(attachments, true);
+        }
+
+        public ActionResult SaveRingFencesReplacingQuantity(IEnumerable<HttpPostedFileBase> attachments)
+        {
+            return SaveRingFencesOptimized(attachments, false);
+        }
+
+        public ActionResult SaveRingFencesOptimized(IEnumerable<HttpPostedFileBase> attachments, bool accumulateQuantity)
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
@@ -3021,6 +3031,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RingFenceUploadModelNew> parsedRFs = new List<RingFenceUploadModelNew>(), validRFs = new List<RingFenceUploadModelNew>();
             List<EcommRingFence> ecommRFs = new List<EcommRingFence>();
             List<Tuple<RingFenceUploadModelNew, string>> errorList = new List<Tuple<RingFenceUploadModelNew, string>>();
+            int successfulCount = 0;
+            List<Tuple<RingFenceUploadModelNew, string>> warnings, errors;
 
             foreach (var file in attachments)
             {
@@ -3065,7 +3077,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             if (validRFs.Count > 0)
                             {
                                 // creates or updates the valid ring fences
-                                this.CreateOrUpdateRingFencesNew(validRFs, errorList);
+                                this.CreateOrUpdateRingFencesNew(validRFs, errorList, accumulateQuantity);
                             }
 
                             if (ecommRFs.Count > 0)
@@ -3074,14 +3086,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 ConvertRangeDAO crDAO = new ConvertRangeDAO();
                                 crDAO.SaveEcommRingFences(ecommRFs, User.Identity.Name);
                             }
-                            
+
+                            successfulCount = validRFs.Count + ecommRFs.Count;
+                            warnings = errorList.Where(el => el.Item2.StartsWith("Warning")).ToList();
+                            errors = errorList.Except(warnings).ToList();
+
                             // if errors occured, allow user to download them
                             if (errorList.Count > 0)
                             {
-                                var successfulCount = validRFs.Count + ecommRFs.Count;
-                                var warnings = errorList.Where(el => el.Item2.StartsWith("Warning")).ToList();
-                                var errors = errorList.Except(warnings).ToList();
-                                
                                 string errorMessage = string.Format(
                                     "{0} lines were processed successfully. {1} warnings and {2} errors were found."
                                     , successfulCount
@@ -3101,11 +3113,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                 }
             }
-            message = string.Format("Success! {0} lines were processed.", ecommRFs.Count + validRFs.Count);
+            message = string.Format("Success! {0} lines were processed.", successfulCount);
             return Json(new { message = message }, "application/json");
         }
 
-        private void CreateOrUpdateRingFencesNew(List<RingFenceUploadModelNew> validRFs, List<Tuple<RingFenceUploadModelNew, string>> errorList)
+        private void CreateOrUpdateRingFencesNew(List<RingFenceUploadModelNew> validRFs, List<Tuple<RingFenceUploadModelNew, string>> errorList, bool accumulateQuantity)
         {           
 
             //List<RingFence> ringFences = new List<RingFence>();
@@ -3249,11 +3261,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                                          d.PO.Equals(detail.PO) &&
                                                                          d.DC.Equals(detail.DistributionCenter.MFCode)).FirstOrDefault();
 
-                            detail.Qty = newDetail.Quantity;
+                            if (accumulateQuantity)
+                            {
+                                detail.Qty += newDetail.Quantity;
+                                SetErrorMessage(errorList, newDetail, "Warning: Already existed, accumulated to new value");
+                            }
+                            else
+                            {
+                                detail.Qty = newDetail.Quantity;
+                                SetErrorMessage(errorList, newDetail, "Warning: Already existed, updated to upload value");
+                            }
+                            
                             detail.LastModifiedDate = DateTime.Now;
-                            detail.LastModifiedUser = User.Identity.Name;
-                            // put warning in errorList
-                            SetErrorMessage(errorList, newDetail, "Warning: Already existed, updated to new value");
+                            detail.LastModifiedUser = User.Identity.Name;                            
                             db.Entry(detail).State = System.Data.EntityState.Modified;
                         }
                     }
