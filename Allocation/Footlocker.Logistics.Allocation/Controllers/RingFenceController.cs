@@ -3018,9 +3018,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return SaveRingFencesOptimized(attachments, true);
         }
 
-        public ActionResult SaveRingFencesReplacingQuantity(IEnumerable<HttpPostedFileBase> attachments)
+        public ActionResult SaveRingFencesReplacingQuantity(IEnumerable<HttpPostedFileBase> attachments2)
         {
-            return SaveRingFencesOptimized(attachments, false);
+            return SaveRingFencesOptimized(attachments2, false);
         }
 
         public ActionResult SaveRingFencesOptimized(IEnumerable<HttpPostedFileBase> attachments, bool accumulateQuantity)
@@ -3034,8 +3034,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             int successfulCount = 0;
             List<Tuple<RingFenceUploadModelNew, string>> warnings, errors;
 
+            FLLogger log = new FLLogger("c:\\Log\\ringfenceoptimizationtimestamps");
+            DateTime startTime = DateTime.Now;
+
             foreach (var file in attachments)
-            {
+            {               
                 Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
                 Byte[] data1 = new Byte[file.InputStream.Length];
                 file.InputStream.Read(data1, 0, data1.Length);
@@ -3100,6 +3103,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     , warnings.Count
                                     , errors.Count);
                                 Session["errorList"] = errorList;
+                                log.Log(string.Format("End: {0}", DateTime.Now), FLLogger.eLogMessageType.eInfo);
                                 return Content(errorMessage);
                             }
                         }
@@ -3109,11 +3113,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         message = "Upload failed: One or more columns has unexpected missing or invalid data.";
                         // clear out error list
                         Session["errorList"] = null;
+                        
                         return Content(message);
                     }
                 }
             }
             message = string.Format("Success! {0} lines were processed.", successfulCount);
+            TimeSpan amountOfTime = DateTime.Now.Subtract(startTime);
+            log.Log(amountOfTime.ToString(), FLLogger.eLogMessageType.eInfo);
             return Json(new { message = message }, "application/json");
         }
 
@@ -3449,19 +3456,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                      });
 
             // remove ecomm stores from any further validation
-            parsedRFs.Where(pr => pr.Store.Equals("00800"))
-                     .ToList()
-                     .ForEach(pr =>
-                     {
-                         if (!errorList.Any(err => err.Item1.Equals(pr)))
-                         {
-                             ecommRFs.Add(new EcommRingFence(pr.Sku, pr.Size, pr.PO, pr.Quantity, pr.Comments));
-                         }
-                         parsedRFs.Remove(pr);
-                     });
+            //parsedRFs.Where(pr => pr.Store.Equals("00800"))
+            //         .ToList()
+            //         .ForEach(pr =>
+            //         {
+            //             if (!errorList.Any(err => err.Item1.Equals(pr)))
+            //             {
+            //                 ecommRFs.Add(new EcommRingFence(pr.Sku, pr.Size, pr.PO, pr.Quantity, pr.Comments));
+            //             }
+            //             parsedRFs.Remove(pr);
+            //         });
 
             // 10) division / store combination is valid
-            var uniqueDivStoreList = parsedRFs.Select(pr => new { pr.Division, pr.Store }).Where(pr => !string.IsNullOrEmpty(pr.Store)).Distinct().ToList();
+            var uniqueDivStoreList = parsedRFs.Select(pr => new { pr.Division, pr.Store }).Where(pr => !string.IsNullOrEmpty(pr.Store) && !pr.Store.Equals("00800")).Distinct().ToList();
             var invalidDivStoreList = uniqueDivStoreList.Where(ds => !db.vValidStores.Any(vs => vs.Store.Equals(ds.Store) && vs.Division.Equals(ds.Division))).ToList();
             parsedRFs.Where(pr => invalidDivStoreList.Contains(new { pr.Division, pr.Store }) && !string.IsNullOrEmpty(pr.Store))
                      .ToList()
@@ -3478,10 +3485,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                      .ForEach(pr => parsedRFs.Remove(pr));
 
             // 11) validate inventory by unique div/sku/size
-            this.ValidateAvailableInventoryForParsedRFs(parsedRFs, errorList, validRFs);
+            this.ValidateAvailableInventoryForParsedRFs(parsedRFs, errorList, validRFs, ecommRFs);
         }
 
-        private void ValidateAvailableInventoryForParsedRFs(List<RingFenceUploadModelNew> parsedRFs, List<Tuple<RingFenceUploadModelNew, string>> errorList, List<RingFenceUploadModelNew> validRFs)
+        private void ValidateAvailableInventoryForParsedRFs(List<RingFenceUploadModelNew> parsedRFs, List<Tuple<RingFenceUploadModelNew, string>> errorList, List<RingFenceUploadModelNew> validRFs, List<EcommRingFence> ecommRFs)
         {
             List<Tuple<string, string, string>> uniqueCombos = new List<Tuple<string, string, string>>();
             RingFenceDAO rfDAO = new RingFenceDAO();
@@ -3569,6 +3576,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     parsedRFs.Remove(rftd);
                 });
             }
+
+            // add ecomm rfs to separate list
+            parsedRFs.Where(pr => pr.Store.Equals("00800"))
+                     .ToList()
+                     .ForEach(r =>
+                     {
+                         ecommRFs.Add(new EcommRingFence(r.Sku, r.Size, r.PO, r.Quantity, r.Comments));
+                         parsedRFs.Remove(r);
+                     });
 
             validRFs.AddRange(parsedRFs);
         }
