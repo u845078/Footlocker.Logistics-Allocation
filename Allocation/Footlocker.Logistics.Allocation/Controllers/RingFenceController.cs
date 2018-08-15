@@ -3036,6 +3036,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             FLLogger log = new FLLogger("c:\\Log\\ringfenceoptimizationtimestamps");
             DateTime startTime = DateTime.Now;
+            TimeSpan amountOfTime = new TimeSpan();
 
             foreach (var file in attachments)
             {               
@@ -3103,7 +3104,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     , warnings.Count
                                     , errors.Count);
                                 Session["errorList"] = errorList;
-                                log.Log(string.Format("End: {0}", DateTime.Now), FLLogger.eLogMessageType.eInfo);
+                                amountOfTime = DateTime.Now.Subtract(startTime);
+                                log.Log(amountOfTime.ToString(), FLLogger.eLogMessageType.eInfo);
                                 return Content(errorMessage);
                             }
                         }
@@ -3119,7 +3121,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
             message = string.Format("Success! {0} lines were processed.", successfulCount);
-            TimeSpan amountOfTime = DateTime.Now.Subtract(startTime);
+            amountOfTime = DateTime.Now.Subtract(startTime);
             log.Log(amountOfTime.ToString(), FLLogger.eLogMessageType.eInfo);
             return Json(new { message = message }, "application/json");
         }
