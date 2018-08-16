@@ -3189,20 +3189,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
             var skuItemIDMapping = (from im in db.ItemMasters.Where(im => uniqueSkus.Contains(im.MerchantSku))
                                     select new { Sku = im.MerchantSku, ItemID = im.ID }).ToList();
 
-            // unique caselot schedule names (numbers)
-            var uniqueItemIDCaselots = (from vr in validRFs
+            List<ItemPack> uniqueItemIDCaselots = new List<ItemPack>();
+            List<ItemPack> uniqueCaselotQtys = new List<ItemPack>();
+
+            if (validRFs.Any(vr => vr.Size.Length.Equals(5)))
+            {
+                // unique caselot schedule names (numbers)
+                uniqueItemIDCaselots = (from vr in validRFs
                                         join si in skuItemIDMapping
                                           on vr.Sku equals si.Sku
                                         where vr.Size.Length.Equals(5)
-                                        select new ItemPack { Name = vr.Size, ItemID = si.ItemID}).Distinct().ToList();
+                                        select new ItemPack { Name = vr.Size, ItemID = si.ItemID }).Distinct().ToList();
 
-            var uniqueCaselotQtys = (from uic in uniqueItemIDCaselots
+                uniqueCaselotQtys = (from uic in uniqueItemIDCaselots
                                      join ip in db.ItemPacks
-                                       on new { Name = uic.Name, ItemID = uic.ItemID } equals 
+                                       on new { Name = uic.Name, ItemID = uic.ItemID } equals
                                           new { Name = ip.Name, ItemID = ip.ItemID }
-                                   select ip).Distinct().ToList();
-
-
+                                     select ip).Distinct().ToList();
+            }
 
             var ecommWhse = db.EcommWarehouses.ToList();
 
@@ -3356,15 +3360,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                      });
 
             // 2) Sku is valid
-            List<string> uniqueSkus = parsedRFs.Select(pr => pr.Sku).Distinct().ToList();
-            List<string> invalidSkus = uniqueSkus.Where(sku => !db.ItemMasters.Any(im => im.MerchantSku.Equals(sku))).ToList();
-            parsedRFs.Where(pr => invalidSkus.Contains(pr.Sku))
-                     .ToList()
-                     .ForEach(rf =>
-                     {
-                         SetErrorMessage(errorList, rf, "The Sku entered is invalid.");
-                         //parsedRFs.Remove(rf);
-                     });
+            //List<string> uniqueSkus = parsedRFs.Select(pr => pr.Sku).Distinct().ToList();
+            //List<string> invalidSkus = uniqueSkus.Where(sku => !db.ItemMasters.Any(im => im.MerchantSku.Equals(sku))).ToList();
+            //parsedRFs.Where(pr => invalidSkus.Contains(pr.Sku))
+            //         .ToList()
+            //         .ForEach(rf =>
+            //         {
+            //             SetErrorMessage(errorList, rf, "The Sku entered is invalid.");
+            //             //parsedRFs.Remove(rf);
+            //         });
 
             // 3) Sku's division and ring fence's division match
             parsedRFs.Where(pr => !pr.Sku.Split('-')[0].Equals(pr.Division))
@@ -3395,38 +3399,38 @@ namespace Footlocker.Logistics.Allocation.Controllers
                      });
 
             // 6) Size is valid
-            var uniqueBinSkuSizeList = parsedRFs.Where(pr => pr.Size.Length.Equals(3)).Select(pr => new { Sku = pr.Sku, Size = pr.Size }).Distinct().ToList();
-            var uniqueCaselotSizeList = parsedRFs.Where(pr => pr.Size.Length.Equals(5)).Select(pr => new { Sku = pr.Sku, Size = pr.Size }).Distinct().ToList();
+            //var uniqueBinSkuSizeList = parsedRFs.Where(pr => pr.Size.Length.Equals(3)).Select(pr => new { Sku = pr.Sku, Size = pr.Size }).Distinct().ToList();
+            //var uniqueCaselotSizeList = parsedRFs.Where(pr => pr.Size.Length.Equals(5)).Select(pr => new { Sku = pr.Sku, Size = pr.Size }).Distinct().ToList();
 
-            // check for bin sizes
-            var invalidBinSizes = uniqueBinSkuSizeList.Where(sl => !db.Sizes.Any(s => s.Sku.Equals(sl.Sku) && s.Size.Equals(sl.Size))).ToList();
+            //// check for bin sizes
+            //var invalidBinSizes = uniqueBinSkuSizeList.Where(sl => !db.Sizes.Any(s => s.Sku.Equals(sl.Sku) && s.Size.Equals(sl.Size))).ToList();
 
-            parsedRFs.Where(pr => invalidBinSizes.Contains(new { Sku = pr.Sku, Size = pr.Size }))
-                     .ToList()
-                     .ForEach(r =>
-                     {
-                         SetErrorMessage(errorList, r, string.Format("The bin size {0} could not be found in our system.", r.Size));
-                         //parsedRFs.Remove(r);
-                     });
+            //parsedRFs.Where(pr => invalidBinSizes.Contains(new { Sku = pr.Sku, Size = pr.Size }))
+            //         .ToList()
+            //         .ForEach(r =>
+            //         {
+            //             SetErrorMessage(errorList, r, string.Format("The bin size {0} could not be found in our system.", r.Size));
+            //             //parsedRFs.Remove(r);
+            //         });
 
-            // check for caselot schedules (need to rework)
-            foreach (var ucs in uniqueCaselotSizeList)
-            {
-                var isValid = (from ip in db.ItemPacks
-                               join im in db.ItemMasters
-                                 on ip.ItemID equals im.ID
-                               where ip.Name.Equals(ucs.Size) &&
-                                     im.MerchantSku.Equals(ucs.Sku)
-                               select ip).Any();
-                if (!isValid)
-                {
-                    parsedRFs.Where(pr => pr.Sku.Equals(ucs.Sku) && pr.Size.Equals(ucs.Size)).ToList().ForEach(r =>
-                    {
-                        SetErrorMessage(errorList, r, string.Format("The caselot schedule {0} could not be found in our system.", r.Size));
-                        //parsedRFs.Remove(r);
-                    });
-                }
-            }
+            //// check for caselot schedules (need to rework)
+            //foreach (var ucs in uniqueCaselotSizeList)
+            //{
+            //    var isValid = (from ip in db.ItemPacks
+            //                   join im in db.ItemMasters
+            //                     on ip.ItemID equals im.ID
+            //                   where ip.Name.Equals(ucs.Size) &&
+            //                         im.MerchantSku.Equals(ucs.Sku)
+            //                   select ip).Any();
+            //    if (!isValid)
+            //    {
+            //        parsedRFs.Where(pr => pr.Sku.Equals(ucs.Sku) && pr.Size.Equals(ucs.Size)).ToList().ForEach(r =>
+            //        {
+            //            SetErrorMessage(errorList, r, string.Format("The caselot schedule {0} could not be found in our system.", r.Size));
+            //            //parsedRFs.Remove(r);
+            //        });
+            //    }
+            //}
 
             // 7) Quantity is greater than zero
             parsedRFs.Where(pr => pr.Quantity <= 0)
@@ -3498,6 +3502,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // unique combos excluding ringfences with POs (available)
             uniqueCombos = parsedRFs.Where(pr => string.IsNullOrEmpty(pr.PO)).Select(pr => Tuple.Create(pr.Sku, pr.Size, pr.DC)).Distinct().ToList();
             List<WarehouseInventory> details = rfDAO.GetWarehouseAvailableNew(uniqueCombos);
+
+            // remove all parsedRFs that do not have an associated mainframe warehouse inventory record.
+            parsedRFs.Where(pr => !details.Any(d => d.Sku.Equals(pr.Sku) && d.size.Equals(pr.Size) && d.DistributionCenterID.Equals(pr.DC)))
+                     .ToList()
+                     .ForEach(pr =>
+                     {
+                         SetErrorMessage(errorList, pr, string.Format("The Sku, Size, and DC combination could not be found within our system.", pr.Sku, pr.Size, pr.DC));
+                         parsedRFs.Remove(pr);
+                     });
 
             // unique non-future combos with summed quantity
             var uniqueRFsGrouped = parsedRFs.GroupBy(pr => new { Sku = pr.Sku, Size = pr.Size, DC = pr.DC })

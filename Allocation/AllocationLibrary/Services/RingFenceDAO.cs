@@ -664,17 +664,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         {
             List<WarehouseInventory> returnValue = new List<WarehouseInventory>();
             WarehouseInventoryDAO d = new WarehouseInventoryDAO();
-            foreach (var uc in uniqueCombos)
-            {
-                var inventory = d.GetWarehouseInventory(uc.Item1, uc.Item3);
-                var uniqueInventory = inventory.Where(i => i.size.Equals(uc.Item2)).FirstOrDefault();
-                if (uniqueInventory != null)
-                {
-                    uniqueInventory.Sku = uc.Item1;
-                    uniqueInventory.DistributionCenterID = uc.Item3;
-                    returnValue.Add(uniqueInventory);
-                }
-            }
+            //var inv = d.GetWarehouseInventory("18-41-03113-04", "08");
 
             // map sku to inventory object from db
             //var itemids = returnValue.Select(r => r.itemID).Distinct().ToList();
@@ -689,25 +679,137 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             //        r.Sku = sku;
             //    }
             //}
-            //string division = string.Empty, SQL = string.Empty;
-            //var uniqueSizeCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(3)).ToList();
-            //var uniqueCaselotCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(5)).ToList();
+            string division = string.Empty, SQL = string.Empty;
+            var uniqueSizeCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(3)).ToList();
+            var uniqueCaselotCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(5)).ToList();
 
-            //if (uniqueSizeCombos.Count > 0)
-            //{
-            //    division = uniqueSizeCombos.Select(sc => sc.Item1.Split('-')[0]).FirstOrDefault();
-            //    SQL = this.BuildWarehouseAvailableQuery(uniqueSizeCombos, true);
-            //    returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, true));
-            //}
+            int batchSize = 300;
 
-            //if (uniqueCaselotCombos.Count > 0)
-            //{
-            //    division = uniqueCaselotCombos.Select(sc => sc.Item1.Split('-')[0]).FirstOrDefault();
-            //    SQL = this.BuildWarehouseAvailableQuery(uniqueCaselotCombos, false);
-            //    returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, false));
-            //}
+            if (uniqueSizeCombos.Count > 0)
+            {
+                for (int i = 0; i < uniqueSizeCombos.Count; i += batchSize)
+                {
+                    if ((i + batchSize) > uniqueSizeCombos.Count)
+                    {
+                        batchSize = uniqueSizeCombos.Count - i;
+                    }
+                    var batchedUniqueSizeCombos = uniqueSizeCombos.GetRange(i, batchSize).ToList();
+                    division = uniqueSizeCombos.Select(sc => sc.Item1.Split('-')[0]).FirstOrDefault();
+                    SQL = this.BuildWarehouseAvailableQuery(batchedUniqueSizeCombos, true);
+                    returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, true));
+                }
+                //division = uniqueSizeCombos.Select(sc => sc.Item1.Split('-')[0]).FirstOrDefault();
+                //SQL = this.BuildWarehouseAvailableQuery(uniqueSizeCombos, true);
+                //returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, true));
+            }
 
+            batchSize = 300;
+
+            if (uniqueCaselotCombos.Count > 0)
+            {
+                for (int i = 0; i < uniqueCaselotCombos.Count; i += batchSize)
+                {
+                    if ((i + batchSize) > uniqueCaselotCombos.Count)
+                    {
+                        batchSize = uniqueCaselotCombos.Count - i;
+                    }
+                    var batchedUniqueCaselotCombos = uniqueCaselotCombos.GetRange(i, batchSize).ToList();
+                    division = uniqueCaselotCombos.Select(sc => sc.Item1.Split('-')[0]).FirstOrDefault();
+                    SQL = this.BuildWarehouseAvailableQuery(batchedUniqueCaselotCombos, false);
+                    returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, false));
+                }
+                
+            }
+
+            if (returnValue.Count > 0)
+            {
+                returnValue = ReduceRingFenceQuantities(returnValue);
+            }
+
+            // reduce ringfence quantity
             return returnValue;
+        }
+
+        private List<WarehouseInventory> ReduceRingFenceQuantities(List<WarehouseInventory> warehouseInventory)
+        {
+            var uniqueSkus = warehouseInventory.Select(wi => wi.Sku).Distinct().ToList();
+            var existingDetails = (from rf in db.RingFences
+                                   join rfd in db.RingFenceDetails
+                                     on rf.ID equals rfd.RingFenceID
+                                   join dc in db.DistributionCenters
+                                     on rfd.DCID equals dc.ID
+                                   where uniqueSkus.Contains(rf.Sku) &&
+                                         (rf.EndDate == null || rf.EndDate > DateTime.Now) &&
+                                         rfd.Qty > 0
+                                  select new { Sku = rf.Sku, MFCode = dc.MFCode, RingFenceDetail = rfd }).ToList();
+            existingDetails = existingDetails.Where(ed => warehouseInventory.Any(wi => wi.size.Equals(ed.RingFenceDetail.Size) &&
+                                                                                       wi.DistributionCenterID.Equals(ed.MFCode) &&
+                                                                                       wi.PO.Equals(ed.RingFenceDetail.PO))).ToList();
+
+            // group the details by sku, size, dcid, po, qty and then reduce existing warehouseInventory
+            //existingDetails = existingDetails.GroupBy(ed => new { Sku = ed.Sku, Size = ed.RingFenceDetail.Size, DC = ed.MFCode, PO = ed.RingFenceDetail.PO })
+            //                                 .Select(ed => new { Sku = ed.Key.Sku, Size = ed.Key.Size, DC = ed.Key.DC, PO = ed.Key.PO })
+            //                                 .ToList().ForEach(ed =>
+            //                                 {
+            //                                     var reduce = warehouseInventory.Where(wi => wi.Sku.Equals(ed.Sku) &&
+            //                                                                                 wi.size.Equals(ed.Size) &&
+            //                                                                                 wi.DistributionCenterID.Equals(ed.DC) &&
+            //                                                                                 wi.PO.Equals(ed.PO)).FirstOrDefault();
+            //                                     if (reduce != null)
+            //                                     {
+            //                                         reduce.ringFenceQuantity = ed.Qty;
+            //                                     }
+
+            //                                 });
+
+            (from row in existingDetails
+                       group row by new { Sku = row.Sku, Size = row.RingFenceDetail.Size, DC = row.MFCode, PO = row.RingFenceDetail.PO } into g
+                       select new
+                       {
+                           Sku = g.Key.Sku,
+                           Size = g.Key.Size,
+                           DC = g.Key.DC,
+                           PO = g.Key.PO,
+                           Qty = g.Sum(x => x.RingFenceDetail.Qty)
+                       }).ToList().ForEach(ed =>
+                       {
+                           var reduce = warehouseInventory.Where(wi => wi.Sku.Equals(ed.Sku) &&
+                                                                                              wi.size.Equals(ed.Size) &&
+                                                                                              wi.DistributionCenterID.Equals(ed.DC) &&
+                                                                                              wi.PO.Equals(ed.PO)).FirstOrDefault();
+                           if (reduce != null)
+                           {
+                               reduce.totalRingFenceQuantity = ed.Qty;
+                           }
+                       });
+
+            //var existingHeaders = db.RingFences.Where(rf => uniqueSkus.Contains(rf.Sku)).Distinct().ToList();
+            //var existingDetails = db.RingFenceDetails.Where(rfd => existingHeaders.Any(rf => rf.ID.Equals(rfd.RingFenceID))).ToList();
+            //var existingDetails = (from rf in db.RingFences
+            //                       join wi in warehouseInventory
+            //                         on new { Div = rf.Division, Sku = rf.Sku } equals
+            //                            new { Div = wi.Sku.Split('-')[0], Sku = wi.Sku }
+            //                       join dc in db.DistributionCenters
+            //                         on wi.DistributionCenterID equals dc.MFCode
+            //                       join rfd in db.RingFenceDetails
+            //                         on new { Size = wi.size, DCID = dc.ID, PO = wi.PO } equals
+            //                            new { Size = rfd.Size, DCID = rfd.DCID, PO = rfd.PO }
+            //                       select new { Sku = rf.Sku, Size = rfd.Size, DCID = dc.MFCode, PO = rfd.PO, Qty = rfd.Qty }).ToList();
+
+            //foreach (var wi in warehouseInventory)
+            //{
+            //    var details = existingDetails.Where(d => d.Sku.Equals(wi.Sku) &&
+            //                                                       d.DCID.Equals(wi.DistributionCenterID) &&
+            //                                                       d.PO.Equals(wi.PO) &&
+            //                                                       d.Size.Equals(wi.size)).ToList();
+            //    int reductionQuantity = 0;
+            //    if (details.Count > 0)
+            //    {
+            //        reductionQuantity = details.Sum(d => d.Qty);
+            //    }
+            //}
+
+            return warehouseInventory;
         }
 
         private List<WarehouseAvailableInventory> ReduceAvailableInventory(List<WarehouseAvailableInventory> availableInventory)

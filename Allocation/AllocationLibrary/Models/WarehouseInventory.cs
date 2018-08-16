@@ -105,7 +105,7 @@ namespace Footlocker.Logistics.Allocation.Models
             this.Sku = sku;
             this.size = size;
             this.DistributionCenterID = DCID;
-            this.quantity = allocatableQuantity;
+            this.totalQuantity = allocatableQuantity;
         }
 
         public WarehouseInventory(string sku, string size, string DCID, int allocatableQuantity, int pickReserveQuantity)
