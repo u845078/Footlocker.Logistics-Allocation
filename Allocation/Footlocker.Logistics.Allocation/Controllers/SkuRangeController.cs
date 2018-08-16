@@ -3609,8 +3609,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
                     }
                     stopWatch.Stop();
-                    FLLogger log = new FLLogger();
-                    log.Log("Trimming the uploaded excel file took this many milliseconds : " + stopWatch.Elapsed.Milliseconds.ToString(), FLLogger.eLogMessageType.eInfo);
+                    Footlocker.Common.Utilities.LogService timelog = new Footlocker.Common.Utilities.LogService("C:\\log\\Allocation.log");
+
+                    timelog.Log(string.Format("Trimming the uploaded excel file took {0} milliseconds : " , stopWatch.Elapsed.Milliseconds.ToString()));
                     
 
 
