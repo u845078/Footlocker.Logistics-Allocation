@@ -2370,6 +2370,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
             string Division = "";
             RingFenceDAO rfDAO = new RingFenceDAO();
+
+            FLLogger log = new FLLogger("c:\\Log\\ringfenceoptimizationtimestamps");
+            DateTime startTime = DateTime.Now;
+            TimeSpan amountOfTime = new TimeSpan();
+
             foreach (HttpPostedFileBase file in attachments)
             {
                 //Instantiate a Workbook object that represents an Excel file
@@ -2488,6 +2493,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             //have warnings
                             msg += ", " + (Errors.Count() - count) + " Warnings";
                         }
+                        amountOfTime = DateTime.Now.Subtract(startTime);
+                        log.Log("OLD: " + amountOfTime.ToString(), FLLogger.eLogMessageType.eInfo);
                         return Content(msg);
                     }
                 }
@@ -2497,7 +2504,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     return Content("Incorrectly formatted or missing header row. Please correct and re-process.");
                 }
             }
-
+            amountOfTime = DateTime.Now.Subtract(startTime);
+            log.Log("OLD: " + amountOfTime.ToString(), FLLogger.eLogMessageType.eInfo);
             return Content("");
         }
 
