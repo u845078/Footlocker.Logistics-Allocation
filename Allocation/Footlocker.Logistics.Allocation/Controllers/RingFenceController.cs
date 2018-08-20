@@ -2782,7 +2782,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult DownloadErrors()
         {
-            List<RingFenceUploadModel> errors = (List<RingFenceUploadModel>)ViewData["errorList"];
+            List<RingFenceUploadModel> errors = (List<RingFenceUploadModel>)Session["errorList"];
 
             Aspose.Excel.License license = new Aspose.Excel.License();
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
@@ -2833,7 +2833,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult DownloadErrorsNew()
         {
-            var errorList = (List<Tuple<RingFenceUploadModelNew, string>>)ViewData["errorList"];
+            var errorList = (List<Tuple<RingFenceUploadModelNew, string>>)Session["errorList"];
             if (errorList != null)
             {
                 Aspose.Excel.License license = new Aspose.Excel.License();
@@ -3121,7 +3121,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     , successfulCount
                                     , warnings.Count
                                     , errors.Count);
-                                ViewData["errorList"] = errorList;
+                                Session["errorList"] = errorList;
                                 amountOfTime = DateTime.Now.Subtract(startTime);
                                 log.Log(amountOfTime.ToString(), FLLogger.eLogMessageType.eInfo);
                                 return Content(errorMessage);
@@ -3132,7 +3132,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         message = "Upload failed: One or more columns has unexpected missing or invalid data.";
                         // clear out error list
-                        ViewData["errorList"] = null;
+                        Session["errorList"] = null;
                         
                         return Content(message);
                     }
