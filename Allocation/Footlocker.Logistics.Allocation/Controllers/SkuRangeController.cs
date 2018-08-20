@@ -3655,7 +3655,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             //}
                             range.Min = Convert.ToString(mySheet.Cells[row, 8].Value);
                             range.Max = Convert.ToString(mySheet.Cells[row, 9].Value);
-                            range.BaseDemand = Convert.ToString(Convert.ToDecimal(mySheet.Cells[row, 10].Value));
+                            string baseDemand = Convert.ToString(mySheet.Cells[row, 10].Value).Trim();
+                            if (!string.IsNullOrEmpty(baseDemand))
+                            {
+                                range.BaseDemand = Convert.ToDecimal(mySheet.Cells[row, 10].FloatValue).ToString();
+                            }
+                            else
+                            {
+                                range.BaseDemand = "";
+                            }
                             range.MinEndDateOverride = Convert.ToString(mySheet.Cells[row, 11].Value);
                             range.EndDate = Convert.ToString(mySheet.Cells[row, 12].Value);
                             //doing this to preserve nulls for blank
