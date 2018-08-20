@@ -3593,25 +3593,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     MemoryStream memoryStream1 = new MemoryStream(data1);
                     workbook.Open(memoryStream1);
                     Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-                    System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
-                    stopWatch.Start();
-                    //Trim spaces for the whole worksheet
-                    foreach (Aspose.Excel.Cell cell in mySheet.Cells)
-                    {
-                        if (cell.Type == CellValueType.IsString || cell.Type == CellValueType.IsUnknown) // is it faster to look to see if it's a number before looking to see if it contains a space (which would almost by def first check if it's a number)
-                        {
-                            bool chk = cell.StringValue.Contains(" ");
-                            if (chk)
-                            {
-                                string tVal = cell.StringValue.Trim(); // writing it to the cell as a string, but we're only modding ones that are already strings (with a space) 
-                                cell.PutValue(tVal, true);
-                            }
-                        }
-                    }
-                    stopWatch.Stop();
-                    Footlocker.Common.Utilities.LogService timelog = new Footlocker.Common.Utilities.LogService("C:\\log\\Allocation.log");
-
-                    timelog.Log(string.Format("Trimming the uploaded excel file took {0} milliseconds : " , stopWatch.Elapsed.Milliseconds.ToString()));
+                    //System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
+                    //stopWatch.Start();
+                    ////Trim spaces for the whole worksheet
+                    //foreach (Aspose.Excel.Cell cell in mySheet.Cells)
+                    //{
+                    //    if (cell.Type == CellValueType.IsString || cell.Type == CellValueType.IsUnknown) // is it faster to look to see if it's a number before looking to see if it contains a space (which would almost by def first check if it's a number)
+                    //    {
+                    //        if (cell.StringValue.Contains(" "))
+                    //        {
+                    //            string tVal = cell.StringValue.Trim(); // writing it to the cell as a string, but we're only modding ones that are already strings (with a space) 
+                    //            //cell.PutValue(tVal, true);
+                    //        }
+                    //    }
+                    //}
+                    //stopWatch.Stop();
+                    //FLLogger timelog = new FLLogger("C:\\log\\Allocation");
+                    //timelog.Log(string.Format("Trimming the uploaded excel file took {0} milliseconds." , stopWatch.Elapsed.Milliseconds.ToString()),FLLogger.eLogMessageType.eInfo);
                     
 
 
@@ -3633,16 +3631,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         (Convert.ToString(mySheet.Cells[0, 12].Value).Contains("End Date"))
                         )
                     {
-                        division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0');
+                        division = Convert.ToString(mySheet.Cells[row, 0].Value).Trim().PadLeft(2, '0');
                         List<BulkRange> updateList = new List<BulkRange>();
                         List<BulkRange> errorList = new List<BulkRange>();
                         BulkRange range;
 
                         while (HasDataOnRow(mySheet, row))
                         {
-                            if (division != Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0'))
+                            if (division != Convert.ToString(mySheet.Cells[row, 0].Value).Trim().PadLeft(2, '0'))
                             {
-                                division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0');
+                                division = Convert.ToString(mySheet.Cells[row, 0].Value).Trim().PadLeft(2, '0');
                                 if (
                                     !(Footlocker.Common.WebSecurityService.UserHasDivision(
                                         User.Identity.Name.Split('\\')[1], "allocation", division)))
@@ -3652,7 +3650,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             }
                             range = new BulkRange();
                             range.Division = division;
-                            range.Store = Convert.ToString(mySheet.Cells[row, 3].Value).PadLeft(5, '0');
+                            range.Store = Convert.ToString(mySheet.Cells[row, 3].Value).Trim().PadLeft(5, '0');
 
                             //ensure the store is valid
                             if (!ValidateStore(range.Division, range.Store))
@@ -3661,10 +3659,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 return Content(message);
                             }
 
-                            range.Sku = Convert.ToString(mySheet.Cells[row, 4].Value);
-                            range.Size = Convert.ToString(mySheet.Cells[row, 5].Value).PadLeft(3, '0').ToUpper();
-                            range.RangeStartDate = Convert.ToString(mySheet.Cells[row, 6].Value);
-                            range.DeliveryGroupName = Convert.ToString(mySheet.Cells[row, 7].Value);
+                            range.Sku = Convert.ToString(mySheet.Cells[row, 4].Value).Trim();
+                            range.Size = Convert.ToString(mySheet.Cells[row, 5].Value).Trim().PadLeft(3, '0').ToUpper();
+                            range.RangeStartDate = Convert.ToString(mySheet.Cells[row, 6].Value).Trim();
+                            range.DeliveryGroupName = Convert.ToString(mySheet.Cells[row, 7].Value).Trim();
                             //range.Range = Convert.ToString(mySheet.Cells[row, 5].Value);
                             //if (range.Range.ToUpper().Equals("TRUE"))
                             //{
@@ -3674,9 +3672,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             //{
                             //    range.Range = "0";
                             //}
-                            range.Min = Convert.ToString(mySheet.Cells[row, 8].Value);
-                            range.Max = Convert.ToString(mySheet.Cells[row, 9].Value);
-                            range.BaseDemand = Convert.ToString(Convert.ToDecimal(mySheet.Cells[row, 10].Value)); 
+                            range.Min = Convert.ToString(mySheet.Cells[row, 8].Value).Trim();
+                            range.Max = Convert.ToString(mySheet.Cells[row, 9].Value).Trim();
+                            if (mySheet.Cells[row, 10].StringValue.Contains(" "))
+                                range.BaseDemand = mySheet.Cells[row, 10].StringValue.Trim();
+                            else
+                                range.BaseDemand = Convert.ToString(Convert.ToDecimal(mySheet.Cells[row, 10].Value)); 
                             //range.BaseDemand = Convert.ToString(Decimal.Parse(Convert.ToString(mySheet.Cells[row, 10].Value),
                             //    System.Globalization.NumberStyles.AllowExponent | System.Globalization.NumberStyles.AllowDecimalPoint | System.Globalization.NumberStyles.AllowLeadingSign|System.Globalization.NumberStyles.AllowLeadingWhite));
                             //this version would seem most flexible, but it errored on null or blank
@@ -3684,9 +3685,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             //range.BaseDemand = Convert.ToString(Convert.ToDecimal(mySheet.Cells[row, 10].IntValue)); // if you try to tell aspose to give it to you as an int, but it's null, it throws an exception.
                             //range.BaseDemand = Convert.ToString(Convert.ToDecimal(mySheet.Cells[row, 10].Value)); // if you try to convert todecimal but it has a space, .net throws input format exception
                             // why not this? range.BaseDemand = Convert.ToDecimal(mySheet.Cells[row, 10].Value).ToString();
-                            range.MinEndDateOverride = Convert.ToString(mySheet.Cells[row, 11].Value);
+                            range.MinEndDateOverride = Convert.ToString(mySheet.Cells[row, 11].Value).Trim();
                             // why not this? range.MinEndDateOverride = mySheet.Cells[row, 11].StringValue; //aspose treats text in cells specially with stringvalue.  it's probably best to avoid this variable behavior.
-                            range.EndDate = Convert.ToString(mySheet.Cells[row, 12].Value);
+                            range.EndDate = Convert.ToString(mySheet.Cells[row, 12].Value).Trim();
                             //doing this to preserve nulls for blank
                             if (range.Min == "")
                             {

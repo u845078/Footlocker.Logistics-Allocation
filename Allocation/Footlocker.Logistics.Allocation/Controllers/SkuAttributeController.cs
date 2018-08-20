@@ -468,25 +468,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             header.CreateDate = Convert.ToDateTime(mySheet.Cells[row, 4].Value);
                             header.WeightActiveInt = Convert.ToInt32(mySheet.Cells[row, 5].Value);
 
-                            message += CreateDetailRecord(header, "Department", Convert.ToString(mySheet.Cells[row, 6].Value), row);
-                            message += CreateDetailRecord(header, "Category", Convert.ToString(mySheet.Cells[row, 7].Value), row);
-                            message += CreateDetailRecord(header, "VendorNumber", Convert.ToString(mySheet.Cells[row, 8].Value), row);
-                            message += CreateDetailRecord(header, "BrandID", Convert.ToString(mySheet.Cells[row, 9].Value), row);
-                            message += CreateDetailRecord(header, "Size", Convert.ToString(mySheet.Cells[row, 10].Value), row);
-                            message += CreateDetailRecord(header, "SizeRange", Convert.ToString(mySheet.Cells[row, 11].Value), row);
-                            message += CreateDetailRecord(header, "Color1", Convert.ToString(mySheet.Cells[row, 12].Value), row);
-                            message += CreateDetailRecord(header, "Color2", Convert.ToString(mySheet.Cells[row, 13].Value), row);
-                            message += CreateDetailRecord(header, "Color3", Convert.ToString(mySheet.Cells[row, 14].Value), row);
-                            message += CreateDetailRecord(header, "Gender", Convert.ToString(mySheet.Cells[row, 15].Value), row);
-                            message += CreateDetailRecord(header, "LifeOfSku", Convert.ToString(mySheet.Cells[row, 16].Value), row);
-                            message += CreateDetailRecord(header, "Material", Convert.ToString(mySheet.Cells[row, 17].Value), row);
-                            message += CreateDetailRecord(header, "PlayerID", Convert.ToString(mySheet.Cells[row, 18].Value), row);
-                            message += CreateDetailRecord(header, "SkuID1", Convert.ToString(mySheet.Cells[row, 19].Value), row);
-                            message += CreateDetailRecord(header, "SkuID2", Convert.ToString(mySheet.Cells[row, 20].Value), row);
-                            message += CreateDetailRecord(header, "SkuID3", Convert.ToString(mySheet.Cells[row, 21].Value), row);
-                            message += CreateDetailRecord(header, "SkuID4", Convert.ToString(mySheet.Cells[row, 22].Value), row);
-                            message += CreateDetailRecord(header, "SkuID5", Convert.ToString(mySheet.Cells[row, 23].Value), row);
-                            message += CreateDetailRecord(header, "TeamCode", Convert.ToString(mySheet.Cells[row, 24].Value), row);
+                            message += CreateDetailRecord(header, "Department", Convert.ToString(mySheet.Cells[row, 6].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "Category", Convert.ToString(mySheet.Cells[row, 7].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "VendorNumber", Convert.ToString(mySheet.Cells[row, 8].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "BrandID", Convert.ToString(mySheet.Cells[row, 9].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "Size", Convert.ToString(mySheet.Cells[row, 10].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "SizeRange", Convert.ToString(mySheet.Cells[row, 11].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "Color1", Convert.ToString(mySheet.Cells[row, 12].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "Color2", Convert.ToString(mySheet.Cells[row, 13].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "Color3", Convert.ToString(mySheet.Cells[row, 14].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "Gender", Convert.ToString(mySheet.Cells[row, 15].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "LifeOfSku", Convert.ToString(mySheet.Cells[row, 16].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "Material", Convert.ToString(mySheet.Cells[row, 17].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "PlayerID", Convert.ToString(mySheet.Cells[row, 18].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "SkuID1", Convert.ToString(mySheet.Cells[row, 19].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "SkuID2", Convert.ToString(mySheet.Cells[row, 20].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "SkuID3", Convert.ToString(mySheet.Cells[row, 21].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "SkuID4", Convert.ToString(mySheet.Cells[row, 22].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "SkuID5", Convert.ToString(mySheet.Cells[row, 23].Value).Trim(), row);
+                            message += CreateDetailRecord(header, "TeamCode", Convert.ToString(mySheet.Cells[row, 24].Value).Trim(), row);
 
                             if (message != "")
                             {
