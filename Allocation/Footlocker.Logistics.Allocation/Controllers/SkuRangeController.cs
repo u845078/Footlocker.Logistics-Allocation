@@ -3593,27 +3593,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     MemoryStream memoryStream1 = new MemoryStream(data1);
                     workbook.Open(memoryStream1);
                     Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-                    //System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
-                    //stopWatch.Start();
-                    ////Trim spaces for the whole worksheet
-                    //foreach (Aspose.Excel.Cell cell in mySheet.Cells)
-                    //{
-                    //    if (cell.Type == CellValueType.IsString || cell.Type == CellValueType.IsUnknown) // is it faster to look to see if it's a number before looking to see if it contains a space (which would almost by def first check if it's a number)
-                    //    {
-                    //        if (cell.StringValue.Contains(" "))
-                    //        {
-                    //            string tVal = cell.StringValue.Trim(); // writing it to the cell as a string, but we're only modding ones that are already strings (with a space) 
-                    //            //cell.PutValue(tVal, true);
-                    //        }
-                    //    }
-                    //}
-                    //stopWatch.Stop();
-                    //FLLogger timelog = new FLLogger("C:\\log\\Allocation");
-                    //timelog.Log(string.Format("Trimming the uploaded excel file took {0} milliseconds." , stopWatch.Elapsed.Milliseconds.ToString()),FLLogger.eLogMessageType.eInfo);
-                    
 
-
-                   int row = 1;
+                    int row = 1;
                     int validCount = 0;
                     int errorCount = 0;
                     if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Division")) &&
@@ -3621,12 +3602,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Region")) &&
                         (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Store")) &&
                         (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Sku")) &&
-                        (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Size")) &&
-                        (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Range Start Date")) &&
-                        (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Delivery Group Name")) &&
-                        (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Min")) &&
-                        (Convert.ToString(mySheet.Cells[0, 9].Value).Contains("Max")) &&
-                        (Convert.ToString(mySheet.Cells[0, 10].Value).Contains("Base Demand")) &&
+                        (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Size"))
+                        && (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Range Start Date")) &&
+                        (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Delivery Group Name"))
+                        && (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Min")) &&
+                        (Convert.ToString(mySheet.Cells[0, 9].Value).Contains("Max"))
+                        && (Convert.ToString(mySheet.Cells[0, 10].Value).Contains("Base Demand")) &&
                         (Convert.ToString(mySheet.Cells[0, 11].Value).Contains("Min End Date")) &&
                         (Convert.ToString(mySheet.Cells[0, 12].Value).Contains("End Date"))
                         )
@@ -3672,22 +3653,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             //{
                             //    range.Range = "0";
                             //}
-                            range.Min = Convert.ToString(mySheet.Cells[row, 8].Value).Trim();
-                            range.Max = Convert.ToString(mySheet.Cells[row, 9].Value).Trim();
-                            if (mySheet.Cells[row, 10].StringValue.Contains(" "))
-                                range.BaseDemand = mySheet.Cells[row, 10].StringValue.Trim();
-                            else
-                                range.BaseDemand = Convert.ToString(Convert.ToDecimal(mySheet.Cells[row, 10].Value)); 
-                            //range.BaseDemand = Convert.ToString(Decimal.Parse(Convert.ToString(mySheet.Cells[row, 10].Value),
-                            //    System.Globalization.NumberStyles.AllowExponent | System.Globalization.NumberStyles.AllowDecimalPoint | System.Globalization.NumberStyles.AllowLeadingSign|System.Globalization.NumberStyles.AllowLeadingWhite));
-                            //this version would seem most flexible, but it errored on null or blank
-                            //
-                            //range.BaseDemand = Convert.ToString(Convert.ToDecimal(mySheet.Cells[row, 10].IntValue)); // if you try to tell aspose to give it to you as an int, but it's null, it throws an exception.
-                            //range.BaseDemand = Convert.ToString(Convert.ToDecimal(mySheet.Cells[row, 10].Value)); // if you try to convert todecimal but it has a space, .net throws input format exception
-                            // why not this? range.BaseDemand = Convert.ToDecimal(mySheet.Cells[row, 10].Value).ToString();
-                            range.MinEndDateOverride = Convert.ToString(mySheet.Cells[row, 11].Value).Trim();
-                            // why not this? range.MinEndDateOverride = mySheet.Cells[row, 11].StringValue; //aspose treats text in cells specially with stringvalue.  it's probably best to avoid this variable behavior.
-                            range.EndDate = Convert.ToString(mySheet.Cells[row, 12].Value).Trim();
+                            range.Min = Convert.ToString(mySheet.Cells[row, 8].Value);
+                            range.Max = Convert.ToString(mySheet.Cells[row, 9].Value);
+                            range.BaseDemand = Convert.ToString(Convert.ToDecimal(mySheet.Cells[row, 10].Value));
+                            range.MinEndDateOverride = Convert.ToString(mySheet.Cells[row, 11].Value);
+                            range.EndDate = Convert.ToString(mySheet.Cells[row, 12].Value);
                             //doing this to preserve nulls for blank
                             if (range.Min == "")
                             {
