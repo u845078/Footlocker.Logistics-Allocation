@@ -2103,7 +2103,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Upload(string message)
         {
-            Session["errorMessage"] = message;
+            ViewData["errorMessage"] = message;
             return View();
         }
 
@@ -2782,48 +2782,58 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult DownloadErrors()
         {
-            List<RingFenceUploadModel> errors = (List<RingFenceUploadModel>)Session["errorList"];
+            List<RingFenceUploadModel> errors = (List<RingFenceUploadModel>)ViewData["errorList"];
 
             Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
             Excel excelDocument = new Excel();
-            excelDocument.Worksheets[0].Cells[0, 0].PutValue("Div (##)");
-            excelDocument.Worksheets[0].Cells[0, 1].PutValue("Store (#####)");
-            excelDocument.Worksheets[0].Cells[0, 2].PutValue("SKU (##-##-#####-##)");
-            excelDocument.Worksheets[0].Cells[0, 3].PutValue("EndDate (DD/MM/YYYY)");
-            excelDocument.Worksheets[0].Cells[0, 4].PutValue("PO (######)");
-            excelDocument.Worksheets[0].Cells[0, 5].PutValue("Warehouse (##)");
-            excelDocument.Worksheets[0].Cells[0, 6].PutValue("Size/Caselot (### or #####)");
-            excelDocument.Worksheets[0].Cells[0, 7].PutValue("Qty");
-            excelDocument.Worksheets[0].Cells[0, 8].PutValue("Comments");
-            excelDocument.Worksheets[0].Cells[0, 9].PutValue("Error");
-            int row = 1;
 
-            foreach (RingFenceUploadModel model in errors)
+            if (errors != null)
             {
-                excelDocument.Worksheets[0].Cells[row, 0].PutValue(model.Division);
-                excelDocument.Worksheets[0].Cells[row, 1].PutValue(model.Store);
-                excelDocument.Worksheets[0].Cells[row, 2].PutValue(model.SKU);
-                excelDocument.Worksheets[0].Cells[row, 3].PutValue(model.EndDate);
-                excelDocument.Worksheets[0].Cells[row, 4].PutValue(model.PO);
-                excelDocument.Worksheets[0].Cells[row, 5].PutValue(model.Warehouse);
-                excelDocument.Worksheets[0].Cells[row, 6].PutValue(model.Size);
-                excelDocument.Worksheets[0].Cells[row, 7].PutValue(model.Qty);
-                excelDocument.Worksheets[0].Cells[row, 8].PutValue(model.Comments);
-                excelDocument.Worksheets[0].Cells[row, 9].PutValue(model.ErrorMessage);
+                excelDocument.Worksheets[0].Cells[0, 0].PutValue("Div (##)");
+                excelDocument.Worksheets[0].Cells[0, 1].PutValue("Store (#####)");
+                excelDocument.Worksheets[0].Cells[0, 2].PutValue("SKU (##-##-#####-##)");
+                excelDocument.Worksheets[0].Cells[0, 3].PutValue("EndDate (DD/MM/YYYY)");
+                excelDocument.Worksheets[0].Cells[0, 4].PutValue("PO (######)");
+                excelDocument.Worksheets[0].Cells[0, 5].PutValue("Warehouse (##)");
+                excelDocument.Worksheets[0].Cells[0, 6].PutValue("Size/Caselot (### or #####)");
+                excelDocument.Worksheets[0].Cells[0, 7].PutValue("Qty");
+                excelDocument.Worksheets[0].Cells[0, 8].PutValue("Comments");
+                excelDocument.Worksheets[0].Cells[0, 9].PutValue("Error");
+                int row = 1;
 
-                row++;                
+                foreach (RingFenceUploadModel model in errors)
+                {
+                    excelDocument.Worksheets[0].Cells[row, 0].PutValue(model.Division);
+                    excelDocument.Worksheets[0].Cells[row, 1].PutValue(model.Store);
+                    excelDocument.Worksheets[0].Cells[row, 2].PutValue(model.SKU);
+                    excelDocument.Worksheets[0].Cells[row, 3].PutValue(model.EndDate);
+                    excelDocument.Worksheets[0].Cells[row, 4].PutValue(model.PO);
+                    excelDocument.Worksheets[0].Cells[row, 5].PutValue(model.Warehouse);
+                    excelDocument.Worksheets[0].Cells[row, 6].PutValue(model.Size);
+                    excelDocument.Worksheets[0].Cells[row, 7].PutValue(model.Qty);
+                    excelDocument.Worksheets[0].Cells[row, 8].PutValue(model.Comments);
+                    excelDocument.Worksheets[0].Cells[row, 9].PutValue(model.ErrorMessage);
+
+                    row++;
+                }
+
+                excelDocument.Save("RingFenceUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             }
-
-            excelDocument.Save("RingFenceUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            else
+            {
+                // if this message is hit that means there was an exception while processing that was not accounted for
+                // check the log to see what the exception was
+                var message = "An unexpected error has occured.  Please try again or contact an administrator.";
+                return RedirectToAction("Upload", new { message = message });
+            }
+            
             return View();
         }
 
         public ActionResult DownloadErrorsNew()
         {
-            var errorList = (List<Tuple<RingFenceUploadModelNew, string>>)Session["errorList"];
+            var errorList = (List<Tuple<RingFenceUploadModelNew, string>>)ViewData["errorList"];
             if (errorList != null)
             {
                 Aspose.Excel.License license = new Aspose.Excel.License();
@@ -3122,7 +3132,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         message = "Upload failed: One or more columns has unexpected missing or invalid data.";
                         // clear out error list
-                        Session["errorList"] = null;
+                        ViewData["errorList"] = null;
                         
                         return Content(message);
                     }
@@ -3367,18 +3377,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          //parsedRFs.Remove(rf);
                      });
 
-            // 2) Sku is valid
-            //List<string> uniqueSkus = parsedRFs.Select(pr => pr.Sku).Distinct().ToList();
-            //List<string> invalidSkus = uniqueSkus.Where(sku => !db.ItemMasters.Any(im => im.MerchantSku.Equals(sku))).ToList();
-            //parsedRFs.Where(pr => invalidSkus.Contains(pr.Sku))
-            //         .ToList()
-            //         .ForEach(rf =>
-            //         {
-            //             SetErrorMessage(errorList, rf, "The Sku entered is invalid.");
-            //             //parsedRFs.Remove(rf);
-            //         });
-
-            // 3) Sku's division and ring fence's division match
+            // 2) Sku's division and ring fence's division match
             parsedRFs.Where(pr => !pr.Sku.Split('-')[0].Equals(pr.Division))
                      .ToList()
                      .ForEach(rf =>
@@ -3387,7 +3386,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          //parsedRFs.Remove(rf);
                      });
 
-            // 4) Size exists
+            // 3) Size exists
             parsedRFs.Where(pr => pr.Size.Equals(string.Empty))
                      .ToList()
                      .ForEach(rf =>
@@ -3396,7 +3395,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          //parsedRFs.Remove(rf);
                      });
 
-            // 5) Size is of the correct length
+            // 4) Size is of the correct length
             var uniqueSizeList = parsedRFs.Select(pr => pr.Size).Distinct().ToList();
             var invalidSizeList = uniqueSizeList.Where(sl => !sl.Length.Equals(3) && !sl.Length.Equals(5)).ToList();
             parsedRFs.Where(pr => invalidSizeList.Contains(pr.Size))
@@ -3406,41 +3405,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          SetErrorMessage(errorList, rf, string.Format("The size {0} is non-existent or invalid.", rf.Size));
                      });
 
-            // 6) Size is valid
-            //var uniqueBinSkuSizeList = parsedRFs.Where(pr => pr.Size.Length.Equals(3)).Select(pr => new { Sku = pr.Sku, Size = pr.Size }).Distinct().ToList();
-            //var uniqueCaselotSizeList = parsedRFs.Where(pr => pr.Size.Length.Equals(5)).Select(pr => new { Sku = pr.Sku, Size = pr.Size }).Distinct().ToList();
 
-            //// check for bin sizes
-            //var invalidBinSizes = uniqueBinSkuSizeList.Where(sl => !db.Sizes.Any(s => s.Sku.Equals(sl.Sku) && s.Size.Equals(sl.Size))).ToList();
-
-            //parsedRFs.Where(pr => invalidBinSizes.Contains(new { Sku = pr.Sku, Size = pr.Size }))
-            //         .ToList()
-            //         .ForEach(r =>
-            //         {
-            //             SetErrorMessage(errorList, r, string.Format("The bin size {0} could not be found in our system.", r.Size));
-            //             //parsedRFs.Remove(r);
-            //         });
-
-            //// check for caselot schedules (need to rework)
-            //foreach (var ucs in uniqueCaselotSizeList)
-            //{
-            //    var isValid = (from ip in db.ItemPacks
-            //                   join im in db.ItemMasters
-            //                     on ip.ItemID equals im.ID
-            //                   where ip.Name.Equals(ucs.Size) &&
-            //                         im.MerchantSku.Equals(ucs.Sku)
-            //                   select ip).Any();
-            //    if (!isValid)
-            //    {
-            //        parsedRFs.Where(pr => pr.Sku.Equals(ucs.Sku) && pr.Size.Equals(ucs.Size)).ToList().ForEach(r =>
-            //        {
-            //            SetErrorMessage(errorList, r, string.Format("The caselot schedule {0} could not be found in our system.", r.Size));
-            //            //parsedRFs.Remove(r);
-            //        });
-            //    }
-            //}
-
-            // 7) Quantity is greater than zero
+            // 5) Quantity is greater than zero
             parsedRFs.Where(pr => pr.Quantity <= 0)
                      .ToList()
                      .ForEach(rf =>
@@ -3449,7 +3415,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          //parsedRFs.Remove(rf);
                      });
 
-            // 8) DC is valid
+            // 6) DC is valid
             List<string> uniqueDCList = parsedRFs.Select(pr => pr.DC).Distinct().ToList();
             var invalidDCList = uniqueDCList.Where(dc => !db.DistributionCenters.Any(dcs => dcs.MFCode.Equals(dc))).ToList();
             parsedRFs.Where(pr => invalidDCList.Contains(pr.DC))
@@ -3460,7 +3426,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          //parsedRFs.Remove(rf);
                      });
 
-            // 9) if PO is not empty, it has a length of 7 numbers
+            // 7) if PO is not empty, it has a length of 7 numbers
             parsedRFs.Where(pr => !string.IsNullOrEmpty(pr.PO) && !pr.PO.Length.Equals(7))
                      .ToList()
                      .ForEach(rf =>
@@ -3469,19 +3435,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          //parsedRFs.Remove(rf);
                      });
 
-            // remove ecomm stores from any further validation
-            //parsedRFs.Where(pr => pr.Store.Equals("00800"))
-            //         .ToList()
-            //         .ForEach(pr =>
-            //         {
-            //             if (!errorList.Any(err => err.Item1.Equals(pr)))
-            //             {
-            //                 ecommRFs.Add(new EcommRingFence(pr.Sku, pr.Size, pr.PO, pr.Quantity, pr.Comments));
-            //             }
-            //             parsedRFs.Remove(pr);
-            //         });
-
-            // 10) division / store combination is valid
+            // 8) division / store combination is valid
             var uniqueDivStoreList = parsedRFs.Select(pr => new { pr.Division, pr.Store }).Where(pr => !string.IsNullOrEmpty(pr.Store) && !pr.Store.Equals("00800")).Distinct().ToList();
             var invalidDivStoreList = uniqueDivStoreList.Where(ds => !db.vValidStores.Any(vs => vs.Store.Equals(ds.Store) && vs.Division.Equals(ds.Division))).ToList();
             parsedRFs.Where(pr => invalidDivStoreList.Contains(new { pr.Division, pr.Store }) && !string.IsNullOrEmpty(pr.Store))
@@ -3498,7 +3452,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                      .ToList()
                      .ForEach(pr => parsedRFs.Remove(pr));
 
-            // 11) validate inventory by unique div/sku/size
+            // 9) validate inventory by unique div/sku/size
             this.ValidateAvailableInventoryForParsedRFs(parsedRFs, errorList, validRFs, ecommRFs);
         }
 
@@ -3512,7 +3466,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<WarehouseInventory> details = rfDAO.GetWarehouseAvailableNew(uniqueCombos);
 
             // remove all parsedRFs that do not have an associated mainframe warehouse inventory record.
-            parsedRFs.Where(pr => !details.Any(d => d.Sku.Equals(pr.Sku) && d.size.Equals(pr.Size) && d.DistributionCenterID.Equals(pr.DC)))
+            parsedRFs.Where(pr => string.IsNullOrEmpty(pr.PO) && !details.Any(d => d.Sku.Equals(pr.Sku) && d.size.Equals(pr.Size) && d.DistributionCenterID.Equals(pr.DC)))
                      .ToList()
                      .ForEach(pr =>
                      {
@@ -3582,8 +3536,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                        join d in details
                                          on new { Sku = r.Sku, PO = r.PO, Size = r.Size, DC = r.DC }
                                      equals new { Sku = d.Sku, PO = d.PO, Size = d.size, DC = d.DistributionCenterID }
-                                      where r.Quantity > d.quantity
-                                     select Tuple.Create(r, d.quantity)).ToList();
+                                      where r.Quantity > d.totalAvailableQuantity
+                                     select Tuple.Create(r, d.totalAvailableQuantity)).ToList();
 
             foreach (var r in invalidFutureCombos)
             {

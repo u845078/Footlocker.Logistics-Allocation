@@ -120,20 +120,39 @@ namespace Footlocker.Logistics.Allocation.Models.Services
          {
             List<Tuple<bool, string>> generatedSQLStatements = new List<Tuple<bool, string>>();
             List<WarehouseInventory> returnValue = new List<WarehouseInventory>();
-
             var futureSizes = uniqueCombos.Where(uc => uc.Item2.Length.Equals(3)).ToList();
             var futureCaselots = uniqueCombos.Where(uc => uc.Item2.Length.Equals(5)).ToList();
+            int batchSize = 200;
 
             if (futureSizes.Count > 0)
             {
-                generatedSQLStatements = BuildFutureWarehouseAvailableQuery(futureSizes, true);
-                returnValue.AddRange(this.ExecuteFutureSQLandParseValues(generatedSQLStatements, true));
+                for (int i = 0; i < futureSizes.Count; i += batchSize)
+                {
+                    if ((i + batchSize) > futureSizes.Count)
+                    {
+                        batchSize = futureSizes.Count - i;
+                    }
+                    var batchFutureSizes = futureSizes.GetRange(i, batchSize).ToList();
+                    generatedSQLStatements = BuildFutureWarehouseAvailableQuery(batchFutureSizes, true);
+                    returnValue.AddRange(this.ExecuteFutureSQLandParseValues(generatedSQLStatements, true));
+                }
+                
             }
+
+            batchSize = 200;
 
             if (futureCaselots.Count > 0)
             {
-                generatedSQLStatements = BuildFutureWarehouseAvailableQuery(futureCaselots, false);
-                returnValue.AddRange(this.ExecuteFutureSQLandParseValues(generatedSQLStatements, false));
+                for (int i = 0; i < futureCaselots.Count; i += batchSize)
+                {
+                    if ((i + batchSize) > futureCaselots.Count)
+                    {
+                        batchSize = futureCaselots.Count - i;
+                    }
+                    var batchFutureCaselots = futureCaselots.GetRange(i, batchSize).ToList();
+                    generatedSQLStatements = BuildFutureWarehouseAvailableQuery(batchFutureCaselots, false);
+                    returnValue.AddRange(this.ExecuteFutureSQLandParseValues(generatedSQLStatements, false));
+                }
             }
 
             return returnValue;
@@ -664,25 +683,9 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         {
             List<WarehouseInventory> returnValue = new List<WarehouseInventory>();
             WarehouseInventoryDAO d = new WarehouseInventoryDAO();
-            //var inv = d.GetWarehouseInventory("18-41-03113-04", "08");
-
-            // map sku to inventory object from db
-            //var itemids = returnValue.Select(r => r.itemID).Distinct().ToList();
-            //var itemSkuMapping = db.ItemMasters.Where(im => itemids.Contains(im.ID)).Select(im => new { ItemID = im.ID, Sku = im.MerchantSku }).ToList();
-
-            //foreach (var r in returnValue)
-            //{
-            //    var sku = itemSkuMapping.Where(ism => ism.ItemID.Equals(r.itemID)).Select(ism => ism.Sku).FirstOrDefault();
-
-            //    if (sku != null)
-            //    {
-            //        r.Sku = sku;
-            //    }
-            //}
             string division = string.Empty, SQL = string.Empty;
             var uniqueSizeCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(3)).ToList();
             var uniqueCaselotCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(5)).ToList();
-
             int batchSize = 300;
 
             if (uniqueSizeCombos.Count > 0)
@@ -698,9 +701,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                     SQL = this.BuildWarehouseAvailableQuery(batchedUniqueSizeCombos, true);
                     returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, true));
                 }
-                //division = uniqueSizeCombos.Select(sc => sc.Item1.Split('-')[0]).FirstOrDefault();
-                //SQL = this.BuildWarehouseAvailableQuery(uniqueSizeCombos, true);
-                //returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, true));
             }
 
             batchSize = 300;
@@ -746,22 +746,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                                                                        wi.DistributionCenterID.Equals(ed.MFCode) &&
                                                                                        wi.PO.Equals(ed.RingFenceDetail.PO))).ToList();
 
-            // group the details by sku, size, dcid, po, qty and then reduce existing warehouseInventory
-            //existingDetails = existingDetails.GroupBy(ed => new { Sku = ed.Sku, Size = ed.RingFenceDetail.Size, DC = ed.MFCode, PO = ed.RingFenceDetail.PO })
-            //                                 .Select(ed => new { Sku = ed.Key.Sku, Size = ed.Key.Size, DC = ed.Key.DC, PO = ed.Key.PO })
-            //                                 .ToList().ForEach(ed =>
-            //                                 {
-            //                                     var reduce = warehouseInventory.Where(wi => wi.Sku.Equals(ed.Sku) &&
-            //                                                                                 wi.size.Equals(ed.Size) &&
-            //                                                                                 wi.DistributionCenterID.Equals(ed.DC) &&
-            //                                                                                 wi.PO.Equals(ed.PO)).FirstOrDefault();
-            //                                     if (reduce != null)
-            //                                     {
-            //                                         reduce.ringFenceQuantity = ed.Qty;
-            //                                     }
-
-            //                                 });
-
             (from row in existingDetails
                        group row by new { Sku = row.Sku, Size = row.RingFenceDetail.Size, DC = row.MFCode, PO = row.RingFenceDetail.PO } into g
                        select new
@@ -782,32 +766,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                reduce.totalRingFenceQuantity = ed.Qty;
                            }
                        });
-
-            //var existingHeaders = db.RingFences.Where(rf => uniqueSkus.Contains(rf.Sku)).Distinct().ToList();
-            //var existingDetails = db.RingFenceDetails.Where(rfd => existingHeaders.Any(rf => rf.ID.Equals(rfd.RingFenceID))).ToList();
-            //var existingDetails = (from rf in db.RingFences
-            //                       join wi in warehouseInventory
-            //                         on new { Div = rf.Division, Sku = rf.Sku } equals
-            //                            new { Div = wi.Sku.Split('-')[0], Sku = wi.Sku }
-            //                       join dc in db.DistributionCenters
-            //                         on wi.DistributionCenterID equals dc.MFCode
-            //                       join rfd in db.RingFenceDetails
-            //                         on new { Size = wi.size, DCID = dc.ID, PO = wi.PO } equals
-            //                            new { Size = rfd.Size, DCID = rfd.DCID, PO = rfd.PO }
-            //                       select new { Sku = rf.Sku, Size = rfd.Size, DCID = dc.MFCode, PO = rfd.PO, Qty = rfd.Qty }).ToList();
-
-            //foreach (var wi in warehouseInventory)
-            //{
-            //    var details = existingDetails.Where(d => d.Sku.Equals(wi.Sku) &&
-            //                                                       d.DCID.Equals(wi.DistributionCenterID) &&
-            //                                                       d.PO.Equals(wi.PO) &&
-            //                                                       d.Size.Equals(wi.size)).ToList();
-            //    int reductionQuantity = 0;
-            //    if (details.Count > 0)
-            //    {
-            //        reductionQuantity = details.Sum(d => d.Qty);
-            //    }
-            //}
 
             return warehouseInventory;
         }
