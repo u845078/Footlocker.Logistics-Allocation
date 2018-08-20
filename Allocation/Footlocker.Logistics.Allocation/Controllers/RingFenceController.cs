@@ -3121,7 +3121,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     , successfulCount
                                     , warnings.Count
                                     , errors.Count);
-                                Session["errorList"] = errorList;
+                                ViewData["errorList"] = errorList;
                                 amountOfTime = DateTime.Now.Subtract(startTime);
                                 log.Log(amountOfTime.ToString(), FLLogger.eLogMessageType.eInfo);
                                 return Content(errorMessage);
