@@ -155,6 +155,10 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 }
             }
 
+            if (returnValue.Count > 0)
+            {
+                returnValue = this.ReduceRingFenceQuantities(returnValue);
+            }
             return returnValue;
         }
 
