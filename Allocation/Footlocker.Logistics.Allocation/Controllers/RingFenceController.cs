@@ -3044,10 +3044,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             int successfulCount = 0;
             List<Tuple<RingFenceUploadModelNew, string>> warnings, errors;
 
-            FLLogger log = new FLLogger("c:\\Log\\ringfenceoptimizationtimestamps");
-            DateTime startTime = DateTime.Now;
-            TimeSpan amountOfTime = new TimeSpan();
-
             foreach (var file in attachments)
             {               
                 Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
@@ -3114,8 +3110,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     , warnings.Count
                                     , errors.Count);
                                 Session["errorList"] = errorList;
-                                amountOfTime = DateTime.Now.Subtract(startTime);
-                                log.Log(amountOfTime.ToString(), FLLogger.eLogMessageType.eInfo);
                                 return Content(errorMessage);
                             }
                         }
@@ -3131,8 +3125,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
             message = string.Format("Success! {0} lines were processed.", successfulCount);
-            amountOfTime = DateTime.Now.Subtract(startTime);
-            log.Log(amountOfTime.ToString(), FLLogger.eLogMessageType.eInfo);
             return Json(new { message = message }, "application/json");
         }
 
