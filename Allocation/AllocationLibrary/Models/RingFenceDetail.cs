@@ -22,6 +22,7 @@ namespace Footlocker.Logistics.Allocation.Models
         
         [Key]
         [Column(Order = 1)]
+        [ForeignKey("DistributionCenter")]
         public int DCID { get; set; }
 
         [NotMapped]
@@ -100,9 +101,10 @@ namespace Footlocker.Logistics.Allocation.Models
         [ForeignKey("RingFenceStatus")]
         public string ringFenceStatusCode { get; set; }
 
-       
-        public virtual RingFenceStatusCodes RingFenceStatus { get; set; }
+        public RingFenceStatusCodes RingFenceStatus { get; set; }
 
         public virtual RingFence RingFence { get; set; }
+
+        public virtual DistributionCenter DistributionCenter { get; set; }
     }
 }

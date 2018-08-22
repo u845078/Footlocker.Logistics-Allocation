@@ -2101,8 +2101,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(new GridModel(updated));
         }
 
-        public ActionResult Upload()
+        public ActionResult Upload(string message)
         {
+            ViewData["errorMessage"] = message;
             return View();
         }
 
@@ -2515,7 +2516,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 try
                 {
-                    ecomm.Qty = Convert.ToInt32(model.Qty);
+                    ecomm.Qty = Convert.ToInt32(Math.Round(Convert.ToDecimal(model.Qty)));
                     if (ecomm.Qty < 0)
                         throw new Exception("Qty < 0");
 
@@ -2631,7 +2632,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         detail.ActiveInd = "1";                        
                         detail.LastModifiedDate = DateTime.Now;
                         detail.LastModifiedUser = User.Identity.Name;
-                        detail.Qty = Convert.ToInt32(model.Qty);
+                        detail.Qty = Convert.ToInt32(Math.Round(Convert.ToDecimal(model.Qty)));
                         int availableQty = 0;
 
                         if (detail.PO != "")
@@ -2729,6 +2730,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
+        private void GenerateHeader(Aspose.Excel.Worksheet mySheet, int col, string headerText)
+        {
+            mySheet.Cells[0, col].PutValue(headerText);
+            mySheet.Cells[0, col].Style.HorizontalAlignment = TextAlignmentType.Center;
+            mySheet.Cells[0, col].Style.Font.Size = 10;
+            mySheet.Cells[0, col].Style.Font.IsBold = true;
+            mySheet.AutoFitColumn(col);
+        }
+
         public ActionResult ExcelTemplate()
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -2736,16 +2746,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            excelDocument.Worksheets[0].Cells[0, 0].PutValue("Div (##)");
-            excelDocument.Worksheets[0].Cells[0, 1].PutValue("Store (#####)");
-            excelDocument.Worksheets[0].Cells[0, 2].PutValue("SKU (##-##-#####-##)");
-            excelDocument.Worksheets[0].Cells[0, 3].PutValue("EndDate (DD/MM/YYYY)");
-            excelDocument.Worksheets[0].Cells[0, 4].PutValue("PO (######)");
-            excelDocument.Worksheets[0].Cells[0, 5].PutValue("Warehouse (##)");
-            excelDocument.Worksheets[0].Cells[0, 6].PutValue("Size (###)");
-            excelDocument.Worksheets[0].Cells[0, 7].PutValue("Caselot (#####)");
-            excelDocument.Worksheets[0].Cells[0, 8].PutValue("Qty");
-            excelDocument.Worksheets[0].Cells[0, 9].PutValue("Comments");
+            Worksheet mySheet = excelDocument.Worksheets[0];
+            GenerateHeader(mySheet, 0, "Div (##)");
+            GenerateHeader(mySheet, 1, "Store (#####)");
+            GenerateHeader(mySheet, 2, "SKU (##-##-#####-##)");
+            GenerateHeader(mySheet, 3, "EndDate (DD/MM/YYYY)");
+            GenerateHeader(mySheet, 4, "PO (######)");
+            GenerateHeader(mySheet, 5, "Warehouse (##)");
+            GenerateHeader(mySheet, 6, "Size (### or #####)");
+            GenerateHeader(mySheet, 7, "Qty");
+            GenerateHeader(mySheet, 8, "Comments");
+
+            for (int i = 1; i < 10000; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    if (j != 7)
+                    {
+                        mySheet.Cells[i, j].Style.Number = 49;
+                    }
+                }
+            }
 
             excelDocument.Save("RingFenceUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
@@ -2756,39 +2777,139 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RingFenceUploadModel> errors = (List<RingFenceUploadModel>)Session["errorList"];
 
             Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
             Excel excelDocument = new Excel();
-            excelDocument.Worksheets[0].Cells[0, 0].PutValue("Div (##)");
-            excelDocument.Worksheets[0].Cells[0, 1].PutValue("Store (#####)");
-            excelDocument.Worksheets[0].Cells[0, 2].PutValue("SKU (##-##-#####-##)");
-            excelDocument.Worksheets[0].Cells[0, 3].PutValue("EndDate (DD/MM/YYYY)");
-            excelDocument.Worksheets[0].Cells[0, 4].PutValue("PO (######)");
-            excelDocument.Worksheets[0].Cells[0, 5].PutValue("Warehouse (##)");
-            excelDocument.Worksheets[0].Cells[0, 6].PutValue("Size/Caselot (### or #####)");
-            excelDocument.Worksheets[0].Cells[0, 7].PutValue("Qty");
-            excelDocument.Worksheets[0].Cells[0, 8].PutValue("Comments");
-            excelDocument.Worksheets[0].Cells[0, 9].PutValue("Error");
-            int row = 1;
 
-            foreach (RingFenceUploadModel model in errors)
+            if (errors != null)
             {
-                excelDocument.Worksheets[0].Cells[row, 0].PutValue(model.Division);
-                excelDocument.Worksheets[0].Cells[row, 1].PutValue(model.Store);
-                excelDocument.Worksheets[0].Cells[row, 2].PutValue(model.SKU);
-                excelDocument.Worksheets[0].Cells[row, 3].PutValue(model.EndDate);
-                excelDocument.Worksheets[0].Cells[row, 4].PutValue(model.PO);
-                excelDocument.Worksheets[0].Cells[row, 5].PutValue(model.Warehouse);
-                excelDocument.Worksheets[0].Cells[row, 6].PutValue(model.Size);
-                excelDocument.Worksheets[0].Cells[row, 7].PutValue(model.Qty);
-                excelDocument.Worksheets[0].Cells[row, 8].PutValue(model.Comments);
-                excelDocument.Worksheets[0].Cells[row, 9].PutValue(model.ErrorMessage);
+                excelDocument.Worksheets[0].Cells[0, 0].PutValue("Div (##)");
+                excelDocument.Worksheets[0].Cells[0, 1].PutValue("Store (#####)");
+                excelDocument.Worksheets[0].Cells[0, 2].PutValue("SKU (##-##-#####-##)");
+                excelDocument.Worksheets[0].Cells[0, 3].PutValue("EndDate (DD/MM/YYYY)");
+                excelDocument.Worksheets[0].Cells[0, 4].PutValue("PO (######)");
+                excelDocument.Worksheets[0].Cells[0, 5].PutValue("Warehouse (##)");
+                excelDocument.Worksheets[0].Cells[0, 6].PutValue("Size/Caselot (### or #####)");
+                excelDocument.Worksheets[0].Cells[0, 7].PutValue("Qty");
+                excelDocument.Worksheets[0].Cells[0, 8].PutValue("Comments");
+                excelDocument.Worksheets[0].Cells[0, 9].PutValue("Error");
+                int row = 1;
 
-                row++;                
+                foreach (RingFenceUploadModel model in errors)
+                {
+                    excelDocument.Worksheets[0].Cells[row, 0].PutValue(model.Division);
+                    excelDocument.Worksheets[0].Cells[row, 1].PutValue(model.Store);
+                    excelDocument.Worksheets[0].Cells[row, 2].PutValue(model.SKU);
+                    excelDocument.Worksheets[0].Cells[row, 3].PutValue(model.EndDate);
+                    excelDocument.Worksheets[0].Cells[row, 4].PutValue(model.PO);
+                    excelDocument.Worksheets[0].Cells[row, 5].PutValue(model.Warehouse);
+                    excelDocument.Worksheets[0].Cells[row, 6].PutValue(model.Size);
+                    excelDocument.Worksheets[0].Cells[row, 7].PutValue(model.Qty);
+                    excelDocument.Worksheets[0].Cells[row, 8].PutValue(model.Comments);
+                    excelDocument.Worksheets[0].Cells[row, 9].PutValue(model.ErrorMessage);
+
+                    row++;
+                }
+
+                excelDocument.Save("RingFenceUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            }
+            else
+            {
+                // if this message is hit that means there was an exception while processing that was not accounted for
+                // check the log to see what the exception was
+                var message = "An unexpected error has occured.  Please try again or contact an administrator.";
+                return RedirectToAction("Upload", new { message = message });
+            }
+            
+            return View();
+        }
+
+        public ActionResult DownloadErrorsNew()
+        {
+            var errorList = (List<Tuple<RingFenceUploadModelNew, string>>)Session["errorList"];
+            if (errorList != null)
+            {
+                Aspose.Excel.License license = new Aspose.Excel.License();
+                //Set the license
+                license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+                Excel excelDocument = new Excel();
+                Worksheet mySheet = excelDocument.Worksheets[0];
+                int col = 0;
+                mySheet.Cells[0, col].PutValue("Div (##)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("Store (#####)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("SKU (##-##-#####-##)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("EndDate (DD/MM/YYYY)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("PO (######)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("Warehouse (##)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("Size/Caselot (### or #####)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("Qty");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("Comments");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+                mySheet.Cells[0, col].PutValue("Error");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
+
+                int row = 1;
+                if (errorList != null && errorList.Count > 0)
+                {
+                    foreach (var error in errorList)
+                    {
+                        col = 0;
+                        mySheet.Cells[row, col].PutValue(error.Item1.Division);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.Store);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.Sku);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.EndDate);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.PO);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.DC);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.Size);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.Quantity);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.Comments);
+                        col++;
+                        mySheet.Cells[row, col].PutValue(error.Item2);
+                        row++;
+                    }
+
+                    for (int i = 0; i < 10; i++)
+                    {
+                        mySheet.AutoFitColumn(i);
+                    }
+                }
+
+                excelDocument.Save("RingFenceUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            }
+            else
+            {
+                // if this message is hit that means there was an exception while processing that was not accounted for
+                // check the log to see what the exception was
+                var message = "An unexpected error has occured.  Please try again or contact an administrator.";
+                return RedirectToAction("Upload", new { message = message });
             }
 
-            excelDocument.Save("RingFenceUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
 
@@ -2899,5 +3020,652 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return View();
         }
+
+        #region RingFenceUpload Optimization
+
+        public ActionResult SaveRingFencesWithAccumulatedQuantity(IEnumerable<HttpPostedFileBase> attachments)
+        {
+            return SaveRingFencesOptimized(attachments, true);
+        }
+
+        public ActionResult SaveRingFencesReplacingQuantity(IEnumerable<HttpPostedFileBase> attachments2)
+        {
+            return SaveRingFencesOptimized(attachments2, false);
+        }
+
+        public ActionResult SaveRingFencesOptimized(IEnumerable<HttpPostedFileBase> attachments, bool accumulateQuantity)
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            string message = string.Empty;
+            List<RingFenceUploadModelNew> parsedRFs = new List<RingFenceUploadModelNew>(), validRFs = new List<RingFenceUploadModelNew>();
+            List<EcommRingFence> ecommRFs = new List<EcommRingFence>();
+            List<Tuple<RingFenceUploadModelNew, string>> errorList = new List<Tuple<RingFenceUploadModelNew, string>>();
+            int successfulCount = 0;
+            List<Tuple<RingFenceUploadModelNew, string>> warnings, errors;
+
+            FLLogger log = new FLLogger("c:\\Log\\ringfenceoptimizationtimestamps");
+            DateTime startTime = DateTime.Now;
+            TimeSpan amountOfTime = new TimeSpan();
+
+            foreach (var file in attachments)
+            {               
+                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+                Byte[] data1 = new Byte[file.InputStream.Length];
+                file.InputStream.Read(data1, 0, data1.Length);
+                file.InputStream.Close();
+                MemoryStream memoryStream1 = new MemoryStream(data1);
+                workbook.Open(memoryStream1);
+                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+
+                if (!this.HasValidHeaderRow(mySheet))
+                {
+                    message = "Upload failed: Incorrect header - please use template.";
+                    return Content(message);
+                }
+                else
+                {
+                    int row = 1;
+                    try
+                    {
+                        // create a local list of type RingFenceUploadModel to store the values from the upload
+                        while (this.HasDataOnRow(mySheet, row))
+                        {
+                            parsedRFs.Add(this.ParseUploadRow(mySheet, row));
+                            row++;
+                        }
+
+                        // continue processing only if there is at least 1 record to upload
+                        if (parsedRFs.Count > 0)
+                        {
+                            // file validation - duplicates, permission for unique divisions, etc
+                            if (!this.ValidateFile(parsedRFs, errorList, out message))
+                            {
+                                return Content(message);
+                            }
+
+                            // validate the parsed ring fences.  all valid ring fences will be added to validRFs
+                            this.ValidateParsedRFs(parsedRFs, validRFs, errorList, ecommRFs);
+
+
+                            if (validRFs.Count > 0)
+                            {
+                                // creates or updates the valid ring fences
+                                this.CreateOrUpdateRingFencesNew(validRFs, errorList, accumulateQuantity);
+                            }
+
+                            if (ecommRFs.Count > 0)
+                            {
+                                // process ecomm ringfences
+                                ConvertRangeDAO crDAO = new ConvertRangeDAO();
+                                crDAO.SaveEcommRingFences(ecommRFs, User.Identity.Name);
+                            }
+
+                            successfulCount = validRFs.Count + ecommRFs.Count;
+                            warnings = errorList.Where(el => el.Item2.StartsWith("Warning")).ToList();
+                            errors = errorList.Except(warnings).ToList();
+
+                            // if errors occured, allow user to download them
+                            if (errorList.Count > 0)
+                            {
+                                string errorMessage = string.Format(
+                                    "{0} lines were processed successfully. {1} warnings and {2} errors were found."
+                                    , successfulCount
+                                    , warnings.Count
+                                    , errors.Count);
+                                Session["errorList"] = errorList;
+                                amountOfTime = DateTime.Now.Subtract(startTime);
+                                log.Log(amountOfTime.ToString(), FLLogger.eLogMessageType.eInfo);
+                                return Content(errorMessage);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        message = "Upload failed: One or more columns has unexpected missing or invalid data.";
+                        // clear out error list
+                        Session["errorList"] = null;
+                        
+                        return Content(message);
+                    }
+                }
+            }
+            message = string.Format("Success! {0} lines were processed.", successfulCount);
+            amountOfTime = DateTime.Now.Subtract(startTime);
+            log.Log(amountOfTime.ToString(), FLLogger.eLogMessageType.eInfo);
+            return Json(new { message = message }, "application/json");
+        }
+
+        private void CreateOrUpdateRingFencesNew(List<RingFenceUploadModelNew> validRFs, List<Tuple<RingFenceUploadModelNew, string>> errorList, bool accumulateQuantity)
+        {           
+
+            //List<RingFence> ringFences = new List<RingFence>();
+            List<RingFenceDetail> ringFenceDetails = new List<RingFenceDetail>();
+            // group ring fences by div, store, sku, and list of there details (which is just the upload model)
+            var rfHeaders = validRFs.GroupBy(vr => new { Division = vr.Division, Store = vr.Store, Sku = vr.Sku })
+                                     .Select(vr => new
+                                     {
+                                         Division = vr.Key.Division,
+                                         Store = vr.Key.Store,
+                                         Sku = vr.Key.Sku,
+                                         Details = vr.ToList()
+                                     })
+                                     .ToList();
+
+            /* this is a messy linq query so allow me to explain.
+             * At first we are joining our grouped ring fences together with the ringfence table to
+             * see if there is an existing ringfence for this upload.  If it is found, we can't
+             * make the assumption that there is not two or more records that will be returned.
+             * Therefore, after selecting the initial division, store, sku, and detail records, we
+             * group by division, store, and sku and then select the first record in the list that
+             * we find (this is how the old process worked and I believe this needs revisited)
+             */
+            var existingHeaders = (from gr in rfHeaders
+                                      join rf in db.RingFences
+                                        on new { Division = gr.Division, Store = gr.Store, Sku = gr.Sku } equals
+                                           new { Division = rf.Division, Store = rf.Store, Sku = rf.Sku }
+                                      where (rf.EndDate == null || rf.EndDate > DateTime.Now)
+                                      select new { RingFenceID = rf.ID, Division = rf.Division, Store = rf.Store, Sku = rf.Sku, Details = gr.Details })
+                                      .GroupBy(rf => new { Division = rf.Division, Store = rf.Store, Sku = rf.Sku })
+                                      .Select(rf => new
+                                      {
+                                          RingFenceID = rf.FirstOrDefault().RingFenceID,
+                                          Division = rf.Key.Division,
+                                          Store = rf.Key.Store,
+                                          Sku = rf.Key.Sku,
+                                          Details = rf.FirstOrDefault().Details
+                                      }).ToList();
+
+            // reselect the existingHeaders to be in the format to use Except in the next statement (just excludes the ringfenceid we brought back)
+            var reformattedHeaders = existingHeaders.Select(egr => new { Division = egr.Division, Store = egr.Store, Sku = egr.Sku, Details = egr.Details }).ToList();
+            var nonExistingHeaders = rfHeaders.Except(reformattedHeaders).ToList();
+
+            // this section is for populating data from the database before we build out the non-existing ring fences.
+            // I populate these lists to reduce the number of database calls for each and every new ring fence.
+            var uniqueDivisions = validRFs.Select(rf => rf.Division).Distinct().ToList();
+            var divisionControlDateMapping = (from ud in uniqueDivisions
+                                              join id in db.InstanceDivisions
+                                                on ud equals id.Division
+                                              join cd in db.ControlDates
+                                                on id.InstanceID equals cd.InstanceID
+                                            select new { Division = id.Division, RunDate = cd.RunDate }).ToList();
+
+            var uniqueDCs = validRFs.Select(vr => vr.DC).Distinct().ToList();
+            var dcidMapping = (from dcs in db.DistributionCenters.Where(dcs => uniqueDCs.Contains(dcs.MFCode))
+                               select new { DCID = dcs.ID, MFCode = dcs.MFCode }).ToList();
+
+            var uniqueSkus = validRFs.Select(vr => vr.Sku).Distinct().ToList();
+
+            var skuItemIDMapping = (from im in db.ItemMasters.Where(im => uniqueSkus.Contains(im.MerchantSku))
+                                    select new { Sku = im.MerchantSku, ItemID = im.ID }).ToList();
+
+            List<ItemPack> uniqueItemIDCaselots = new List<ItemPack>();
+            List<ItemPack> uniqueCaselotQtys = new List<ItemPack>();
+
+            if (validRFs.Any(vr => vr.Size.Length.Equals(5)))
+            {
+                // unique caselot schedule names (numbers)
+                uniqueItemIDCaselots = (from vr in validRFs
+                                        join si in skuItemIDMapping
+                                          on vr.Sku equals si.Sku
+                                        where vr.Size.Length.Equals(5)
+                                        select new ItemPack { Name = vr.Size, ItemID = si.ItemID }).Distinct().ToList();
+
+                uniqueCaselotQtys = (from uic in uniqueItemIDCaselots
+                                     join ip in db.ItemPacks
+                                       on new { Name = uic.Name, ItemID = uic.ItemID } equals
+                                          new { Name = ip.Name, ItemID = ip.ItemID }
+                                     select ip).Distinct().ToList();
+            }
+
+            var ecommWhse = db.EcommWarehouses.ToList();
+
+            db.Configuration.AutoDetectChangesEnabled = false;
+            db.Configuration.LazyLoadingEnabled = false;
+            db.Configuration.ProxyCreationEnabled = false;
+            db.Configuration.ValidateOnSaveEnabled = false;
+            // create ring fences and ring fence details for non-existing combinations
+            foreach (var grf in nonExistingHeaders)
+            {
+                // populate header record
+                RingFence rf = new RingFence();
+                rf.Division = grf.Division;
+                rf.Store = grf.Store;
+                rf.Sku = grf.Sku;
+                rf.ItemID = skuItemIDMapping.Where(r => r.Sku.Equals(rf.Sku)).Select(r => r.ItemID).FirstOrDefault();
+                rf.StartDate = divisionControlDateMapping.Where(cd => cd.Division.Equals(rf.Division)).Select(cd => cd.RunDate).FirstOrDefault().AddDays(1);
+                rf.Comments = (grf.Details.FirstOrDefault()) == null ? "" : grf.Details.FirstOrDefault().Comments;
+                rf.CreateDate = DateTime.Now;
+                rf.CreatedBy = User.Identity.Name;
+                rf.LastModifiedDate = DateTime.Now;
+                rf.LastModifiedUser = User.Identity.Name;
+                rf.Type = (ecommWhse.Any(ew => ew.Division.Equals(rf.Division) && ew.Store.Equals(rf.Store))) ? 2 : 1;
+                rf.ringFenceDetails = new List<RingFenceDetail>();
+                // traverse and generate detail records
+                foreach (var detail in grf.Details)
+                {
+                    RingFenceDetail rfd = new RingFenceDetail();
+                    rfd.DCID = dcidMapping.Where(dc => detail.DC.Equals(dc.MFCode)).Select(dc => dc.DCID).FirstOrDefault();
+                    rfd.PO = detail.PO;
+                    rfd.Size = detail.Size;
+                    rfd.Qty = detail.Quantity;
+                    rfd.ringFenceStatusCode = "4";
+                    rfd.ActiveInd = "1";
+                    rfd.LastModifiedDate = DateTime.Now;
+                    rfd.LastModifiedUser = User.Identity.Name;
+                    rf.ringFenceDetails.Add(rfd);
+                }
+                rf.Qty = this.CalculateHeaderQty(uniqueCaselotQtys, rf.ringFenceDetails);
+                db.RingFences.Add(rf);
+            }
+
+            // retrieve existing ringfences all at once, and then locally map it
+            List<long> uniqueRFIDs = existingHeaders.Select(egr => egr.RingFenceID).Distinct().ToList();
+
+            List<RingFence> existingRingFences = db.RingFences.Include("ringFenceDetails").Include("ringFenceDetails.DistributionCenter").Where(rf => uniqueRFIDs.Contains(rf.ID)).ToList();
+
+            foreach (var erf in existingRingFences)
+            {
+                // retrieve specific groupedRF
+                var groupedRF = existingHeaders.Where(egr => egr.RingFenceID.Equals(erf.ID)).FirstOrDefault();
+                if (groupedRF != null)
+                {
+                    // determine how many details are existent for the specified rf
+                    var existingDetails = erf.ringFenceDetails.Where(rfd => groupedRF.Details.Any(d => rfd.Size.Equals(d.Size) &&
+                                                                                                       rfd.PO.Equals(d.PO) &&
+                                                                                                       rfd.DistributionCenter.MFCode.Equals(d.DC))).ToList();
+                    // update each detail
+                    if (existingDetails.Count > 0)
+                    {
+                        foreach (var detail in existingDetails)
+                        {
+                            // retrieve specific detail
+                            var newDetail = groupedRF.Details.Where(d => d.Size.Equals(detail.Size) &&
+                                                                         d.PO.Equals(detail.PO) &&
+                                                                         d.DC.Equals(detail.DistributionCenter.MFCode)).FirstOrDefault();
+
+                            if (accumulateQuantity)
+                            {
+                                detail.Qty += newDetail.Quantity;
+                                SetErrorMessage(errorList, newDetail, "Warning: Already existed, accumulated to new value");
+                            }
+                            else
+                            {
+                                detail.Qty = newDetail.Quantity;
+                                SetErrorMessage(errorList, newDetail, "Warning: Already existed, updated to upload value");
+                            }
+                            
+                            detail.LastModifiedDate = DateTime.Now;
+                            detail.LastModifiedUser = User.Identity.Name;                            
+                            db.Entry(detail).State = System.Data.EntityState.Modified;
+                        }
+                    }
+
+                    // determine how many details are non-existent for the specified rf
+                    var nonExistingDetails = groupedRF.Details.Where(d => !erf.ringFenceDetails.Any(rfd => rfd.Size.Equals(d.Size) &&
+                                                                                                           rfd.PO.Equals(d.PO) &&
+                                                                                                           rfd.ActiveInd.Equals("1") &&
+                                                                                                           rfd.DistributionCenter.MFCode.Equals(d.DC))).ToList();
+
+                    // create each detail
+                    if (nonExistingDetails.Count > 0)
+                    {
+                        foreach (var neDetail in nonExistingDetails)
+                        {
+                            RingFenceDetail rfd = new RingFenceDetail();
+                            rfd.RingFenceID = erf.ID;
+                            rfd.DCID = dcidMapping.Where(dc => neDetail.DC.Equals(dc.MFCode)).Select(dc => dc.DCID).FirstOrDefault();
+                            rfd.PO = neDetail.PO;
+                            rfd.Size = neDetail.Size;
+                            rfd.Qty = neDetail.Quantity;
+                            rfd.ringFenceStatusCode = "4";
+                            rfd.ActiveInd = "1";
+                            rfd.LastModifiedDate = DateTime.Now;
+                            rfd.LastModifiedUser = User.Identity.Name;
+                            erf.ringFenceDetails.Add(rfd);
+                            db.Entry(rfd).State = System.Data.EntityState.Added;
+                        }
+                    }
+
+                }
+                db.Entry(erf).State = System.Data.EntityState.Modified;
+                erf.Qty = this.CalculateHeaderQty(uniqueCaselotQtys, erf.ringFenceDetails);
+                erf.Comments = groupedRF.Details.FirstOrDefault().Comments;
+            }
+
+            // save the changes for the already existing ringfences
+            db.SaveChangesBulk(User.Identity.Name);
+        }
+
+        private int CalculateHeaderQty(List<ItemPack> uniqueCaselotQtys, List<RingFenceDetail> ringFenceDetails)
+        {
+            int totalQuantity = 0;
+            foreach (var rfd in ringFenceDetails)
+            {
+                if (rfd.Size.Length.Equals(5))
+                {
+                    var caselotDetail = uniqueCaselotQtys.Where(ucq => ucq.Name.Equals(rfd.Size)).FirstOrDefault();
+                    if (caselotDetail != null)
+                    {
+                        totalQuantity += (rfd.Qty * caselotDetail.TotalQty);
+                    }
+                }
+                else
+                {
+                    totalQuantity += rfd.Qty;
+                }
+            }
+            return totalQuantity;
+        }
+
+        private void ValidateParsedRFs(List<RingFenceUploadModelNew> parsedRFs, List<RingFenceUploadModelNew> validRFs, List<Tuple<RingFenceUploadModelNew, string>> errorList, List<EcommRingFence> ecommRFs)
+        {
+            // 1) Sku exists
+            parsedRFs.Where(pr => string.IsNullOrEmpty(pr.Sku))
+                     .ToList()
+                     .ForEach(rf =>
+                     {
+                         SetErrorMessage(errorList, rf, "Sku must be provided.");
+                         //parsedRFs.Remove(rf);
+                     });
+
+            // 2) Sku's division and ring fence's division match
+            parsedRFs.Where(pr => !pr.Sku.Split('-')[0].Equals(pr.Division))
+                     .ToList()
+                     .ForEach(rf =>
+                     {
+                         SetErrorMessage(errorList, rf, "The division entered does not match the Sku's division.");
+                         //parsedRFs.Remove(rf);
+                     });
+
+            // 3) Size exists
+            parsedRFs.Where(pr => pr.Size.Equals(string.Empty))
+                     .ToList()
+                     .ForEach(rf =>
+                     {
+                         SetErrorMessage(errorList, rf, "Size or caselot must be provided.");
+                         //parsedRFs.Remove(rf);
+                     });
+
+            // 4) Size is of the correct length
+            var uniqueSizeList = parsedRFs.Select(pr => pr.Size).Distinct().ToList();
+            var invalidSizeList = uniqueSizeList.Where(sl => !sl.Length.Equals(3) && !sl.Length.Equals(5)).ToList();
+            parsedRFs.Where(pr => invalidSizeList.Contains(pr.Size))
+                     .ToList()
+                     .ForEach(rf =>
+                     {
+                         SetErrorMessage(errorList, rf, string.Format("The size {0} is non-existent or invalid.", rf.Size));
+                     });
+
+
+            // 5) Quantity is greater than zero
+            parsedRFs.Where(pr => pr.Quantity <= 0)
+                     .ToList()
+                     .ForEach(rf =>
+                     {
+                         SetErrorMessage(errorList, rf, "The quantity provided cannot be less than or equal to zero.");
+                         //parsedRFs.Remove(rf);
+                     });
+
+            // 6) DC is valid
+            List<string> uniqueDCList = parsedRFs.Select(pr => pr.DC).Distinct().ToList();
+            var invalidDCList = uniqueDCList.Where(dc => !db.DistributionCenters.Any(dcs => dcs.MFCode.Equals(dc))).ToList();
+            parsedRFs.Where(pr => invalidDCList.Contains(pr.DC))
+                     .ToList()
+                     .ForEach(rf =>
+                     {
+                         SetErrorMessage(errorList, rf, "DC is invalid.");
+                         //parsedRFs.Remove(rf);
+                     });
+
+            // 7) if PO is not empty, it has a length of 7 numbers
+            parsedRFs.Where(pr => !string.IsNullOrEmpty(pr.PO) && !pr.PO.Length.Equals(7))
+                     .ToList()
+                     .ForEach(rf =>
+                     {
+                         SetErrorMessage(errorList, rf, "PO must be seven digits.");
+                         //parsedRFs.Remove(rf);
+                     });
+
+            // 8) division / store combination is valid
+            var uniqueDivStoreList = parsedRFs.Select(pr => new { pr.Division, pr.Store }).Where(pr => !string.IsNullOrEmpty(pr.Store) && !pr.Store.Equals("00800")).Distinct().ToList();
+            var invalidDivStoreList = uniqueDivStoreList.Where(ds => !db.vValidStores.Any(vs => vs.Store.Equals(ds.Store) && vs.Division.Equals(ds.Division))).ToList();
+            parsedRFs.Where(pr => invalidDivStoreList.Contains(new { pr.Division, pr.Store }) && !string.IsNullOrEmpty(pr.Store))
+                     .ToList()
+                     .ForEach(rf =>
+                     {
+                         SetErrorMessage(errorList, rf
+                             , string.Format("The division and store combination {0}-{1} is not an existing or valid combination.", rf.Division, rf.Store));
+                         //parsedRFs.Remove(rf);
+                     });
+
+            // remove all parsedRFs that were found in the validation above
+            parsedRFs.Where(pr => errorList.Any(er => er.Item1.Equals(pr)))
+                     .ToList()
+                     .ForEach(pr => parsedRFs.Remove(pr));
+
+            // 9) validate inventory by unique div/sku/size
+            this.ValidateAvailableInventoryForParsedRFs(parsedRFs, errorList, validRFs, ecommRFs);
+        }
+
+        private void ValidateAvailableInventoryForParsedRFs(List<RingFenceUploadModelNew> parsedRFs, List<Tuple<RingFenceUploadModelNew, string>> errorList, List<RingFenceUploadModelNew> validRFs, List<EcommRingFence> ecommRFs)
+        {
+            List<Tuple<string, string, string>> uniqueCombos = new List<Tuple<string, string, string>>();
+            RingFenceDAO rfDAO = new RingFenceDAO();
+
+            // unique combos excluding ringfences with POs (available)
+            uniqueCombos = parsedRFs.Where(pr => string.IsNullOrEmpty(pr.PO)).Select(pr => Tuple.Create(pr.Sku, pr.Size, pr.DC)).Distinct().ToList();
+            List<WarehouseInventory> details = rfDAO.GetWarehouseAvailableNew(uniqueCombos);
+            // reduce details
+            details = rfDAO.ReduceRingFenceQuantities(details);
+
+            // remove all parsedRFs that do not have an associated mainframe warehouse inventory record.
+            parsedRFs.Where(pr => string.IsNullOrEmpty(pr.PO) && !details.Any(d => d.Sku.Equals(pr.Sku) && d.size.Equals(pr.Size) && d.DistributionCenterID.Equals(pr.DC)))
+                     .ToList()
+                     .ForEach(pr =>
+                     {
+                         SetErrorMessage(errorList, pr, string.Format("The Sku, Size, and DC combination could not be found within our system.", pr.Sku, pr.Size, pr.DC));
+                         parsedRFs.Remove(pr);
+                     });
+
+            // unique non-future combos with summed quantity
+            var uniqueRFsGrouped = parsedRFs.GroupBy(pr => new { Sku = pr.Sku, Size = pr.Size, DC = pr.DC })
+                                             .Select(pr => new { Sku = pr.Key.Sku, Size = pr.Key.Size, DC = pr.Key.DC, Quantity = pr.Sum(rf => rf.Quantity) })
+                                             .ToList();
+
+            var invalidRingFenceQuantity = (from rf in uniqueRFsGrouped
+                                            join d in details
+                                              on new { Sku = rf.Sku, Size = rf.Size, DC = rf.DC } equals
+                                                 new { Sku = d.Sku, Size = d.size, DC = d.DistributionCenterID }
+                                            where rf.Quantity > d.totalAvailableQuantity
+                                           select Tuple.Create(rf, d.totalAvailableQuantity)).ToList();
+
+            foreach (var rf in invalidRingFenceQuantity)
+            {
+                var rfsToDelete = parsedRFs.Where(pr => pr.Sku.Equals(rf.Item1.Sku) &&
+                                                        pr.Size.Equals(rf.Item1.Size) &&
+                                                        pr.DC.Equals(rf.Item1.DC)).ToList();
+                rfsToDelete.ForEach(drf =>
+                {
+                    SetErrorMessage(errorList, drf
+                        , string.Format("Not enough inventory available for all sizes.  Available inventory: {0}", rf.Item2));
+                    parsedRFs.Remove(drf);
+                });
+            }
+
+            // unique Sku, Size, PO, WhseID combos for future pos
+            var uniqueFutureCombos = parsedRFs.Where(pr => !string.IsNullOrEmpty(pr.PO))
+                                              .Select(pr => Tuple.Create(pr.Sku, pr.Size, pr.PO, pr.DC))
+                                              .Distinct().ToList();
+
+            details = rfDAO.GetFuturePOsNew(uniqueFutureCombos);
+            // reduce details
+            details = rfDAO.ReduceRingFenceQuantities(details);
+
+            // unique future combos with summed quantity
+            var uniqueFutureCombosGrouped = parsedRFs.Where(pr => !string.IsNullOrEmpty(pr.PO))
+                                                     .GroupBy(pr => new { Sku = pr.Sku, PO = pr.PO, Size = pr.Size, DC = pr.DC })
+                                                     .Select(pr => new { Sku = pr.Key.Sku, PO = pr.Key.PO, Size = pr.Key.Size, DC = pr.Key.DC, Quantity = pr.Sum(rf => rf.Quantity) })
+                                                     .ToList();
+
+            var nonExistentCombo = uniqueFutureCombosGrouped.Where(ucg => !details.Any(d => d.Sku.Equals(ucg.Sku) &&
+                                                                                                  d.PO.Equals(ucg.PO) &&
+                                                                                                  d.size.Equals(ucg.Size) &&
+                                                                                                  d.DistributionCenterID.Equals(ucg.DC))).ToList();
+
+            foreach (var nec in nonExistentCombo)
+            {
+                var futureRFsToDelete = parsedRFs.Where(pr => pr.Sku.Equals(nec.Sku) &&
+                                                              pr.PO.Equals(nec.PO) &&
+                                                              pr.Size.Equals(nec.Size) &&
+                                                              pr.DC.Equals(nec.DC)).ToList();
+
+                futureRFsToDelete.ForEach(r =>
+                {
+                    SetErrorMessage(errorList, r, "Could not find any quantity within the system");
+                    parsedRFs.Remove(r);
+                });
+            }
+
+            // summed quantity > mainframe quantity (details)
+            var invalidFutureCombos = (from r in uniqueFutureCombosGrouped
+                                       join d in details
+                                         on new { Sku = r.Sku, PO = r.PO, Size = r.Size, DC = r.DC }
+                                     equals new { Sku = d.Sku, PO = d.PO, Size = d.size, DC = d.DistributionCenterID }
+                                      where r.Quantity > d.totalAvailableQuantity
+                                     select Tuple.Create(r, d.totalAvailableQuantity)).ToList();
+
+            foreach (var r in invalidFutureCombos)
+            {
+                var futureRFsToDelete = parsedRFs.Where(pr => pr.Sku.Equals(r.Item1.Sku) &&
+                                                              pr.PO.Equals(r.Item1.PO) &&
+                                                              pr.Size.Equals(r.Item1.Size) &&
+                                                              pr.DC.Equals(r.Item1.DC)).ToList();
+
+                futureRFsToDelete.ForEach(rftd =>
+                {
+                    SetErrorMessage(errorList, rftd
+                        , string.Format("Not enough inventory on the PO for all sizes.  Available inventory {0}", r.Item2));
+                    parsedRFs.Remove(rftd);
+                });
+            }
+
+            // add ecomm rfs to separate list
+            parsedRFs.Where(pr => pr.Store.Equals("00800"))
+                     .ToList()
+                     .ForEach(r =>
+                     {
+                         ecommRFs.Add(new EcommRingFence(r.Sku, r.Size, r.PO, r.Quantity, r.Comments));
+                         parsedRFs.Remove(r);
+                     });
+
+            validRFs.AddRange(parsedRFs);
+        }
+
+        private bool ValidateFile(List<RingFenceUploadModelNew> parsedRFs, List<Tuple<RingFenceUploadModelNew, string>> errorList, out string errorMessage)
+        {
+            errorMessage = "";
+
+            // remove all records that have a null or empty division... we check to see if users have access
+            // to the specified division and cannot do this validation without removing these
+            parsedRFs.Where(pr => string.IsNullOrEmpty(pr.Division))
+                     .ToList()
+                     .ForEach(rf =>
+                     {
+                         SetErrorMessage(errorList, rf, "Division must be provided.");
+                         parsedRFs.Remove(rf);
+                     });
+
+            // check to see if user has permission for each division, if not remove them.
+            string userName = User.Identity.Name.Split('\\')[1];
+            List<string> uniqueDivisions = parsedRFs.Select(pr => pr.Division).Distinct().ToList();
+            List<string> invalidDivisions = uniqueDivisions.Where(div => !Footlocker.Common.WebSecurityService.UserHasDivision(userName, "Allocation", div)).ToList();
+            parsedRFs.Where(pr => invalidDivisions.Contains(pr.Division))
+                     .ToList()
+                     .ForEach(rf =>
+                     {
+                         SetErrorMessage(errorList, rf, string.Format("You do not have permission for Division {0}.", rf.Division));
+                         parsedRFs.Remove(rf);
+                     });
+
+            // check to see if there are any duplicates and remove them
+            parsedRFs.GroupBy(pr => new { pr.Division, pr.Store, pr.Sku, pr.EndDate, pr.PO, pr.DC, pr.Size, pr.Quantity, pr.Comments })
+                     .Where(pr => pr.Count() > 1)
+                     .Select(pr => new { DuplicateRFs = pr.ToList(), Counter = pr.Count() })
+                     .ToList().ForEach(rf =>
+                     {
+                         // set error message for first duplicate and the amount of times it was found in the file
+                         SetErrorMessage(errorList, rf.DuplicateRFs.FirstOrDefault(), string.Format(
+                             "The following row of data was duplicated in the spreadsheet {0} times.  Please provide unique rows of data.", rf.Counter));
+                         // delete all instances of the duplications from the parsedRFs list
+                         rf.DuplicateRFs.ForEach(drf => parsedRFs.Remove(drf));
+                     });
+
+            if (parsedRFs.Count == 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private void SetErrorMessage(List<Tuple<RingFenceUploadModelNew, string>> errorList, RingFenceUploadModelNew errorRF, string newErrorMessage)
+        {
+            int tupleIndex = errorList.FindIndex(err => err.Item1.Equals(errorRF));
+            if (tupleIndex > -1)
+            {
+                errorList[tupleIndex] = Tuple.Create(errorRF, string.Format("{0} {1}", errorList[tupleIndex].Item2, newErrorMessage));
+            }
+            else
+            {
+                errorList.Add(Tuple.Create(errorRF, newErrorMessage));
+            }
+        }
+
+        private RingFenceUploadModelNew ParseUploadRow(Aspose.Excel.Worksheet mySheet, int row)
+        {
+            RingFenceUploadModelNew returnValue = new RingFenceUploadModelNew();
+
+            returnValue.Division = Convert.ToString(mySheet.Cells[row, 0].Value);
+            returnValue.Store = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(5, '0');
+            returnValue.Sku = Convert.ToString(mySheet.Cells[row, 2].Value);
+            returnValue.EndDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value);
+            returnValue.PO = Convert.ToString(mySheet.Cells[row, 4].Value);
+            returnValue.DC = Convert.ToString(mySheet.Cells[row, 5].Value).Trim().PadLeft(2, '0');
+            returnValue.Size = Convert.ToString(mySheet.Cells[row, 6].Value);
+            returnValue.Quantity = Convert.ToInt32(Math.Round(Convert.ToDecimal(mySheet.Cells[row, 7].Value)));
+            returnValue.Comments = Convert.ToString(mySheet.Cells[row, 8].Value);
+
+            return returnValue;
+        }
+
+        private bool HasDataOnRow(Aspose.Excel.Worksheet mySheet, int row)
+        {
+            return mySheet.Cells[row, 0].Value != null ||
+                   mySheet.Cells[row, 1].Value != null ||
+                   mySheet.Cells[row, 2].Value != null ||
+                   mySheet.Cells[row, 3].Value != null ||
+                   mySheet.Cells[row, 4].Value != null ||
+                   mySheet.Cells[row, 5].Value != null ||
+                   mySheet.Cells[row, 6].Value != null ||
+                   mySheet.Cells[row, 7].Value != null ||
+                   mySheet.Cells[row, 8].Value != null;
+        }
+
+        private bool HasValidHeaderRow(Aspose.Excel.Worksheet mySheet)
+        {
+            return
+                (Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Div")) &&
+                (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Store")) &&
+                (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("SKU")) &&
+                (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("EndDate")) &&
+                (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("PO")) &&
+                (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Warehouse")) &&
+                (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Size")) &&
+                (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Qty")) &&
+                (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Comments"));
+        }
+
+        #endregion
     }
 }

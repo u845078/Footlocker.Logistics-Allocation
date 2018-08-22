@@ -7,6 +7,7 @@ using Footlocker.Logistics.Allocation.Models;
 using System.Data.Common;
 using System.Data.Objects;
 using Footlocker.Logistics.Allocation.Models.Services;
+using System.Data.Entity.Infrastructure;
 
 namespace Footlocker.Logistics.Allocation.DAO
 {
@@ -411,9 +412,121 @@ namespace Footlocker.Logistics.Allocation.DAO
             //            }
             //        }
             //    }
-
             //}
 
+        }
+
+        public void GenerateRingFenceHistoryRecords(List<DbEntityEntry> insertedRingFences, List<DbEntityEntry> modifiedRingFences)
+        {
+            string action = "Added Header";
+            foreach (var rf in insertedRingFences)
+            {
+                RingFence ringFence = (RingFence)rf.Entity;
+                RingFenceHistory rfh = new RingFenceHistory(ringFence.ID, ringFence.Division, ringFence.Store, ringFence.Sku, ringFence.Qty
+                                                    , ringFence.StartDate, ringFence.EndDate, ringFence.CreateDate ?? DateTime.MinValue, ringFence.CreatedBy, action);
+                this.RingFenceHistory.Add(rfh);
+            }
+
+            action = "Modified Header";
+            foreach (var rf in modifiedRingFences)
+            {
+                RingFence ringFence = (RingFence)rf.Entity;
+                RingFenceHistory rfh = new RingFenceHistory(ringFence.ID, ringFence.Division, ringFence.Store, ringFence.Sku, ringFence.Qty
+                                                    , ringFence.StartDate, ringFence.EndDate, ringFence.CreateDate ?? DateTime.MinValue, ringFence.CreatedBy, action);
+                this.RingFenceHistory.Add(rfh);
+            }
+        }
+
+        public void GenerateRingFenceDetailHistoryRecords(List<DbEntityEntry> insertedRingFenceDetails, List<DbEntityEntry> modifiedRingFenceDetails, List<RingFence> existingRingFences)
+        {
+            string action = "Added Det";
+
+            foreach (var ringFenceDetail in insertedRingFenceDetails)
+            {
+                RingFenceDetail rfd = (RingFenceDetail)ringFenceDetail.Entity;
+                RingFence header = existingRingFences.Where(erf => erf.ID.Equals(rfd.RingFenceID)).FirstOrDefault();
+                if (header != null)
+                {
+                    RingFenceHistory rfh = new RingFenceHistory(header.ID, header.Division, header.Store, header.Sku, rfd.Size, rfd.DCID, rfd.PO
+                                            , rfd.Qty, header.StartDate, header.EndDate, rfd.LastModifiedDate, rfd.LastModifiedUser, action);
+                    this.RingFenceHistory.Add(rfh);
+                }
+            }
+
+            action = "Modified Det";
+            foreach (var ringFenceDetail in modifiedRingFenceDetails)
+            {
+                RingFenceDetail rfd = (RingFenceDetail)ringFenceDetail.Entity;
+                RingFence header = existingRingFences.Where(erf => erf.ID.Equals(rfd.RingFenceID)).FirstOrDefault();
+                if (header != null)
+                {
+                    RingFenceHistory rfh = new RingFenceHistory(header.ID, header.Division, header.Store, header.Sku, rfd.Size, rfd.DCID, rfd.PO
+                                            , rfd.Qty, header.StartDate, header.EndDate, rfd.LastModifiedDate, rfd.LastModifiedUser, action);
+                    this.RingFenceHistory.Add(rfh);
+                }
+            }
+        }
+
+        public int SaveChangesBulk(string user)
+        {
+            // hold inserted and modified records in separate list because once we savechanges, the entitystate
+            // will go from original state to "unchanged".
+            // ringfencedetail records
+            var insertedRingFenceDetails = this.ChangeTracker.Entries().Where(p => p.Entity is RingFenceDetail &&
+                                                                                   p.State.Equals(System.Data.EntityState.Added)).ToList();
+
+            var modifiedRingFenceDetails = this.ChangeTracker.Entries().Where(p => p.Entity is RingFenceDetail &&
+                                                                                   p.State.Equals(System.Data.EntityState.Modified)).ToList();
+            
+            // ringfences records
+            var insertedRingFences = this.ChangeTracker.Entries().Where(p => p.Entity is RingFence &&
+                                                                             p.State.Equals(System.Data.EntityState.Added)).ToList();
+
+            var modifiedRingFences = this.ChangeTracker.Entries().Where(p => p.Entity is RingFence &&
+                                                                             p.State.Equals(System.Data.EntityState.Modified)).ToList();
+
+            
+            // First off, save data before auditing so we can reference primary key IDs between ringfences and ringfencedetails
+            try
+            {
+                base.SaveChanges();
+            }
+            catch (System.Data.Entity.Validation.DbEntityValidationException ex)
+            {
+                string exceptionMessage = string.Empty;
+                foreach (var err in ex.EntityValidationErrors)
+                {
+                    foreach (var verr in err.ValidationErrors)
+                    {
+                        exceptionMessage += string.Format("{0}{1}: {2}.", err.ValidationErrors.Last().Equals(verr) ? "" : "  ", verr.PropertyName, verr.ErrorMessage);
+                    }
+                }
+
+                throw new Exception(exceptionMessage);
+            }
+            
+
+            // find ringfence records that locally correlate to ringfencedetail records in order to save db call time
+            // ringfencedetails casted to concrete type so we can compare ids for existing ring fence headers
+            List<RingFenceDetail> castedRFDs = insertedRingFenceDetails.Union(modifiedRingFenceDetails).Select(rfd => rfd.Entity).Cast<RingFenceDetail>().ToList();
+            var existingRingFences = insertedRingFences.Union(modifiedRingFences).Where(rf => castedRFDs.Any(rfd => rfd.RingFenceID.Equals(((RingFence)rf.Entity).ID)))
+                                               .Select(rf => (RingFence)rf.Entity)
+                                               .ToList();
+
+            // now add the non existing ones from the database
+            var ringFenceIDs = castedRFDs.Where(rfd => !existingRingFences.Select(rf => rf.ID).Distinct().ToList().Contains(rfd.RingFenceID)).Select(rfd => rfd.RingFenceID).Distinct().ToList();
+            existingRingFences.AddRange(this.RingFences.Where(rf => ringFenceIDs.Contains(rf.ID)).ToList());
+
+            this.Configuration.AutoDetectChangesEnabled = false;
+
+            // generate audit records for ringfencedetails
+            this.GenerateRingFenceDetailHistoryRecords(insertedRingFenceDetails, modifiedRingFenceDetails, existingRingFences);
+
+            // generate audit records for ringfences
+            this.GenerateRingFenceHistoryRecords(insertedRingFences, modifiedRingFences);
+
+            // save audit records
+            return base.SaveChanges();
         }
 
         public int SaveChanges(string user)

@@ -1515,8 +1515,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 // retrieve all available quantity for the specified combinations in one mf call
                 RingFenceDAO rfDAO = new RingFenceDAO();
-                List<WarehouseAvailableInventory> details = rfDAO.GetWarehouseAvailableNew(uniqueCombos);
-                // reduce details by active ringfences
+                List<WarehouseInventory> details = rfDAO.GetWarehouseAvailableNew(uniqueCombos);
+                details = rfDAO.ReduceAvailableInventory(details);
 
                 // rdqs that cannot be satisfied by current whse avail quantity
                 var dcRDQsGroupedBySize = dcRDQs
@@ -1525,10 +1525,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
 
                 var invalidRDQsAndAvailableQty = (  from  r in dcRDQsGroupedBySize
-                                                    join  d in details on new { Division = r.Division, Sku = r.Sku, Size = r.Size, DC = r.DC }
-                                                                   equals new { Division = d.Division, Sku = d.Sku, Size = d.Size, DC = d.MFCode }
-                                                    where r.Quantity > d.Quantity
-                                                   select Tuple.Create(r, d.Quantity)).ToList(); 
+                                                    join  d in details on new { Sku = r.Sku, Size = r.Size, DC = r.DC }
+                                                                   equals new { Sku = d.Sku, Size = d.size, DC = d.DistributionCenterID }
+                                                    where r.Quantity > d.totalQuantity
+                                                   select Tuple.Create(r, d.totalQuantity)).ToList(); 
 
                 foreach (var r in invalidRDQsAndAvailableQty)
                 {

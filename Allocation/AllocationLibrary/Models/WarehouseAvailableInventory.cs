@@ -13,7 +13,9 @@ namespace Footlocker.Logistics.Allocation.Models
         public string WidthColor { get; set; }
         public string Size { get; set; }
         public string MFCode { get; set; }
+        public string PO { get; set; }
         public int Quantity { get; set; }
+        public int PickReserveQuantity { get; set; }
         public string Sku
         {
             get
@@ -31,6 +33,7 @@ namespace Footlocker.Logistics.Allocation.Models
             this.WidthColor = string.Empty;
             this.Size = string.Empty;
             this.MFCode = string.Empty;
+            this.PO = string.Empty;
             this.Quantity = 0;
         }
 
@@ -46,5 +49,21 @@ namespace Footlocker.Logistics.Allocation.Models
             this.MFCode = distributionCenterID;
             this.Quantity = quantity;
         }
+
+        public WarehouseAvailableInventory(string division, string department, string stockNumber
+                                           , string widthColor, string size, string distributionCenterID, string po, int quantity)
+            : this(division, department, stockNumber, widthColor, size, distributionCenterID, quantity)
+        {
+            this.PO = po;
+        }
+
+        public WarehouseAvailableInventory(string division, string department, string stockNumber
+                                           , string widthColor, string size, string distributionCenterID, int quantity, int pickReserve)
+            : this(division, department, stockNumber, widthColor, size, distributionCenterID, quantity)
+        {
+            this.PickReserveQuantity = pickReserve;
+        }
+
+        
     }
 }
