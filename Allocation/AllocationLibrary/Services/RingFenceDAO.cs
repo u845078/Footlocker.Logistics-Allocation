@@ -154,11 +154,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                     returnValue.AddRange(this.ExecuteFutureSQLandParseValues(generatedSQLStatements, false));
                 }
             }
-
-            if (returnValue.Count > 0)
-            {
-                returnValue = this.ReduceRingFenceQuantities(returnValue);
-            }
             return returnValue;
         }
 
@@ -725,16 +720,11 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 
             }
 
-            if (returnValue.Count > 0)
-            {
-                returnValue = ReduceRingFenceQuantities(returnValue);
-            }
-
             // reduce ringfence quantity
             return returnValue;
         }
 
-        private List<WarehouseInventory> ReduceRingFenceQuantities(List<WarehouseInventory> warehouseInventory)
+        public List<WarehouseInventory> ReduceRingFenceQuantities(List<WarehouseInventory> warehouseInventory)
         {
             var uniqueSkus = warehouseInventory.Select(wi => wi.Sku).Distinct().ToList();
             var existingDetails = (from rf in db.RingFences

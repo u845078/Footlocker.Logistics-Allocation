@@ -3464,6 +3464,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // unique combos excluding ringfences with POs (available)
             uniqueCombos = parsedRFs.Where(pr => string.IsNullOrEmpty(pr.PO)).Select(pr => Tuple.Create(pr.Sku, pr.Size, pr.DC)).Distinct().ToList();
             List<WarehouseInventory> details = rfDAO.GetWarehouseAvailableNew(uniqueCombos);
+            // reduce details
+            details = rfDAO.ReduceRingFenceQuantities(details);
 
             // remove all parsedRFs that do not have an associated mainframe warehouse inventory record.
             parsedRFs.Where(pr => string.IsNullOrEmpty(pr.PO) && !details.Any(d => d.Sku.Equals(pr.Sku) && d.size.Equals(pr.Size) && d.DistributionCenterID.Equals(pr.DC)))
@@ -3505,6 +3507,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                               .Distinct().ToList();
 
             details = rfDAO.GetFuturePOsNew(uniqueFutureCombos);
+            // reduce details
+            details = rfDAO.ReduceRingFenceQuantities(details);
 
             // unique future combos with summed quantity
             var uniqueFutureCombosGrouped = parsedRFs.Where(pr => !string.IsNullOrEmpty(pr.PO))
