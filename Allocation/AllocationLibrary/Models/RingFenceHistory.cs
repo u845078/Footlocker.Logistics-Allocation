@@ -44,9 +44,6 @@ namespace Footlocker.Logistics.Allocation.Models
             this.DCID = 0;
             this.PO = string.Empty;
             this.Qty = 0;
-            this.StartDate = DateTime.MinValue;
-            this.EndDate = DateTime.MinValue;
-            this.CreateDate = DateTime.MinValue;
             this.CreatedBy = string.Empty;
             this.Action = string.Empty;
         }

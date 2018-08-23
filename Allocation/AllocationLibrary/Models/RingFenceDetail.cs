@@ -101,7 +101,7 @@ namespace Footlocker.Logistics.Allocation.Models
         [ForeignKey("RingFenceStatus")]
         public string ringFenceStatusCode { get; set; }
 
-        public RingFenceStatusCodes RingFenceStatus { get; set; }
+        public virtual RingFenceStatusCodes RingFenceStatus { get; set; }
 
         public virtual RingFence RingFence { get; set; }
 
