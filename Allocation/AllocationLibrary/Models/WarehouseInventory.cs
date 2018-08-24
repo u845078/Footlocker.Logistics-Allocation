@@ -111,7 +111,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public WarehouseInventory(string sku, string size, string DCID, int allocatableQuantity, int pickReserveQuantity)
             : this(sku, size, DCID, allocatableQuantity)
         {
-            this.pickReserve = pickReserveQuantity;
+            this.totalPickReserve = pickReserveQuantity;
         }
 
         public WarehouseInventory(string sku, string size, string DCID, string PO, int allocatableQuantity)
