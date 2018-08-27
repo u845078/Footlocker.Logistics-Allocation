@@ -3436,11 +3436,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                      .ToList()
                      .ForEach(pr => parsedRFs.Remove(pr));
 
+            // add ecomm rfs to separate list (users do not want ecomm explosion to have available inventory validated)
+            parsedRFs.Where(pr => pr.Store.Equals("00800"))
+                     .ToList()
+                     .ForEach(r =>
+                     {
+                         ecommRFs.Add(new EcommRingFence(r.Sku, r.Size, r.PO, r.Quantity, r.Comments));
+                         parsedRFs.Remove(r);
+                     });
+
             // 9) validate inventory by unique div/sku/size
             this.ValidateAvailableInventoryForParsedRFs(parsedRFs, errorList, validRFs, ecommRFs);
         }
 
-        private void ValidateAvailableInventoryForParsedRFs(List<RingFenceUploadModelNew> parsedRFs, List<Tuple<RingFenceUploadModelNew, string>> errorList, List<RingFenceUploadModelNew> validRFs, List<EcommRingFence> ecommRFs)
+        private void ValidateAvailableInventoryForParsedRFs(List<RingFenceUploadModelNew> parsedRFs, List<Tuple<RingFenceUploadModelNew, string>> errorList, List<RingFenceUploadModelNew> validRFs, List<EcommRingFence> ecommRF)
         {
             List<Tuple<string, string, string>> uniqueCombos = new List<Tuple<string, string, string>>();
             RingFenceDAO rfDAO = new RingFenceDAO();
@@ -3541,15 +3550,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     parsedRFs.Remove(rftd);
                 });
             }
-
-            // add ecomm rfs to separate list
-            parsedRFs.Where(pr => pr.Store.Equals("00800"))
-                     .ToList()
-                     .ForEach(r =>
-                     {
-                         ecommRFs.Add(new EcommRingFence(r.Sku, r.Size, r.PO, r.Quantity, r.Comments));
-                         parsedRFs.Remove(r);
-                     });
 
             validRFs.AddRange(parsedRFs);
         }
