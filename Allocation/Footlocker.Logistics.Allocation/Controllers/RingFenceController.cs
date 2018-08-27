@@ -3116,10 +3116,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                     catch (Exception ex)
                     {
+                        FLLogger logger = new FLLogger("C:\\Log\\allocation");
+                        logger.Log(ex.Message + ": " + ex.StackTrace, FLLogger.eLogMessageType.eError);
                         message = "Upload failed: One or more columns has unexpected missing or invalid data.";
                         // clear out error list
                         Session["errorList"] = null;
-                        
                         return Content(message);
                     }
                 }
