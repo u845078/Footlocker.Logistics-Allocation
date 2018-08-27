@@ -894,7 +894,7 @@ div.t-grid-header .t-header
     position: relative;
     overflow: auto;
     overflow-x: auto;
-    overflow-y: scroll;
+    overflow-y: scroll !important;
     width: 100%;
     zoom: 1;
 }
