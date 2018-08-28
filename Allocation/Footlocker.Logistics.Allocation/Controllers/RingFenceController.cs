@@ -3094,7 +3094,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             {
                                 // process ecomm ringfences
                                 ConvertRangeDAO crDAO = new ConvertRangeDAO();
-                                crDAO.SaveEcommRingFences(ecommRFs, User.Identity.Name);
+                                crDAO.SaveEcommRingFences(ecommRFs, User.Identity.Name, accumulateQuantity);
                             }
 
                             successfulCount = validRFs.Count + ecommRFs.Count;
