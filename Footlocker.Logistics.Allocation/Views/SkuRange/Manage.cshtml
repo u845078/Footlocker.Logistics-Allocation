@@ -1,0 +1,84 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.RangePlan>
+
+@{
+    ViewBag.Title = "Manage Sku Range Plans";
+}
+
+<script language=javascript>
+    function DeleteRange(plan) {
+        //make a call to server
+        if (confirm('Are you sure?')) {
+            window.location = "/SkuRange/Delete?planID=" + plan;
+//            var grid = $("#SkuRangeGrid").data("tGrid");
+//            $('.t-status .t-icon', grid.element).addClass('t-loading');
+//            $.ajax({
+//                url: "/SkuRange/Delete",
+//                data: "{'planID':'" + plan + "'}",
+//                contentType: 'application/json; charset=utf-8',
+//                type: 'POST',
+//                dataType: 'json',
+//                error: function (xhr, status) {
+//                    alert(status);
+//                    $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+//                },
+//                success: function (result) {
+//                    if (result == 'Success') {
+//                        grid.ajaxRequest();
+//                    }
+//                    else {
+//                        alert(result);
+//                    }
+//                }
+//            });
+        }
+    }
+</script>
+
+<h2>Manage Sku Range Plans</h2>
+
+@(Html.Telerik().Grid(Model)
+        .Name("SkuRangeGrid")
+        .DataKeys(keys =>
+        {
+            keys.Add(p => p.Id).RouteKey("planID");
+        })
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Id)
+                .ClientTemplate("<img src='" 
+                    + Url.Content("~/Image/ShowImage/?sku=" + "<#= Sku #>") 
+                    + "' />")
+                .Template(
+                @<text>
+                    <img 
+                        src="@Url.Content("~/Image/ShowImage/?sku=" + item.Sku)"
+                      />
+                </text>
+            ).Title("Image").Width(25);
+            columns.Bound(o => o.Sku).Width(100);
+            columns.Bound(o => o.Description).Width(150).Title("Store Range Description");
+            columns.Bound(o => o.PlanType).Width(10);
+            columns.Bound(o => o.StoreCount).Width(10);
+            columns.Bound(o => o.Id)
+                .ClientTemplate(
+                "<a class=\"t-button\" href='javascript:DeleteRange(planID=<#= Id #>);'>Delete</a>")
+                .Template(@<text> 
+                           @Html.Raw("<a class=\"t-button\" href='javascript:DeleteRange(planID=" + item.Id + ");'>Delete</a>")
+                   </text>);
+        })
+
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Server().Select("Manage", "SkuRange");
+            //dataBinding.Ajax().Select("_Manage", "SkuRange");
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+                            )
+<br />
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new { @class="t-button"})
+</div>

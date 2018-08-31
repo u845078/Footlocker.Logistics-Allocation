@@ -1,0 +1,48 @@
+﻿@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.Rule>()
+        .Name("RuleGrid")
+        .DataKeys(keys =>
+        {
+            keys.Add(p => p.ID);
+        })
+        .Columns(columns =>
+        {
+            columns.Template(@<text>
+                <img style="outline:none;border:0;" src = "../../Content/Images/arrow_green_up.png" onclick="moveUp(@item.ID);">
+                <img style="outline:none;border:0;" src = "../../Content/Images/arrow_green_down.png" onclick="moveDown(@item.ID);">
+            </text>).ClientTemplate(
+                    "<img style=\"outline:none;border:0;\" src = \"../../Content/Images/arrow_green_up.png\" onclick=\"moveUp(<#= ID #>);\">"+
+                    "&nbsp;<img style=\"outline:none;border:0;\" src = \"../../Content/Images/arrow_green_down.png\" onclick=\"moveDown(<#= ID #>);\">"
+                    ).HtmlAttributes(new { style = "text-align: left" }).Width(60);
+
+            columns.Bound(o => o.DisplayField);
+            columns.Bound(o => o.Compare).Width(100);
+            columns.Bound(o => o.Value).Width(100);
+
+            columns.Template(@<text>
+                    <a class='t-button' onclick="deleteRule(@item.ID)")>Delete</a>
+            </text>).ClientTemplate("<a class='t-button' onclick=\"deleteRule(<#= ID #>)\""
+                    + "'>Delete</a>"
+                    ).HtmlAttributes(new { style = "text-align: left" }).Width(100);
+
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_Grid", "Rule", new { ruleSetID = ViewData["ruleSetID"], ruleType = ViewData["ruleType"] }).Enabled(true);
+        })
+        .Scrollable(scrolling => scrolling.Enabled(true))
+        .Sortable(sorting => sorting.Enabled(false))
+        .Pageable(paging => paging.Enabled(false))
+        .Filterable(filtering => filtering.Enabled(false))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true).HtmlAttributes(new { style = "width:500px;" })
+)
+<br />
+       @if ((ViewData["ruleSetID"] != null) && (Convert.ToInt64(ViewData["ruleSetID"]) > 0))
+       {
+           <div class= "t-button" onclick="addConjunction('not','@ViewData["ruleSetID"]','@ViewData["ruleType"]')"> not </div>
+           <div class= "t-button" onclick="addConjunction('and','@ViewData["ruleSetID"]','@ViewData["ruleType"]')"> and </div>
+           <div class= "t-button" onclick="addConjunction('or','@ViewData["ruleSetID"]','@ViewData["ruleType"]')"> or </div>
+           <div class= "t-button" onclick="addConjunction('(','@ViewData["ruleSetID"]','@ViewData["ruleType"]')"> ( </div>
+           <div class= "t-button" onclick="addConjunction(')','@ViewData["ruleSetID"]','@ViewData["ruleType"]')"> ) </div>
+           <div class= "t-button" onclick="ClearRules('Clear','@ViewData["ruleSetID"]','@ViewData["ruleType"]')"> Clear </div>
+        }

@@ -1,0 +1,102 @@
+﻿@model Footlocker.Logistics.Allocation.Models.DirectToStoreSku
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Create</h2>
+@Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
+@if ((ViewData["message"] != null) && (ViewData["message"].ToString().Contains("Vendor Group")))
+{ 
+    @Html.Raw("<br>")
+    @Html.ActionLink("Vendor Groups","Index","DTSVendorGroup",null, new {@class="t-button"})
+    @Html.Raw("<br>")
+}
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>AR Sku</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Sku) (##-##-#####-##)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Sku)
+            @Html.ValidationMessageFor(model => model.Sku)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.StartDate)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.StartDate)
+            @Html.ValidationMessageFor(model => model.StartDate)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.EndDate)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.EndDate)
+            @Html.ValidationMessageFor(model => model.EndDate)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.VendorPackQty)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.VendorPackQty)
+            @Html.ValidationMessageFor(model => model.VendorPackQty)
+        </div>
+
+        Order Days:<br />
+        <table><tr>
+            <td>
+            @Html.LabelFor(model => model.OrderSun)
+            </td><td>
+            @Html.LabelFor(model => model.OrderMon)
+            </td><td>
+            @Html.LabelFor(model => model.OrderTue)
+            </td><td>
+            @Html.LabelFor(model => model.OrderWed)
+            </td><td>
+            @Html.LabelFor(model => model.OrderThur)
+@*            </td><td>
+            @Html.LabelFor(model => model.OrderFri)
+            </td><td>
+            @Html.LabelFor(model => model.OrderSat)
+*@            </td>
+        </tr>
+        <tr>
+            <td>
+            @Html.EditorFor(model => model.OrderSun)
+            </td><td>
+            @Html.EditorFor(model => model.OrderMon)
+            </td><td>
+            @Html.EditorFor(model => model.OrderTue)
+            </td><td>
+            @Html.EditorFor(model => model.OrderWed)
+            </td><td>
+            @Html.EditorFor(model => model.OrderThur)
+@*            </td><td>
+            @Html.EditorFor(model => model.OrderFri)
+            </td><td>
+            @Html.EditorFor(model => model.OrderSat)
+*@            </td>
+        </tr></table>
+
+        <p>
+            <input type="submit" value="Create" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

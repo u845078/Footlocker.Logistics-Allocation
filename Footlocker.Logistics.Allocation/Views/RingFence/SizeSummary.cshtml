@@ -1,0 +1,58 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RingFenceSizeModel
+
+@{
+    ViewBag.Title = "SizeSummary";
+}
+
+<h2>Ring Fence Size Details</h2>
+<table><tr>
+<td><img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.RingFence.Sku)"/></td>
+<td>
+<b>@Html.LabelFor(model => model.RingFence.Sku)</b>
+@Html.DisplayFor(model => model.RingFence.Sku)
+<br />
+<b>@Html.LabelFor(model => model.RingFence.Store)</b>
+@Html.DisplayFor(model => model.RingFence.Store)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<b>@Html.LabelFor(model => model.RingFence.Qty)</b>
+@Html.DisplayFor(model => model.RingFence.Qty)
+<br /><br />
+@Html.Raw(Model.RingFence.StartDate.ToShortDateString())&nbsp;
+<b>until </b>
+@if (Model.RingFence.EndDate.HasValue)
+{
+@Html.Raw(Model.RingFence.EndDate.GetValueOrDefault().ToShortDateString())
+}
+else
+{
+@Html.Raw("[no end date]")
+}
+</td></tr></table>
+<br><br>
+@(Html.Telerik().Grid(Model.Details)
+        .Name("SizeGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Size).Width(50);
+            columns.Bound(o => o.TotalQty).Width(50);
+            columns.Bound(o => o.BinQty);
+            columns.Bound(o => o.CaselotQty);
+            columns.Bound(o => o.FutureQty);
+            columns.Template(@<text>
+                    <a class='t-button' href="@Url.Content("~/RingFence/SizeDetail?id=" + Model.RingFence.ID + "&size=" + @item.Size)">Details</a>
+            </text>).ClientTemplate("<a class='t-button' href='"
+                    + Url.Content("~/RingFence/SizeDetail?id=" + Model.RingFence.ID + "&size=<#= Size #>")
+                    + "'>Details</a>"
+                    ).HtmlAttributes(new { style = "text-align: left" });
+        })
+        .Sortable(sorting => sorting.Enabled(false))
+        .Pageable(paging => paging.Enabled(false))
+        .Filterable(filtering => filtering.Enabled(false))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(false).HtmlAttributes(new { style = "width:425px;" })
+)
+
+
+<p>
+    @Html.ActionLink("Back to List", "Index", null,new { @class="t-button" })
+    @Html.ActionLink("View Audit", "Audit", new { id = Model.RingFence.ID }, new { @class = "t-button" })
+</p>

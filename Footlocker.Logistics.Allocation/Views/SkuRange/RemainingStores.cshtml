@@ -1,0 +1,179 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.StoreLookupModel>
+
+<script>
+@{try{
+    int count2 = (from a in Model where a.InCurrentPlan select a).Count();
+
+        @Html.Raw("var total=" + Model.Count() + ";") 
+        @Html.Raw("var selected=" + count2 + ";")}catch{}
+    }
+
+    //grid refresh function
+    function AddGrid(store, div, plan) {
+        //make a call to server
+        var grid = $("#AllStoreGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+        // call the twitter search api
+        $.ajax({
+            url: "/SkuRange/AddStore",
+            data: "{'store': '" + store + "', 'div': '" + div + "', 'planID':'" + plan + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    grid.ajaxRequest();
+                    selected++;
+                    showStatus();
+                }
+                else {
+                    alert(result);
+                }
+            }
+        });
+    }
+
+    function AddFiltered(plan) {
+        //make a call to server
+        var grid = $("#AllStoreGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+        // call the twitter search api
+        $.ajax({
+            url: "/SkuRange/AddFilteredStores",
+            data: "{'filter': '" + escape(grid.filterBy) + "', 'planID':'" + plan + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    grid.ajaxRequest();
+                    selected++;
+                    showStatus();
+                }
+                else {
+                    alert(result);
+                }
+            }
+        });
+    }
+
+
+    function DeleteGrid(store, div, plan) {
+        //make a call to server
+        var grid = $("#AllStoreGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+        // call the twitter search api
+        $.ajax({
+            url: "/SkuRange/DeleteStore",
+            data: "{'store': '" + store + "', 'div': '" + div + "', 'planID':'" + plan + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    grid.ajaxRequest();
+                    selected--;
+                    showStatus();
+                }
+                else {
+                    alert(result);
+                }
+            }
+        });
+    }
+
+    //grid on row data binding event
+    function hightlight(e) {
+        try{
+            if (e.dataItem.InCurrentPlan) {
+                e.row.className = e.row.className + ' highlight';
+            }
+        }catch(ex){}
+    }
+    
+
+    function showStatus()
+    {
+        $('#statusdiv').empty().append("Currently selected " + total + " stores (" + selected + " already in plan)");
+    }
+$(document).ready(
+function () {
+    showStatus();
+});
+</script>
+<div id="statusdiv">
+</div>
+@if (Model.Count() > 0)
+{
+@(Html.Telerik().Grid(Model)
+        .Name("AllStoreGrid")
+        .DataKeys(keys =>
+        {
+            keys.Add(p => p.Store).RouteKey("store");
+            keys.Add(p => p.Division).RouteKey("div");
+        })
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Division).Width(100);
+            columns.Bound(o => o.Store).Width(200);
+            columns.Bound(o => o.League);
+            columns.Bound(o => o.State);
+            columns.Bound(o => o.Mall);
+            columns.Bound(o => o.Population);
+            columns.Bound(o => o.VolumeBand);
+            columns.Bound(o => o.Climate);
+            columns.Bound(o => o.InCurrentPlan)
+                .ClientTemplate(
+                "<# if (InCurrentPlan) { #>"
+                + "<a class=\"t-button\" href='javascript:DeleteGrid(\"<#= Store #>\", \"<#= Division #>\", planID=<#= CurrentPlan #>);'>Delete</a>"
+                + "<# } else { #>"
+                + "<a class=\"t-button\" href='javascript:AddGrid(\"<#= Store #>\", \"<#= Division #>\", planID=<#= CurrentPlan #>);'>Add</a>"
+                + "<# } #>")
+                .Template(@<text> 
+
+                       @if (item.InCurrentPlan)
+                       { 
+                           @Html.Raw("<a class=\"t-button\" href='javascript:DeleteGrid(\"" + item.Store + "\", \"" + item.Division + "\", planID=" + item.CurrentPlan + ");'>Delete</a>")
+                       }
+                       else
+                       {
+                           @Html.Raw("<a class=\"t-button\" href='javascript:AddGrid(\"" + item.Store + "\", \"" + item.Division + "\", planID=" + item.CurrentPlan + ");'>Add</a>")
+                       }
+
+                   </text>);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_StoreLookupList", "SkuRange", new { planID = ViewData["planID"], ajax = true }).Enabled(true).Delete("DeleteStore", "SkuRange").Insert("AddStore", "SkuRange");
+        })
+        .RowAction(row =>
+        {
+            if (row.DataItem.InCurrentPlan)
+            {
+                row.HtmlAttributes["style"] = "color:blue;";
+            }
+        }
+        )
+        .Scrollable(scrolling => scrolling.Enabled(false))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+        .ClientEvents(events => events.OnRowDataBound("hightlight"))
+
+)
+}
+

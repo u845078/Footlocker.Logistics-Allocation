@@ -1,0 +1,169 @@
+﻿@model Footlocker.Logistics.Allocation.Models.EditStoreAttributeModel
+
+@{
+    ViewBag.Title = "Edit Store Attributes";
+}
+
+<script type="text/javascript">
+    function setValueLabelToLevelSelection() {
+        // Change the 'Value' label's label text to match the Level selection, per users...
+        var levelOptions = $("#newStoreAttribute_Level")[0].childNodes;
+        $(levelOptions).each(function (idx, lvl) {
+            if (lvl.selected) {
+                $('label[for="newStoreAttribute_Value"]').text(lvl.text);
+                if (lvl.text == 'All') {
+                    $("#fob_dropdown").hide();
+                    $("#newStoreAttribute_Value").hide();
+                    $('label[for="newStoreAttribute_Value"]').hide();
+                }
+                else if (lvl.text == 'FOB') {
+                    $("#newStoreAttribute_Value").hide();
+                    $("#fob_dropdown").show();
+                    $('label[for="newStoreAttribute_Value"]').show();
+                    setValueToFOBSelection();
+                }
+                else {
+                    $("#fob_dropdown").hide();
+                    $("#newStoreAttribute_Value").show();
+                    $('label[for="newStoreAttribute_Value"]').show();
+                }
+            }
+        });
+    }
+
+    function setValueToFOBSelection() {
+        // Change the 'Value' label's label text to match the Level selection, per users...
+        var levelOptions = $("#fob_dropdown")[0].childNodes;
+        $(levelOptions).each(function (idx, lvl) {
+            if (lvl.selected) {
+                $("#newStoreAttribute_Value").val(lvl.value);
+            }
+        });
+    }
+
+
+    $(function () {
+        $("#fob_dropdown").hide();
+        // Sync the value label text to the default level selection
+        setValueLabelToLevelSelection();
+
+        // Wire up a change handler for the Level Selection (to change Value label text)
+        $("#newStoreAttribute_Level").change(setValueLabelToLevelSelection);
+        $("#fob_dropdown").change(setValueToFOBSelection);
+
+    });
+
+</script>
+
+<h2>Store @Html.Raw(Model.newStoreAttribute.Store)</h2>
+@if (ViewData["message"] != null)
+{ 
+    @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
+}
+@using (Html.BeginForm("Edit", "StoreAttribute", FormMethod.Post))
+{
+    <fieldset>
+    <legend>Add Additional Like Store</legend>
+
+    @Html.HiddenFor(m => m.newStoreAttribute.Division)
+    @Html.HiddenFor(m => m.newStoreAttribute.Store)
+    @Html.HiddenFor(m => m.newStoreAttribute.LikeDivision)
+<table>
+<tr>
+<td>
+    @Html.LabelFor(model => model.newStoreAttribute.LikeStore)
+</td>
+<td>
+            @Html.EditorFor(model => model.newStoreAttribute.LikeStore)
+</td><td>            @Html.ValidationMessageFor(model => model.newStoreAttribute.LikeStore)
+</td><td></td>
+</tr>
+<tr>
+<td>
+            @Html.LabelFor(model => model.newStoreAttribute.Level)
+</td><td>            
+    @Html.DropDownListFor(model => model.newStoreAttribute.Level, new List<SelectListItem> { new SelectListItem { Text = "All", Value = "All" }, new SelectListItem { Text = "FOB", Value = "FOB" }, new SelectListItem { Text = "Department (##)", Value = "Dept" } })
+</td>
+<td>
+            @Html.LabelFor(model => model.newStoreAttribute.Value)
+</td><td>            
+    @Html.EditorFor(model => model.newStoreAttribute.Value)
+    @Html.DropDownListFor(model => model.newStoreAttribute.Value, new SelectList(Model.FOBs, "Code", "Description"), new { id = "fob_dropdown" })
+    @Html.ValidationMessageFor(model => model.newStoreAttribute.Value)
+</td>
+</tr>
+<tr>
+<td>
+
+            @Html.LabelFor(model => model.newStoreAttribute.Weight)
+</td><td>            @Html.EditorFor(model => model.newStoreAttribute.Weight)
+            @Html.ValidationMessageFor(model => model.newStoreAttribute.Weight)
+</td>
+<td></td>
+</tr>
+<tr>
+<td>
+            @Html.LabelFor(model => model.newStoreAttribute.StartDate)
+</td><td>            @Html.EditorFor(model => model.newStoreAttribute.StartDate)
+            @Html.ValidationMessageFor(model => model.newStoreAttribute.StartDate)
+</td>
+<td>
+            @Html.LabelFor(model => model.newStoreAttribute.EndDate)&nbsp;
+</td><td>            @Html.EditorFor(model => model.newStoreAttribute.EndDate)
+            @Html.ValidationMessageFor(model => model.newStoreAttribute.EndDate)
+</td>
+</tr>
+<tr>
+<td></td><td></td><td></td><td>
+            <input type="submit" value="Add" />
+</td>
+<td></td></tr>
+</table>
+
+    </fieldset>    
+}
+
+@(Html.Telerik().Grid(Model.StoreAttributes)
+        .Name("StoreAttributeGrid2")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.LikeDivision);
+            columns.Bound(o => o.LikeStore);
+            columns.Bound(o => o.Level);
+            columns.Bound(o => o.ValueDescription).Title("Value");
+            columns.Bound(o => o.Weight);
+            columns.Bound(o => o.StartDate);
+            columns.Bound(o => o.EndDate);
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("Edit")
+                .Text("Edit")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("ID"); })
+                .Ajax(false)
+                .Action("EditStoreAttribute", "StoreAttribute");
+                commands
+                .Custom("Delete")
+                .Text("Delete")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("ID"); })
+                .Ajax(false)
+                .Action("Delete", "StoreAttribute").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(200);
+
+@*            columns.Template(@<text>
+                    <a class='t-button' href="@Url.Content("~/StoreAttribute/EditStoreAttributeDetail?div=" + @item.Division + "&store=" + @item.Store)">Edit</a>
+            </text>).ClientTemplate("<a class='t-button' href='"
+                    + Url.Content("~/StoreAttribute/EditStoreAttributeDetail?div=<#= Division #>&store=<#= Store #>")
+                    + "'>Edit</a>"
+                    ).HtmlAttributes(new { style = "text-align: left" }).Width(100);*@
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+<br />
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+</div>

@@ -1,0 +1,299 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="@Url.Content("~/Scripts/FootLocker/telerikShims_ComboBox.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/Footlocker/window.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/FootLocker/fobPack.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/FootLocker/fobPackOverride.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/form2js.js")" type="text/javascript"></script>
+
+<script type="text/javascript">
+    function indicateNonDefaultCostPacks() {
+        // Get current fob default cost value
+        var defaultCostValue = $('#defaultCostTextBox').val();
+        var convertedDefaultCostValue = parseFloat(defaultCostValue).toFixed(2);
+
+        // Inidicate in UI fob packs that have had their cost set manually (to a value other than the fob default cost value)
+        //$('div.#FOBContentContainer div.t-widget.t-grid table tr').each(function (index) {
+        $('#PacksGrid tr').each(function (index) {
+            // Get the fob pack cost
+            var rowCostText = ($(this)[0].cells.length > 1) ? $(this)[0].cells[1].innerText : -1;
+            var convertedRowCostValue = -1;
+            try { convertedRowCostValue = parseFloat(rowCostText.replace('$', '')).toFixed(2); } catch (err) { }
+
+            // If the fob pack cost is different than the current fob default cost, then we will 'indicate'
+            if (convertedRowCostValue >= 0) {
+                if (convertedRowCostValue !== convertedDefaultCostValue) {
+                    $(this).addClass('indicator-color');
+                }
+                else {
+                    $(this).removeClass('indicator-color');
+                }
+            }
+            else {
+                $(this).removeClass('indicator-color');
+            }
+        });
+    }
+
+    function loadFOBs() {
+        // Load combobox with FOBs of currently selected division, then select first FOB of this division
+        var division = $('#SelectedDivCode').val();
+        var comboBox = $('#SelectedFOBID').data('tComboBox');
+        comboBox.reload(null, { division: division });
+    }
+
+    function loadSelectedFOBDetails(fobID) {
+        // Make ajax call to server for default cost of selected FOB
+        $.ajax({
+            type: 'GET',
+            url: '/FOB',
+            data: { id: fobID },
+            contentType: 'application/json; charset=utf-8',
+            success: function (data, textState, e) {
+                // Update FOB default cost display
+                $('#defaultCostTextBox').data('tTextBox').value(data.DefaultCost);
+
+                // Load FOB Packs
+                loadFOBPacks(fobID);
+            },
+            error: function (e, textState, errorThrown) {
+                // NOTE: There are still issues with IE and aggresive caching here (exception response from Global.asax Application_Error()...request gets 
+                //           cached without content, so e.responseText is empty string in JS ajax error callback....issue stops if running fiddler and works fine in chome :)
+                var resultObject = (e.responseText != "") ? JSON.parse(e.responseText) : null;
+
+                // Show universal, unhandled exception error message dialog
+                alert(resultObject ? resultObject.Message : "A system error has occurred.  Please contact your administrator. ");
+            }
+        });
+    }
+
+    function loadFOBPacks(fobID) {
+        // Load the FOB packs grid with packs via ajax
+        var packsGrid = $('#PacksGrid').data('tGrid');
+
+        // Capture current FOB id for request
+        packsGrid.ajax.selectUrl = 'FOBPack/Grid_PacksByFOB?FOBID=' + fobID;
+
+        // Reset grid to page 1 (for now, not clearing grid settings (order by, filter, etc...))
+        packsGrid.currentPage = 1;
+
+        // Refresh grid
+        refreshPacksGrid();
+    }
+
+    function refreshPacksGrid() {
+        var packsGrid = $('#PacksGrid').data('tGrid');
+
+        // Disble 'Open' button (while loading, until next row selection)
+        setDisplayEnabled($('button.modify-button'), false);
+        
+        // Reload data of grid
+        packsGrid.ajaxRequest();
+    }
+
+    function divComboBox_OnLoad(e) {
+        // Pre-load combo-box, pre-select first item, and load FOB combo-box from selected division
+        comboBox_ajax_OnLoad(e, function () {
+            
+            // Manually trigger change event (It is important to trigger event, rather than just calling 
+            // event handling logic..otherwise change event will still fire on next telerik ui interaction
+            var comboBox = $(e.target).data('tComboBox');
+            comboBox.trigger.change();
+
+            // Give focus to division drop down
+            $('#SelectedDivCode-input').focus();
+        });
+    }
+
+    function divComboBox_Changed(e) {
+        // Call base 'telerik shims' functionality
+        comboBox_Changed(e);
+
+        // Load combobox with FOBs of currently selected division, then select first FOB of this division
+        loadFOBs();
+    }
+
+    function fobComboBox_Changed(e) {
+        // Call base 'telerik shims' functionality
+        comboBox_Changed(e);
+
+        // Load selected FOB's details (cost and packs)
+        loadSelectedFOBDetails(e.value);
+    }
+
+    function fobComboBox_DataBound(e) {
+        var comboBox = $(e.target).data('tComboBox');
+
+        // Select the first FOB by default
+        comboBox.select(0);
+    }
+
+    function setDisplayEnabled($selector, isEnabled) {
+        if (isEnabled) {
+            // Enable Edit/Delete buttons on select
+            $selector.removeAttr('disabled').removeClass('t-state-disabled');
+        }
+        else {
+            // Disable Edit/Delete buttons on select
+            $selector.attr('disabled', 'disabled').addClass('t-state-disabled');
+        }
+    }
+
+    function packSelected(e) {
+        // Enable 'Open' button
+        setDisplayEnabled($('button.modify-button'), true);
+    }
+
+    function packsGrid_OnDataBound(e) {
+        // Inidicate in UI fob packs that have had their cost set manually (to a value other than the fob default cost value)
+        indicateNonDefaultCostPacks();
+    }
+
+    function packsGrid_OnComplete(e) {
+        // Disable 'Open' button
+        setDisplayEnabled($('button.modify-button'), false);
+    }
+
+    function saveFOBButton_Click(e) {
+        e.preventDefault();
+
+        var defaultCostValue = $('#defaultCostTextBox').val();
+        var fobID = $('#SelectedFOBID').val();
+
+        // Launch 'Save FOB Options' window
+        showSaveFOBWindow($('#FOBContentContainer'), fobID, defaultCostValue);
+
+        return false;
+    }
+
+    function showSaveFOBWindow($contentContainer, id, newCost) {
+        var name = 'fobWindow';
+        var title = 'Update FOB Cost';
+        var contentAction = '/FOB/SaveOptions?ID=' + id + "&newCost=" + newCost;
+
+        // Create 'Save FOB Options' window
+        var focusElementSelectorString = "." + name + ".t-window .form-fieldset .editor-input[type=text]:not(.textbox-readonly), " + "." + name + ".t-window .form-fieldset textarea.editor-input:not(.textbox-readonly)";
+        showWindow($contentContainer, name, title, contentAction, focusElementSelectorString);
+    }
+
+    // On Document Ready...
+    $(function () {
+        // Wire up 'Open' button click handling
+        $('#openPackButton').click(function (e) {
+            // Get selected FOB Pack
+            var selectedPackID = $('#PacksGrid').data('tGrid').dataItem($('#PacksGrid tbody tr.t-state-selected')[0]).DomainObject.ID;
+
+            // Launch 'Edit' window
+            showEditPackWindow($('#FOBContentContainer'), selectedPackID);
+        });
+    });
+</script>
+
+<div id="FOBContentContainer" class="content-container" style="margin-top: 20px; padding-bottom: 30px;">
+    <div>
+        <h2 style="display: inline;">Manage FOB Costs</h2>
+    </div>
+
+    <fieldset class="form-fieldset form-fieldset-fobdivision">
+        <div class="form-input-area-container-first">
+            @*Labels - Left*@
+            <div class="form-input-label-area">
+                <div class="form-input form-input-label" style="margin-top: 7px;">
+                    <span>Division: </span>
+                </div>
+            </div>
+            @*Input Controls - Left*@
+            <div class="form-input-value-area">
+                <div class="form-input">
+                        @(Html.Telerik().ComboBox().Name("SelectedDivCode")
+                            .DataBinding(b => b.Ajax().Select("Ajax_Divisions", "UtilityIndex"))
+                            .HtmlAttributes(new { @class = "editor-input", tabIndex = 1 })         
+                            .Filterable()            
+                            .HighlightFirstMatch(true)
+                            .ClientEvents(a => a.OnChange("divComboBox_Changed").OnLoad("divComboBox_OnLoad"))
+                            )
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="form-fieldset form-fieldset-fob">
+        <div class="form-input-area-container-first">
+            @*Labels - Left*@
+            <div class="form-input-label-area">
+                <div class="form-input form-input-label" style="margin-top: 7px;">
+                    <span>FOB: </span>
+                </div>
+            </div>
+            @*Input Controls - Left*@
+            <div class="form-input-value-area" style="margin-left: 43px;">
+                <div class="form-input">
+                        @(Html.Telerik().ComboBox().Name("SelectedFOBID")
+                            .DataBinding(binding => binding.Ajax().Select("Ajax_FOBsByDivision", "UtilityIndex"))
+                            .HtmlAttributes(new { @class = "editor-input", tabIndex = 2 })
+                            .Filterable()
+                            .HighlightFirstMatch(true)
+                            .ClientEvents(a => a.OnChange("fobComboBox_Changed").OnDataBound("fobComboBox_DataBound"))
+                            )
+                </div>
+            </div>
+        </div>
+        <div class="form-input-area-container">
+            @*Labels - Left*@
+            <div class="form-input-label-area">
+                <div class="form-input form-input-label" style="margin-left: 30px; margin-top: 7px;">
+                    <span>Default Cost: </span>
+                </div>
+            </div>
+            @*Input Controls - Left*@
+            <div class="form-input-value-area">
+                <div class="form-input">
+                    @(Html.Telerik().CurrencyTextBox().Name("defaultCostTextBox")
+                    .HtmlAttributes(new { @class = "editor-input" })
+                    .MinValue(0)
+                    .Value(0))
+
+                    <button class="button-fob-save t-button t-button-icononly right-floated" onclick="saveFOBButton_Click(event)">
+	                    <span class="t-icon t-edit"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+    <div>
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.FOBPackModel>()  
+            .Name("PacksGrid")
+            .HtmlAttributes(new { style="margin-top: 10px;", @class="selectable-grid" })
+            .Columns(columns =>
+            {
+                columns.Bound(o => o.DomainObject.ID).Visible(false);
+                columns.Bound(o => o.DomainObject.Quantity).Title("Qty Per");
+                columns.Bound(o => o.DomainObject.Cost).Title("Cost").Format("{0:C}");
+                columns.Bound(o => o.OverrideCount).Title("Override Count");
+                columns.Bound(o => o.OverridenDeptsString).Title("Overridden Depts");
+            })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Ajax().Select("Grid_PacksByFOB", "FOBPack", new { FOBID = -1 });
+            })
+            .ClientEvents(events => events.OnRowSelect("packSelected").OnComplete("packsGrid_OnComplete")
+                .OnDataBound("packsGrid_OnDataBound"))
+            .Selectable()
+            .Sortable()
+            .Pageable(paging => paging.Enabled(true).PageSize(10))
+            .Filterable()
+            .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+        )
+    </div>
+
+    <div style="margin-top: 10px;">
+        <button id="openPackButton" class="t-button t-state-disabled modify-button modify-button-edit" style="float: right;" disabled="disabled">
+            Open
+        </button>
+    </div>
+</div>

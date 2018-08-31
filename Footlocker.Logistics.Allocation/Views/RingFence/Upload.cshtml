@@ -1,0 +1,110 @@
+﻿@using Telerik.Web.Mvc;
+@{
+    ViewBag.Title = "RingFenceUpload";
+}
+
+<fieldset>
+    <legend> RingFence Upload </legend>
+    Spreadsheet columns should be Div, Store, SKU, EndDate, PO, Warehouse, Size/Caselot, Qty, Comments.  <br /> <br />
+    <input type="checkbox" onclick="toggleUpload(this);" />Accumulate existing ringfence quantities <br /> <br />
+    @Html.ActionLink("Download Template", "ExcelTemplate", new { }, new { @class = "t-button" })
+    <br />
+    <br />
+    <div id="accumulateQuantities">
+        <br />
+        <b>Please select spreadsheets: </b>
+        <br />
+        @(Html.Telerik().Upload()
+              .Name("attachments")
+              .Multiple(true)
+              .Async(async => async
+                  .Save("SaveRingFencesWithAccumulatedQuantity", "RingFence")
+                  .AutoUpload(false))
+              .ShowFileList(true)
+              .ClientEvents(events => events
+                  .OnError("onError")
+                  .OnSelect("onSelect")
+                  .OnSuccess("onSuccess")
+              )
+        )
+        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width: 150px; visibility: hidden; display: none;" />
+    </div>
+    <div id="replaceQuantities">
+        <br />
+        <b>Please select spreadsheets: </b>
+        <br />
+        @(Html.Telerik().Upload()
+            .Name("attachments2")
+            .Multiple(true)
+            .Async(async => async
+                .Save("SaveRingFencesReplacingQuantity", "RingFence")
+                .AutoUpload(false))
+            .ShowFileList(true)
+            .ClientEvents(events => events
+                .OnError("onError")
+                .OnSelect("onSelect")
+                .OnSuccess("onSuccess")
+            )
+        )
+        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width: 150px; visibility: hidden; display: none;" />
+    </div>
+    <br />
+    <h4>
+        <div id="message">
+            @if (ViewData["errorMessage"] != null)
+            {
+                <font color="red">
+                    @Html.Raw(Convert.ToString(ViewData["errorMessage"]))
+                </font>
+            }
+        </div>
+    </h4>
+</fieldset>
+<br />
+@Html.ActionLink("Back To List", "Index",null, new { @class="t-button"})
+
+     <script type="text/javascript">
+         $(document).ready(function () {
+             $('#accumulateQuantities').hide();
+         });
+
+         function toggleUpload(checkbox) {
+             console.log($(checkbox));
+             console.log(checkbox.checked);
+             if (checkbox.checked) {
+                 $('#accumulateQuantities').show();
+                 $('#replaceQuantities').hide();
+             } else {
+                 $('#replaceQuantities').show();
+                 $('#accumulateQuantities').hide();
+             }
+             
+         }
+
+         function onSelect(e) {
+             var files = e.files;
+             if (files[0].extension != ".xls") {
+                 alert("Document must be a spreadsheet with a xls extension. ");
+                 e.preventDefault();
+             }
+             else {
+                 document.getElementById('spreadsheet').style.visibility = 'visible';
+             }
+             $('#message').empty();
+         }
+
+         function onError(e) {
+             var message = e.XMLHttpRequest.responseText;
+             $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='DownloadErrorsNew'>Download Errors</a>");
+
+             e.preventDefault();
+         }
+
+         function onSuccess(e) {
+             var message = e.response.message;
+             $('#message').empty().append("<font color='red'>" + message + "</font>");
+
+             e.preventDefault();
+         }
+    </script>
+    

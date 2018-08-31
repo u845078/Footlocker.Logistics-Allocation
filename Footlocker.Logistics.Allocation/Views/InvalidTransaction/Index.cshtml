@@ -1,0 +1,319 @@
+﻿@{
+    ViewBag.Title = "Non-Ranged Transactions";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="@Url.Content("~/Scripts/FootLocker/telerikShims_ComboBox.js")" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+    function divComboBox_OnLoad(e) {
+        // Pre-load combo-box, pre-select first item
+        comboBox_ajax_OnLoad(e, function () {
+
+            // Manually trigger change event (It is important to trigger event, rather than just calling 
+            // event handling logic..otherwise change event will still fire on next telerik ui interaction
+            var comboBox = $(e.target).data('tComboBox');
+            comboBox.trigger.change();
+
+            // Give focus to division drop down
+            $('#SelectedDivCode-input').focus();
+        });
+    }
+
+    function divComboBox_Changed(e) {
+        // Call base 'telerik shims' functionality
+        comboBox_Changed(e);
+
+        // Get newly selected division
+        var divCode = e.value;
+
+        // Refresh grids with newly selected division filter applied
+        loadLocationTransactionGrid(divCode);
+        loadProductTransactionGrid(divCode);
+    }
+
+    function loadProductTransactionGrid(divCode) {
+        // Ensure that product grid is fully initialized (with default, initial ajax requests having returned)...
+        if (!_isInitialProductLoad) {
+            var productTransactionsGrid = $('#ProductAggGrid').data('tGrid');
+
+            // Capture division for request
+            // NOTE: Reformat select URL rather than just stuffing data in request call, so that a push of the 'refresh' button will include the latest applied filter
+            productTransactionsGrid.ajax.selectUrl = 'InvalidTransaction/Grid_ProductAgg?divCode=' + divCode;
+
+            // Reset grid to page 1 (for now, not clearing grid settings (order by, filter, etc...))
+            productTransactionsGrid.currentPage = 1;
+
+            // Refresh grid
+            productTransactionsGrid.ajaxRequest();
+        }
+    }
+
+    function loadLocationTransactionGrid(divCode) {
+        // Ensure that location grid is fully initialized (with default, initial ajax requests having returned)...
+        if (!_isInitialProductLoad) {
+            var locTransactionsGrid = $('#LocAggGrid').data('tGrid');
+
+            // Capture division for request
+            // NOTE: Reformat select URL rather than just stuffing data in request call, so that a push of the 'refresh' button will include the latest applied filter
+            locTransactionsGrid.ajax.selectUrl = 'InvalidTransaction/Grid_LocationAgg?divCode=' + divCode;
+
+            // Reset grid to page 1 (for now, not clearing grid settings (order by, filter, etc...))
+            locTransactionsGrid.currentPage = 1;
+
+            // Refresh grid
+            locTransactionsGrid.ajaxRequest();
+        }
+    }
+
+    var _isInitialProductLoad = true;
+    function productGrid_OnDataBinding(e) {
+        // Manage 'initialized' flag to determine when capable of loading grid from division selection
+        if (_isInitialProductLoad) {
+            e.preventDefault();
+            _isInitialProductLoad = false;
+        }
+    }
+
+    var _isInitialLocationLoad = true;
+    function locationGrid_OnDataBinding(e) {
+        // Manage 'initialized' flag to determine when capable of loading grid from division selection
+        if (_isInitialLocationLoad) {
+            e.preventDefault();
+            _isInitialLocationLoad = false;
+        }
+    }
+
+</script>
+
+<div id="InvalidTransContentContainer" class="content-container" style="margin-top: 20px;">
+    <div>
+        <h2 style="display: inline;">Non-Ranged Transaction Summary</h2>
+    </div>
+
+    <fieldset class="form-fieldset form-fieldset-grey rounded-corners">
+        <div class="form-input-area-container-first">
+            @*Labels - Left*@
+            <div class="form-input-label-area">
+                <div class="form-input form-input-label" style="margin-top: 2px;">
+                    @Html.Label("Division: ")
+                </div>
+            </div>
+    
+            @*Input Controls - Right*@
+            <div class="form-input-value-area">
+                <div class="form-input" style="margin-top: 0px;">
+                    @(Html.Telerik().ComboBox().Name("SelectedDivCode")
+                        .DataBinding(b => b.Ajax().Select("Ajax_Divisions", "InvalidTransaction"))
+                        .HtmlAttributes(new { @class = "editor-input ui-corner-all", tabIndex = 1, @style = "width: 220px;" })         
+                        .Filterable()            
+                        .HighlightFirstMatch(true)
+                        .ClientEvents(a => a.OnChange("divComboBox_Changed").OnLoad("divComboBox_OnLoad"))
+                        )
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+    @{ Html.Telerik().TabStrip()
+           .Name("invalidTransTabStrip")
+           .HtmlAttributes(new { @class = "tabstrip-cutdown rounded-corners", @style = "margin-top: 20px;" })
+           .Items(tabstrip =>
+           {
+                tabstrip.Add()
+                   .Text("By Product")
+                   .ContentHtmlAttributes(new { @class = "tab-content-cutdown rounded-corners" })
+                   .Content(@<text>
+                        <div id="ItemContentContainer" class="content-container content-container-tabstrip rounded-corners">
+                            @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Controllers.ProductInvTransAgg>()
+                                .Name("ProductAggGrid")
+                                .HtmlAttributes(new { style = "margin-top: 10px;" })
+                                .Columns(columns =>
+                                {
+                                    columns.Bound(pa => pa.ItemID).Visible(false);
+                                    columns.Bound(pa => pa.MerchantSku).Title("SKU").Visible(true);
+                                    columns.Bound(pa => pa.TotalRetail).Format("{0:c}").Title("Total Retail").Visible(true);
+                                    columns.Bound(pa => pa.TotalQty).Title("Total Qty").Visible(true);
+                                })
+                                .DataBinding(dataBinding =>
+                                {
+                                    dataBinding.Ajax().Select("Grid_ProductAgg", "InvalidTransaction", new { divCode = "TEST" });
+                                })
+                                .ClientEvents(events => events.OnDataBinding("productGrid_OnDataBinding"))
+                                .Sortable(s =>
+                                {
+                                    s.SortMode(GridSortMode.MultipleColumn);
+                                    s.OrderBy(order => order.Add(pa => pa.TotalRetail).Descending());
+                                })
+                                .Pageable(paging => paging.Enabled(true).PageSize(10))
+                                .Filterable()
+                                .Groupable(grouping => grouping.Enabled(false))
+                                .Footer(true)
+                                .DetailView(dv =>
+                                    dv.ClientTemplate(
+                                                    Html.Telerik().Grid<Footlocker.Logistics.Allocation.Controllers.ProductLocationInvTransAgg>()
+                                                .Name("ProductAggDetails_<#= ItemID #>")
+                                                .Columns(columns =>
+                                                {
+                                                    columns.Bound(t => t.ItemID).Visible(false);
+                                                    columns.Bound(t => t.MerchantSku).Title("SKU").Visible(false);
+                                                    columns.Bound(la => la.LocationID).Visible(false);
+                                                    columns.Bound(la => la.StoreDivCode).Title("Division").Width(50).Visible(true);
+                                                    columns.Bound(la => la.Store).Title("Store").Visible(true);
+                                                    columns.Bound(t => t.TotalRetail).Format("{0:c}").Title("Total Retail").Visible(true);
+                                                    columns.Bound(t => t.TotalQty).Title("Total Qty").Visible(true);
+                                                })
+                                                .DataBinding(dataBinding => dataBinding.Ajax()
+                                                    .Select("Grid_TransactionsByProduct", "InvalidTransaction", new { itemID = "<#= ItemID #>" })
+                                                )
+                                                .Pageable(paging => paging.Enabled(true).PageSize(10))
+                                                .Sortable(s =>
+                                                {
+                                                    s.SortMode(GridSortMode.MultipleColumn);
+                                                    s.OrderBy(order => order.Add(pa => pa.TotalRetail).Descending());
+                                                })
+                                                .Groupable(grouping => grouping.Enabled(false))
+                                                .Filterable()
+                                                .Footer(true)
+                                                .DetailView(dview =>
+                                                    dview.ClientTemplate(
+                                                                Html.Telerik().Grid<Footlocker.Logistics.Allocation.Controllers.DatedProductLocationInvTransAgg>()
+                                                            .Name("ProductAggDetails_<#= Store #>_<#= ItemID #>")
+                                                            .Columns(columns =>
+                                                            {
+                                                                columns.Bound(t => t.ItemID).Visible(false);
+                                                                columns.Bound(t => t.MerchantSku).Title("SKU").Visible(false);
+                                                                columns.Bound(la => la.LocationID).Visible(false);
+                                                                columns.Bound(la => la.StoreDivCode).Title("Division").Width(50).Visible(false);
+                                                                columns.Bound(la => la.Store).Title("Store").Visible(false);
+                                                                columns.Bound(t => t.SessionID).Visible(false);
+                                                                columns.Bound(t => t.TransactionDate).Format("{0:d}").Title("Date").Visible(true);
+                                                                columns.Bound(t => t.TotalRetail).Format("{0:c}").Title("Total Retail").Visible(true);
+                                                                columns.Bound(t => t.TotalQty).Title("Total Qty").Visible(true);
+                                                            })
+                                                            .DataBinding(dataBinding => dataBinding.Ajax()
+                                                                .Select("Grid_TransactionsByProductLocation", "InvalidTransaction", new { itemID = "<#= ItemID #>", locationID = "<#= LocationID #>" })
+                                                            )
+                                                            .Pageable(paging => paging.Enabled(true).PageSize(10))
+                                                            .Sortable(s =>
+                                                            {
+                                                                s.SortMode(GridSortMode.MultipleColumn);
+                                                                s.OrderBy(order => order.Add(pa => pa.TransactionDate).Descending());
+                                                            })
+                                                            .Groupable(grouping => grouping.Enabled(false))
+                                                            .Filterable()
+                                                            .Footer(true)
+                                                            .ToHtmlString()
+                                                    )
+                                                )
+                                                .ToHtmlString()
+                                            )
+                                        )
+                                    )
+                                </div>
+                        </text>);
+
+                               
+                   tabstrip.Add()
+                   .Text("By Location")
+                   .ContentHtmlAttributes(new { @class = "tab-content-cutdown rounded-corners" })
+                   .Content(@<text>
+                            <div id="LocationContentContainer" class="content-container content-container-tabstrip rounded-corners">
+                                 
+                                 @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Controllers.LocationInvTransAgg>()
+                                    .Name("LocAggGrid")
+                                    .HtmlAttributes(new { style = "margin-top: 10px;" })
+                                    .Columns(columns =>
+                                    {
+                                        columns.Bound(la => la.LocationID).Visible(false);
+                                        columns.Bound(la => la.StoreDivCode).Title("Division").Visible(true).Width(50);
+                                        columns.Bound(la => la.Store).Title("Store").Visible(true);
+                                        columns.Bound(pa => pa.TotalRetail).Format("{0:c}").Title("Total Retail").Visible(true);
+                                        columns.Bound(pa => pa.TotalQty).Title("Total Qty").Visible(true);
+                                    })
+                                    .DataBinding(dataBinding =>
+                                    {
+                                        dataBinding.Ajax().Select("Grid_LocationAgg", "InvalidTransaction", new { divCode = "TEST" });
+                                    })
+                                    .ClientEvents(events => events.OnDataBinding("locationGrid_OnDataBinding"))
+                                    .Sortable(s =>
+                                    {
+                                        s.SortMode(GridSortMode.MultipleColumn);
+                                        s.OrderBy(order => order.Add(pa => pa.TotalRetail).Descending());
+                                    })
+                                    .Pageable(paging => paging.Enabled(true).PageSize(10))
+                                    .Filterable()
+                                    .Groupable(grouping => grouping.Enabled(false))
+                                    .Footer(true)
+                                    .DetailView(dv =>
+                                        dv.ClientTemplate(
+                                                Html.Telerik().Grid<Footlocker.Logistics.Allocation.Controllers.ProductLocationInvTransAgg>()
+                                                // Turns out that it is critical that the referenced parent field for uniqueness be a string, not INT
+                                                .Name("LocAggDetails_<#= Store #>")
+                                                .Columns(columns =>
+                                                {
+                                                    columns.Bound(t => t.LocationID).Visible(false);
+                                                    columns.Bound(t => t.StoreDivCode).Title("Division").Visible(false);
+                                                    columns.Bound(t => t.Store).Title("Store").Visible(false);
+                                                    columns.Bound(pa => pa.ItemID).Visible(false);
+                                                    columns.Bound(pa => pa.MerchantSku).Title("SKU").Visible(true);
+                                                    columns.Bound(t => t.TotalRetail).Format("{0:c}").Title("Total Retail").Visible(true);
+                                                    columns.Bound(t => t.TotalQty).Title("Total Qty").Visible(true);
+                                                })
+                                                .DataBinding(dataBinding => dataBinding.Ajax()
+                                                    .Select("Grid_TransactionsByLocation", "InvalidTransaction", new { locationID = "<#= LocationID #>" })
+                                                )
+                                                .Pageable(paging => paging.Enabled(true).PageSize(10))
+                                                .Sortable(s =>
+                                                {
+                                                    s.SortMode(GridSortMode.MultipleColumn);
+                                                    s.OrderBy(order => order.Add(pa => pa.TotalRetail).Descending());
+                                                })
+                                                .Groupable(grouping => grouping.Enabled(false))
+                                                .Filterable()
+                                                .Footer(true)
+                                                .DetailView(dview =>
+                                                    dview.ClientTemplate(
+                                                            Html.Telerik().Grid<Footlocker.Logistics.Allocation.Controllers.DatedProductLocationInvTransAgg>()
+                                                            .Name("LocAggDetails_<#= Store #>_<#= ItemID #>")
+                                                            .Columns(columns =>
+                                                            {
+                                                                columns.Bound(la => la.LocationID).Visible(false);
+                                                                columns.Bound(la => la.StoreDivCode).Title("Division").Visible(false);
+                                                                columns.Bound(la => la.Store).Title("Store").Visible(false);
+                                                                columns.Bound(pa => pa.ItemID).Visible(false);
+                                                                columns.Bound(pa => pa.MerchantSku).Title("SKU").Visible(false);
+                                                                columns.Bound(t => t.SessionID).Visible(false);
+                                                                columns.Bound(t => t.TransactionDate).Format("{0:d}").Title("Date").Visible(true);
+                                                                columns.Bound(t => t.TotalRetail).Format("{0:c}").Title("Total Retail").Visible(true);
+                                                                columns.Bound(t => t.TotalQty).Title("Total Qty").Visible(true);
+                                                            })
+                                                            .DataBinding(dataBinding => dataBinding.Ajax()
+                                                                .Select("Grid_TransactionsByProductLocation", "InvalidTransaction", new { itemID = "<#= ItemID #>", locationID = "<#= LocationID #>" })
+                                                            )
+                                                            .Pageable(paging => paging.Enabled(true).PageSize(10))
+                                                            .Sortable(s =>
+                                                            {
+                                                                s.SortMode(GridSortMode.MultipleColumn);
+                                                                s.OrderBy(order => order.Add(pa => pa.TransactionDate).Descending());
+                                                            })
+                                                            .Groupable(grouping => grouping.Enabled(false))
+                                                            .Filterable()
+                                                            .Footer(true)
+                                                            .ToHtmlString()
+                                                    )
+                                                )
+                                                .ToHtmlString()
+                                    )
+                                )
+                            )
+                            </div>
+                        </text>);
+           })
+            .SelectedIndex(0)
+            .Render();
+    }
+
+
+</div>

@@ -1,0 +1,328 @@
+﻿
+<script>
+    function RefreshStoreGrid() {
+        var grid = $("#StoreGrid").data("tGrid");
+        grid.ajaxRequest();
+
+    }
+
+    //grid refresh function
+    function AddGrid(store, div) {
+        ruleset = $('#RuleToAdd_RuleSetID').val();
+
+        //make a call to server
+        var grid = $("#StoreGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+        $.ajax({
+            url: "/Rule/AddStore",
+            data: "{'store': '" + store + "', 'div': '" + div + "', 'ruleSetID':'" + ruleset + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    grid.ajaxRequest();
+                    showStatus();
+                }
+                else {
+                    alert(result);
+                }
+            }
+        });
+    }
+
+
+    function DeleteGrid(store, div) {
+        ruleset = $('#RuleToAdd_RuleSetID').val();
+
+        //make a call to server
+        var grid = $("#StoreGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+        $.ajax({
+            url: "/Rule/DeleteStore",
+            data: "{'store': '" + store + "', 'div': '" + div + "', 'ruleSetID':'" + ruleset + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    grid.ajaxRequest();
+                    showStatus();
+                }
+                else {
+                    alert(result);
+                }
+            }
+        });
+    }
+
+    function AddAll() {
+        if (confirm('Are you sure?')) {
+            ruleset = $('#RuleToAdd_RuleSetID').val();
+            var grid2 = $("#StoreGrid").data("tGrid");
+            $('.t-status .t-icon', grid2.element).addClass('t-loading');
+            $.ajax({
+                url: "/Rule/AddAllStores",
+                data: "{'ruleSetID':'" + ruleset + "','verified':'false','move':'false'}",
+                contentType: 'application/json; charset=utf-8',
+                type: 'POST',
+                dataType: 'json',
+                error: function (xhr, status) {
+                    alert(status);
+                    $('.t-status .t-icon t-loading', grid2.element).removeClass('t-loading');
+                },
+                success: function (result) {
+                    if (result == 'Success') {
+                        grid2.ajaxRequest();
+                        showStatus();
+                    }
+                    else if (result == 'Verify') {
+                        $('.t-status .t-icon t-loading', grid2.element).removeClass('t-loading');
+                        verifyAddAll();
+                    }
+                    else {
+                        $('.t-status .t-icon t-loading', grid2.element).removeClass('t-loading');
+                        alert(result);
+                    }
+                }
+            });
+        }
+    }
+
+
+    function verifyAddAll() {
+        var window = $("#popup-window").data('tWindow');
+        window.center();
+        window.open();
+    }
+
+    function closePopup() {
+        var window = $("#popup-window").data('tWindow');
+        window.close();
+    }
+
+    function closeVerify() {
+        closePopup();
+        var grid2 = $("#StoreGrid").data("tGrid");
+        grid2.ajaxRequest();
+    }
+
+    function AddAllForce() {
+        ruleset = $('#RuleToAdd_RuleSetID').val();
+        closePopup();
+        var grid2 = $("#StoreGrid").data("tGrid");
+        $('.t-status .t-icon', grid2.element).addClass('t-loading');
+        $.ajax({
+            url: "/Rule/AddAllStores",
+            data: "{'ruleSetID':'" + ruleset + "','verified':'true','move':'true'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid2.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    grid2.ajaxRequest();
+                    showStatus();
+                }
+                else {
+                    $('.t-status .t-icon t-loading', grid2.element).removeClass('t-loading');
+                    alert(result);
+                }
+            }
+        });
+
+    }
+
+    function AddAllNotInAnotherGroup() {
+        ruleset = $('#RuleToAdd_RuleSetID').val();
+        var grid2 = $("#StoreGrid").data("tGrid");
+        closePopup();
+        $('.t-status .t-icon', grid2.element).addClass('t-loading');
+        $.ajax({
+            url: "/Rule/AddAllStores",
+            data: "{'ruleSetID':'" + ruleset + "','verified':'true','move':'false'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid2.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    grid2.ajaxRequest();
+                    showStatus();
+                }
+                else {
+                    $('.t-status .t-icon t-loading', grid2.element).removeClass('t-loading');
+                    alert(result);
+                }
+            }
+        });
+    }
+
+    function RemoveAll() {
+        if (confirm('Are you sure?')) {
+            ruleset = $('#RuleToAdd_RuleSetID').val();
+            var grid2 = $("#StoreGrid").data("tGrid");
+            $('.t-status .t-icon', grid2.element).addClass('t-loading');
+            $.ajax({
+                url: "/Rule/RemoveAllStoresForRules",
+                data: "{'ruleSetID':'" + ruleset + "'}",
+                contentType: 'application/json; charset=utf-8',
+                type: 'POST',
+                dataType: 'json',
+                error: function (xhr, status) {
+                    alert(status);
+                    $('.t-status .t-icon t-loading', grid2.element).removeClass('t-loading');
+                },
+                success: function (result) {
+                    if (result == 'Success') {
+                        grid2.ajaxRequest();
+                        showStatus();
+                    }
+                    else {
+                        alert(result);
+                    }
+                }
+            });
+        }
+    }
+
+    //grid on row data binding event
+    function hightlight(e) {
+        try {
+            if (e.dataItem.InCurrentPlan) {
+                e.row.className = e.row.className + ' highlight';
+            }
+            if (e.dataItem.InSimilarRuleSet) {
+                e.row.className = e.row.className + ' highlight2';
+            }
+        } catch (ex) { }
+    }
+
+
+    function showStatus() {
+        ruleset = $('#RuleToAdd_RuleSetID').val();
+
+        $.ajax({
+            url: "/Rule/GetRuleSetStoreCount",
+            data: "{'ruleSetID':'" + ruleset + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+            },
+            success: function (result) {
+                $('#statusdiv').empty().append("(" + result.Count + " selected)");
+                $('#pickedStores').empty().append("(" + result.Count + " selected)");
+            }
+        });
+    }
+    $(document).ready(
+function () {
+    showStatus();
+});
+</script>
+
+@(Html.Telerik().Window()
+.Name("popup-window")
+.Width(300)
+.Height(200)
+.Modal(true)
+.Visible(false)
+.Title("Warning")
+.Content(
+@<text>
+<div id="popup-edit">
+There are some stores that are already in another group.  What would you like to do?<br /><br />
+<div class="t-button" onclick="AddAllForce();">Add All Stores</div><br /><br />
+<div class="t-button" onclick="AddAllNotInAnotherGroup();">Add only Stores not in another group</div><br /><br />
+<div class="t-button" onclick="closeVerify();">Cancel</div>
+</div>
+</text>))
+
+<div id="statusdiv">
+</div>
+
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreLookupModel>()
+        .Name("StoreGrid")
+        .DataKeys(keys =>
+        {
+            keys.Add(p => p.Store).RouteKey("store");
+            keys.Add(p => p.Division).RouteKey("div");
+        })
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Region);
+            columns.Bound(o => o.League);
+            columns.Bound(o => o.Store).Width(200);
+            columns.Bound(o => o.Mall);
+            columns.Bound(o => o.City);
+            columns.Bound(o => o.State);
+            columns.Bound(o => o.DBA);
+            columns.Bound(o => o.status).Title("Status");
+            columns.Bound(o => o.InCurrentPlan).Title("")
+                .ClientTemplate(
+                "<# if (InCurrentPlan) { #>"
+                + "<a class=\"t-button\" href='javascript:DeleteGrid(\"<#= Store #>\", \"<#= Division #>\");'>Delete</a>"
+                + "<# } else { #>"
+                + "<a class=\"t-button\" href='javascript:AddGrid(\"<#= Store #>\", \"<#= Division #>\");'>Add</a>"
+                + "<# } #>")
+                .Template(@<text> 
+
+                       @if (item.InCurrentPlan)
+                       { 
+                           @Html.Raw("<a class=\"t-button\" href='javascript:DeleteGrid(\"" + item.Store + "\", \"" + item.Division + "\");'>Delete</a>")
+                       }
+                       else
+                       {
+                           @Html.Raw("<a class=\"t-button\" href='javascript:AddGrid(\"" + item.Store + "\", \"" + item.Division + "\");'>Add</a>")
+                       }
+
+                   </text>);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_StoreLookupList", "rule", new { ruleSetID = ViewData["ruleSetID"], gridtype = ViewData["gridtype"], ruleType = ViewData["ruleType"], ajax = true }).Enabled(true).Delete("DeleteStore", "Rule").Insert("AddStore", "Rule");
+        })
+        .RowAction(row =>
+        {
+            if (row.DataItem.InCurrentPlan)
+            {
+                row.HtmlAttributes["style"] = "color:blue;";
+            }
+            if (row.DataItem.InSimilarRuleSet)
+            {
+                row.HtmlAttributes["style"] = "color:red;";
+            }
+        }
+        )
+        .Scrollable(scrolling => scrolling.Enabled(false))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+        .ClientEvents(events => events.OnRowDataBound("hightlight"))
+)
+
+<a class="t-button" href='javascript:AddAll();'>Add All</a>
+
+<a class="t-button" href='javascript:RemoveAll();'>Remove All</a>
+
+<br /><br />
+<a id="hideStoreSelectorButton" class="t-button" href='javascript:hideStoreSelector();'>Done selecting stores</a>

@@ -1,0 +1,114 @@
+﻿@{
+    ViewBag.Title = "Manage Store Concepts";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="@Url.Content("~/Scripts/Footlocker/window.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/FootLocker/conceptType.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/form2js.js")" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+    function conceptSelected(e) {
+        // Determine if the current user has divisional access to the selected concept
+        var conceptsGrid = $('#ConceptTypesGrid').data('tGrid');
+        var selectedConcept = conceptsGrid.dataItem(e.row);
+
+        if (selectedConcept.IsUserWithAccess) {
+            // Enable both OPEN and DELETE buttons
+            setDisplayEnabled($('button.modify-button'), true);
+        }
+        else {
+            // Enable ONLY the 'Open' button
+            setDisplayEnabled($('button.modify-button.modify-button-delete'), false);
+            setDisplayEnabled($('button.modify-button.modify-button-edit'), true);
+        }
+    }
+
+    function setDisplayEnabled($selector, isEnabled) {
+        if (isEnabled) {
+            // Enable Edit/Delete buttons on select
+            $selector.removeAttr('disabled').removeClass('t-state-disabled');   
+        }
+        else {
+            // Disable Edit/Delete buttons on select
+            $selector.attr('disabled', 'disabled').addClass('t-state-disabled');  
+        }
+    }
+
+    function grid_OnComplete(e) {
+        // Disable both OPEN and DELETE buttons
+        setDisplayEnabled($('button.modify-button'), false);
+    }
+
+    // On Document Ready...
+    $(function () {
+        // Add Concept button handling
+        $('#addConceptButton').click(function (e) {
+            // Launch 'Add' window
+            showAddConceptWindow($('#ConceptContentContainer'));
+        });
+
+        // Edit Concept button handling
+        $('#editConceptButton').click(function (e) {
+            // Get selected Concept
+            var selectedConceptID = $('#ConceptTypesGrid').data('tGrid').dataItem($('#ConceptTypesGrid tbody tr.t-state-selected')[0]).ID;
+
+            // Launch 'Edit' window
+            showEditConceptWindow($('#ConceptContentContainer'), selectedConceptID);
+        });
+
+        // Delete Concept button handling
+        $('#deleteConceptButton').click(function (e) {
+            // Get selected Concept
+            var selectedConceptID = $('#ConceptTypesGrid').data('tGrid').dataItem($('#ConceptTypesGrid tbody tr.t-state-selected')[0]).ID;
+
+            // Launch 'Delete' window
+            deleteConcept(selectedConceptID);
+        });
+    });
+</script>
+
+<div id="ConceptContentContainer" class="content-container" style="margin-top: 20px;">
+    <div>
+        <h2 style="display: inline;">Manage Store Concepts</h2>
+
+        <button id="addConceptButton" class="t-button" style="float: right;">
+            Create New
+        </button>
+    </div>
+
+    @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.ConceptType>()
+        .Name("ConceptTypesGrid")
+        .DataKeys(dataKeys => dataKeys.Add(o => o.ID))
+        .HtmlAttributes(new { style="margin-top: 10px;", @class="selectable-grid" })
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.ID).Visible(false);
+            columns.Bound(o => o.Name);
+            columns.Bound(o => o.DivisionCount).Title("Division Count");
+            columns.Bound(o => o.DivisionString).Title("Divisions");
+            columns.Bound(o => o.IsUserWithAccess).Title("Can Manage?");
+        })
+        .DataBinding(dataBinding =>
+        {      
+            dataBinding.Ajax().Select("Grid_Index", "ConceptType");
+        })
+        .ClientEvents(events => events.OnRowSelect("conceptSelected").OnComplete("grid_OnComplete"))
+        .Selectable()
+        .Sortable()
+        .Pageable(paging => paging.Enabled(true).PageSize(10))
+        .Filterable()
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+    )
+
+    <div style="margin-top: 10px;">
+        <button id="deleteConceptButton" class="t-button t-state-disabled modify-button modify-button-delete" disabled="disabled">
+            Delete
+        </button>
+        <button id="editConceptButton" class="t-button t-state-disabled modify-button modify-button-edit" style="float: right;" disabled="disabled">
+            Open
+        </button>
+    </div>
+</div>

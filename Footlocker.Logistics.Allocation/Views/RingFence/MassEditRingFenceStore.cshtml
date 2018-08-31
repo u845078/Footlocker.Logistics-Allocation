@@ -1,0 +1,65 @@
+﻿@model Footlocker.Logistics.Allocation.Models.MassEditRingFenceModel
+
+@{
+    ViewBag.Title = "Bulk Edit Ringfence for Store";
+}
+
+<h2>Bulk Edit Ringfence for store</h2>
+
+    
+    @using (Html.BeginForm()) {
+        @Html.ValidationSummary(true)
+    
+        <fieldset>
+            <legend>MassEditRingFenceModel</legend>
+    
+            <div class="editor-label">
+                @Html.LabelFor(model => model.Div)
+            </div>
+            <div class="editor-field">
+                @Html.DisplayFor(model => model.Div)
+                @Html.HiddenFor(model => model.Div)
+            </div>
+    
+            <div class="editor-label">
+                @Html.LabelFor(model => model.Store)
+            </div>
+            <div class="editor-field">
+                @Html.DisplayFor(model => model.Store)
+                @Html.HiddenFor(model => model.Store)
+            </div>
+            @Html.HiddenFor(model => model.FOB)
+            @if ((Model.FOB != null) && (Model.FOB != ""))
+            { 
+            <div class="editor-label">
+                @Html.LabelFor(model => model.FOB)
+            </div>
+            <div class="editor-field">
+                @Html.DisplayFor(model => model.FOB)
+            </div>
+            }       
+            <div class="editor-label">
+                @Html.LabelFor(model => model.EndDate)
+            </div>
+            <div class="editor-field">
+                @Html.EditorFor(model => model.EndDate)
+                @Html.ValidationMessageFor(model => model.EndDate)
+            </div>
+    
+            <div class="editor-label">
+                @Html.LabelFor(model => model.Comment)
+            </div>
+            <div class="editor-field">
+                @Html.EditorFor(model => model.Comment)
+                @Html.ValidationMessageFor(model => model.Comment)
+            </div>
+    
+            <p>
+                <input type="submit" value="Save" />
+            </p>
+        </fieldset>
+    }
+    
+    <div>
+        @Html.ActionLink("Back to List", "IndexByStore", null, new { @class = "t-button" })
+    </div>

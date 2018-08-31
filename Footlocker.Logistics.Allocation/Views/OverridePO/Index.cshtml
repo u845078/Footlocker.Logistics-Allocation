@@ -1,0 +1,134 @@
+﻿@model Footlocker.Logistics.Allocation.Models.ExpeditePOModel
+
+@{
+    ViewBag.Title = "Override PO";
+}
+
+<script>
+    function autopostback(dropdown) {
+        window.location = '/OverridePO?div=' + dropdown.value;
+    }
+
+    function tab(dropdown) {
+        var div = $('#ddlDivision').val();
+        window.location = '/OverridePO/IndexByPO?div=' + div;
+    }
+
+    function create() {
+        window.location = '/OverridePO/Create?div=' + $('#CurrentDivision').val();
+    }
+    function deleteSku(sku,overrideDate) {
+        if (confirm('Are you sure?'))
+        {
+        window.location = '/OverridePO/DeleteSku?sku=' + sku + '&overrideDate=' + overrideDate;
+        }
+    }
+
+</script>
+<h1>Override PO</h1>
+<br />
+<br />
+@Html.DropDownListFor(m => Model.CurrentDivision, new SelectList(Model.Divisions, "DivCode", "DivisionName"), new { onchange = "autopostback(this);", id = "ddlDivision" })
+<br />
+<br />
+<div class="t-tabstrip-wrapper">
+<div id="tabstrip" data-role="tabstrip" tabindex="0" class="t-widget t-header t-tabstrip" role="tablist" aria-activedescendant="tabstrip_ts_active">
+                    <ul class="t-tabstrip-items t-reset">
+                        <li class="t-item t-state-default t-state-active" role="tab" aria-controls="tabstrip-3"><span class="t-loading t-complete"></span><div class="t-link">
+                            By Sku
+                        </div></li>                    
+                        <li class="t-item t-state-default t-first t-tab-on-top" role="tab" aria-controls="tabstrip-1" aria-selected="true"><span class="t-loading t-complete"></span><div class="t-link" onclick="tab();">
+                            By PO
+                        </div></li>
+                        </ul>
+<div class="t-content t-state-active" id="tabstrip-1" role="tabpanel" aria-expanded="true" style="display: block; opacity: 1;">
+<p>
+    @Html.ActionLink("Add PO", "Create", new { div = Model.CurrentDivision }, new { @class = "t-button" })
+    @Html.ActionLink("Add Sku", "CreateAllPOsForSku", new { div = Model.CurrentDivision }, new { @class = "t-button" })
+    @Html.ActionLink("Upload", "Upload",null, new { @class="t-button"})
+</p>
+@if (ViewData["message"] != null)
+{ 
+    @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
+}
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.ExpeditePOHeader>()
+        .Name("Headers")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Sku);
+            columns.Bound(o => o.Department);
+            columns.Bound(o => o.OverrideDate);
+            columns.Template(@<text> 
+                                   @if (!(item.Sku.Contains("multi")))
+                                   { 
+                                       @Html.Raw("<a class=\"t-button\" href='OverridePO/EditSku?sku=" + item.Sku + "&overrideDate=" + item.OverrideDateString + "'>Edit</a>")
+                                       @Html.Raw("&nbsp;<a class=\"t-button\" href='OverridePO/DeleteSku?sku=" + item.Sku + "&overrideDate=" + item.OverrideDateString + "'>Delete</a>")
+                                   }
+                               </text>)
+                .ClientTemplate(
+                    "<# if (!(MultiSku)) { #>"
+                    + "<a class=\"t-button\" href='OverridePO/EditSku?sku=<#= Sku #>&overrideDate=<#= OverrideDateString #>'>Edit</a>"
+                    + "&nbsp;<div class=\"t-button\" onclick=\"deleteSku('<#= Sku #>','<#= OverrideDateString #>')\">Delete</div>"
+                    + "<# } #>"
+                ).Width(300);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_Index", "OverridePO");
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+        .DetailView(ordersDetailView => ordersDetailView.ClientTemplate(
+                    Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.ExpeditePO>()
+                        .Name("Details_<#= Sku #>")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(o => o.PO);
+                            columns.Bound(o => o.DeliveryDate);
+                            columns.Bound(o => o.OverrideDate);
+                            columns.Bound(o => o.CreatedBy);
+                            columns.Bound(o => o.CreateDate);
+                            columns.Command(commands =>
+                            {
+                                commands
+                                .Custom("Edit")
+                                .Text("Edit")
+                                .DataRouteValues(route => { route.Add(o => o.Division).RouteKey("div"); route.Add(o => o.PO).RouteKey("PO"); })
+                                .Ajax(false)
+                                .Action("Edit","OverridePO");
+                                commands
+                                .Custom("Delete")
+                                .Text("Delete")
+                                .DataRouteValues(route => { route.Add(o => o.Division).RouteKey("div"); route.Add(o => o.PO).RouteKey("PO"); })
+                                .Ajax(false)
+                                .Action("Delete", "OverridePO").HtmlAttributes(new { onclick="return confirm('Are you sure?');"});
+                            }).HtmlAttributes(new { style = "text-align: left" }).Width(200);
+                        })
+                        .DataBinding(dataBinding => dataBinding.Ajax()
+                        .Select("_POListAjax", "OverridePO", new { sku = "<#= Sku #>" }))
+                        .Pageable()
+                        .Sortable()
+                        .ToHtmlString()
+                    ))         
+)
+<script type="text/javascript">
+
+    function expandFirstRow(grid, row) {
+        if (grid.$rows().index(row) == 0) {
+            grid.expandRow(row);
+        }
+    }
+
+    function headers_onRowDataBound(e) {
+        var grid = $(this).data('tGrid');
+        expandFirstRow(grid, e.row);
+    }
+</script> 
+<br />
+
+</div>
+</div>
+</div>

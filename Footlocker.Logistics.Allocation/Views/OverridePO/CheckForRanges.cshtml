@@ -1,0 +1,51 @@
+﻿@model List<Footlocker.Logistics.Allocation.Models.RangePlan>
+
+@{
+    ViewBag.Title = "CheckForRanges";
+}
+
+<h2>Verify Ranges</h2>
+Would you like to update any of the delivery groups?
+@foreach (Footlocker.Logistics.Allocation.Models.RangePlan p in Model)
+{ 
+    @Html.Raw("<div>Groups for Sku " + p.Sku + "</div>") 
+    @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.DeliveryGroup>()   
+    .Name("DeliveryGroups")    
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.ID).Visible(false);
+            columns.Bound(o => o.Name).ReadOnly();
+            columns.Bound(o => o.StartDate);
+            columns.Bound(o => o.EndDate).FooterTemplate(
+                        @<text>
+                        <input type="button" name="name" value="Save" class="t-button" onclick='saveDateChanges()' />
+                    </text>
+                    );
+        })
+                .DataKeys(keys =>
+                {
+                    keys.Add(k => k.ID);
+                })
+                .DataBinding(dataBinding =>
+                dataBinding.Ajax()
+                        .Select("_DeliveryGroupsAjax", "OverridePO", new { planid = p.Id, ajax = true })
+                        .Update("_SaveBatchEditing", "OverridePO")
+                )
+            .Scrollable(scrolling => scrolling.Enabled(true))
+            .Sortable(sorting => sorting.Enabled(true))
+            .Groupable(grouping => grouping.Enabled(false))
+                .Footer(true)
+                .Editable(editing => editing.Mode(GridEditMode.InCell))
+
+                )
+
+}
+<div>
+    @Html.ActionLink("Back to List", "Index",null, new { @class="t-button"})
+</div>
+
+    <script type="text/javascript">
+        function saveDateChanges() {
+            $('#DeliveryGroups').data('tGrid').submitChanges();
+        }
+    </script>

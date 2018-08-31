@@ -1,0 +1,364 @@
+﻿@model Footlocker.Logistics.Allocation.Models.ProductHierarchyOverrideModel
+
+<script type="text/javascript">
+        $(function () {
+            var loading = '<option>Loading...</option>';
+            var model = @Html.Raw(Json.Encode(Model));
+
+            // initially set the text of the newDivisionLabel to mimic the overrideDivision dependent on the override
+            // level.
+            if (model.prodHierarchyOverride.overrideItemID == null && $('#overrideLevelList').val() == 'SKU') {
+                // set the newDivisionLabelDiv equal to the first value in the overrideDivisionList
+                $('#newDivisionLabelDiv').text(model.overrideDivisionList[0].Text);
+                // disable submit button until a valid sku is entered
+                $('#saveButton').prop('disabled', true);
+            } else if (model.prodHierarchyOverride.overrideItemID != null && $('#overrideLevelList').val() == 'SKU') {
+                // set the text to the selected item on the overrideDivisionList.
+                $('#newDivisionLabelDiv').text($('#overrideDivisionLabelDiv').text());
+            } else {
+                $('#newDivisionLabelDiv').text($('#overrideDivisionList option:selected').text());
+            }
+            // save previous override level to help determine if the override and new lists need to be refreshed.
+            // this is necessary to ensure that the divisions are identical to avoid cross division override creation.
+            $('#overrideLevelList').data("previousOverrideLevel", $(this).val());
+
+            $('#overrideLevelList').change(function () {
+                $('#overrideDivisionList').show();
+                $('#overrideDepartmentList').show();
+                $('#overrideCategoryList').show();
+                $('#overrideBrandIDList').show();
+
+                $('#overrideDivisionLabelDiv').hide();
+                $('#overrideDeptLabelDiv').hide();
+                $('#overrideCatLabelDiv').hide();
+                $('#overrideBrandIDLabelDiv').hide();
+
+                switch ($('#overrideLevelList').val()) {
+                    case 'DEPT':
+                        if ($(this).data("previousOverrideLevel") == 'SKU') {
+                            $('#overrideDivisionList').change();
+                        }
+                        $('#overrideCategoryDiv').hide();
+                        $('#overrideBrandIDDiv').hide();
+                        $('#overrideSKUDiv').hide();
+
+                        break;
+                    case 'CAT':
+                        if ($(this).data("previousOverrideLevel") == 'SKU') {
+                            $('#overrideDivisionList').change();
+                        }
+                        $('#overrideCategoryDiv').show();
+                        $('#overrideBrandIDDiv').hide();
+                        $('#overrideSKUDiv').hide();
+
+                        break;
+                    case 'LC_BRANDID':
+                        if ($(this).data("previousOverrideLevel") == 'SKU') {
+                            $('#overrideDivisionList').change();
+                        }
+                        $('#overrideCategoryDiv').show();
+                        $('#overrideBrandIDDiv').show();
+                        $('#overrideSKUDiv').hide();
+
+                        break;
+                    case 'SKU':
+                        $('#overrideDivisionList').change();
+                        $('#overrideDivisionList').hide();
+                        $('#overrideDepartmentList').hide();
+                        $('#overrideCategoryList').hide();
+                        $('#overrideBrandIDList').hide();
+
+                        $('#overrideDivisionLabelDiv').show();
+                        $('#overrideDeptLabelDiv').show();
+                        $('#overrideCatLabelDiv').show();
+                        $('#overrideBrandIDLabelDiv').show();
+
+                        $('#overrideCategoryDiv').show();
+                        $('#overrideBrandIDDiv').show();
+                        $('#overrideSKUDiv').show();
+                        break;
+                }
+                // update previous override level
+                $(this).data("previousOverrideLevel", $(this).val());
+            }).trigger('change');
+
+            $('#newDepartmentList').change(function () {
+                // loading messages
+                $('#newCategoryList').html(loading);
+                $('#newBrandIDList').html(loading);
+                var divisionFilter;
+                // disable submit button while list(s) are loading
+                $('#saveButton').prop("disabled", true);
+                // grab the view model from the view
+                var model = @Html.Raw(Json.Encode(Model));
+                    if($('#overrideLevelList').val() == 'SKU') {
+                        if (model.prodHierarchyOverride.overrideItemID != null) {
+                            divisionFilter = model.prodHierarchyOverride.overrideDivision;
+                        } else {
+                            divisionFilter = model.overrideDivisionList[0].Value;
+                        }
+                    } else {
+                        divisionFilter = $('#overrideDivisionList').val();
+                    }
+                $.getJSON('/ProductHierarchyOverride/GetNewCatJson?div=' + divisionFilter +
+                '&dept=' + $('#newDepartmentList').val(), function (data) {
+                    var items = '';
+                    //var items = '<option>Select a District</option>';
+                    $.each(data, function (i, cat) {
+                        items += "<option value='" + cat.Value + "'>" + cat.Text + "</option>";
+                    });
+                    $('#newCategoryList').html(items);
+                    $('#newCategoryList').change();
+                });
+
+
+            });
+
+            $('#newCategoryList').change(function () {
+                var divisionFilter;
+                // loading messages
+                $('#newBrandIDList').html(loading);
+                // disable submit button while list(s) are loading
+                $('#saveButton').prop("disabled", true);
+                var model = @Html.Raw(Json.Encode(Model));
+                    if($('#overrideLevelList').val() == 'SKU') {
+                        if (model.prodHierarchyOverride.overrideItemID != null) {
+                            divisionFilter = model.prodHierarchyOverride.overrideDivision;
+                        } else {
+                            //set to first division on the list to essentially "reset".
+                            divisionFilter = model.overrideDivisionList[0].Value;
+                        }
+                    } else {
+                        divisionFilter = $('#overrideDivisionList').val();
+                    }
+                $.getJSON('/ProductHierarchyOverride/GetNewBrandIDJson?div=' + divisionFilter +
+                    '&dept=' + $('#newDepartmentList').val() + '&cat=' + $('#newCategoryList').val(), function (data) {
+                        var items = '';
+                        $.each(data, function (i, brandid) {
+                            items += "<option value='" + brandid.Value + "'>" + brandid.Text + "</option>";
+                        });
+                        $('#newBrandIDList').html(items);
+                        // if the level is SKU and the overrideItemID is null the user shouldn't be able to click submit
+                        // or else they will be able to do cross division overrides.
+                        if ($('#overrideLevelList').val() != 'SKU') {
+                            $('#saveButton').prop("disabled", false);
+                        }
+                        if ($('#overrideLevelList').val() == 'SKU' && model.prodHierarchyOverride.overrideItemID != null) {
+                            $('#saveButton').prop("disabled", false);
+                        }
+                    });
+            });
+
+            $('#overrideDivisionList').change(function () {
+                var divisionFilter;
+                var model = @Html.Raw(Json.Encode(Model));
+                if ($('#overrideLevelList').val() == 'SKU') {
+                    if (model.prodHierarchyOverride.overrideItemID == null) {
+                        // default the display to first division in list.
+                        $('#newDivisionLabelDiv').text(model.overrideDivisionList[0].Text);
+                        divisionFilter = model.overrideDivisionList[0].Value;
+                    } else {
+                        $('#newDivisionLabelDiv').text(model.overrideDivisionLabel);
+                        divisionFilter = model.prodHierarchyOverride.overrideDivision
+                    }
+
+                } else {
+                    $('#newDivisionLabelDiv').text($('#overrideDivisionList option:selected').text());
+                    divisionFilter = $('#overrideDivisionList').val();
+                }
+
+                // loading messages
+                $('#overrideDepartmentList').html(loading);
+                $('#overrideCategoryList').html(loading);
+                $('#overrideBrandIDList').html(loading);
+                $('#newDepartmentList').html(loading);
+                $('#newCategoryList').html(loading);
+                $('#newBrandIDList').html(loading);
+                // disable submit button while lists are loading
+                $('#saveButton').prop("disabled", true);
+                $.getJSON('/ProductHierarchyOverride/GetNewDeptsJson/' + divisionFilter, function (data) {
+                    var items = '';
+                    $.each(data, function (i, dept) {
+                        items += "<option value='" + dept.Value + "'>" + dept.Text + "</option>";
+                    });
+                    $('#overrideDepartmentList').html(items);
+                    $('#newDepartmentList').html(items);
+                    $('#overrideDepartmentList').change();
+                    $('#newDepartmentList').change();
+                });
+            });
+
+            $('#overrideDepartmentList').change(function () {
+                // loading messages
+                $('#overrideCategoryList').html(loading);
+                $('#overrideBrandIDList').html(loading);
+                // disable submit button while lists are loading
+                $('#saveButton').prop("disabled", true);
+                $.getJSON('/ProductHierarchyOverride/GetNewCatJson?div=' + $('#overrideDivisionList').val() +
+                    '&dept=' + $('#overrideDepartmentList').val(), function (data) {
+                        var items = '';
+                        //var items = '<option>Select a District</option>';
+                        $.each(data, function (i, cat) {
+                            items += "<option value='" + cat.Value + "'>" + cat.Text + "</option>";
+                        });
+                        $('#overrideCategoryList').html(items);
+                        $('#overrideCategoryList').change();
+                    });
+            });
+
+            $('#overrideCategoryList').change(function () {
+                // loading messages
+                $('#overrideBrandIDList').html(loading);
+                // disable submit button while list(s) are loading
+                $('#saveButton').prop("disabled", true);
+                $.getJSON('/ProductHierarchyOverride/GetNewBrandIDJson?div=' + $('#overrideDivisionList').val() +
+                    '&dept=' + $('#overrideDepartmentList').val() + '&cat=' + $('#overrideCategoryList').val(), function (data) {
+                        var items = '';
+                        $.each(data, function (i, brandid) {
+                            items += "<option value='" + brandid.Value + "'>" + brandid.Text + "</option>";
+                        });
+                        $('#overrideBrandIDList').html(items);
+                        // if the level is SKU and the overrideItemID is null the user shouldn't be able to click submit
+                        // or else they will be able to do cross division overrides.
+                        if ($('#overrideLevelList').val() != 'SKU') {
+                            $('#saveButton').prop("disabled", false);
+                        }
+                        if ($('#overrideLevelList').val() == 'SKU' && model.prodHierarchyOverride.overrideItemID != null) {
+                            $('#saveButton').prop("disabled", false);
+                        }
+                    });
+            });
+        });
+</script>
+
+@if (ViewData["message"] != null && ViewData["message"] != "")
+{
+    <div id="errorMessage" style="color: red;">@Html.Raw(Convert.ToString(ViewData["message"]))</div>
+    <br /><br />
+}
+
+<div class="editor-label">
+    Override Level
+</div>
+<div class="editor-field">
+    @Html.DropDownListFor(m => m.prodHierarchyOverride.productOverrideTypeCode, Model.overrideTypes, new { id = "overrideLevelList" })
+</div>
+<br />
+<div class="editor-label">
+    Start Date
+</div>
+<div class="editor-field">
+    @Html.EditorFor(model => model.prodHierarchyOverride.effectiveFromDt)
+    @Html.ValidationMessageFor(model => model.prodHierarchyOverride.effectiveFromDt)
+</div>
+
+<div class="editor-label">
+    End Date (optional)
+</div>
+<div class="editor-field">
+    @Html.EditorFor(model => model.prodHierarchyOverride.effectiveToDt)
+    @Html.ValidationMessageFor(model => model.prodHierarchyOverride.effectiveToDt)
+</div>
+<br />
+
+<div>
+    <fieldset style="box-sizing: border-box; margin: 3px 3px 3px 3px; width: 40%; float: left">
+        <legend>Override all SKUs under this level</legend>
+        <div id="overrideDivisionDiv">
+            <div class="editor-label" style="color: black;">
+                Division
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(m => m.prodHierarchyOverride.overrideDivision, Model.overrideDivisionList, new { id = "overrideDivisionList" })
+                <div id="overrideDivisionLabelDiv">
+                    @Html.DisplayFor(m => m.overrideDivisionLabel)
+                </div>
+            </div>
+        </div>
+        <div id="overrideDepartmentDiv">
+            <div class="editor-label" style="color: black;">
+                Department
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(m => m.prodHierarchyOverride.overrideDepartment, Model.overrideDepartmentList, new { id = "overrideDepartmentList" })
+                <div id="overrideDeptLabelDiv">
+                    @Html.DisplayFor(m => m.overrideDepartmentLabel)
+                </div>
+            </div>
+        </div>
+        <div id="overrideCategoryDiv">
+            <div class="editor-label" style="color: black;">
+                Category
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(m => m.prodHierarchyOverride.overrideCategory, Model.overrideCategoryList, new { id = "overrideCategoryList" })
+                <div id="overrideCatLabelDiv">
+                    @Html.DisplayFor(m => m.overrideCategoryLabel)
+                </div>
+            </div>
+        </div>
+        <div id="overrideBrandIDDiv">
+            <div class="editor-label" style="color: black;">
+                Brand ID
+            </div>
+
+            <div class="editor-field">
+                @Html.DropDownListFor(m => m.prodHierarchyOverride.overrideBrandID, Model.overrideBrandIDList, new { id = "overrideBrandIDList" })
+                <div id="overrideBrandIDLabelDiv">
+                    @Html.DisplayFor(m => m.overrideBrandIDLabel)
+                </div>
+            </div>
+        </div>
+        <div id="overrideSKUDiv">
+            <div class="editor-label" style="color: black;">
+                SKU (format xx-xx-xxxxx-xx)
+            </div>
+            <div class="editor-field">
+                <span>
+                    @Html.EditorFor(model => model.prodHierarchyOverride.overrideSKU)
+                    <button type="submit" name="submitAction" value="lookup">Lookup</button>
+                </span>
+                <br />
+                @Model.overrideSKUDescription
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset style="box-sizing: border-box; margin: 3px 3px 3px 3px; width: 40%; float: left">
+        <legend>To be under this Category and Brand ID</legend>
+        <div id="newDivisionDiv">
+            <div class="editor-label" style="color: black;">
+                Division
+            </div>
+            <div class="editor-field" id="newDivisionLabelDiv"></div>
+        </div>
+        <div id="newDepartmentDiv">
+            <div class="editor-label" style="color: black;">
+                Department
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(f => f.prodHierarchyOverride.newDepartment, Model.newDepartmentList, new { id = "newDepartmentList" })
+            </div>
+        </div>
+        <div id="overrideCategoryDiv">
+            <div class="editor-label" style="color: black;">
+                Category
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(f => f.prodHierarchyOverride.newCategory, Model.newCategoryList, new { id = "newCategoryList" })
+            </div>
+        </div>
+        <div id="newBrandIDDiv">
+            <div class="editor-label" style="color: black;">
+                Brand ID
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(f => f.prodHierarchyOverride.newBrandID, Model.newBrandIDList, new { id = "newBrandIDList" })
+            </div>
+        </div>
+    </fieldset>
+</div>
+<div style="clear:both;"></div>
+<br />
+<br />
+<br />

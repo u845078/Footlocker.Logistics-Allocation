@@ -1,0 +1,85 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.RangePlan>
+
+@{
+    ViewBag.Title = "Sku Setup";
+}
+<script language=javascript>
+    function DeleteRange(plan) {
+        //make a call to server
+        if (confirm('Are you sure?')) {
+            window.location = "/SkuRange/Delete?planID=" + plan;
+        }
+    }
+</script>
+
+<h2>Sku Setup</h2>
+<p>
+    @Html.ActionLink("Create New", "CreateRangePlan", null, new { @class = "t-button" })
+
+    @Html.ActionLink("Copy From", "CopyRangePlan", null, new { @class = "t-button" })
+
+    @Html.ActionLink("Refresh Grid", "Refresh", null, new { @class = "t-button" })
+</p>
+@if (ViewData["message"] != null)
+{ 
+    @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
+    ViewData["message"] = "";
+}
+@(Html.Telerik().Grid(Model)
+        .Name("SkuRangeGrid")
+        .DataKeys(keys =>
+        {
+            keys.Add(p => p.Id).RouteKey("planID");
+        })
+        .Columns(columns =>
+        {
+            columns.Template(
+                @<text>
+                    <img src="@Url.Content("~/Image/ShowImage/?sku=" + item.Sku)" />
+                      @if (item.Launch)
+                      {
+                          if (item.LaunchDate != null)
+                          {
+                            @Html.Raw("<font color='red'><b>Launches " + ((DateTime)item.LaunchDate).ToShortDateString() + "</b></font>")
+                          }
+                          else
+                          {
+                            @Html.Raw("<font color='red'><b>Launches ???</b></font>")
+                          }
+                      }
+                </text>
+            ).Title("Image").Width(25);
+            columns.Bound(o => o.Sku).Width(100);
+            columns.Bound(o => o.ItemMaster.Description).Width(150).Title("Sku Description");
+            columns.Bound(o => o.StoreCount).Width(10);
+            columns.Bound(o => o.Description).Width(150).Title("Comment");
+            columns.Bound(o => o.ActiveAR).Width(10);
+            columns.Bound(o => o.StartDate).Format("{0:MM/dd/yyyy}").Width(100);
+            columns.Bound(o => o.EndDate).Format("{0:MM/dd/yyyy}").Width(100);
+            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy h:mm:ss tt}").Width(100);
+            columns.Bound(o => o.UpdateDate).Format("{0:MM/dd/yyyy h:mm:ss tt}").Width(100);
+            columns.Bound(o => o.UpdatedBy).Width(100);
+            columns.Template(
+                @<text>
+                    @Html.ActionLink("Stores", "EditStores", new { planID = item.Id }, new { @class = "t-button", @style = "width:50px" })
+                    <br/>
+                    @Html.ActionLink("Details", "PresentationQuantities", new { planID = item.Id }, new { @class = "t-button", @style = "width:50px" })
+                    <br/>
+                    @Html.ActionLink("Edit", "Edit", new { planID = item.Id }, new { @class = "t-button", @style="width:50px" })
+                    <br/>
+                    @Html.ActionLink("Delete", "DeleteConfirm", new { planID = item.Id }, new { @class = "t-button", @style = "width:50px" })
+                 </text>
+                ).Title("").HtmlAttributes(new { style = "text-align: center" }).Width(100);
+        })
+
+
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Server().Select("Index", "SkuRange");
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)

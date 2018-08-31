@@ -1,0 +1,161 @@
+﻿@model Footlocker.Logistics.Allocation.Models.SizeAllocationModel
+
+@{
+    ViewBag.Title = "Pres Qty " + Model.Plan.Sku;
+}
+@*@Html.EditorFor(model => Model.Plan)
+*@
+    <table cellpadding=0 cellspacing=0><tr><td>
+        <img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.Plan.Sku)"/>
+    </td><td>
+        <span class="editor-label">
+            <b>@Html.LabelFor(model => model.Plan.Sku):</b>
+        </span>
+        <span class="editor-field">
+            @Html.Raw(Model.Plan.Sku)
+        </span>
+        &nbsp;&nbsp;
+        <span class="editor-label">
+            <b>@Html.LabelFor(model => model.Plan.Description, "Store Range Description"):</b>
+        </span>
+        <span class="editor-field">
+            @Html.Raw(Model.Plan.Description)
+        </span>
+        &nbsp;&nbsp;
+        <span class="editor-field">
+            @Html.Raw("<b># Stores:</b>  " + Model.Plan.StoreCount)
+        </span>
+    </td></tr>
+    @if (Model.Plan.Launch)
+    { 
+        <tr>
+        <td colspan="2">
+            @if (Model.Plan.LaunchDate != null)
+            {
+                @Html.Raw("<font color='red'><b>This sku Launches on " + ((DateTime)Model.Plan.LaunchDate).ToShortDateString() + "</b></font>")
+            }
+            else
+            { 
+                @Html.Raw("<font color='red'><b>This sku Launches on ??? </b></font>")            
+            }
+            @Html.Raw("<br><font color='red'><b>The start date must be the launch date.</b></font>")
+        </td>
+        </tr>
+
+    }
+
+    </table>
+
+
+<script type="text/javascript">
+
+    function hideStoreSelector() {
+        window.location = window.location;
+    }
+
+    function showRuleSelector() {
+        $('#sizeallocs').hide();
+        $('#filtermessage').hide();
+        $('#ruleSelector').show();
+        $('#UploadRules').hide();
+        $('#FilterRules').show();
+    }
+    function showRuleSelectorExcel() {
+        $('#sizeallocs').hide();
+        $('#filtermessage').hide();
+        $('#ruleSelector').show();
+        $('#FilterRules').hide();
+        $('#UploadRules').show();
+    }
+
+</script>
+
+@*@Html.ActionLink("Export to Excel", "ExcelSizeAllocation", new {planID = Model.Plan.Id}, new { @class="t-button"})*@
+
+<div>
+@Html.ActionLink("Add Delivery Group", "CreateDeliveryGroup", new { planID = Model.Plan.Id }, new { @class = "t-button" })
+
+@(Html.Telerik().Grid(Model.DeliveryGroups)
+        .Name("DeliveryGroups")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Name).Width(150).Title("Delivery Group");
+            columns.Bound(o => o.StoreCount).Width(60);
+            columns.Bound(o => o.StartDate).Format("{0:MM/dd/yyyy}").Width(60);
+            columns.Bound(o => o.EndDate).Format("{0:MM/dd/yyyy}").Width(60);
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("Edit")
+                .Text("Edit")
+                .DataRouteValues(route =>
+                {
+                    route.Add(o => o.ID).RouteKey("deliveryGroupID");
+                    route.Add(o => o.PlanID).RouteKey("planID");
+                })
+                .Ajax(false)
+                .Action("EditDeliveryGroup", "SkuRange");
+                commands
+                .Custom("Delete")
+                .Text("Delete")
+                .DataRouteValues(route =>
+                {
+                    route.Add(o => o.ID).RouteKey("deliveryGroupID");
+                    route.Add(o => o.PlanID).RouteKey("planID");
+                })
+                .Ajax(false)
+                .Action("DeleteDeliveryGroup", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(100);
+        })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Server();
+            })
+            .Footer(false)
+            .HtmlAttributes(new { style = "width: 665px" })
+        ) 
+</div>
+@if (Model.Plan.StoreCount > Model.DeliveryStoreCount)
+{ 
+    @Html.Raw("<font color='red'>You have " + (Model.Plan.StoreCount - Model.DeliveryStoreCount) + " store(s) that are not in a delivery group.<BR>They will not be ranged in Q without being in a delivery group.</font>&nbsp;&nbsp;")
+    @Html.ActionLink("Show Stores", "ShowStoresWithoutDeliveryGroup", new { planID = Model.PlanID }, new { @class = "t-button" })
+}
+
+<div style="margin-left:100px;margin-right:200px;" class="fieldset">
+<div class="t-button" onclick="showRuleSelector()">Edit Filter Rules</div>
+<div class="t-button" onclick="showRuleSelectorExcel()">Filter Excel Upload</div>
+@Html.ActionLink("Clear Filtered Stores", "ClearRules", new { value = "", planID = ViewData["planID"], ruleType = "SizeAlc" }, new { @class = "t-button" })
+@*@if ("emptyStartDates".Equals(ViewData["show"]))
+{ 
+    @Html.ActionLink("Show All Filtered", "PresentationQuantities", new { planID = ViewData["planID"], message = "", page = 0, show = "" }, new { @class = "t-button" })
+}
+else
+{   
+    @Html.ActionLink("Show Filtered With Blank Start Dates", "PresentationQuantities", new { planID = ViewData["planID"], message = "", page = 0, show = "emptyStartDates" }, new { @class = "t-button" })
+}*@
+<div id="ruleSelector" style="display:none">
+    @Html.Partial(Url.Content("~/Views/Rule/RuleFilterNoStores.cshtml"), Model, ViewData)
+</div>
+    <br />
+    <div id="filtermessage">
+    <font color="red">
+    @Html.Raw("Filter of Range Plan showing  " + Model.StoreCount + " store(s).") 
+    </font>
+    </div>
+</div>
+
+@if ((Model.StoreCount > 0) && (Model.TotalAllocations.Count == 0))
+{
+    if (!("emptyStartDates".Equals(ViewData["show"])))
+    {
+        @Html.Raw("<font color='red'>There is a problem with this sku, there are no sizes.  </font>")
+    }
+}
+<div id="sizeallocs">
+@Html.Partial(@Url.Content("~/Views/SkuRange/TotalSizeAllocation.cshtml"), Model.TotalAllocations)
+
+@Html.Partial(@Url.Content("~/Views/SkuRange/StoreSizeAllocation.cshtml"), Model.Allocations)
+</div>
+@Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+@Html.ActionLink("Stores", "EditStores", new { planID = Model.PlanID }, new { @class = "t-button" })
+@Html.ActionLink("Preview Q Feed", "ShowQFeed", new { planID = Model.PlanID }, new { @class = "t-button" })

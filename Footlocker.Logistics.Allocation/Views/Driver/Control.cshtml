@@ -1,0 +1,49 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.ControlDate>
+
+@{
+    ViewBag.Title = "Control";
+}
+
+<h2>Control Dates</h2>
+
+<table>
+    <tr>
+        <th>
+            @Html.DisplayName("InstanceID")
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.RunDate)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.InstanceID)
+            @switch (item.InstanceID)
+            { 
+                case 1:
+                    @Html.Raw("&nbsp;Lockers");
+                                              break;
+                case 2:
+                    @Html.Raw("&nbsp;Champs");
+                                             break;
+                case 3:
+                    @Html.Raw("&nbsp;Europe");
+                                             break;
+                case 4:
+                    @Html.Raw("&nbsp;Asia Pacific");
+                                             break;
+            }
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.RunDate)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "EditControlDate", new { instanceID = item.InstanceID }, new { @class = "t-button" })
+        </td>
+    </tr>
+}
+
+</table>

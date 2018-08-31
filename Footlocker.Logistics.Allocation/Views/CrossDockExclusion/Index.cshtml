@@ -1,0 +1,57 @@
+﻿@{
+    ViewBag.Title = "CrossDock Exclusions";
+}
+
+<h2>CrossDock Exclusions</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create", null, new { @class = "t-button" })
+</p>
+<script type="text/javascript">
+    function Delete(div,store) {
+        if (confirm('Are you sure?  This will remove the exclusion and current held RDQs will be deleted.')) {
+            window.location = "CrossDockExclusion/Delete?div=" + div + "&store=" + store;
+        }
+    }
+    function DeleteLeaveRDQs(div, store) {
+        if (confirm('Are you sure?  This will remove the exclusion, but existing RDQs will remain non-crossdockable and will be released once the product is put away in the warehouse.')) {
+            window.location = "CrossDockExclusion/DeleteLeaveRDQs?div=" + div + "&store=" + store;
+        }
+    }
+</script>
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Controllers.CrossDockExclusionViewModel>()
+        .Name("CrossDockExclusionGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Division).Width(50);
+            columns.Bound(o => o.Store).Width(50);
+            columns.Bound(o => o.City);
+            columns.Bound(o => o.State);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate);
+            columns.Template(@<text>
+                            <button class="t-button t-button-icon" onclick='Delete(@item.Division, @item.Store)'>
+                                <span class="t-icon t-delete">Delete Held RDQs</span>
+                            </button>
+                            <button class="t-button t-button-icon" onclick='DeleteLeaveRDQs(@item.Division, @item.Store)'>
+                                <span class="t-icon t-delete">Keep Held RDQs</span>
+                            </button>
+
+                        </text>)
+                    .ClientTemplate("<button class=\"t-button\" onclick=\"Delete('<#= Division #>', '<#= Store #>')\"><span class=\"t-delete\">Delete Held RDQs</span></button>&nbsp;<button class=\"t-button\" onclick=\"DeleteLeaveRDQs('<#= Division #>', '<#= Store #>')\"><span class=\"t-delete\">Keep Held RDQs</span></button>")
+                    .HtmlAttributes(new { @class = "grid-action-column" })
+                    .HeaderHtmlAttributes(new { @class = "grid-action-column-header" })
+                    .Title("Delete Crossdock Exclusion")
+                    .Width(300);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_Index", "CrossDockExclusion");
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)

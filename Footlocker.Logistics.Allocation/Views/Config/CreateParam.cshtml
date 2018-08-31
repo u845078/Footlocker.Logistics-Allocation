@@ -1,0 +1,69 @@
+﻿@model Footlocker.Logistics.Allocation.Models.CreateConfigParamModel
+
+@{
+    ViewBag.Title = "CreateParam";
+}
+
+<h2>Create Param</h2>
+
+Current Params:
+@(Html.Telerik().Grid(Model.Params)
+        .Name("Existing")
+        .Columns(columns =>
+        {
+            //columns.Bound(o => o.ID);
+            columns.Bound(o => o.Name);
+            columns.Bound(o => o.Type);
+            columns.Bound(o => o.Comment);
+        })
+        //.Sortable(sorting => sorting.Enabled(true))
+        //.Pageable(paging => paging.Enabled(true))
+        //.Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+        //.Footer(true)
+)
+
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>ConfigParam</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Param.Name)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Param.Name)
+            @Html.ValidationMessageFor(model => model.Param.Name)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Param.Type)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.Param.Type, new List<SelectListItem> { new SelectListItem { Text = "bool", Value = "bool" }, new SelectListItem { Text = "string", Value = "string" }, new SelectListItem { Text = "int", Value = "int" } })
+            @Html.ValidationMessageFor(model => model.Param.Type)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Param.Comment)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Param.Comment)
+            @Html.ValidationMessageFor(model => model.Param.Comment)
+        </div>
+
+        <p>
+            <input type="submit" value="Create" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", new { }, new { @class = "t-button"})
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

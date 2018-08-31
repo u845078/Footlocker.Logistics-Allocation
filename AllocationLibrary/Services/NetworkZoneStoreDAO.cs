@@ -1,0 +1,75 @@
+﻿
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Data;
+using System.Data.Common;
+using Microsoft.Practices.EnterpriseLibrary.Data;
+using Footlocker.Logistics.Allocation.Models;
+using Footlocker.Logistics.Allocation.Factories;
+using Footlocker.Common;
+
+namespace Footlocker.Logistics.Allocation.Services
+{
+    public class NetworkZoneStoreDAO
+    {
+        Database _database;
+
+        public NetworkZoneStoreDAO()
+        {
+            _database = DatabaseFactory.CreateDatabase("AllocationContext");
+        }
+
+        public int GetZoneForStore(string div, string store)
+        {
+            DbCommand SQLCommand;
+            string SQL = "dbo.[GetZoneForStore]";
+            Microsoft.Practices.EnterpriseLibrary.Data.Database _database = Footlocker.Common.DatabaseService.GetSqlDatabase("AllocationContext");
+            SQLCommand = Footlocker.Common.DatabaseService.GetStoredProcCommand(_database, SQL);
+            _database.AddInParameter(SQLCommand, "@div", DbType.String, div);
+            _database.AddInParameter(SQLCommand, "@store", DbType.String, store);
+
+            DataSet data = new DataSet();
+            data = _database.ExecuteDataSet(SQLCommand);
+
+            if (data.Tables.Count > 0)
+            {
+                foreach (DataRow dr in data.Tables[0].Rows)
+                {
+                    return Convert.ToInt32(dr["zoneid"]);
+                }
+            }
+
+            return -1;
+
+        }
+
+        public NetworkZoneStore GetNearestStore(string div, string store)
+        {
+            DbCommand SQLCommand;
+            string SQL = "dbo.[GetNearestStore]";
+            Microsoft.Practices.EnterpriseLibrary.Data.Database _database = Footlocker.Common.DatabaseService.GetSqlDatabase("AllocationContext");
+            SQLCommand = Footlocker.Common.DatabaseService.GetStoredProcCommand(_database, SQL);
+            _database.AddInParameter(SQLCommand, "@div", DbType.String, div);
+            _database.AddInParameter(SQLCommand, "@store", DbType.String, store);
+
+            DataSet data = new DataSet();
+            data = _database.ExecuteDataSet(SQLCommand);
+
+            if (data.Tables.Count > 0)
+            {
+                foreach (DataRow dr in data.Tables[0].Rows)
+                {
+                    NetworkZoneStore nzstore = new NetworkZoneStore();
+                    nzstore.ZoneID = Convert.ToInt32(dr["zoneid"]);
+                    nzstore.Division = Convert.ToString(dr["division"]);
+                    nzstore.Store = Convert.ToString(dr["store"]);
+                    return nzstore;
+                }
+            }
+
+            return new NetworkZoneStore();
+            
+        }
+    }
+}

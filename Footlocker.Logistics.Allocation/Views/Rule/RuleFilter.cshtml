@@ -1,0 +1,298 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RuleFilterModel
+
+<script type="text/javascript">
+    function addCurrentRule(e) {
+        e.preventDefault();
+
+        var ruleset, field, compare, value, sort;
+        ruleset = $('#RuleToAdd_RuleSetID').val();
+        field = $('#RuleToAdd_Field').val();
+        compare = $('#RuleToAdd_Compare').val();
+        value = $('#RuleToAdd_Value').val();
+        sort = $('#RuleToAdd_Sort').val();
+
+        //alert(ruleset + ',' + field + ',' + compare + ',' + value + ',' + sort);
+        addRule(ruleset, field, compare, value, sort);
+    }
+
+    function addRule(ruleset, _field, _compare, _value, _sort) {
+        //make a call to server
+        var grid = $("#RuleGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+
+        var grid2 = $("#StoreGrid").data("tGrid");
+        $('.t-status .t-icon', grid2.element).addClass('t-loading');
+
+        $.ajax({
+            url: "/rule/AddRule",
+            data: "{'ruleSetID': '" + ruleset + "', 'field': '" + _field + "', 'compare':'" + _compare + "', 'value':'" + _value + "', 'sort':'" + _sort + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    grid.ajaxRequest();
+                    grid2.ajaxRequest();
+                    updateCount();
+                }
+                else {
+                    alert(result);
+                }
+            }
+        });    
+    }
+
+    function addConjunction(value, ruleSetID, ruleType)
+    {
+        //make a call to server
+        var grid = $("#RuleGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+
+        var grid2 = $("#StoreGrid").data("tGrid");
+        $('.t-status .t-icon', grid2.element).addClass('t-loading');
+
+        $.ajax({
+            url: "/Rule/AddConjunction",
+            data: "{'value': '" + value + "', 'ruleSetID': '" + ruleSetID + "', 'ruleType':'" + ruleType + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    grid.ajaxRequest();
+                    grid2.ajaxRequest();
+                    updateCount();
+                }
+                else {
+                    alert(result);
+                }
+            }
+        });        
+    }
+
+    function ClearRules(value, ruleSetID, ruleType) {
+        //make a call to server
+        var grid = $("#RuleGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+
+        var grid2 = $("#StoreGrid").data("tGrid");
+        $('.t-status .t-icon', grid2.element).addClass('t-loading');
+
+        $.ajax({
+            url: "/rule/ClearRules",
+            data: "{'value': '" + value + "', 'ruleSetID': '" + ruleSetID + "', 'ruleType':'" + ruleType + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    grid.ajaxRequest();
+                    grid2.ajaxRequest();
+                    updateCount();
+                }
+                else {
+                    alert(result);
+                }
+            }
+        });
+    }
+
+
+    function moveDown(ruleID) {
+        //make a call to server
+        var grid = $("#RuleGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+
+        var grid2 = $("#StoreGrid").data("tGrid");
+        $('.t-status .t-icon', grid2.element).addClass('t-loading');
+
+        $.ajax({
+            url: "/Rule/Down",
+            data: "{'id': '" + ruleID + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    grid.ajaxRequest();
+                    grid2.ajaxRequest();
+                    updateCount();
+                }
+                else {
+                    alert(result);
+                }
+            }
+        });
+    }
+    function moveUp(ruleID) {
+        //make a call to server
+        var grid = $("#RuleGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+
+        var grid2 = $("#StoreGrid").data("tGrid");
+        $('.t-status .t-icon', grid2.element).addClass('t-loading');
+
+        $.ajax({
+            url: "/Rule/Up",
+            data: "{'id': '" + ruleID + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    grid.ajaxRequest();
+                    grid2.ajaxRequest();
+                    updateCount();
+                }
+                else {
+                    alert(result);
+                }
+            }
+        });
+    }
+
+    function deleteRule(ruleID) {
+        //make a call to server
+        var grid = $("#RuleGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+
+        var grid2 = $("#StoreGrid").data("tGrid");
+        $('.t-status .t-icon', grid2.element).addClass('t-loading');
+
+        $.ajax({
+            url: "/Rule/_DeleteFromGrid",
+            data: "{'id': '" + ruleID + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                if (result == 'Success') {
+                    grid.ajaxRequest();
+                    grid2.ajaxRequest();
+                    updateCount();
+                }
+                else {
+                    alert(result);
+                }
+            }
+        });
+    }
+
+
+    function updateCount() {
+        ruleset = $('#RuleToAdd_RuleSetID').val();
+
+        $.ajax({
+            url: "/Rule/GetStoreCount",
+            data: "{'ruleSetID': '" + ruleset + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+            },
+            success: function (result) {
+                if (result == 'error') {
+                    $('#showCount').empty().append('<font color="red">Invalid rule selection.</font>');
+                    showStatus();
+                }
+                else {
+                    $('#showCount').empty().append('<font color="red">Result:  ' + result.Count + ' stores.</font>');
+                    showStatus();
+                }
+            }
+        });
+    }
+
+        function onSelect(e) {
+            var files = e.files;
+            if (files[0].extension != ".xls") {
+                alert("Document must be a spreadsheet with a xls extension. ");
+                e.preventDefault();
+            }
+            else {
+                document.getElementById('spreadsheet').style.visibility = 'visible';
+            }
+            $('#message').empty();
+        }
+
+        function onComplete(e) {
+
+            var message = e.XMLHttpRequest.responseText;
+            $('#message').empty().append("<font color='red'>" + message + "</font>");
+
+            var grid = $("#RuleGrid").data("tGrid");
+            $('.t-status .t-icon', grid.element).addClass('t-loading');
+
+            var grid2 = $("#StoreGrid").data("tGrid");
+            $('.t-status .t-icon', grid2.element).addClass('t-loading');
+            grid.ajaxRequest();
+            grid2.ajaxRequest();
+            updateCount();
+            showStatus();
+            e.preventDefault();
+        }
+
+</script>
+<b>Filter Stores By Rule</b>
+@Html.EditorFor(model => Model.RuleToAdd)
+@if (ViewData["rulemessage"] != null)
+{
+<font color="red">@Html.Raw(ViewData["rulemessage"])</font>
+}
+else
+{
+    @Html.Raw("Current Rules")<br />
+}
+
+@Html.Partial(@Url.Content("~/Views/Rule/RuleList.cshtml"))
+<br />
+<div id="showCount"></div>
+<fieldset>
+    <b>Upload .xls: </b><span id="message">(Spreadsheet columns should be {Div, Store}; you may include an optional column for RangeType)</span>
+    @Html.ActionLink("Template", "StoreTemplate","SkuRange", null, new { @class = "t-button" })  
+    <br />
+    This will select and add the stores in the spreadsheet (even if outside of rules).
+    <br /> 
+    @(Html.Telerik().Upload()
+        .Name("attachments")
+        .Multiple(true)
+        .Async(async => async
+            .Save("UploadStores", "Rule", new {ruleSetID = Model.RuleSetID})
+            .AutoUpload(true))
+            .ShowFileList(false)
+        .ClientEvents(events => events
+            .OnError("onComplete")
+            .OnSelect("onSelect")
+            .OnSuccess("onComplete")
+            ).HtmlAttributes(new {style="display:inline"})
+        )
+        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
+</fieldset>
+
+
+@Html.Partial(@Url.Content("~/Views/Rule/StoreLookupList.cshtml"))

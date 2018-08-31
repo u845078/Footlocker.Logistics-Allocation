@@ -1,0 +1,67 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RouteDCModel
+
+@{
+    ViewBag.Title = "RouteDC";
+}
+
+<h2>Route Distribution Centers</h2>
+
+<b>@Html.LabelFor(model => model.Route.Name)</b>:
+@Html.DisplayFor(model => model.Route.Name) (@Html.DisplayFor(model => model.Route.ID))
+
+<br />
+<br />
+Assigned DCs:<br />
+@(Html.Telerik().Grid(Model.AssignedDCs)
+        .Name("Assigned")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.MFCode);
+            columns.Bound(o => o.Name);
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("Delete")
+                .Text("Delete")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("dcID"); })
+                .Ajax(false)
+                .Action("DeleteDCFromRoute", "Route").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+            }).HtmlAttributes(new { style = "text-align: left" });
+        })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Server();
+                //dataBinding.Ajax().Select("_RefreshBTSGrid", "StoreBTS").Enabled(true);
+            })
+        .Sortable()
+        .Pageable()
+        .Filterable()) 
+<br />
+Available DCs:<br />
+@(Html.Telerik().Grid(Model.RemainingDCs)
+        .Name("Assigned")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.MFCode);
+            columns.Bound(o => o.Name);
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("Add")
+                .Text("Add")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("dcID"); })
+                .Ajax(false)
+                .Action("AddDCToRoute", "Route");
+            }).HtmlAttributes(new { style = "text-align: left" });
+        })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Server();
+                //dataBinding.Ajax().Select("_RefreshBTSGrid", "StoreBTS").Enabled(true);
+            })
+        .Sortable()
+        .Pageable()
+        .Filterable()) 
+
+<br />
+@Html.ActionLink("Back to Routes", "Index", new { instanceID = Model.Route.InstanceID }, new { @class = "t-button" })

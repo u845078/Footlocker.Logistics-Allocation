@@ -1,0 +1,228 @@
+﻿@model Footlocker.Logistics.Allocation.Models.SkuAttributeModel
+@using Footlocker.Logistics.Allocation.Models
+
+@{
+    ViewBag.Title = "Create";
+}
+<script>
+    function autopostback(dropdown) {
+        window.location = '/SkuAttribute/Create?div=' + dropdown.value;
+    }
+
+    function validate() {
+        if ($('#Category').val() == "" && $('#BrandID').val() != "") {
+            alert("Category selection is required when a BrandID is selected!");
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    //check Category or Brand attributes
+    function checkAttribute(attr) {
+        var isChecked = false;
+
+        if (attr == 1 && $('#Category').val() != "") {
+            isChecked = true;
+        }
+        else if (attr == 3 && $('#BrandID').val() != "") {
+            isChecked = true;
+        }
+
+        if (isChecked) {
+            $('#Attributes_' + attr + '__Mandatory').attr("checked", "true");
+            $('#Attributes_' + attr + '__WeightInt').val(0);
+            $('#Attributes_' + attr + '__WeightInt').attr("disabled", "disabled");
+        }
+    }
+
+    function enableCheckbox(cb, attr) {
+
+        if (cb.checked) {
+            $('#Attributes_' + attr + '__WeightInt').val(0);
+            $('#Attributes_' + attr + '__WeightInt').attr("disabled", "disabled");
+            return true;
+        }
+        else {
+            var isEnabled = true;
+
+            if (attr == 0) {
+                isEnabled = false;
+                alert("Department attribute is Mandatory!");
+            }
+            else if (attr == 1 && $('#Category').val() != "") {
+                isEnabled = false;
+                alert("Category attribute is Mandatory when a Category is selected!");
+            }
+            else if (attr == 3 && $('#BrandID').val() != "") {
+                isEnabled = false;
+                alert("BrandID attribute is Mandatory when a BrandID is selected!");
+            }
+
+            if (isEnabled == true) {
+                $('#Attributes_' + attr + '__WeightInt').removeAttr("disabled");
+                return true;
+            } else {
+                $('#Attributes_' + attr + '__WeightInt').val(0);
+                $('#Attributes_' + attr + '__WeightInt').attr("disabled", "disabled");
+                return false;
+            }
+        }
+    }
+
+    function mandatoryScreenUpdate(cb, attr) {
+        if (cb.checked) {
+            $('#Attributes_' + attr + '__WeightInt').val(0);
+            $('#Attributes_' + attr + '__WeightInt').attr("disabled", "disabled");
+        }
+        else
+        {
+            $('#Attributes_' + attr + '__WeightInt').removeAttr("disabled");
+        }
+    }
+
+    function updateSum() {
+        var sum = 0;
+        sum = sum + parseInt($('#Attributes_1__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_2__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_3__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_4__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_5__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_6__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_7__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_8__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_9__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_10__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_11__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_12__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_13__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_14__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_15__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_16__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_17__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_18__WeightInt').val());
+
+        $('#sum').empty().append('Total Weight:  ' + sum);
+    }
+
+</script>
+<h2>Create Quantum Attribute Matching</h2>
+
+<fieldset>
+@if (ViewData["message"] != null)
+{ 
+    @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
+}
+
+@using (Html.BeginForm("DivisionSelected", "SkuAttribute"))
+{
+<div class="editor-field">
+    @Html.LabelFor(model => model.Division)
+    <br/>
+    @Html.DropDownListFor(model => model.Division, new SelectList(Model.Divisions, "DivCode", "DivisionName"), new { onchange = "this.form.submit();" })
+</div>
+}
+
+@using (Html.BeginForm("DepartmentSelected", "SkuAttribute"))
+{
+    @Html.HiddenFor(model => model.Division)
+<div class="editor-field">
+    @Html.LabelFor(model => model.Department)
+    <br/>
+    @Html.DropDownListFor(model => model.Department, new SelectList(Model.Departments, "DeptNumber", "DisplayName"), new { onchange = "this.form.submit();" })
+</div>
+}
+
+@using (Html.BeginForm("Create", "SkuAttribute"))
+{
+    @Html.HiddenFor(model => model.Division)
+    @Html.HiddenFor(model => model.Department)
+
+<div class="editor-field">
+    @Html.LabelFor(model => model.Category) [*** Optional ***] <br/>
+    @Html.DropDownListFor(model => model.Category, new SelectList(Model.Categories, "categoryCode", "categoryDisplay"), "", new { onchange = "checkAttribute(1);" })
+
+</div>
+<div class="editor-field">
+    @Html.LabelFor(model => model.BrandID) [*** Optional ***] <br/>
+    @Html.DropDownListFor(model => model.BrandID, new SelectList(Model.Brands, "brandIDCode", "brandIDDisplay"), "", new { onchange = "checkAttribute(3);" })
+</div>
+<div class="editor-field">
+    @Html.LabelFor(model => model.WeightActive) 
+</div>
+<div class="editor-field">
+    <div class="slider-container">
+    Inactive
+        @(Html.Telerik().Slider<Int32>()
+              .Name("WeightActive")
+              .Min(0)
+              .Max(100)
+              .ShowButtons(false)
+              .SmallStep(1)
+              .LargeStep(10)
+              .Value(Model.WeightActive)
+        )
+    Active
+    </div>
+</div>
+<br />
+    if (Model.Message != null)
+    { 
+    @Html.Raw("<font color='red'>" + Model.Message + "</font>")
+    }
+<table>
+@for (var count = 0; count < Model.Attributes.Count(); count++)
+{
+
+
+    //@foreach (SkuAttribute item in Model.Attributes)
+    //{ 
+    <tr>
+    <td>
+        @Html.DisplayFor(model => Model.Attributes[count].AttributeType)
+        @Html.HiddenFor(model => Model.Attributes[count].AttributeType)
+    </td>
+    <td>
+        @Html.LabelFor(model => Model.Attributes[count].Mandatory)
+        @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory, new { onclick = "return enableCheckbox(this," + count + ");" })
+
+@*        @if (Model.Attributes[count].AttributeType == "Department")
+        {
+           @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory, new { disabled = true })
+        }
+        else
+        {
+            @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory, new { onclick = "mandatoryScreenUpdate(this," + count + ");" })
+        }
+*@    </td>
+    <td>
+        @Html.LabelFor(model => Model.Attributes[count].Weight)
+        @if (Model.Attributes[count].Mandatory)
+        {
+        @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { disabled = "disabled", style = "width: 3em;", onblur = "updateSum();" })
+        }
+        else
+        {           
+        @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { style = "width: 3em;", onblur = "updateSum();" })
+        }
+    </td>
+    </tr>
+}
+
+    <tr>
+    <td>
+    </td>
+    <td colspan="2" align="right">
+        <div id="sum">Total Weight:  0</div>
+    </td>
+    </tr>
+</table>
+
+    <p>
+        <input type="submit" value="Save" onclick="return validate();"/>
+    </p>
+}
+    </fieldset>
+
+<br />
+@Html.ActionLink("Back to List", "Index",null, new {@class="t-button"})

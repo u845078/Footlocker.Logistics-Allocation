@@ -1,0 +1,15 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RuleModel
+
+<b>Filter Stores By Rule</b>
+
+@Html.EditorFor(model => Model.RuleToAdd)
+@if (ViewData["rulemessage"] != null)
+{
+<font color="red">@Html.Raw(ViewData["rulemessage"])</font>
+}
+else
+{
+    @Html.Raw("Current Rules")<br />
+}
+
+@Html.Partial(@Url.Content("~/Views/SkuRange/RuleList.cshtml"), Model.Rules)

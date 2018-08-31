@@ -1,0 +1,52 @@
+﻿@model Footlocker.Logistics.Allocation.Models.StoreLeadTimeModel
+
+@{
+    ViewBag.Title = "StoreLeadTimes";
+}
+
+<h2>Store Network Schedule</h2>
+<script>
+    function autopostback(dropdown) {
+        window.location = '/Route/StoreLeadTimes?div=' + dropdown.value;
+    }
+
+</script>
+@Html.DropDownListFor(m => Model.Division, new SelectList(Model.Divisions, "DivCode", "DivisionName"), new { onchange = "autopostback(this);" })
+@{
+    int unassigned = (from a in Model.StoreZones where a.ZoneName == "<unassigned>" select a).Count();
+    
+    @Html.Raw("<font color='red'>" + unassigned + " unassigned stores.</font><br>")
+     
+}
+
+@(Html.Telerik().Grid(Model.StoreZones)
+        .Name("StoreNSSGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Division).Width(50);
+            columns.Bound(o => o.Store).Width(50);
+            columns.Bound(o => o.Mall);
+            columns.Bound(o => o.City);
+            columns.Bound(o => o.State);
+            columns.Bound(o => o.IsMinihubStore);
+            columns.Bound(o => o.ZoneName);
+            columns.Template(@<text>
+                    <a class='t-button' href="@Url.Content("~/Route/EditStoreLeadTime?div=" + @item.Division + "&store=" + @item.Store)">Edit</a>
+            </text>).ClientTemplate("<a class='t-button' href='"
+                    + Url.Content("~/Route/EditStoreLeadTime?div=<#= Division #>&store=<#= Store #>")
+                    + "'>Edit</a>"
+                    ).HtmlAttributes(new { style = "text-align: left" });
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Server().Select("StoreLeadTimes", "Route");            
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+<br />
+@Html.ActionLink("Download Excel", "DownnloadStoreLeadTimes", new { div = Model.Division }, new { @class = "t-button" })
+

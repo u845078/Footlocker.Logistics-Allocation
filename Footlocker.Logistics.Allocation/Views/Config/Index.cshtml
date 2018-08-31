@@ -1,0 +1,115 @@
+﻿@model Footlocker.Logistics.Allocation.Models.CreateConfigParamModel
+
+@{
+    ViewBag.Title = "Instance Configurations";
+}
+
+<style type="text/css">
+
+</style>
+
+<h2>Instance Configurations</h2>
+<div>
+    @Html.ActionLink("Create new param", "CreateParam", new { }, new { @class = "t-button"})
+</div><br />
+
+<div id="openModal" class="modalDialog">
+    <div style="padding:0px;">
+        <div class="t-window-titlebar t-header">&nbsp;
+            <span id="paramheader" class="t-window-title">Title</span>
+            <div class="t-window-actions t-header">
+                <a href="#close" class="t-link"><span class="t-icon t-close">Close</span></a>
+            </div>
+            </div>
+        <br />
+        <div style="padding:10px;">
+		<div id="description">Loading description..</div>
+        </div>
+        <br />
+    </div>
+</div>
+
+<script>
+
+    function showDescription(param, paramName) {
+        $('#paramheader').empty().append('&nbsp;&nbsp;&nbsp;' + paramName);
+
+        $.ajax({
+            url: "/Config/_ConfigParam",
+            data: "{'paramid': '" + param + "'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+            },
+            success: function (result) {
+                $('#description').empty().append(result.Data);
+
+                //alert(result.Data);
+            }
+        });
+    }
+</script>
+
+
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.Instance>()
+        .Name("Configs")
+        .Columns(columns =>
+        {
+            //columns.Bound(o => o.ID);
+            columns.Bound(o => o.Name);
+            columns.Template(@<text> 
+                <a class='t-button' href="@Url.Content("~/Config/Create?instanceid=" + @item.ID)">Add Param</a>
+            </text>)
+                .ClientTemplate("<a class='t-button' href='"
+                    + Url.Content("~/Config/Create?instanceid=<#= ID #>")
+                    + "'>Add Param</a>"
+                ).Width(200);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_Index", "Config");
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+        //.ClientEvents(events => events.OnRowDataBound("headers_onRowDataBound"))
+        .DetailView(ordersDetailView => ordersDetailView.ClientTemplate(
+                    Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.Config>()
+                        .Name("Config2" + "_<#= ID #>")
+                            .Columns(columns =>
+                            {
+                                //columns.Bound(o => o.Division).Width(50);
+                                //columns.Bound(o => o.Store).Width(50);
+                                columns.Bound(o => o.InstanceID);
+                                columns.Template(@<text> 
+                                    <a onclick="showDescription">@item.ParamID</a>
+                                </text>)
+                                .ClientTemplate("<a href=\"#openModal\" onclick=\"showDescription(<#= ParamID #>, '<#= ParamName #>')\"><#= ParamName #></a>")
+                                .Title("ParamName");
+                                columns.Bound(o => o.Value);
+                                columns.Bound(o => o.CreatedBy);
+                                columns.Bound(o => o.CreateDate);
+                                columns.Bound(o => o.UpdatedBy);
+                                columns.Bound(o => o.UpdateDate);
+                                columns.Template(@<text> 
+                                   <a class='t-button' href="@Url.Content("~/Config/Edit?instanceid=" + @item.InstanceID + "&ParamID=" + @item.ParamID)">Edit</a>
+                               </text>)
+                                    .ClientTemplate("<a class='t-button' href='"
+                                        + Url.Content("~/Config/Edit?instanceid=<#= InstanceID #>&paramid=<#= ParamID #>")
+                                        + "'>Edit</a>"
+                                    ).Width(200);
+                            })
+                        .DataBinding(dataBinding => dataBinding.Ajax()
+                        .Select("_ConfigDetails", "Config", new { instanceid = "<#= ID #>" }))
+                        .Pageable()
+                        .Sortable()
+                        .Filterable()
+                        .ToHtmlString()                                               
+                        ))
+)
+

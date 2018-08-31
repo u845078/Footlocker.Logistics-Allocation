@@ -1,0 +1,45 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.StoreBTSDetail>
+
+@{
+    ViewBag.Title = "History";
+}
+
+<h2>History</h2>
+
+<table>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Division)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Store)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CreatedBy)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CreateDate)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Division)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Store)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CreatedBy)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CreateDate)
+        </td>
+    </tr>
+}
+
+</table>
+<br /><br />
+<input type=button onclick="window.history.back()" value="Back" class="t-button"/>

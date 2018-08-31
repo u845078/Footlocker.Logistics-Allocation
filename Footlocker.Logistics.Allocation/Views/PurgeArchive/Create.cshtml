@@ -1,0 +1,88 @@
+﻿@model Footlocker.Logistics.Allocation.Models.PurgeArchiveTypeModel
+
+@{
+    ViewBag.Title = "Create Purge Type";
+}
+
+<h2>Create Purge Type</h2>
+
+@if ((ViewData["existentError"] != "") && (ViewData["existentError"] != null))
+{
+    <font color="Red">
+        @Html.Raw(Convert.ToString(ViewData["existentError"]))
+    </font>
+}
+
+@using (Html.BeginForm())
+{
+    <fieldset>
+        <legend>Purge Type</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.purgeArchiveType.ArchiveType) (50 Character Limit)
+        </div>
+
+        <div class="editor-field">
+            @Html.TextBoxFor(model => model.purgeArchiveType.ArchiveType)
+            @Html.ValidationMessageFor(model => model.purgeArchiveType.ArchiveType)
+
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.purgeArchiveType.ArchiveTypeDescription) (1000 Character Limit)
+        </div>
+
+        <div class="editor-field">
+            @Html.TextAreaFor(model => model.purgeArchiveType.ArchiveTypeDescription, new { style = "width: 40%" })
+            @Html.ValidationMessageFor(model => model.purgeArchiveType.ArchiveTypeDescription)
+        </div>
+
+        <div class="editor-label">
+            @Html.Label("Instance(s)")
+            @Html.ValidationSummary(true)
+            @if ((ViewData["instanceError"] != "") && (ViewData["instanceError"] != null))
+            {
+            <font color="Red">
+                @Html.Raw(Convert.ToString(ViewData["instanceError"]))
+            </font>
+            }
+        </div>
+
+        @for (var i = 0; i < Model.Instances.Count(); i++)
+        {
+            var instance = Model.Instances[i];
+            @Html.HiddenFor(model => model.Instances[i].Instance.Name)
+            @Html.HiddenFor(model => model.Instances[i].Instance.ID)
+            @Html.CheckBoxFor(model => model.Instances[i].Selected, new { id = "instance_" + (i + 1) })
+            @Html.LabelFor(model => model.Instances[i].Instance.Name, instance.Instance.Name)
+            <br />
+        }
+        
+        <div class="editor-label">
+            @Html.LabelFor(model => model.purgeArchiveType.DaysUntilPurge)
+        </div>
+
+        <div class="editor-field">
+            @Html.EditorFor(model => model.purgeArchiveType.DaysUntilPurge, new { htmlAttributes = new { maxlength = 3 } })
+            @Html.ValidationMessageFor(model => model.purgeArchiveType.DaysUntilPurge)
+        </div>
+
+        <div class="editor-label">
+            @Html.CheckBoxFor(model => model.purgeArchiveType.ActiveInd)
+            @Html.LabelFor(model => model.purgeArchiveType.ActiveInd)
+        </div>
+
+        <br />
+        <p>
+            <input type="submit" value="Create" class="t-button" id = "Create" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

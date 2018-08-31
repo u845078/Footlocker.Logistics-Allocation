@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<siteMap>
+  <siteMapNode title="Home" controller="Home" action="Overview">
+	  <siteMapNode title="Admin">
+		  <siteMapNode title="Control Date" controller="Driver" action="Control" />
+      <siteMapNode title="Quantum Data Download" controller="Item" action="QuantumDataDownload" />
+      <siteMapNode title="Instance Config" controller="Config" action="Index" />
+      <siteMapNode title="Item Lookup" controller="Item" action="Lookup" />
+		  <siteMapNode title="Department Config" controller="Driver" action="Index" />
+      <siteMapNode title="Seasonality Overrides" controller="ProductHierarchyOverride" action="Index" />
+      <siteMapNode title="Purge Criteria" controller="PurgeArchive" action="Index"/>
+    </siteMapNode>
+
+	  <siteMapNode title="Location">
+		  <siteMapNode title="Back To School" controller="StoreBTS" action="Index" />
+		  <siteMapNode title="Like Stores" controller="StoreAttribute" action="Index" />
+		  <siteMapNode title="Seasonality" controller="StoreSeasonality" action="Index" />
+      <siteMapNode title="Store Attributes">
+        <siteMapNode title="Concepts" controller="ConceptType" action="Index" />
+		  <siteMapNode title="Individual Update" controller="StoreExtension" action="Update" />
+		  <siteMapNode title="Batch Update" controller="StoreExtension" action="BatchUpdate" />
+	  </siteMapNode>
+	  </siteMapNode>
+
+	  <siteMapNode title="Network">
+		  <siteMapNode title="Blackouts" controller="WarehouseBlackout" action="Index"/>
+		  <siteMapNode title="CrossDock Exclusions" controller="CrossDockExclusion" action="Index"/>
+		  <siteMapNode title="Distribution Centers" controller="Route" action="DCIndex"/>
+		  <siteMapNode title="Routes" controller="Route" action="Index"/>
+		  <siteMapNode title="Store Network Schedule" controller="Route" action="StoreLeadTimes"/>
+      <siteMapNode title="Utility Index" controller="UtilityIndex" action="Index" />
+      <siteMapNode title="Vendor Groups" controller="DTSVendorGroup" action="Index" />
+		  <siteMapNode title="Zones" controller="Network" action="Index"/>
+	  </siteMapNode>
+
+	  <siteMapNode title="Product">
+		  <siteMapNode title="AR SKUs" controller="DTS" action="Index" />
+		  <siteMapNode title="AR Constraints Single Size Items" controller="DTS" action="OneSizeConstraints" />
+		  <siteMapNode title="AR Constraints All Items" controller="DTS" action="Constraints" />
+		  <siteMapNode title="Holds" controller="Hold" action="Index" />
+      <siteMapNode title="Mandatory Crossdocks" controller="MandatoryCrossdock" action="Index" />
+      <siteMapNode title="Override PO" controller="OverridePO" action="Index" />
+      <siteMapNode title="Release Held RDQs" controller="WebPick" action="BulkAdmin" />
+      <siteMapNode title="Ring Fencing" controller="RingFence" action="Index" />
+      <siteMapNode title="WSM" controller="SkuAttribute" action="Index" />
+      <siteMapNode title="SKU Review" controller="Item" action="Troubleshoot" />
+		  <siteMapNode title="SKU Setup" controller="SkuRange" action="Index" />
+      <siteMapNode title="Web Pick" controller="WebPick" action="Index" />
+    </siteMapNode>
+
+    <siteMapNode title="Troubleshooting">
+        <siteMapNode title="Item" controller="Item" action="Troubleshoot" />
+        <siteMapNode title="Store" controller="Item" action="TroubleshootStore" />
+        <siteMapNode title="Ranges">
+          <siteMapNode title="Products" controller="NonRangedProduct" action="Index" />
+          <siteMapNode title="Transactions" controller="InvalidTransaction" action="Index" />
+        </siteMapNode>
+        <siteMapNode title="RDQs" controller="Item" action="TroubleshootRDQForSku" />
+    </siteMapNode>
+
+	  <siteMapNode title="Uploads">
+      <siteMapNode title="AR SKUs" controller="Upload" action="ARSkusUpload" />
+      <siteMapNode title="AR Constraints" controller="Upload" action="ARConstraintsUpload" />
+      <siteMapNode title="Life Of SKU" controller="Upload" action="ProductTypeUpload" />
+		  <siteMapNode title="Service Type" controller="Upload" action="SkuTypeUpload" />
+      <siteMapNode title="SKU Id" controller="Upload" action="SkuIdUpload" />
+      <siteMapNode title="SKU Setup Upload" controller="SkuRange" action="UploadRange" />
+    </siteMapNode>
+
+	  <siteMapNode title="About" controller="Home" action="About" />
+	
+  </siteMapNode>
+</siteMap>
+

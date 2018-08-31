@@ -1,0 +1,184 @@
+﻿@model Footlocker.Logistics.Allocation.Models.StoreBatchModel
+
+@{
+    ViewBag.Title = "Store Attributes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+
+    function chooseStores() { 
+        var url = '/StoreExtension/Filter?ruleSetID=' + @(Model.RuleSetID) + '&isRestrictingToUnassignedCustomer=' + ($('#IsRestrictingToUnassignedCustomer').attr('checked') ? true : false);
+        window.location.href = url; 
+    }
+
+    function unassignData() { 
+        $('#StoreExtensionsGrid').data('tGrid').ajaxRequest({ ruleSetID: @(Model.RuleSetID), isRestrictingToUnassignedCustomer: ($('#IsRestrictingToUnassignedCustomer').attr('checked') ? true : false) }); 
+    }
+
+    function storeExtensionsGrid_Complete(e) {
+        var grid = $(e.target).data('tGrid');
+
+        // Get store lookup extension data (in addition to paged list of stores)
+        var extensionData = e.response.extensionData;
+
+        // Update 'batch' dropdown selections - to distinct value of batch stores (or mixed)
+        $('.batch-dropdown option[selected]').removeAttr('selected');
+        $('#SelectedConceptTypeID option[value=' + extensionData.ConceptTypeID + ']').attr('selected', 'selected');
+        $('#SelectedCustomerTypeID option[value=' + extensionData.CustomerTypeID + ']').attr('selected', 'selected');
+        $('#SelectedPriorityTypeID option[value=' + extensionData.PriorityTypeID + ']').attr('selected', 'selected');
+        $('#SelectedStrategyTypeID option[value=' + extensionData.StrategyTypeID + ']').attr('selected', 'selected');
+    }
+
+    function storeExtensionsGrid_DataBound(e) {
+        var grid = $(e.target).data('tGrid');
+
+        // Update the batch count to total record count of grid
+        $('#storeCountSpan').text('(' + grid.total + ')');
+
+        // Make visible update controls if we have store data
+        if(grid.total > 0) {
+            $('.update-control').removeClass('hidden-control');
+        }
+        else {
+            // We are going to leave the 'Show Unassigned Only' checkbox visible after we have received data
+            $('div.update-control, fieldset.update-control').addClass('hidden-control');
+        }
+    }
+        
+    // On Document Ready...
+    $(function() {
+        // Wire-up anonymous button handlers
+        $('#chooseStoresButton').click(function(e) {
+            e.preventDefault();
+
+            window.location.href = '/StoreExtension/Filter?ruleSetID=' + @(Model.RuleSetID) + '&isRestrictingToUnassignedCustomer=' + ($('#IsRestrictingToUnassignedCustomer').attr('checked') ? true : false);
+        });
+        $('#updateStoresButton').click(function(e) {
+            e.preventDefault();
+
+            if(confirm('Are you sure you would like to update these ' + $('#storeCountSpan').text() + ' stores?')) {
+                $('#batchUpdateForm').submit();
+            }
+        });
+        $('#IsRestrictingToUnassignedCustomer').change(function() {
+            $('#StoreExtensionsGrid').data('tGrid').ajaxRequest({ ruleSetID: @(Model.RuleSetID), isRestrictingToUnassignedCustomer: ($('#IsRestrictingToUnassignedCustomer').attr('checked') ? true : false) }); 
+        });
+    });
+
+</script>
+
+<h2>Store Attributes</h2>
+
+
+@using (Html.BeginForm("Save", "StoreExtension", FormMethod.Post, new { id = "batchUpdateForm" }))
+{
+    <fieldset style="margin-top: 10px;">
+        <div style="margin-top: 10px; margin-bottom: 10px;">
+            <button id="chooseStoresButton" class="t-button">
+                Choose Stores
+            </button>
+
+            @Html.CheckBoxFor(m => m.IsRestrictingToUnassignedCustomer, new { @class = Model.IsRestrictingToUnassignedCustomer ? "update-control" : "update-control hidden-control", style = "float: right; margin-top: 8px;" }) 
+            <label for="IsRestrictingToUnassignedCustomer" class="update-control hidden-control" style="float: right; margin-right: 3px; margin-top: 10px;">Without Customer?</label>
+        </div>
+
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreLookup>()
+            .Name("StoreExtensionsGrid")
+            .Columns(columns =>
+            {
+                columns.Bound(o => o.Division).Width(50);
+                columns.Bound(o => o.Store).Width(50);
+                columns.Bound(o => o.Mall);
+                columns.Bound(o => o.City);
+                columns.Bound(o => o.State);
+                columns.Bound(o => o.StoreExtension.CustomerType.Name).ClientTemplate("<#= StoreExtension ? (StoreExtension.CustomerType ? StoreExtension.CustomerType.Name : '') : '' #>").Title("Customer");
+                columns.Bound(o => o.StoreExtension.ConceptType.Name).ClientTemplate("<#= StoreExtension ? (StoreExtension.ConceptType ? StoreExtension.ConceptType.Name : '') : '' #>").Title("Concept");
+                columns.Bound(o => o.StoreExtension.StrategyType.Name).ClientTemplate("<#= StoreExtension ? (StoreExtension.StrategyType ? StoreExtension.StrategyType.Name : '') : '' #>").Title("Store Strategy");
+                columns.Bound(o => o.StoreExtension.PriorityType.Name).ClientTemplate("<#= StoreExtension ? (StoreExtension.PriorityType ? StoreExtension.PriorityType.Name : '') : '' #>").Title("XDock Priority");
+                columns.Bound(o => o.StoreExtension.MinihubStrategyInd).ClientTemplate("<input type='checkbox' <#= StoreExtension.MinihubStrategyInd ? 'checked' : '' #> disabled />");
+            })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Ajax().Select("Grid_BatchUpdate", "StoreExtension", new { ruleSetID = Model.RuleSetID, isRestrictingToUnassignedCustomer = Model.IsRestrictingToUnassignedCustomer });
+            })
+            .Sortable(sorting => sorting.Enabled(true))
+            .Pageable(paging => paging.Enabled(true).PageSize(10))
+            .Filterable(filtering => filtering.Enabled(false))
+            .Groupable(grouping => grouping.Enabled(false))
+            .ClientEvents(events => events.OnDataBound("storeExtensionsGrid_DataBound").OnComplete("storeExtensionsGrid_Complete"))
+            .Footer(true)
+        )
+    </fieldset>
+    
+    <label style="color: red;">@Html.DisplayTextFor(m => m.NotificationMessage)</label>
+    
+    <fieldset class="update-control hidden-control" style="margin-top: 30px;">
+        <legend> Update Stores <span id="storeCountSpan">(0)</span> </legend>
+
+        <div class="form-input-area-container-first" style="margin-left: 15%;">
+            @*Labels - Left*@
+            <div class="form-input-label-area">
+                <div class="form-input form-input-label">
+                    @Html.LabelFor(m => m.CustomerTypes, "Customer: ", new { @class = "form-input-label-area" })
+                </div>
+                <div class="form-input form-input-label">
+                    @Html.LabelFor(m => m.SelectedStrategyTypeID, "Store Strategy: ")
+                </div>
+                <div class="form-input form-input-label">
+                    @Html.LabelFor(m => m.SelectedMinihubStrategyInd, "Use Minihub Strategy: ")
+                </div>
+            </div>
+    
+            @*Input Controls - Left*@
+            <div class="form-input-value-area">
+                <div class="form-input">
+                    @Html.DropDownListFor(m => m.SelectedCustomerTypeID, new SelectList(Model.CustomerTypes, "ID", "Name"), new { @class = "batch-dropdown", style = "width: 130px;" })
+                </div>
+                <div class="form-input">
+                    @Html.DropDownListFor(m => m.SelectedStrategyTypeID, new SelectList(Model.StrategyTypes, "ID", "Name"), new { @class = "batch-dropdown", style = "width: 130px;" })
+                </div>
+                <div class="form-input">
+                    @Html.CheckBoxFor(m => m.SelectedMinihubStrategyInd)
+                </div>
+            </div>
+        </div>
+
+        <div class="form-input-area-container-last" style="margin-left: 15%; margin-right: 15%;">
+            @*Labels - Right*@
+            <div class="form-input-label-area">
+                <div class="form-input form-input-label">
+                    @Html.LabelFor(m => m.ConceptTypes, "Concept: ", new { @class = "form-input-label-area" })
+                </div>
+                <div class="form-input form-input-label">
+                    @Html.LabelFor(m => m.SelectedPriorityTypeID, "XDock Priority: ")
+                </div>
+                <div class="form-input form-input-label">
+                    @Html.LabelFor(m => m.SelectedExcludeStore, "Exclude from Q: ", new { @class = "form-input-label-area" })
+                </div>
+            </div>
+
+            @*Input Controls - Right *@
+            <div class="form-input-value-area" style="margin-left: 23px;">
+                <div class="form-input">
+                    @Html.DropDownListFor(m => m.SelectedConceptTypeID, new SelectList(Model.ConceptTypes, "ID", "Name"), new { @class = "batch-dropdown", style = "width: 130px;" })
+                </div>
+                <div class="form-input">
+                    @Html.DropDownListFor(m => m.SelectedPriorityTypeID, new SelectList(Model.PriorityTypes, "ID", "Name"), new { @class = "batch-dropdown", style = "width: 130px;" })
+                </div>
+                <div class="form-input">
+                    @Html.DropDownListFor(model => model.SelectedExcludeStore, new List<SelectListItem> { new SelectListItem { Text = "N/A", Value = "0" }, new SelectListItem { Text = "Exclude", Value = "1" }, new SelectListItem { Text = "Do Not Exclude", Value = "2" } })
+                </div>
+
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="update-control hidden-control" style="margin-top: 5px;">
+        <button id="updateStoresButton" class="t-button" style="float: right;">
+            Update
+        </button>
+    </div>
+    
+    @Html.HiddenFor(m => m.RuleSetID)
+}

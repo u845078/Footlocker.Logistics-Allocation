@@ -1,0 +1,83 @@
+﻿@model Footlocker.Logistics.Allocation.Models.ItemLookupModel
+
+@{
+    ViewBag.Title = "Lookup";
+}
+
+<h2>Lookup</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Lookup Item ID</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.QItem)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.QItem)
+            @Html.ValidationMessageFor(model => model.QItem)
+        </div>
+
+        <p>
+            <input type="submit" value="Lookup" />
+        </p>
+    </fieldset>
+}
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Lookup Merchant Sku</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.MerchantSku)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.MerchantSku)
+            @Html.ValidationMessageFor(model => model.MerchantSku)
+        </div>
+
+        <p>
+            <input type="submit" value="Lookup" />
+        </p>
+    </fieldset>
+}
+
+
+@if (Model != null)
+{
+    <br />
+    if (Model.noSizeItems != null)
+    {
+        @Html.Raw("<b>Items:</b>")
+        @Html.Raw("<table>")
+        foreach (Footlocker.Logistics.Allocation.Models.ItemMaster item in Model.noSizeItems)
+        { 
+            @Html.Raw("<tr><td>")
+                @Html.LabelFor(i => item.ID)
+            @Html.Raw("</td><td>")
+                @Html.DisplayFor(i => item.ID)
+            @Html.Raw("</td></tr><tr><td>")
+                @Html.LabelFor(i => item.MerchantSku)
+            @Html.Raw("</td><td>")
+                @Html.DisplayFor(i => item.MerchantSku)
+            @Html.Raw("</td></tr><tr><td>")
+                @Html.LabelFor(i => item.CurrentSku)
+            @Html.Raw("</td><td>")
+                @Html.DisplayFor(i => item.CurrentSku)
+            @Html.Raw("</td></tr><tr><td>")
+            @Html.Raw("</td><td>")
+                @Html.ActionLink("Troubleshoot", "Troubleshoot", new { sku = item.MerchantSku }, new { @class = "t-button" })
+            @Html.Raw("</td></tr>")
+        }
+        @Html.Raw("</table>")
+    }
+}
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

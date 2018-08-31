@@ -1,0 +1,108 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RingFenceModel
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<script src="~/Scripts/FootLocker/telerikShims_ChildGrid.js" type="text/javascript"></script>
+
+    <h2>Ring Fence Details</h2>
+<table><tr>
+<td><img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.RingFence.Sku)"/></td>
+<td>
+<b>@Html.LabelFor(model => model.RingFence.Sku)</b>
+@Html.DisplayFor(model => model.RingFence.Sku)
+<br />
+<b>@Html.LabelFor(model => model.RingFence.Store)</b>
+@Html.DisplayFor(model => model.RingFence.Store)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<b>@Html.LabelFor(model => model.RingFence.Qty)</b>
+@Html.DisplayFor(model => model.RingFence.Qty)
+<br /><br />
+@Html.Raw(Model.RingFence.StartDate.ToShortDateString())&nbsp;
+<b>until </b>
+@if (Model.RingFence.EndDate.HasValue)
+{
+@Html.Raw(Model.RingFence.EndDate.GetValueOrDefault().ToShortDateString())
+}
+else
+{
+@Html.Raw("[no end date]")
+}
+</td></tr></table>
+<br><br>
+
+
+@if (Model.FutureAvailable.Count() > 0)
+{
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFenceDetail>()
+        .Name("RingFenceDetailGrid")
+        .DetailView(dv =>
+                dv.ClientTemplate(
+                    Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.ItemPackDetail>()
+                        .Name("PackDetails_<#= Size #>")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(det => det.ID).Title("ID").Visible(false);
+                            columns.Bound(det => det.PackID).Title("PackID").Visible(false);
+                            columns.Bound(det => det.Size).Title("Size").Width(50).Visible(true);
+                            columns.Bound(det => det.Quantity).Title("Qty").Visible(true);
+                        })
+                        .DataBinding(dataBinding => dataBinding.Ajax()
+                            .Select("Ajax_GetPackDetails", "RingFence", new { ringFenceID = "<#= RingFenceID #>", packName = "<#= Size #>" })
+                        )
+                        .ClientEvents(events =>
+                        {
+                            events.OnDataBound("function() { hack_setChildGridColumnWidth(1); }");
+                        })
+                        .Footer(false)
+                        .ToHtmlString()
+                    )
+        )
+        .ClientEvents(events =>
+        {
+            events.OnDataBound("function() { hack_removeTelerikExpandIconsForChildlessNodes($('.caselot-input'), function($child) { return $child.text().length < 4 }); }");
+        })
+        .DataKeys(keys =>
+        {
+            keys.Add(p => p.RingFenceID);
+            keys.Add(p => p.Warehouse);
+            keys.Add(p => p.PO);
+            keys.Add(p => p.Size);
+        })
+        .Columns(columns => 
+        {
+            columns.Bound(o => o.RingFenceID).Visible(false);
+            columns.Bound(o => o.Size).Title("Size/Caselot").HtmlAttributes(new { @class = "caselot-input" }).Width(120);
+            columns.Bound(o => o.Warehouse).Width(100);
+            columns.Bound(o => o.PO).Width(100);
+            columns.Bound(o => o.Qty).Width(100);
+            columns.Bound(o => o.Message).Title("").ReadOnly().HtmlAttributes(new { @style = "color:red" });                  
+        })
+        .DataBinding(dataBinding =>
+            dataBinding.Ajax()
+                .Select("_SelectBatchEditing", "RingFence", new { ringFenceID = Model.RingFence.ID, ajax = true })
+            )
+        .Scrollable(scrolling => scrolling.Enabled(true))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(false))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+            )
+   
+    <br />
+    <script type="text/javascript">
+        function saveQtyChanges() {
+            $('#RingFenceDetailGrid').data('tGrid').submitChanges();
+        }
+    </script>
+
+}
+else
+{ 
+    @Html.Raw("No RDQs")<br /><br />
+}
+
+<p>
+    @Html.ActionLink("Back to List", "Index", null,new { @class="t-button" })
+</p>
