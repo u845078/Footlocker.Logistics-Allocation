@@ -752,9 +752,9 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                        }).ToList().ForEach(ed =>
                        {
                            var reduce = warehouseInventory.Where(wi => wi.Sku.Equals(ed.Sku) &&
-                                                                                              wi.size.Equals(ed.Size) &&
-                                                                                              wi.DistributionCenterID.Equals(ed.DC) &&
-                                                                                              wi.PO.Equals(ed.PO)).FirstOrDefault();
+                                                                       wi.size.Equals(ed.Size) &&
+                                                                       wi.DistributionCenterID.Equals(ed.DC) &&
+                                                                       wi.PO.Equals(ed.PO)).FirstOrDefault();
                            if (reduce != null)
                            {
                                reduce.totalRingFenceQuantity = ed.Qty;

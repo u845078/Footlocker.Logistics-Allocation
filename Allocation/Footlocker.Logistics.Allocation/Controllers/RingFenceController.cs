@@ -3277,17 +3277,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                                          d.PO.Equals(detail.PO) &&
                                                                          d.DC.Equals(detail.DistributionCenter.MFCode)).FirstOrDefault();
 
-                            if (accumulateQuantity)
+                            if (detail.ActiveInd.Equals("1"))
                             {
-                                detail.Qty += newDetail.Quantity;
-                                SetErrorMessage(errorList, newDetail, "Warning: Already existed, accumulated to new value");
+                                if (accumulateQuantity)
+                                {
+                                    detail.Qty += newDetail.Quantity;
+                                    SetErrorMessage(errorList, newDetail, "Warning: Already existed, accumulated to new value");
+                                }
+                                else
+                                {
+                                    detail.Qty = newDetail.Quantity;
+                                    SetErrorMessage(errorList, newDetail, "Warning: Already existed, updated to upload value");
+                                }
                             }
                             else
                             {
                                 detail.Qty = newDetail.Quantity;
-                                SetErrorMessage(errorList, newDetail, "Warning: Already existed, updated to upload value");
                             }
                             
+                            // ensure detail is active now
+                            detail.ActiveInd = "1";
                             detail.LastModifiedDate = DateTime.Now;
                             detail.LastModifiedUser = User.Identity.Name;                            
                             db.Entry(detail).State = System.Data.EntityState.Modified;
@@ -3335,17 +3344,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
             int totalQuantity = 0;
             foreach (var rfd in ringFenceDetails)
             {
-                if (rfd.Size.Length.Equals(5))
+                if (rfd.ActiveInd.Equals("1"))
                 {
-                    var caselotDetail = uniqueCaselotQtys.Where(ucq => ucq.Name.Equals(rfd.Size)).FirstOrDefault();
-                    if (caselotDetail != null)
+                    if (rfd.Size.Length.Equals(5))
                     {
-                        totalQuantity += (rfd.Qty * caselotDetail.TotalQty);
+                        var caselotDetail = uniqueCaselotQtys.Where(ucq => ucq.Name.Equals(rfd.Size)).FirstOrDefault();
+                        if (caselotDetail != null)
+                        {
+                            totalQuantity += (rfd.Qty * caselotDetail.TotalQty);
+                        }
                     }
-                }
-                else
-                {
-                    totalQuantity += rfd.Qty;
+                    else
+                    {
+                        totalQuantity += rfd.Qty;
+                    }
                 }
             }
             return totalQuantity;
@@ -3511,9 +3523,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                      .ToList();
 
             var nonExistentCombo = uniqueFutureCombosGrouped.Where(ucg => !details.Any(d => d.Sku.Equals(ucg.Sku) &&
-                                                                                                  d.PO.Equals(ucg.PO) &&
-                                                                                                  d.size.Equals(ucg.Size) &&
-                                                                                                  d.DistributionCenterID.Equals(ucg.DC))).ToList();
+                                                                                            d.PO.Equals(ucg.PO) &&
+                                                                                            d.size.Equals(ucg.Size) &&
+                                                                                            d.DistributionCenterID.Equals(ucg.DC))).ToList();
 
             foreach (var nec in nonExistentCombo)
             {
