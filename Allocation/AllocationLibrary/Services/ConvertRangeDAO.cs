@@ -138,7 +138,7 @@ namespace Footlocker.Logistics.Allocation.Services
         }
 
 
-        public void SaveEcommRingFences(List<EcommRingFence> list, string user, bool accumulateQuantity = true)
+        public void SaveEcommRingFences(List<EcommRingFence> list, string user)
         {
             DbCommand SQLCommand;
             string SQL;
@@ -152,7 +152,6 @@ namespace Footlocker.Logistics.Allocation.Services
             xs.Serialize(sw, list);
             String xout = sw.ToString();
 
-            _database.AddInParameter(SQLCommand, "@accumulateQuantity", DbType.Boolean, accumulateQuantity);
             _database.AddInParameter(SQLCommand, "@xmlDetails", DbType.Xml, xout);
             _database.AddInParameter(SQLCommand, "@user", DbType.String, user);
 
