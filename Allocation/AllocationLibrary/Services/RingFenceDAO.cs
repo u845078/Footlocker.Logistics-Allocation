@@ -44,7 +44,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         }
 
         public RingFenceDetail BuildFutureRingFenceDetail(string sku, string stockSizeNumber, string warehouseCode, 
-            long currentRingfenceID, string poNumber, string priorityCode, List<RingFenceSummary> rfSummaryList, 
+            long currentRingfenceID, string poNumber, string priorityCode, //List<RingFenceSummary> rfSummaryList, 
             int allocatableQty, DateTime expectedDeliveryDate)
         {
             RingFenceDetail det = new RingFenceDetail();
@@ -69,15 +69,15 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             det.ringFenceStatusCode = "1";
             det.PriorityCode = priorityCode;
 
-            if (rfSummaryList != null)
-                existingRingFenceQty = (from a in rfSummaryList
-                                        where ((a.Sku == sku) &&
-                                                (a.Size == det.Size) &&
-                                                (a.DC == warehouseCode) &&
-                                                (a.PO == det.PO))
-                                        select a.Qty).Sum();
-            else
-            {
+            //if (rfSummaryList != null)
+            //    existingRingFenceQty = (from a in rfSummaryList
+            //                            where ((a.Sku == sku) &&
+            //                                    (a.Size == det.Size) &&
+            //                                    (a.DC == warehouseCode) &&
+            //                                    (a.PO == det.PO))
+            //                            select a.Qty).Sum();
+            //else
+            //{
                 var reductionsQuery = (from a in db.InventoryReductions
                                 where ((a.Sku == sku) &&
                                        (a.Size == det.Size) &&
@@ -90,7 +90,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                     existingRingFenceQty = 0;
                 else               
                     existingRingFenceQty = reductionsQuery.FirstOrDefault();                        
-            }
+            //}
 
             currentRingFenceQty = 0;
 
@@ -429,20 +429,21 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                     }
                 }
 
-                List<RingFenceSummary> list = null;
+                //List<RingFenceSummary> list = null;
 
-                // if there are 10 or more POs, then just get them all and pass them along
-                if (futureInventory.Count() >= 10)
-                {
-                    RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
-                    list = summaryDAO.GetRingFenceSummaries(Convert.ToString(instanceid));
-                }
+                //// if there are 10 or more POs, then just get them all and pass them along
+                //if (futureInventory.Count() >= 10)
+                //{
+                //    RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
+                //    list = summaryDAO.GetRingFenceSummaries(Convert.ToString(instanceid));
+                //}
 
                 foreach (DataRow dr in futureInventory)
                 {
                     det = BuildFutureRingFenceDetail(rf.Sku, Convert.ToString(dr["STK_SIZE_NUM"]),
                                  Convert.ToString(dr["WHSE_ID_NUM"]), rf.ID, Convert.ToString(dr["PO_NUM"]),
-                                 Convert.ToString(dr["PRIORITY_CODE"]), list, Convert.ToInt32(dr["due_in"]),
+                                 Convert.ToString(dr["PRIORITY_CODE"]), //list, 
+                                 Convert.ToInt32(dr["due_in"]),
                                  Convert.ToDateTime(dr["EXPECTED_DELV_DATE"]));
 
                     _que.Add(det);
@@ -505,7 +506,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
                     det = BuildFutureRingFenceDetail(rf.Sku, Convert.ToString(dr["Size"]),
                                     Convert.ToString(dr["Store"]), rf.ID, 
-                                    Convert.ToString(dr["InventoryID"]).Split('-')[0], "", null,
+                                    Convert.ToString(dr["InventoryID"]).Split('-')[0], "", // null,
                                     Convert.ToInt32(dr["StockQty"]), availableDate);
                     _que.Add(det);
                 }

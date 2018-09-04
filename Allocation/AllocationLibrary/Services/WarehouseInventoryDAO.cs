@@ -127,7 +127,8 @@ namespace Footlocker.Logistics.Allocation.Services
                         if (reductionData.Tables.Count > 0)
                         {
                             var reductionRow = (from row in reductionData.Tables[0].AsEnumerable()
-                                                where row.Field<string>("size") == size
+                                                where row.Field<string>("size") == size &&
+                                                      row.Field<string>("MFCode") == DCID
                                                 select row).ToList();
                             if (reductionRow.Count > 0)
                             {
