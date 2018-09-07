@@ -3251,7 +3251,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     rfd.PO = detail.PO;
                     rfd.Size = detail.Size;
                     rfd.Qty = detail.Quantity;
-                    rfd.ringFenceStatusCode = "4";
+                    rfd.ringFenceStatusCode = (!string.IsNullOrEmpty(rfd.PO)) ? "1" : "4";
                     rfd.ActiveInd = "1";
                     rfd.LastModifiedDate = DateTime.Now;
                     rfd.LastModifiedUser = User.Identity.Name;
@@ -3329,7 +3329,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             rfd.PO = neDetail.PO;
                             rfd.Size = neDetail.Size;
                             rfd.Qty = neDetail.Quantity;
-                            rfd.ringFenceStatusCode = "4";
+                            rfd.ringFenceStatusCode = (!string.IsNullOrEmpty(rfd.PO)) ? "1" : "4";
                             rfd.ActiveInd = "1";
                             rfd.LastModifiedDate = DateTime.Now;
                             rfd.LastModifiedUser = User.Identity.Name;
