@@ -3037,7 +3037,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-            string message = string.Empty;
+            string message = string.Empty, errorMessage = string.Empty;
             List<RingFenceUploadModelNew> parsedRFs = new List<RingFenceUploadModelNew>(), validRFs = new List<RingFenceUploadModelNew>();
             List<EcommRingFence> ecommRFs = new List<EcommRingFence>();
             List<Tuple<RingFenceUploadModelNew, string>> errorList = new List<Tuple<RingFenceUploadModelNew, string>>();
@@ -3075,9 +3075,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         if (parsedRFs.Count > 0)
                         {
                             // file validation - duplicates, permission for unique divisions, etc
-                            if (!this.ValidateFile(parsedRFs, errorList, out message))
+                            if (!this.ValidateFile(parsedRFs, errorList))
                             {
-                                return Content(message);
+                                Session["errorList"] = errorList;
+                                successfulCount = validRFs.Count + ecommRFs.Count;
+                                warnings = errorList.Where(el => el.Item2.StartsWith("Warning")).ToList();
+                                errors = errorList.Except(warnings).ToList();
+                                errorMessage = string.Format(
+                                    "{0} lines were processed successfully. {1} warnings and {2} errors were found."
+                                    , successfulCount
+                                    , warnings.Count
+                                    , errors.Count);
+                                return Content(errorMessage);
                             }
 
                             // validate the parsed ring fences.  all valid ring fences will be added to validRFs
@@ -3104,7 +3113,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             // if errors occured, allow user to download them
                             if (errorList.Count > 0)
                             {
-                                string errorMessage = string.Format(
+                                errorMessage = string.Format(
                                     "{0} lines were processed successfully. {1} warnings and {2} errors were found."
                                     , successfulCount
                                     , warnings.Count
@@ -3567,10 +3576,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             validRFs.AddRange(parsedRFs);
         }
 
-        private bool ValidateFile(List<RingFenceUploadModelNew> parsedRFs, List<Tuple<RingFenceUploadModelNew, string>> errorList, out string errorMessage)
+        private bool ValidateFile(List<RingFenceUploadModelNew> parsedRFs, List<Tuple<RingFenceUploadModelNew, string>> errorList)
         {
-            errorMessage = "";
-
             // remove all records that have a null or empty division... we check to see if users have access
             // to the specified division and cannot do this validation without removing these
             parsedRFs.Where(pr => string.IsNullOrEmpty(pr.Division))
@@ -3632,7 +3639,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RingFenceUploadModelNew returnValue = new RingFenceUploadModelNew();
 
             returnValue.Division = Convert.ToString(mySheet.Cells[row, 0].Value);
-            returnValue.Store = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(5, '0');
+            var store = Convert.ToString(mySheet.Cells[row, 1].Value);
+            returnValue.Store = (string.IsNullOrEmpty(store)) ? "" : store.PadLeft(5, '0');
             returnValue.Sku = Convert.ToString(mySheet.Cells[row, 2].Value);
             returnValue.EndDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value);
             returnValue.PO = Convert.ToString(mySheet.Cells[row, 4].Value);
