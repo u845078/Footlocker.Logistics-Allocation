@@ -3236,6 +3236,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 rf.Sku = grf.Sku;
                 rf.ItemID = skuItemIDMapping.Where(r => r.Sku.Equals(rf.Sku)).Select(r => r.ItemID).FirstOrDefault();
                 rf.StartDate = divisionControlDateMapping.Where(cd => cd.Division.Equals(rf.Division)).Select(cd => cd.RunDate).FirstOrDefault().AddDays(1);
+                var endDate = grf.Details.Select(g => g.EndDate).FirstOrDefault();
+                rf.EndDate = endDate;
                 rf.Comments = (grf.Details.FirstOrDefault()) == null ? "" : grf.Details.FirstOrDefault().Comments;
                 rf.CreateDate = DateTime.Now;
                 rf.CreatedBy = User.Identity.Name;
@@ -3339,6 +3341,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
 
                 }
+                var endDate = groupedRF.Details.Select(d => d.EndDate).FirstOrDefault();
+                erf.EndDate = endDate;
                 db.Entry(erf).State = System.Data.EntityState.Modified;
                 erf.Qty = this.CalculateHeaderQty(uniqueCaselotQtys, erf.ringFenceDetails);
                 erf.Comments = groupedRF.Details.FirstOrDefault().Comments;
@@ -3642,7 +3646,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             var store = Convert.ToString(mySheet.Cells[row, 1].Value);
             returnValue.Store = (string.IsNullOrEmpty(store)) ? "" : store.PadLeft(5, '0');
             returnValue.Sku = Convert.ToString(mySheet.Cells[row, 2].Value);
-            returnValue.EndDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value);
+            var endDate = Convert.ToString(mySheet.Cells[row, 3].Value);
+            if (!string.IsNullOrEmpty(endDate))
+            {
+                returnValue.EndDate = Convert.ToDateTime(endDate);
+            }
             returnValue.PO = Convert.ToString(mySheet.Cells[row, 4].Value);
             returnValue.DC = Convert.ToString(mySheet.Cells[row, 5].Value).Trim().PadLeft(2, '0');
             returnValue.Size = Convert.ToString(mySheet.Cells[row, 6].Value);

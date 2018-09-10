@@ -10,7 +10,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Division { get; set; }
         public string Store { get; set; }
         public string Sku { get; set; }
-        public DateTime EndDate { get; set; }
+        public DateTime? EndDate { get; set; }
         public string PO { get; set; }
         public string DC { get; set; }
         public string Size { get; set; }
@@ -23,7 +23,7 @@ namespace Footlocker.Logistics.Allocation.Models
             this.Division = string.Empty;
             this.Store = string.Empty;
             this.Sku = string.Empty;
-            this.EndDate = DateTime.MinValue;
+            this.EndDate = null;
             this.PO = string.Empty;
             this.DC = string.Empty;
             this.Size = string.Empty;
