@@ -2059,6 +2059,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     newDet = (from a in db.RingFenceDetails
                                               where ((a.Size == det.Size) && 
                                                      (a.RingFenceID == rf.ID) && 
+                                                     (a.PO == det.PO) &&
                                                      (a.ActiveInd == "1"))                                              
                                               select a).FirstOrDefault();
                                     if (newDet == null)
