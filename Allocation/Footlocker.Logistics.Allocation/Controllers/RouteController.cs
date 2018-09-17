@@ -1124,7 +1124,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 int row = 1;
                 string store;
                 string div;
-                int wc, ch, jc, jv, ed, te;
+                int wc, ch, jc, jv, ed, te, he;
 
                 DateTime createdate = DateTime.Now;
                 while (mySheet.Cells[row, 0].Value != null)
@@ -1139,6 +1139,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         ed = GetRank(mySheet, row, 5);
                         ch = GetRank(mySheet, row, 4);
                         wc = GetRank(mySheet, row, 6);
+                        he = GetRank(mySheet, row, 9);
                         EditStoreLeadTimeModel model = new EditStoreLeadTimeModel();
                         model.LeadTimes = new List<StoreLeadTime>();
 
@@ -1147,7 +1148,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         StoreLeadTime s;
                         var subquery = (from a in query where a.DCID == 1 select a);
 
-                        for (int dcid = 1; dcid < 7; dcid++)
+                        for (int dcid = 1; dcid < 8; dcid++)
                         {
                             subquery = (from a in query where a.DCID == dcid select a);
 
@@ -1182,6 +1183,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     break;
                                 case 6:
                                     s.LeadTime = te;
+                                    break;
+                                case 7:
+                                    s.LeadTime = he;
                                     break;
                             }
                             s.Active = (s.LeadTime > 0);
