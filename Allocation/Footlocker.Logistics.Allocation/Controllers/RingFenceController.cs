@@ -3606,7 +3606,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                      });
 
             // check to see if there are any duplicates and remove them
-            parsedRFs.GroupBy(pr => new { pr.Division, pr.Store, pr.Sku, pr.EndDate, pr.PO, pr.DC, pr.Size, pr.Quantity, pr.Comments })
+            parsedRFs.GroupBy(pr => new { pr.Division, pr.Store, pr.Sku, pr.EndDate, pr.PO, pr.DC, pr.Size })
                      .Where(pr => pr.Count() > 1)
                      .Select(pr => new { DuplicateRFs = pr.ToList(), Counter = pr.Count() })
                      .ToList().ForEach(rf =>

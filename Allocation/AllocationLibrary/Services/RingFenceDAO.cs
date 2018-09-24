@@ -122,7 +122,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             List<WarehouseInventory> returnValue = new List<WarehouseInventory>();
             var futureSizes = uniqueCombos.Where(uc => uc.Item2.Length.Equals(3)).ToList();
             var futureCaselots = uniqueCombos.Where(uc => uc.Item2.Length.Equals(5)).ToList();
-            int batchSize = 200;
+            int batchSize = 50;
 
             if (futureSizes.Count > 0)
             {
@@ -139,7 +139,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 
             }
 
-            batchSize = 200;
+            batchSize = 50;
 
             if (futureCaselots.Count > 0)
             {
@@ -686,7 +686,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             string division = string.Empty, SQL = string.Empty;
             var uniqueSizeCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(3)).ToList();
             var uniqueCaselotCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(5)).ToList();
-            int batchSize = 300;
+            int batchSize = 50;
 
             if (uniqueSizeCombos.Count > 0)
             {
@@ -703,7 +703,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 }
             }
 
-            batchSize = 300;
+            batchSize = 50;
 
             if (uniqueCaselotCombos.Count > 0)
             {
@@ -718,7 +718,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                     SQL = this.BuildWarehouseAvailableQuery(batchedUniqueCaselotCombos, false);
                     returnValue.AddRange(this.ExecuteSQLAndParseValues(SQL, division, false));
                 }
-                
             }
 
             // reduce ringfence quantity

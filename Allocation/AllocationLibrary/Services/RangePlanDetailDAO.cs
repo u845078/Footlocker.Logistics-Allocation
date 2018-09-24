@@ -179,5 +179,17 @@ namespace Footlocker.Logistics.Allocation.Services
             return _que;
         }
 
+        public void ReassignStartDates(string division, string store)
+        {
+            DbCommand SQLCommand;
+            string SQL = "[ReassignStartDates]";
+
+            SQLCommand = _database.GetStoredProcCommand(SQL);
+            _database.AddInParameter(SQLCommand, "@division", DbType.String, division);
+            _database.AddInParameter(SQLCommand, "@store", DbType.String, store);
+
+            _database.ExecuteNonQuery(SQLCommand);
+        }
+
     }
 }
