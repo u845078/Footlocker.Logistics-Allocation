@@ -741,25 +741,26 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                                                                        wi.PO.Equals(ed.RingFenceDetail.PO))).ToList();
 
             (from row in existingDetails
-                       group row by new { Sku = row.Sku, Size = row.RingFenceDetail.Size, DC = row.MFCode, PO = row.RingFenceDetail.PO } into g
-                       select new
-                       {
-                           Sku = g.Key.Sku,
-                           Size = g.Key.Size,
-                           DC = g.Key.DC,
-                           PO = g.Key.PO,
-                           Qty = g.Sum(x => x.RingFenceDetail.Qty)
-                       }).ToList().ForEach(ed =>
-                       {
-                           var reduce = warehouseInventory.Where(wi => wi.Sku.Equals(ed.Sku) &&
-                                                                       wi.size.Equals(ed.Size) &&
-                                                                       wi.DistributionCenterID.Equals(ed.DC) &&
-                                                                       wi.PO.Equals(ed.PO)).FirstOrDefault();
-                           if (reduce != null)
-                           {
-                               reduce.totalRingFenceQuantity = ed.Qty;
-                           }
-                       });
+             group row by new { Sku = row.Sku, Size = row.RingFenceDetail.Size, DC = row.MFCode, PO = row.RingFenceDetail.PO } into g
+             select new
+             {
+                Sku = g.Key.Sku,
+                Size = g.Key.Size,
+                DC = g.Key.DC,
+                PO = g.Key.PO,
+                Qty = g.Sum(x => x.RingFenceDetail.Qty)
+             }).ToList().ForEach(ed =>
+            {
+                var reduce = warehouseInventory.Where(wi => wi.Sku.Equals(ed.Sku) &&
+                                                            wi.size.Equals(ed.Size) &&
+                                                            wi.DistributionCenterID.Equals(ed.DC) &&
+                                                            wi.PO.Equals(ed.PO)).FirstOrDefault();
+
+                if (reduce != null)
+                {
+                    reduce.totalRingFenceQuantity = ed.Qty;
+                }
+            });
 
             return warehouseInventory;
         }
