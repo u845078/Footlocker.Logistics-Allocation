@@ -1144,6 +1144,59 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 excelDocument.Save(model.Sku + "-WSM.xls", SaveType.OpenInExcel, FileFormatType.Default,
                     System.Web.HttpContext.Current.Response);
             }
+            else if (submitAction == "WSMextract")
+            {
+                List<WSM> wsmList = dao.GetWSMextract(model.Sku);
+
+                //If wsm query returns no results then inform user
+                if (!wsmList.Any())
+                {
+                    ViewBag.NoDataFound = "There was no data found for Sku " + model.Sku;
+                    return View(model);
+                }
+
+                Worksheet mySheet = InitializeNewWSMSheet(excelDocument, page);
+
+                foreach (WSM w in wsmList)
+                {
+                    mySheet.Cells[row, 0].PutValue(w.RunDate);
+                    mySheet.Cells[row, 1].PutValue(w.TargetProduct);
+                    mySheet.Cells[row, 2].PutValue(w.TargetProductId);
+                    mySheet.Cells[row, 3].PutValue(w.TargetLocation);
+                    mySheet.Cells[row, 4].PutValue(w.MatchProduct);
+                    mySheet.Cells[row, 5].PutValue(w.MatchProductId);
+                    mySheet.Cells[row, 6].PutValue(w.ProductWeight);
+                    mySheet.Cells[row, 7].PutValue(w.MatchLocation);
+                    mySheet.Cells[row, 8].PutValue(w.LocationWeight);
+                    mySheet.Cells[row, 9].PutValue(w.FinalMatchWeight);
+                    mySheet.Cells[row, 10].PutValue(w.FinalMatchDemand);
+                    mySheet.Cells[row, 11].PutValue(w.LastCapturedDemand);
+                    mySheet.Cells[row, 12].PutValue(w.StatusCode);
+                    row++;
+                    if (row > 60000)
+                    {
+                        //new page
+                        row = 1;
+                        page++;
+
+                        //auto fit columns before adding a new sheet
+                        for (int i = 0; i < 12; i++)
+                        {
+                            mySheet.AutoFitColumn(i);
+                        }
+                        mySheet = InitializeNewWSMSheet(excelDocument, page);
+                    }
+                }
+
+                //auto fit columns 
+                for (int i = 0; i < 12; i++)
+                {
+                    mySheet.AutoFitColumn(i);
+                }
+
+                excelDocument.Save(model.Sku + "-WSMextract.xls", SaveType.OpenInExcel, FileFormatType.Default,
+                    System.Web.HttpContext.Current.Response);
+            }
             return View(model);
         }
 
