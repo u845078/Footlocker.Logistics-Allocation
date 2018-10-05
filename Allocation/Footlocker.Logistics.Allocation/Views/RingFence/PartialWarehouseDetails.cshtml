@@ -1,7 +1,4 @@
-﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.RingFenceDetail>
-Warehouse Inventory:<br />
-@if (Model.Count() > 0)
-{
+﻿Warehouse Inventory:<br />
 @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFenceDetail>()
         .Name("WhseRingFenceDetailGrid")
         .DetailView(dv =>
@@ -70,9 +67,3 @@ Warehouse Inventory:<br />
             $('#WhseRingFenceDetailGrid').data('tGrid').submitChanges();
         }
     </script>
-}
-else
-{ 
-    @Html.Raw("No Warehouse inventory available")<br /><br />
-}
-
