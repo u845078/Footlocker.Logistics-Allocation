@@ -184,7 +184,8 @@ namespace Footlocker.Logistics.Allocation.Models
         public string RingFencePickStore { get; set; }
 
         [ForeignKey("RDQRejectedReason")]
-        public int RDQRejectedReasonCode { get; set; }
+        [Column("RDQRejectReasonCode")]
+        public Int32? RDQRejectedReasonCode { get; set; }
 
         public virtual RDQRejectReasonCode RDQRejectedReason { get; set; }
 
