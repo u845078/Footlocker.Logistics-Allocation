@@ -103,6 +103,9 @@ namespace Footlocker.Logistics.Allocation.DAO
         public DbSet<Vendors> Vendors { get; set; }
         public DbSet<TeamCodes> TeamCodes { get; set; }
 
+        public DbSet<QuantumRecordTypeCode> QuantumRecordTypes { get; set; }
+        public DbSet<RDQRejectReasonCode> RDQRejectReasons { get; set; }
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             //modelBuilder.Entity<ItemMaster>().HasMany(o => o.RangePlans).WithOptional().HasForeignKey(c => c.ItemID);

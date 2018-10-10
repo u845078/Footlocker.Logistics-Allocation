@@ -173,11 +173,13 @@
     <Compile Include="Models\PurchaseOrder.cs" />
     <Compile Include="Models\PurgeArchiveType.cs" />
     <Compile Include="Models\QuantumInstance.cs" />
+    <Compile Include="Models\QuantumRecordTypeCode.cs" />
     <Compile Include="Models\QuantumSeasonalityData.cs" />
     <Compile Include="Models\RangeFileItem.cs" />
     <Compile Include="Models\RangeIssue.cs" />
     <Compile Include="Models\RDQExtract.cs" />
     <Compile Include="Models\RDQGroup.cs" />
+    <Compile Include="Models\RDQRejectReasonCode.cs" />
     <Compile Include="Models\RingFenceBIExtract.cs" />
     <Compile Include="Models\RingFenceSizeSummary.cs" />
     <Compile Include="Models\RingFenceStatusCodes.cs" />

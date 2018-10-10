@@ -868,10 +868,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             TroubleshootRDQForSkuModel model = new TroubleshootRDQForSkuModel();
             model.Sku = sku;
-            if ((sku != null)&&(sku != ""))
+            if ((sku != null) && (sku != ""))
             {
                 string div = sku.Substring(0, 2);
-                model.ControlDate = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).FirstOrDefault();
+                model.ControlDate = (from a in db.ControlDates
+                                     join b in db.InstanceDivisions 
+                                       on a.InstanceID equals b.InstanceID
+                                     where b.Division == div
+                                     select a.RunDate).FirstOrDefault();
             }
             return View(model);
         }
@@ -897,9 +901,34 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RDQ> model;
 
             RDQDAO dao = new RDQDAO();
-            if ((sku != null)&&(sku != ""))
+            if ((sku != null) && (sku != ""))
             {
                 model = GetRDQExtractForSkuDate(sku, controldate);
+
+                if (model.Count() > 0)
+                {
+                    List<QuantumRecordTypeCode> recordTypes = (from a in db.QuantumRecordTypes
+                                                               select a).ToList();
+                    List<RDQRejectReasonCode> rejectReasons = (from b in db.RDQRejectReasons
+                                                               select b).ToList();
+
+                    RDQRejectReasonCode notRejected = new RDQRejectReasonCode { Code = 0, Description = "" };
+
+                    foreach (var dataRow in model)
+                    {
+                        if (!string.IsNullOrEmpty(dataRow.RecordType))
+                        {
+                            dataRow.QuantumRecordType = recordTypes.Where(x => x.RecordTypeCode == dataRow.RecordType).FirstOrDefault();
+                        }
+
+                        if (dataRow.RDQRejectedReasonCode > 0)
+                        {
+                            dataRow.RDQRejectedReason = rejectReasons.Where(x => x.Code == dataRow.RDQRejectedReasonCode).FirstOrDefault();
+                        }
+                        else
+                            dataRow.RDQRejectedReason = notRejected;
+                    }
+                }
             }
             else
             {

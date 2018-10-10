@@ -65,7 +65,8 @@ namespace Footlocker.Logistics.Allocation.Models
         [Required]
         [RegularExpression(@"^\d{5}$", ErrorMessage = "Store number must be in the format #####")]
         public String Store { get; set; }
-        
+
+        [ForeignKey("DistributionCenter")]
         public Int32? DCID { get; set; }
         [NotMapped]
         [Display(Name="Warehouse")]
@@ -170,8 +171,11 @@ namespace Footlocker.Logistics.Allocation.Models
             }
         }
 
-        [NotMapped]
-        public int RecordType { get; set; }
+        [Column("QuantumRecordTypeCode")]
+        [ForeignKey("QuantumRecordType")]
+        public string RecordType { get; set; }
+        
+        public virtual QuantumRecordTypeCode QuantumRecordType { get; set; }
 
         [NotMapped]
         public string DC { get; set; }
@@ -179,6 +183,10 @@ namespace Footlocker.Logistics.Allocation.Models
         [NotMapped]
         public string RingFencePickStore { get; set; }
 
+        [ForeignKey("RDQRejectedReason")]
+        public int RDQRejectedReasonCode { get; set; }
+
+        public virtual RDQRejectReasonCode RDQRejectedReason { get; set; }
 
         [NotMapped]
         public Boolean CanPick
