@@ -1541,27 +1541,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _SelectBatchEditing(Int64 ringFenceID)
         {
-            FLLogger log = new FLLogger("C:\\Log\\RingFenceEdit\\EditRingFence");
-            DateTime startTime = DateTime.Now;
-            DateTime finishTime;
-            TimeSpan totalDuration;
-            log.Log("*******************************************************************************************************", FLLogger.eLogMessageType.eInfo);
-            log.Log("Start of Edit Ring Fence", FLLogger.eLogMessageType.eInfo);
-            log.Log(string.Format("User: {0}", this.UserName), FLLogger.eLogMessageType.eInfo);
-            log.Log("Call GetRingFenceDetails()", FLLogger.eLogMessageType.eInfo);
             // Get Ring Fence data
             var details = GetRingFenceDetails(ringFenceID);
-            log.Log("Retrieve ringfence", FLLogger.eLogMessageType.eInfo);
             RingFence rf = (from a in db.RingFences
                             where a.ID == ringFenceID
                             select a).First();
             RingFenceDAO dao = new RingFenceDAO();
-            log.Log("Call GetWarehouseAvailable()", FLLogger.eLogMessageType.eInfo);
             List<RingFenceDetail> stillAvailable = dao.GetWarehouseAvailable(rf);
-            log.Log("Call GetFuturePOs()", FLLogger.eLogMessageType.eInfo);
             stillAvailable.AddRange(dao.GetFuturePOs(rf));
-
-            log.Log("loop through returned mf data and combine the objects with existing details", FLLogger.eLogMessageType.eInfo);
             RingFenceDetail existing;
             foreach (RingFenceDetail det in stillAvailable)
             {
@@ -1578,11 +1565,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     det.RingFenceID = existing.RingFenceID;
                 }
             }
-            log.Log("Finished combining existing details with mf data", FLLogger.eLogMessageType.eInfo);
-            log.Log("Done processing.", FLLogger.eLogMessageType.eInfo);
-            finishTime = DateTime.Now;
-            totalDuration = (finishTime - startTime);
-            log.Log(string.Format("Total processing time: {0}", string.Format("{0}:{1}:{2}", totalDuration.Hours.ToString("D2"), totalDuration.Minutes.ToString("D2"), totalDuration.Seconds.ToString("D2"))), FLLogger.eLogMessageType.eInfo);
             return View(new GridModel(stillAvailable));
         }
 
