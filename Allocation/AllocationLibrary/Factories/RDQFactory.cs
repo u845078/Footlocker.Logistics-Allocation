@@ -105,9 +105,17 @@ namespace Footlocker.Logistics.Allocation.Factories
             {
                 _newObject.Category = Convert.ToString(dr["Category"]);
             }
-            _newObject.RecordType = Convert.ToInt32(dr["recordtype"]);
+            _newObject.RecordType = Convert.ToString(dr["recordtype"]);
             _newObject.DC = Convert.ToString(dr["DC"]);
-
+            
+            if (dr.Table.Columns.Contains("RDQRejectReasonCode"))
+            {
+                int reasonCode;
+                if (int.TryParse(dr["RDQRejectReasonCode"].ToString(), out reasonCode))
+                {
+                    _newObject.RDQRejectedReasonCode = reasonCode;
+                }
+            }
             return _newObject;
         }
 

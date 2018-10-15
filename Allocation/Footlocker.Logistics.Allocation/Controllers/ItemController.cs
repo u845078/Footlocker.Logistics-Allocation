@@ -868,10 +868,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             TroubleshootRDQForSkuModel model = new TroubleshootRDQForSkuModel();
             model.Sku = sku;
-            if ((sku != null)&&(sku != ""))
+            if ((sku != null) && (sku != ""))
             {
                 string div = sku.Substring(0, 2);
-                model.ControlDate = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == div select a.RunDate).FirstOrDefault();
+                model.ControlDate = (from a in db.ControlDates
+                                     join b in db.InstanceDivisions 
+                                       on a.InstanceID equals b.InstanceID
+                                     where b.Division == div
+                                     select a.RunDate).FirstOrDefault();
             }
             return View(model);
         }
@@ -897,7 +901,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RDQ> model;
 
             RDQDAO dao = new RDQDAO();
-            if ((sku != null)&&(sku != ""))
+            if ((sku != null) && (sku != ""))
             {
                 model = GetRDQExtractForSkuDate(sku, controldate);
             }
@@ -933,24 +937,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
 			Worksheet mySheet = excelDocument.Worksheets[0];
 			foreach (var rdq in items)
 			{
-				// rdq values
+                // rdq values
 
-				mySheet.Cells[row, 0].PutValue(rdq.Status);
-				mySheet.Cells[row, 1].PutValue(rdq.Division);
-				mySheet.Cells[row, 1].Style.HorizontalAlignment = TextAlignmentType.Center;
-				mySheet.Cells[row, 2].PutValue(rdq.Store);
-				mySheet.Cells[row, 3].PutValue(rdq.Sku);
-				mySheet.Cells[row, 4].PutValue(rdq.Size);
-				mySheet.Cells[row, 5].PutValue(rdq.Qty);
-				mySheet.Cells[row, 5].Style.HorizontalAlignment = TextAlignmentType.Center;
-				mySheet.Cells[row, 6].PutValue(rdq.UnitQty);
-				mySheet.Cells[row, 6].Style.HorizontalAlignment = TextAlignmentType.Center;
-				mySheet.Cells[row, 7].PutValue(rdq.DC);
-				mySheet.Cells[row, 8].PutValue(rdq.PO);
-				mySheet.Cells[row, 9].PutValue(rdq.RecordType);
-				mySheet.Cells[row, 9].Style.HorizontalAlignment = TextAlignmentType.Center;
+                mySheet.Cells[row, 0].PutValue(rdq.Sku);
+                mySheet.Cells[row, 1].PutValue(rdq.Division);
+                mySheet.Cells[row, 1].Style.HorizontalAlignment = TextAlignmentType.Center;
 
-				row++;
+                mySheet.Cells[row, 2].PutValue(rdq.Size);
+                mySheet.Cells[row, 3].PutValue(rdq.DestinationType);
+                mySheet.Cells[row, 4].PutValue(rdq.Type);
+                mySheet.Cells[row, 5].PutValue(rdq.Store);
+                mySheet.Cells[row, 6].PutValue(rdq.Status);
+                mySheet.Cells[row, 7].PutValue(rdq.DC);
+                mySheet.Cells[row, 8].PutValue(rdq.WarehouseName);
+                mySheet.Cells[row, 9].PutValue(rdq.PO);
+                mySheet.Cells[row, 10].PutValue(rdq.Qty);
+				mySheet.Cells[row, 10].Style.HorizontalAlignment = TextAlignmentType.Center;
+				mySheet.Cells[row, 11].PutValue(rdq.UnitQty);
+				mySheet.Cells[row, 11].Style.HorizontalAlignment = TextAlignmentType.Center;							
+				mySheet.Cells[row, 12].PutValue(rdq.RecordType);
+				mySheet.Cells[row, 12].Style.HorizontalAlignment = TextAlignmentType.Center;
+                mySheet.Cells[row, 13].PutValue(rdq.QuantumRecordType.RecordTypeDesc);
+                mySheet.Cells[row, 14].PutValue(rdq.RDQRejectedReason.Description);
+
+                row++;
 			}
 
 			for (int i = 0; i < 9; i++)
@@ -976,18 +986,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
 			mySheet.Cells[1, 3].Style.Font.Size = 12;
 			mySheet.Cells[1, 3].Style.Font.IsBold = true;
 
-			mySheet.Cells[3, 0].PutValue("Status");
-			mySheet.Cells[3, 1].PutValue("Division");
-			mySheet.Cells[3, 2].PutValue("Store");
-			mySheet.Cells[3, 3].PutValue("Sku");
-			mySheet.Cells[3, 4].PutValue("Size/Caselot");
-			mySheet.Cells[3, 5].PutValue("PickQty");
-			mySheet.Cells[3, 6].PutValue("UnitQty");
-			mySheet.Cells[3, 7].PutValue("DC");
-			mySheet.Cells[3, 8].PutValue("PO");
-			mySheet.Cells[3, 9].PutValue("RecordType");
+            mySheet.Cells[3, 0].PutValue("Sku");
+            mySheet.Cells[3, 1].PutValue("Division");
+            mySheet.Cells[3, 2].PutValue("Size/Caselot");
+            mySheet.Cells[3, 3].PutValue("Destination");
+            mySheet.Cells[3, 4].PutValue("Type");
+            mySheet.Cells[3, 5].PutValue("Store");
+            mySheet.Cells[3, 6].PutValue("Status");
+            mySheet.Cells[3, 7].PutValue("DC");
+            mySheet.Cells[3, 8].PutValue("Warehouse");
+            mySheet.Cells[3, 9].PutValue("PO");
+            mySheet.Cells[3, 10].PutValue("PickQty");
+			mySheet.Cells[3, 11].PutValue("UnitQty");					
+			mySheet.Cells[3, 12].PutValue("RecordType");
+            mySheet.Cells[3, 13].PutValue("RecordType Description");
+            mySheet.Cells[3, 14].PutValue("Rejected Reason");
 
-			return excelDocument;
+            for (int i = 0; i <= 14; i++)
+            {
+                mySheet.Cells[3, i].Style.Font.IsBold = true;
+                mySheet.Cells[3, i].Style.Font.Underline = FontUnderlineType.Single;
+            }
+
+            return excelDocument;
 		}
 
 		private List<RDQ> GetRDQExtractForSkuDate(string sku, DateTime? controldate)
@@ -996,6 +1017,31 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RDQDAO dao = new RDQDAO();
 
             List<RDQ> model = dao.GetRDQExtractForSkuDate(sku, Convert.ToDateTime(controldate));
+
+            if (model.Count() > 0)
+            {
+                List<QuantumRecordTypeCode> recordTypes = (from a in db.QuantumRecordTypes
+                                                           select a).ToList();
+                List<RDQRejectReasonCode> rejectReasons = (from b in db.RDQRejectReasons
+                                                           select b).ToList();
+
+                RDQRejectReasonCode notRejected = new RDQRejectReasonCode { Code = 0, Description = "" };
+
+                foreach (var dataRow in model)
+                {
+                    if (!string.IsNullOrEmpty(dataRow.RecordType))
+                    {
+                        dataRow.QuantumRecordType = recordTypes.Where(x => x.RecordTypeCode == dataRow.RecordType).FirstOrDefault();
+                    }
+
+                    if (dataRow.RDQRejectedReasonCode > 0)
+                    {
+                        dataRow.RDQRejectedReason = rejectReasons.Where(x => x.Code == dataRow.RDQRejectedReasonCode).FirstOrDefault();
+                    }
+                    else
+                        dataRow.RDQRejectedReason = notRejected;
+                }
+            }
 
             return model;
         }

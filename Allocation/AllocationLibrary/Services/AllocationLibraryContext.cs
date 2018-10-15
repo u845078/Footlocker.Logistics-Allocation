@@ -69,6 +69,7 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
         public DbSet<MinihubStore> MinihubStores { get; set; }
         public DbSet<CancelInventoryHoldsNextBatch> CancelInventoryHolds { get; set; }
+        public DbSet<QuantumRecordTypeCode> QuantumRecordTypes { get; set; }
 
         public DbSet<Vendors> Vendors { get; set; }
 
@@ -110,12 +111,29 @@ namespace Footlocker.Logistics.Allocation.Services
             modelBuilder.Entity<VendorGroupLeadTime>().HasRequired(o => o.Group).WithMany().HasForeignKey(c => c.VendorGroupID);
 
             modelBuilder.Entity<RDQ>().HasRequired(o => o.DistributionCenter).WithMany().HasForeignKey(c => c.DCID);
+            //modelBuilder.Entity<RDQ>().HasOptional(x => x.QuantumRecordType).WithMany().HasForeignKey(c => c.RecordType);
 
             modelBuilder.Entity<RingFence>().HasRequired(o => o.RingFenceType).WithMany().HasForeignKey(c => c.Type);
 
             modelBuilder.Entity<SizeAllocation>().Property(x => x.RangeFromDB).HasColumnName("Range");
 
             modelBuilder.Entity<SkuAttributeHeader>().HasMany(x => x.SkuAttributeDetails).WithRequired(y => y.header).HasForeignKey(z => z.HeaderID);
+            
+            modelBuilder.Entity<InventoryReductions>()
+                .Property(x => x.Sku)
+                .HasColumnType("VARCHAR");
+
+            modelBuilder.Entity<InventoryReductions>()
+                .Property(x => x.Size)
+                .HasColumnType("VARCHAR");
+
+            modelBuilder.Entity<InventoryReductions>()
+                .Property(x => x.MFCode)
+                .HasColumnType("VARCHAR");
+
+            modelBuilder.Entity<InventoryReductions>()
+                .Property(x => x.PO)
+                .HasColumnType("VARCHAR");
 
             modelBuilder.Entity<ValidStoreLookup>().Map(m =>
             {
