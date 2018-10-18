@@ -184,6 +184,7 @@
     {
         dataBinding.Ajax().Select("_BulkRDQs", "WebPick", new { instance = Model.Instance, div = Model.Division, department = Model.Department, category = Model.Category, sku = Model.Sku, status = Model.Status, po = Model.PO, store = Model.Store, ruleset = Model.RuleSetID }).Enabled(true);
     })
+    .ClientEvents(events => events.OnRowDataBound("onRowDataBound"))
     .Scrollable(scrolling => scrolling.Enabled(false))
     .Sortable(sorting => sorting.Enabled(true))
     .Pageable(paging => paging.Enabled(true))
@@ -246,6 +247,13 @@
 
         function saveChanges() {
             $('#RDQs').data('tGrid').submitChanges();
+        }
+
+        function onRowDataBound(e) {
+            var isHoldRel = e.dataItem.Status === 'HOLD-REL';
+            if (isHoldRel) {
+                e.row.style.color = "red";
+            }
         }
     </script>
 
