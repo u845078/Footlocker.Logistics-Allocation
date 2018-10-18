@@ -129,25 +129,12 @@
     }
     @Html.HiddenFor(model => model.BrandID)
 </div>
+<br />
 <div class="editor-field">
     @Html.LabelFor(model => model.WeightActive) 
-</div>
-<div class="editor-field">
-    <div class="slider-container">
-    Inactive
-        @(Html.Telerik().Slider<Int32>()
-              .Name("WeightActive")
-              .Min(0)
-              .Max(100)
-              .ShowButtons(false)
-              .SmallStep(1)
-              .LargeStep(10)
-              .Value(Model.WeightActive)
-              .ClientEvents(events => events
-            .OnLoad("onLoadSlider"))
-        )
-    Active
-    </div>
+    <br />
+    @Html.TextBoxFor(model => model.WeightActive, new { @type = "number", min = 1, max = 100, @style="width: 40px; margin-top: 5px;" })
+    <label>1 = Inactive, 100 = Active</label>
 </div>
 <br />
 @if (Model.Message != null)

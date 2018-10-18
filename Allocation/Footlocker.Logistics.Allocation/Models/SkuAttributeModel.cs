@@ -21,7 +21,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public DateTime? UpdateDate { get; set; }
         public List<SkuAttributeDetail> Attributes { get; set; }
         public string Message { get; set; }
-        [Display(Name="Weight for Active Skus")]
+        [Display(Name="Weight for Active Skus ( 1 - 100 )")]
         public Int32 WeightActive { get; set; }
     }
 }
