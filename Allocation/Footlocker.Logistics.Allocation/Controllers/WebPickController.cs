@@ -586,18 +586,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private void InitializeCreate(WebPickModel model)
         {
             model.Divisions = Divisions();
-            model.DCs = (from a in db.DistributionCenters where ((a.Type == "BOTH") || (a.Type == "BIN")) select a).ToList();
+            model.DCs = (from a in db.DistributionCenters
+                         where (a.Type == "BOTH" || 
+                                a.Type == "BIN")
+                         select a).ToList();
         }
 
         [HttpPost]
         public ActionResult Create(WebPickModel model)
         {
             string message = "";
-            //Boolean pickAnyway = model.AllowPickAnyway;
 
             int size = (from a in db.Sizes
-                        where ((a.Sku == model.RDQ.Sku) && 
-                              (a.Size == model.RDQ.Size))
+                        where (a.Sku == model.RDQ.Sku && 
+                               a.Size == model.RDQ.Size)
                         select a).Count();
 
             size += (from a in db.ItemPacks
@@ -617,14 +619,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-
-                //message = CreateRDQ(model.RDQ, ref pickAnyway);
                 message = CreateRDQ(model.RDQ, true);
-                //.Replace("(noringfence)", "<BR>If you would like to pick anyway, click &quot;Create&quot; again below.")
-                //.Replace("(ringfence)", "<BR>Since this item is ringfenced, you cannot pick it.")
-                //;
 
-                //model.AllowPickAnyway = pickAnyway;
                 if (message == "")
                 {
                     //call to apply holds
@@ -669,11 +665,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             string message = "";
             if (TryUpdateModel(rdq, "RDQ"))
             {
-                //if (!(pickAnyway))
-                //{
-                //message = AdditionalValidations(rdq, ref pickAnyway);
                 message = AdditionalValidations(rdq, validateInventory);
-                //}
+
                 if (message == "")
                 {
                     rdq.CreateDate = DateTime.Now;
@@ -709,7 +702,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return message;
         }
 
-        //private Int32 InventoryAvailableToPick(RDQ rdq, ref Boolean pickAnyway)
         private Int32 InventoryAvailableToPick(RDQ rdq)
         {
             //find maximum qty
@@ -730,11 +722,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <param name="rdq">information for pick</param>
         /// <param name="pickAnyway">returns true if no RDQs (inventory is allowed to go negative), false means there are rdqs (inventory is not allowed to go negative)</param>
         /// <returns></returns>
-        //public string AdditionalValidations(RDQ rdq, ref Boolean pickAnyway)
         public string AdditionalValidations(RDQ rdq, bool validateInventory)
         {
             string message = "";
-            //Int32 qtyAvailable = InventoryAvailableToPick(rdq, ref pickAnyway);
             
             if (rdq.Division != rdq.Sku.Substring(0, 2))
             {
@@ -742,12 +732,28 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                if ((from a in db.vValidStores
-                     where ((a.Division == rdq.Division) &&
-                            (a.Store == rdq.Store))
-                     select a).Count() == 0)
+                if (rdq.Store.Length == 5)
                 {
-                    message = rdq.Division + "-" + rdq.Store + " is not a valid store.";
+                    if ((from a in db.vValidStores
+                         where ((a.Division == rdq.Division) &&
+                                (a.Store == rdq.Store))
+                         select a).Count() == 0)
+                    {
+                        message = rdq.Division + "-" + rdq.Store + " is not a valid store.";
+                    }
+                }
+                else if (rdq.Store.Length == 2)
+                {
+                    if ((from d in db.DistributionCenters
+                         where d.MFCode == rdq.Store
+                         select d).Count() == 0)
+                    {
+                        message = rdq.Store + " is not a valid warehouse code.";
+                    }
+                }
+                else
+                {
+                    message = rdq.Store + " is not a valid store or warehouse code.";
                 }
             }
 
@@ -759,14 +765,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     if (qtyAvailable < rdq.Qty)
                     {
                         message = "Not enough inventory.  Amount available (for size) is " + qtyAvailable;
-                        //if (pickAnyway)
-                        //{
-                        //    message = message + "(noringfence)";
-                        //}
-                        //else
-                        //{
-                        //    message = message + "(ringfence)";
-                        //}
                     }
                 }
             }

@@ -64,6 +64,7 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [Required]
         [RegularExpression(@"^(\d{2}|\d{5})$", ErrorMessage = "Store number must be in the format ##### or ## for warehouses")]
+        [Display(Name ="Store or Warehouse Code")]
         public String Store { get; set; }
 
         [ForeignKey("DistributionCenter")]
