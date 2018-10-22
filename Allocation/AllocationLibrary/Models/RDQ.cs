@@ -63,7 +63,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public String Division { get; set; }
 
         [Required]
-        [RegularExpression(@"^\d{5}$", ErrorMessage = "Store number must be in the format #####")]
+        [RegularExpression(@"^(\d{2}|\d{5})$", ErrorMessage = "Store number must be in the format ##### or ## for warehouses")]
         public String Store { get; set; }
 
         [ForeignKey("DistributionCenter")]
