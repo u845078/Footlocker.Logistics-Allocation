@@ -204,7 +204,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult EditStoreAttribute(CreateStoreAttributeModel model)
         {
+            FamilyOfBusinessDAO fobDAO = new FamilyOfBusinessDAO();
+            var message = ValidateStoreAttribute(model.StoreAttribute);
+            if (message != null)
+            {
+                ViewData["message"] = message;
+                model.Divisions = this.Divisions();
+                model.FOBs = fobDAO.GetFOBs("");
+                return View(model);
 
+            }
             model.StoreAttribute.CreateDate = DateTime.Now;
             model.StoreAttribute.CreatedBy = User.Identity.Name;
             db.Entry(model.StoreAttribute).State = System.Data.EntityState.Modified;
@@ -334,7 +343,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                             where esa.Division.Equals(sa.Division) &&
                                                                     esa.Store.Equals(sa.Store) &&
                                                                     esa.LikeStore.Equals(sa.LikeStore) &&
-                                                                    esa.Level.Equals(sa.Level)
+                                                                    esa.Level.Equals(sa.Level) &&
+                                                                    !esa.ID.Equals(sa.ID)
                                                             select esa).ToList();
             if (existingStoreAttributes.Count() > 0)
             {
@@ -356,33 +366,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 , intersectingAttr.Level
                                 , valueDescription);
                         }
-                        else
-                        {
-                            existingErrorMessage = string.Format(
-                                "Already have an existing attribute with like store \"{0}\", level \"{1}\", and value \"{2}\"."
-                                , sa.LikeStore
-                                , sa.Level
-                                , valueDescription);
-                        }
                     }
                 }
                 // Level 'All' will have a NULL value, therefore no need to compare the values of the attributes
-                else if (sa.Level.Equals("All"))
+                else if (sa.Level.Equals("All") && intersectingAttr != null)
                 {
-                    if (intersectingAttr != null)
-                    {
-                        existingErrorMessage = string.Format(
-                            "Already have an existing attribute with like store \"{0}\", and level \"{1}\" that intersects with the provided date range."
-                            , sa.LikeStore
-                            , sa.Level);
-                    }
-                    else
-                    {
-                        existingErrorMessage = string.Format(
-                            "Already have an existing attribute for like store \"{0}\", and level \"{1}\"."
-                            , sa.LikeStore
-                            , sa.Level);
-                    }
+                    existingErrorMessage = string.Format(
+                        "Already have an existing attribute with like store \"{0}\", and level \"{1}\" that intersects with the provided date range."
+                        , sa.LikeStore
+                        , sa.Level);
                 }
 
                 if (existingErrorMessage != "")
@@ -412,7 +404,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             // a[ b[  a] b]
-            if (existingAttr.StartDate <= newAttr.StartDate && existingAttr.EndDate <= newAttr.EndDate)
+            if (existingAttr.StartDate <= newAttr.StartDate && existingAttr.EndDate <= newAttr.EndDate && existingAttr.EndDate >= newAttr.StartDate)
             {
                 return true;
             }
