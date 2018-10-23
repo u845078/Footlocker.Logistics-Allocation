@@ -1370,7 +1370,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 r.CreatedBy = User.Identity.Name;
                 r.CreateDate = DateTime.Now;
-                r.PO = "N/A";
+                r.PO = "";
                 r.DestinationType = "WAREHOUSE";
                 r.Type = "user";
                 r.ItemID = uniqueItemMaster.Where(uim => uim.Sku.Equals(r.Sku)).Select(uim => uim.ItemID).FirstOrDefault();
@@ -1885,6 +1885,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             mySheet.Cells[0, col].PutValue("Store (#####)");
             mySheet.Cells[0, col].Style.Font.IsBold = true;
             col++;
+            mySheet.Cells[0, col].PutValue("Warehouse (##)");
+            mySheet.Cells[0, col].Style.Font.IsBold = true;
+            col++;
             mySheet.Cells[0, col].PutValue("SKU (##-##-#####-##)");
             mySheet.Cells[0, col].Style.Font.IsBold = true;
             col++;
@@ -1914,7 +1917,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 foreach (RDQ rdq in errors)
                 {
                     col = 0;
-                    mySheet.Cells[row, col].PutValue(rdq.Store);
+                    if (rdq.Store.Length == 5)
+                        mySheet.Cells[row, col].PutValue(rdq.Store);
+                    else
+                        mySheet.Cells[row, col].PutValue("");
+
+                    if (rdq.Store.Length == 2)
+                        mySheet.Cells[row, col].PutValue(rdq.Store);
+                    else
+                        mySheet.Cells[row, col].PutValue("");
+
                     col++;
                     mySheet.Cells[row, col].PutValue(rdq.Sku);
                     col++;
