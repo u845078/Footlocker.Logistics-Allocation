@@ -25,8 +25,32 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Index(string message)
         {
             List<Division> divs = Divisions();
-            List<RDQ> list = (from a in db.RDQs where a.Type == "user" select a).ToList();
-            list = (from a in list join b in divs on a.Division equals b.DivCode select a).ToList();
+            List<RDQ> list = (from a in db.RDQs
+                              where a.Type == "user"
+                              select a).ToList();
+            list = (from a in list
+                    join b in divs 
+                      on a.Division equals b.DivCode
+                    select a).ToList();
+
+            if (list.Count > 0)
+            {
+                List<string> uniqueNames = (from l in list
+                                            where l.CreatedBy.Contains("CORP")
+                                            select l.CreatedBy).Distinct().ToList();
+                Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+
+                foreach (var item in uniqueNames)
+                {
+                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                }
+
+                foreach (var item in fullNamePairs)
+                {
+                    list.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+                }
+            }
+
             ViewData["message"] = message;
 
             return View(list);
@@ -671,7 +695,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     rdq.CreateDate = DateTime.Now;
                     rdq.CreatedBy = User.Identity.Name;
-                    rdq.PO = "N/A";
+                    rdq.PO = "";
                     rdq.DestinationType = "WAREHOUSE";
                     rdq.Type = "user";
                     try
@@ -801,21 +825,33 @@ namespace Footlocker.Logistics.Allocation.Controllers
                    mySheet.Cells[row, 2].Value != null ||
                    mySheet.Cells[row, 3].Value != null ||
                    mySheet.Cells[row, 4].Value != null ||
-                   mySheet.Cells[row, 5].Value != null;
+                   mySheet.Cells[row, 5].Value != null ||
+                   mySheet.Cells[row, 6].Value != null;
         }
 
         private void ValidateParsedRDQs(List<RDQ> parsedRDQs, List<RDQ> validRDQs, List<Tuple<RDQ, string>> errorList)
         {
             // 1) division/store combination is valid
-            var uniqueDivStoreList = parsedRDQs.Select(pr => new { pr.Division, pr.Store }).Distinct().ToList();
+            var uniqueDivStoreList = parsedRDQs 
+                .Where(pr => pr.Store.Length == 5)
+                .Select(pr => new { pr.Division, pr.Store }).Distinct().ToList();
             var invalidDivStoreList = uniqueDivStoreList.Where(ds => !db.vValidStores.Any(vs => vs.Store.Equals(ds.Store) && vs.Division.Equals(ds.Division))).ToList();
+
+            var uniqueDestWarehouseList = parsedRDQs
+                .Where(pr => pr.Store.Length == 2)
+                .Select(pr => new { pr.Store }).Distinct().ToList();
+
+            var invalidWarehouseList = uniqueDestWarehouseList.Where(dw => !db.DistributionCenters.Any(dc => dc.MFCode.Equals(dw.Store))).ToList();
+
             //var invalidDivStoreCombo = parsedRDQs.Where(pr => !db.vValidStores.Any(vs => vs.Division.Equals(pr.Division) && vs.Store.Equals(pr.Store))).ToList();
             parsedRDQs.Where(pr => invalidDivStoreList.Contains(new { pr.Division, pr.Store }))
                       .ToList()
                       .ForEach(r => SetErrorMessageNew(errorList, r
                           , string.Format("The division and store combination {0}-{1} is not an existing or valid combination.", r.Division, r.Store)));
 
-
+            parsedRDQs.Where(pr => invalidWarehouseList.Contains(new { pr.Store }))
+                      .ToList()
+                      .ForEach(r => SetErrorMessageNew(errorList, r, string.Format("The warehouse {0} does not exist.", r.Store)));
 
             // 2) quantity is greater than zero
             parsedRDQs.Where(pr => pr.Qty <= 0)
@@ -1016,17 +1052,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             RDQ returnValue = new RDQ();
 
-            returnValue.Sku = Convert.ToString(mySheet.Cells[row, 1].Value).Trim();
+            returnValue.Sku = Convert.ToString(mySheet.Cells[row, 2].Value).Trim();
+
             if (!string.IsNullOrEmpty(returnValue.Sku))
             {
                 returnValue.Division = returnValue.Sku.Substring(0, 2);
             }
-            returnValue.Store = Convert.ToString(mySheet.Cells[row, 0].Value).Trim().PadLeft(5, '0');
-            returnValue.Size = Convert.ToString(mySheet.Cells[row, 2].Value).Trim();
-            returnValue.Qty = Convert.ToInt32(mySheet.Cells[row, 3].Value);
-            returnValue.DC = Convert.ToString(mySheet.Cells[row, 4].Value).Trim();
+
+            if (!string.IsNullOrEmpty(Convert.ToString(mySheet.Cells[row, 0].Value).Trim()))
+                returnValue.Store = Convert.ToString(mySheet.Cells[row, 0].Value).Trim().PadLeft(5, '0');
+            else
+            {
+                if (!string.IsNullOrEmpty(Convert.ToString(mySheet.Cells[row, 1].Value).Trim()))
+                    returnValue.Store = Convert.ToString(mySheet.Cells[row, 1].Value).Trim().PadLeft(2, '0');
+            }
+
+            returnValue.Size = Convert.ToString(mySheet.Cells[row, 3].Value).Trim();
+            returnValue.Qty = Convert.ToInt32(mySheet.Cells[row, 4].Value);
+            returnValue.DC = Convert.ToString(mySheet.Cells[row, 5].Value).Trim();
             returnValue.DC = (string.IsNullOrEmpty(returnValue.DC)) ? "" : returnValue.DC.PadLeft(2, '0');
-            returnValue.RingFencePickStore = Convert.ToString(mySheet.Cells[row, 5].Value).Trim();
+            returnValue.RingFencePickStore = Convert.ToString(mySheet.Cells[row, 6].Value).Trim();
             returnValue.RingFencePickStore = (string.IsNullOrEmpty(returnValue.RingFencePickStore)) ? "" : returnValue.RingFencePickStore.PadLeft(5, '0');
 
             returnValue.Status = "WEB PICK";
@@ -1165,11 +1210,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             return
                 (Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Store")) &&
-                (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("SKU")) &&
-                (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Size")) &&
-                (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Quantity")) &&
-                (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Pick from DC")) &&
-                (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Ring Fence Store"));
+                (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Warehouse")) &&
+                (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("SKU")) &&
+                (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Size")) &&
+                (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Quantity")) &&
+                (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Pick from DC")) &&
+                (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Ring Fence Store"));
         }
 
         public ActionResult SaveOptimized(IEnumerable<HttpPostedFileBase> attachments)
