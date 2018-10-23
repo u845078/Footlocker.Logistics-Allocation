@@ -415,6 +415,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return true;
             }
 
+            // b[ a[  a] b]
+            if (existingAttr.StartDate >= newAttr.StartDate && existingAttr.EndDate <= newAttr.EndDate)
+            {
+                return true;
+            }
+
             // b[ a[  a] --->b] (b's enddate is null) OR
             // a[ b[  a] --->b] (b's enddate is null)
             if (existingAttr.EndDate >= newAttr.StartDate && newAttr.EndDate == null)
