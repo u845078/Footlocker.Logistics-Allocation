@@ -1429,6 +1429,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 mySheet.Cells[0, col].PutValue("Store (#####)");
                 mySheet.Cells[0, col].Style.Font.IsBold = true;
                 col++;
+                mySheet.Cells[0, col].PutValue("Warehouse (##)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
                 mySheet.Cells[0, col].PutValue("SKU (##-##-#####-##)");
                 mySheet.Cells[0, col].Style.Font.IsBold = true;
                 col++;
@@ -1453,7 +1456,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     foreach (var error in errorList)
                     {
                         col = 0;
-                        mySheet.Cells[row, col].PutValue(error.Item1.Store);
+                        if (error.Item1.Store.Length == 5)
+                            mySheet.Cells[row, col].PutValue(error.Item1.Store);
+                        else
+                            mySheet.Cells[row, col].PutValue("");
+
+                        if (error.Item1.Store.Length == 2)
+                            mySheet.Cells[row, col].PutValue(error.Item1.Store);
+                        else
+                            mySheet.Cells[row, col].PutValue("");
+
+                        //mySheet.Cells[row, col].PutValue(error.Item1.Store);
                         col++;
                         mySheet.Cells[row, col].PutValue(error.Item1.Sku);
                         col++;
