@@ -19,8 +19,8 @@
         .Columns(columns =>
         {
             columns.Bound(o => o.Division);
-            columns.Bound(o => o.Store);
-            columns.Bound(o => o.Sku).Width(200);
+            columns.Bound(o => o.Store).Width(200);
+            columns.Bound(o => o.Sku);
             columns.Bound(o => o.Size);
             columns.Bound(o => o.Qty);
             columns.Bound(o => o.DistributionCenter.Name).Title("DC");
@@ -42,7 +42,7 @@
                 .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
                 .Ajax(false)
                 .Action("Delete", "WebPick").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
-            }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
+            }).HtmlAttributes(new { style = "text-align: left" });
         })
             .DataBinding(dataBinding =>
             {
