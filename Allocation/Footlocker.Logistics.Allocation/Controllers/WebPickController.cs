@@ -1461,6 +1461,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         else
                             mySheet.Cells[row, col].PutValue("");
 
+                        col++;
+
                         if (error.Item1.Store.Length == 2)
                             mySheet.Cells[row, col].PutValue(error.Item1.Store);
                         else
