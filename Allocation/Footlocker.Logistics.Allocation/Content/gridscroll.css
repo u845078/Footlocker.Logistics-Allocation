@@ -1,7 +1,6 @@
 ﻿.scrollablearea { 
-    width: 675px; 
     overflow-x:scroll;  
-    margin-left:450px; 
+    margin-left:440px; 
     overflow-y:visible;
     padding-bottom:1px;
 }
@@ -61,7 +60,7 @@
 }*/        
 .headcol5 {
     position:absolute; 
-    width:55px; 
+    width:45px; 
     left:0;
     top:auto;
     border-right: 0px none black; 

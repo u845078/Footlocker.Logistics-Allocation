@@ -7,9 +7,9 @@
 <h2>Quantum Feed for @Html.DisplayFor(m => Model.Sku)</h2>
 
 <p>
-    @Html.ActionLink("Download", "ShowQFeedTextFast", new { planid = ViewData["planID"] }, new { @class = "t-button" })    
+    @Html.ActionLink("Download", "ShowQFeedTextFast", new { planid = Model.RangePlan.Id }, new { @class = "t-button" })    
     @Html.ActionLink("Troubleshoot","Troubleshoot","Item",new {sku = Model.Sku}, new {@class="t-button"})
-    @Html.ActionLink("Show RDQ Issues", "ShowRDQIssues", new { planid = ViewData["planID"] }, new { @class = "t-button" })
+    @Html.ActionLink("Show RDQ Issues", "ShowRDQIssues", new { planid = Model.RangePlan.Id }, new { @class = "t-button" })
 </p>
 
 @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RangeFileItem>()
@@ -37,7 +37,7 @@
         })
         .DataBinding(dataBinding =>
         {
-            dataBinding.Ajax().Select("_ShowQFeed", "SkuRange", new { planID = ViewData["planID"] });
+            dataBinding.Ajax().Select("_ShowQFeed", "SkuRange", new { planID = Model.RangePlan.Id });
         })
         .Scrollable(scrolling => scrolling.Enabled(false))
         .Sortable(sorting => sorting.Enabled(true))
@@ -55,6 +55,5 @@
 </font>
 
 <p>
-    @Html.ActionLink("Back to Details", "PresentationQuantities", new { planid = ViewData["planID"] }, new { @class = "t-button" })
-    @Html.ActionLink("Reset Cache", "ResetQFeed", new { planid = ViewData["planID"] }, new { @class = "t-button" })
+    @Html.ActionLink("Back to Details", "PresentationQuantities", new { planid = Model.RangePlan.Id }, new { @class = "t-button" })
 </p>

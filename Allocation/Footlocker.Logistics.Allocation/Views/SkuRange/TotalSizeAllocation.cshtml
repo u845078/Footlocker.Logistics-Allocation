@@ -34,7 +34,6 @@
             //name like [0].Min, but exclude det[0].Min and [0].MinEndDate
             //[0].MinInit, det[0].MinInit and [0].MinEndDate all have 't' in them
             $("input[name*='].Min']:not([name*='t']").blur(GetMinTotals);
-
             GetMinTotals();
         }
     );
@@ -62,154 +61,149 @@
 else
 {
 
-using (Html.BeginForm("SaveTotalSizeAllocation", "SkuRange", FormMethod.Post))
-{
-   <fieldset>
-       <legend>Update all filtered stores</legend>
-@Html.HiddenFor(m => Model.First().StartDate)
-<span title = "Last day of learning">End:</span>
-                    @(Html.Telerik().DatePicker()
-                            .Name("[0].EndDate")
-                            .HtmlAttributes(new { id = "DatePicker_wrapper", title = "Last day of allocation" })
-                            .Value(Model.First().EndDate)
-                    )
-<input id="[0].RangeType" name="[0].RangeType" type="hidden" value="N/A">
-@if (Model.First().ModifiedDates)
-{
-    @Html.Raw("*** Dates are currently not the same for all stores.<br>")
-}
-else
-{ 
-    @Html.Raw("<br>")
-}
-<!--span>ALR/OP<span-->
-
-@*@Html.Raw("<select id='totalRangeType' onchange='updateRangeType(this)'><option>N/A</option><option>ALR</option><option>OP</option><option>Both</option></select>")*@    
-
-<div class="t-widget t-grid">
-<table cellpadding=0 cellspacing=0>
-    <thead class="t-grid-header">
-    <tr>
-        <th class='t-header'></th>
-    @{
-string prevStore = "";
-string prevDiv = "";
-if (Model.Count() > 0)
-{
-    prevStore = Model.First().Store;
-    prevDiv = Model.First().Division;
-}
-Boolean alternate = false;
-foreach (var item in Model)
-{
-            @Html.Raw("<th class='t-header'>")
-                @Html.Raw(item.Size)
-            @Html.Raw("</th>")        
-}
-    }
-    </tr>
-    </thead>
-
-@{
-prevStore = "FIRST";
-prevDiv = "FIRST";
-alternate = false;
-int count = 0;
-foreach (var item in Model)
-{
-    if (!((prevDiv.Equals(item.Division)) && (prevStore.Equals(item.Store))))
+    using (Html.BeginForm("SaveTotalSizeAllocation", "SkuRange", FormMethod.Post))
     {
-        if (!(prevDiv.Equals("FIRST")))
-        {
-                @Html.Raw("</tr>");
-        }
-        prevDiv = item.Division;
-        prevStore = item.Store;
-        if (alternate)
-        {
-                @Html.Raw("<tr class = 't-alt'>")
-        }
-        else
-        {
-                @Html.Raw("<tr>")
-        }
-        alternate = !alternate;
-                @Html.Raw("<td style=\"white-space: nowrap;\">")
-                    @Html.HiddenFor(modelItem => item.PlanID, new { id = "[" + count + "].PlanID" })
-                    @Html.HiddenFor(modelItem => item.Division, new { id = "[" + count + "].Division" })
-                    @Html.HiddenFor(modelItem => item.Store, new { id = "[" + count + "].Store" })
-                    @Html.HiddenFor(modelItem => item.Size, new { id = "[" + count + "].Size" })
-                @Html.Raw("Range<br>Min Target&nbsp;(<span id='MinTotal' class='total'>0</span>)<br />Max Target<br>Base Demand<br>Min End Override<br>&nbsp;&nbsp;&nbsp;</td>")
-    }
-        @Html.Raw("<td padding=\"0px\">")
-@*            @Html.DisplayFor(modelItem => item.Size)
-            @Html.Raw("<br>")*@
-        @Html.Raw("<input name=\"[" + count + "].PlanID\" type=\"hidden\" value=\"" + item.PlanID + "\"/>")
-        @Html.Raw("<input name=\"[" + count + "].Size\" type=\"hidden\" value=\"" + item.Size + "\"/>")
-        @Html.Raw("<span name=\"[" + count + "].checkbox\" >")
-        @Html.CheckBox("[" + count + "].Range", item.Range, new { onChange = "checkForChangeCheckBox(\"[" + count + "].checkbox\");"})
-        @Html.Raw("</span>")
-        @Html.Raw("<br><input name=\"[" + count + "].Min\" type=\"text\" value=\"" + item.Min + "\" style = \"Width:28px\" onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" />")
-        @Html.Raw("<input name=\"[" + count + "].MinInit\" type=\"hidden\" value=\"" + item.Min + "\" />")
-    //@Html.TextBoxFor(modelItem => item.Min, new { style = "Width:20px", id = "[" + count + "].Min" })
-        @Html.Raw("<br>")
-        @Html.Raw("<input name=\"[" + count + "].Max\" type=\"text\" value=\"" + item.Max + "\" style = \"Width:28px\"/ onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" >")
-        @Html.Raw("<input name=\"[" + count + "].MaxInit\" type=\"hidden\" value=\"" + item.Max + "\" />")
-    //@Html.TextBoxFor(modelItem => item.Max, new { style = "Width:20px", id = "[" + count + "].Max" })
-        @Html.Raw("<br>")
-        @Html.Raw("<input class=\"initdemand\" name=\"[" + count + "].InitialDemand\" type=\"text\" value=\"" + item.InitialDemand + "\" style = \"Width:40px\"/ onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" >")
-        @Html.Raw("<input name=\"[" + count + "].InitialDemandInit\" type=\"hidden\" value=\"" + item.InitialDemand + "\" />")
-        @Html.Raw("<br>")
+       <fieldset>
+           <legend>Update all filtered stores</legend>
+            <div style="margin-bottom: 5px;">
+                @Html.HiddenFor(m => Model.First().StartDate)
+                <span title="Last day of learning">End:</span>
+                @(Html.Telerik().DatePicker()
+                                .Name("[0].EndDate")
+                                .HtmlAttributes(new { id = "DatePicker_wrapper", title = "Last day of allocation" })
+                                .Value(Model.First().EndDate)
+                )
+                <input id="[0].RangeType" name="[0].RangeType" type="hidden" value="N/A">
+                @if (Model.First().ModifiedDates)
+                {
+                    @Html.Raw("*** Dates are currently not the same for all stores.<br>")
+                }
+                else
+                {
+                    @Html.Raw("<br>")
+                }
+            </div>
+            <div class="t-widget t-grid">
+                <table cellpadding=0 cellspacing=0>
+                    <thead class="t-grid-header">
+                        <tr>
+                            <th class='t-header'></th>
+                            @{
+                                string prevStore = "";
+                                string prevDiv = "";
+                                if (Model.Count() > 0)
+                                {
+                                    prevStore = Model.First().Store;
+                                    prevDiv = Model.First().Division;
+                                }
+                                Boolean alternate = false;
+                                foreach (var item in Model)
+                                {
+                                            @Html.Raw("<th class='t-header'>")
+                                                @Html.Raw(item.Size)
+                                            @Html.Raw("</th>")        
+                                }
+                            }
+                        </tr>
+                    </thead>
+                    @{
+                        prevStore = "FIRST";
+                        prevDiv = "FIRST";
+                        alternate = false;
+                        int count = 0;
+                        foreach (var item in Model)
+                        {
+                            if (!((prevDiv.Equals(item.Division)) && (prevStore.Equals(item.Store))))
+                            {
+                                if (!(prevDiv.Equals("FIRST")))
+                                {
+                                    @Html.Raw("</tr>");
+                                }
+                                prevDiv = item.Division;
+                                prevStore = item.Store;
+                                if (alternate)
+                                {
+                                    @Html.Raw("<tr class = 't-alt'>")
+                                }
+                                else
+                                {
+                                    @Html.Raw("<tr>")
+                                }
+                                alternate = !alternate;
+                                @Html.Raw("<td style=\"white-space: nowrap;\">")
+                                @Html.HiddenFor(modelItem => item.PlanID, new { id = "[" + count + "].PlanID" })
+                                @Html.HiddenFor(modelItem => item.Division, new { id = "[" + count + "].Division" })
+                                @Html.HiddenFor(modelItem => item.Store, new { id = "[" + count + "].Store" })
+                                @Html.HiddenFor(modelItem => item.Size, new { id = "[" + count + "].Size" })
+                                @Html.Raw("Range<br>Min Target&nbsp;(<span id='MinTotal' class='total'>0</span>)<br />Max Target<br>Base Demand<br>Min End Override<br>&nbsp;&nbsp;&nbsp;</td>")
+                            }
 
-        @(Html.Telerik().DatePicker()
-                                    .Name("[" + count + "].MinEndDate")
-                                    .HtmlAttributes(new { style="width:90px", id = "DatePicker_wrapper", title = "Override of delivery group min end date" })
-                                    .Value(item.MinEndDate).Enable(true).Format("MM/dd/yyyy").ClientEvents(events => events.OnChange("onChangeDatePicker"))
-        )
-        @Html.Raw("<input name=\"[" + count + "].MinEndDateInit\" type=\"hidden\" value=\"" + String.Format("{0:MM/dd/yy}", item.MinEndDate) + "\" />")
+                            @Html.Raw("<td padding=\"0px\">")
+                            @Html.Raw("<input name=\"[" + count + "].PlanID\" type=\"hidden\" value=\"" + item.PlanID + "\"/>")
+                            @Html.Raw("<input name=\"[" + count + "].Size\" type=\"hidden\" value=\"" + item.Size + "\"/>")
+                            @Html.Raw("<span name=\"[" + count + "].checkbox\" >")
+                            @Html.CheckBox("[" + count + "].Range", item.Range, new { onChange = "checkForChangeCheckBox(\"[" + count + "].checkbox\");"})
+                            @Html.Raw("</span>")
+                            @Html.Raw("<br><input name=\"[" + count + "].Min\" type=\"text\" value=\"" + item.Min + "\" style = \"Width:28px\" onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" />")
+                            @Html.Raw("<input name=\"[" + count + "].MinInit\" type=\"hidden\" value=\"" + item.Min + "\" />")
+                            //@Html.TextBoxFor(modelItem => item.Min, new { style = "Width:20px", id = "[" + count + "].Min" })
+                            @Html.Raw("<br>")
+                            @Html.Raw("<input name=\"[" + count + "].Max\" type=\"text\" value=\"" + item.Max + "\" style = \"Width:28px\"/ onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" >")
+                            @Html.Raw("<input name=\"[" + count + "].MaxInit\" type=\"hidden\" value=\"" + item.Max + "\" />")
+                            //@Html.TextBoxFor(modelItem => item.Max, new { style = "Width:20px", id = "[" + count + "].Max" })
+                            @Html.Raw("<br>")
+                            @Html.Raw("<input class=\"initdemand\" name=\"[" + count + "].InitialDemand\" type=\"text\" value=\"" + item.InitialDemand + "\" style = \"Width:40px\"/ onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" >")
+                            @Html.Raw("<input name=\"[" + count + "].InitialDemandInit\" type=\"hidden\" value=\"" + item.InitialDemand + "\" />")
+                            @Html.Raw("<br>")
+    
+                            @(Html.Telerik().DatePicker()
+                                  .Name("[" + count + "].MinEndDate")
+                                  .HtmlAttributes(new { style="width:90px", id = "DatePicker_wrapper", title = "Override of delivery group min end date" })
+                                  .Value(item.MinEndDate).Enable(true).Format("MM/dd/yyyy").ClientEvents(events => events.OnChange("onChangeDatePicker"))
+                             )
+                            @Html.Raw("<input name=\"[" + count + "].MinEndDateInit\" type=\"hidden\" value=\"" + String.Format("{0:MM/dd/yy}", item.MinEndDate) + "\" />")
 
+                            if (!(item.ModifiedStore))
+                            {
+                                @Html.Raw("<br>&nbsp;")
+                                @Html.Raw("&nbsp;")
+                                @Html.Raw("&nbsp;")
+                            }
+                            else
+                            {
+                                    @Html.Raw("<br>***")
+                            }
+                            count++;
+                            @Html.Raw("</td>")        
+                        }
 
-    if (!(item.ModifiedStore))
-    {
-            @Html.Raw("<br>&nbsp;")
-            @Html.Raw("&nbsp;")
-            @Html.Raw("&nbsp;")
+                        if (!(prevDiv.Equals("FIRST")))
+                        {
+                            @Html.Raw("</tr>");
+                        }
+                    }
+                </table>
+            </div>
+            <br />
+
+            <input type="submit" value="Apply to filtered stores" style="width:225px;" class="t-button"/>
+            @Html.Raw("<br>*** - indicates values are currently not the same for all filtered stores.")
+        </fieldset>
     }
-    else
-    {
-            @Html.Raw("<br>***")
-    }
-    count++;
-    //@Html.TextBoxFor(modelItem => item.Days, new { style = "Width:20px", id = "[" + count + "].Days" })
-        @Html.Raw("</td>")        
-}
-if (!(prevDiv.Equals("FIRST")))
-{
-        @Html.Raw("</tr>");
-}
-}
-</table>
-</div>
-<br />
-<input type="submit" value="Apply to filtered stores" style="width:225px;" class="t-button"/>
-@Html.Raw("<br>*** - indicates values are currently not the same for all filtered stores.")
-</fieldset>
-}
 }
 
 
 @if (ViewData["LifeCycle"] != null)
 { 
-<script type="text/javascript">
-var ts_days = @ViewData["LifeCycle"];
-</script>
+    <script type="text/javascript">
+        var ts_days = @ViewData["LifeCycle"];
+    </script>
 }
 else
 { 
-<script type="text/javascript">
-    var ts_days = 365;
-</script>
-
+    <script type="text/javascript">
+        var ts_days = 365;
+    </script>
 }
 
 <script type="text/javascript">
@@ -244,5 +238,4 @@ else
     function () {
         $('#DatePicker_wrapper').tooltip();
     }
-    </script>
-
+</script>
