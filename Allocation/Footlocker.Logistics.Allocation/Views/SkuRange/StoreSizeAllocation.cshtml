@@ -3,6 +3,8 @@
 <link rel="stylesheet" type="text/css" href="../../Content/gridscroll.css" />
 <![endif]-->
 
+<link rel="stylesheet" type="text/css" href="../../Content/gridscroll.css" />
+
 <style>
     .total 
     {
@@ -17,13 +19,8 @@
 
 </style>
 
-
 @if (Model.Count() > 0)
 {
-    if ((@ViewData["Chrome"] != null) && (@ViewData["Chrome"] != ""))
-    {
-    <link rel="stylesheet" type="text/css" href="../../Content/gridscroll.css" />
-    }
 <script>
     function disableFLPage() {
         $('StoreSizeAllocationDiv').hide();
@@ -189,7 +186,7 @@
 <div id="StoreSizeAllocationDiv">
 @using (Html.BeginForm("SaveStoreSizeAllocation", "SkuRange", FormMethod.Post))
 {
-    <fieldset style="max-width: 1750px; min-width: 1230px;">
+    <fieldset style="max-width: 1750px; min-width: 1195px;">
         <legend>Update Individual Stores</legend>
         <b>Show: </b>
         <script>
@@ -537,12 +534,6 @@
 }
 </div>
 }
-
-<script type="text/javascript">
-    function () {
-        $('#DatePicker_wrapper').tooltip();
-    }
-</script>
 
 @if (ViewData["LifeCycle"] != null)
 { 

@@ -1337,11 +1337,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("PresentationQuantities", new { planID = planID});
         }
 
-        public ActionResult ClearCache(Int64 planID)
-        {
-            return RedirectToAction("PresentationQuantities", new {planID = planID});
-        }
-
         public ActionResult PresentationQuantities(Int64 planID, string message, string page, string show)
         {
             SkuSetupModel model = InitPresentationQtyModel(planID, message, page, show);
