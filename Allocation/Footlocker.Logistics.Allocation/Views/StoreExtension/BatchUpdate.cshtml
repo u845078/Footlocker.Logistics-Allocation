@@ -95,7 +95,7 @@
                 columns.Bound(o => o.StoreExtension.CustomerType.Name).ClientTemplate("<#= StoreExtension ? (StoreExtension.CustomerType ? StoreExtension.CustomerType.Name : '') : '' #>").Title("Customer");
                 columns.Bound(o => o.StoreExtension.ConceptType.Name).ClientTemplate("<#= StoreExtension ? (StoreExtension.ConceptType ? StoreExtension.ConceptType.Name : '') : '' #>").Title("Concept");
                 columns.Bound(o => o.StoreExtension.StrategyType.Name).ClientTemplate("<#= StoreExtension ? (StoreExtension.StrategyType ? StoreExtension.StrategyType.Name : '') : '' #>").Title("Store Strategy");
-                columns.Bound(o => o.StoreExtension.PriorityType.Name).ClientTemplate("<#= StoreExtension ? (StoreExtension.PriorityType ? StoreExtension.PriorityType.Name : '') : '' #>").Title("XDock Priority");
+                columns.Bound(o => o.StoreExtension.PriorityType.Name).ClientTemplate("<#= StoreExtension ? (StoreExtension.PriorityType ? StoreExtension.PriorityType.Name : '') : '' #>").Title("Scarcity Priority");
                 columns.Bound(o => o.StoreExtension.MinihubStrategyInd).ClientTemplate("<input type='checkbox' <#= StoreExtension.MinihubStrategyInd ? 'checked' : '' #> disabled />");
             })
             .DataBinding(dataBinding =>
@@ -151,7 +151,7 @@
                     @Html.LabelFor(m => m.ConceptTypes, "Concept: ", new { @class = "form-input-label-area" })
                 </div>
                 <div class="form-input form-input-label">
-                    @Html.LabelFor(m => m.SelectedPriorityTypeID, "XDock Priority: ")
+                    @Html.LabelFor(m => m.SelectedPriorityTypeID, "Scarcity Priority: ")
                 </div>
                 <div class="form-input form-input-label">
                     @Html.LabelFor(m => m.SelectedExcludeStore, "Exclude from Q: ", new { @class = "form-input-label-area" })
