@@ -29,13 +29,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public DateTime? MinStart { get; set; }
         public DateTime? MinEnd { get; set; }
         public DateTime? ALRStartDate { get; set; }
-        public bool IsHidden { get; set; }
-        public bool Selected
-        {
-            get
-            {
-                return !(this.IsHidden);
-            }
-        }
+        [NotMapped]
+        public bool Selected{ get; set; }
     }
 }

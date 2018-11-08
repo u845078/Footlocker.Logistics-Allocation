@@ -527,7 +527,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             List<SizeAllocation> allocs = dao.GetSizeAllocationList(planID);
             //find stores in selected delivery groups
-            List<DeliveryGroup> selected = (from a in db.DeliveryGroups where a.PlanID == planID && !(a.IsHidden) select a).ToList();
+            List<DeliveryGroup> selected = ((List<DeliveryGroup>)Session["selectedDeliveryGroups"]);
             List<RuleSelectedStore> selectedStores = new List<RuleSelectedStore>();
             foreach (DeliveryGroup dg in selected)
             {
@@ -662,7 +662,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             //find stores in selected delivery groups
-            List<DeliveryGroup> selected = (from a in db.DeliveryGroups where a.PlanID == planID && !(a.IsHidden) select a).ToList();
+            List<DeliveryGroup> selected = ((List<DeliveryGroup>)Session["selectedDeliveryGroups"]);
             List<RuleSelectedStore> selectedStores = new List<RuleSelectedStore>();
             foreach (DeliveryGroup dg in selected)
             {
@@ -1354,9 +1354,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             //SizeAllocationModel model = InitPresentationQtyModel(planID, null,null,null);
             //GetPresentationQtyDeliveryGroups(model);
-            DeliveryGroup updated = (from a in db.DeliveryGroups where a.ID == DeliveryGroupID && a.PlanID == planID select a).First();
-            updated.IsHidden = !(updated.IsHidden);
-            db.SaveChanges();
+            if (Session["selectedDeliveryGroups"] != null)
+            {
+                List<DeliveryGroup> groups = ((List<DeliveryGroup>)Session["selectedDeliveryGroups"]);
+                DeliveryGroup updated = (from a in groups where a.ID == DeliveryGroupID select a).First();
+                updated.Selected = !(updated.Selected);
+                Session["selectedDeliveryGroups"] = groups;
+            }
             return RedirectToAction("PresentationQuantities", new { planID = planID });
         }
 
@@ -1509,7 +1513,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             List<SizeAllocation> allocs = dao.GetSizeAllocationList(model.RangePlan.Id);
             //find stores in selected delivery groups
-            List<DeliveryGroup> selected = model.DeliveryGroups.Where(dg => dg.Selected).ToList();
+            List<DeliveryGroup> selected = ((List<DeliveryGroup>)Session["selectedDeliveryGroups"]);
             List<RuleSelectedStore> selectedStores = new List<RuleSelectedStore>();
             foreach (DeliveryGroup dg in selected)
             {
@@ -1601,7 +1605,62 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.DeliveryGroups = (from a in db.DeliveryGroups
                                     where a.PlanID == model.RangePlan.Id
                                     select a).ToList();
+
             InitializeDeliveryGroups(model);
+
+
+            if (Session["selectedDeliveryGroups"] == null)
+            {
+                model.DeliveryGroups.ForEach(dg => { dg.Selected = true; });
+                Session["selectedDeliveryGroups"] = model.DeliveryGroups;
+            }
+            else
+            {
+                bool resetSelected = model.RangePlan.Id != ((List<DeliveryGroup>)Session["selectedDeliveryGroups"])[0].PlanID;
+
+                if (resetSelected)
+                {
+                    model.DeliveryGroups.ForEach(dg => { dg.Selected = true; });
+                }
+                else
+                {
+                    List<DeliveryGroup> groups = ((List<DeliveryGroup>)Session["selectedDeliveryGroups"]);
+                    foreach (var dg in model.DeliveryGroups)
+                    {
+                        // retrieve dg from session
+                        var sessiondg = groups.Where(d => d.ID.Equals(dg.ID)).FirstOrDefault();
+                        if (sessiondg != null)
+                        {
+                            dg.Selected = sessiondg.Selected;
+                        }
+                        else
+                        {
+                            // session doesn't have delivery group (probably just created)
+                            // select delivery group as default for new delivery groups
+                            dg.Selected = true;
+                        }
+                    }
+                }
+                Session["selectedDeliveryGroups"] = model.DeliveryGroups;
+            }
+
+            //set the current models selected stores to those saved in the session as selected
+            //List<DeliveryGroup> groups = ((List<DeliveryGroup>)Session["selectedDeliveryGroups"]);
+            //foreach (DeliveryGroup dg in model.DeliveryGroups)
+            //{
+            //    try
+            //    {
+            //        dg.Selected = ((from a in groups
+            //                        where a.ID == dg.ID
+            //                        select a).First().Selected);
+            //    }
+            //    catch
+            //    {
+            //        dg.Selected = true;
+            //        groups.Add(dg);
+            //        Session["selectedDeliveryGroups"] = groups;
+            //    }
+            //}
         }
 
         /// <summary>
@@ -1860,6 +1919,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private void CreateNewGroup(Int64 planID, DeliveryGroup newGroup, DateTime? startDate)
         {
             newGroup.PlanID = planID;
+            newGroup.Selected = true;
             int count = (from a in db.DeliveryGroups where a.PlanID == planID select a).Count();
             newGroup.Name = "Delivery Group " + (count + 1);
             newGroup.StoreCount = 0;
