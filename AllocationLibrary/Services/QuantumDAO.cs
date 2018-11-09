@@ -112,12 +112,13 @@ namespace Footlocker.Logistics.Allocation.Services
         }
 
 
-        public List<WSM> GetWSMextract(string sku)
+        public List<WSM> GetWSMextract(string sku, Boolean includeinvalidrecords)
         {
             List<WSM> wsmList = new List<WSM>();
             string SQL = "dbo.[GetWSMextract]";
             var sqlCommand = Footlocker.Common.DatabaseService.GetStoredProcCommand(_database, SQL);
             _database.AddInParameter(sqlCommand, "@sku", DbType.String, sku);
+            _database.AddInParameter(sqlCommand, "@includeinvalidrecords", DbType.Boolean, includeinvalidrecords);
             sqlCommand.CommandTimeout = 300;
 
             DataSet data = _database.ExecuteDataSet(sqlCommand);
