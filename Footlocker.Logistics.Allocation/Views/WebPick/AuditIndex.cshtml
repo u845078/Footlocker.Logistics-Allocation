@@ -1,0 +1,52 @@
+﻿@model Footlocker.Logistics.Allocation.Models.AuditRDQModel
+
+@{
+    ViewBag.Title = "AuditIndex";
+}
+
+<h2>Audit Web Picks</h2>
+
+@using (Html.BeginForm()) {        <div class="editor-label">
+            @Html.LabelFor(model => model.StartDate)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.StartDate)
+            @Html.ValidationMessageFor(model => model.StartDate)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.EndDate)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.EndDate)
+            @Html.ValidationMessageFor(model => model.EndDate)
+        </div>
+        <p>
+            <input type="submit" value="Update" class="t-button"/>
+        </p>
+        }
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.AuditRDQ>()
+        .Name("AuditRDQGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.WarehouseName);
+            columns.Bound(o => o.Store);
+            columns.Bound(o => o.Sku);
+            columns.Bound(o => o.Size);
+            columns.Bound(o => o.Qty);
+            columns.Bound(o => o.PickedBy);
+            columns.Bound(o => o.PickDate).Format("{0:MM/dd/yyyy}").Width(100);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_AuditIndex", "WebPick", new { startdate = @Model.StartDate.ToShortDateString(), enddate = @Model.EndDate.ToShortDateString() });
+            //dataBinding.Ajax().Select("_StoreLookupList", "rule", new { ruleSetID = ViewData["ruleSetID"], gridtype = ViewData["gridtype"], ruleType = ViewData["ruleType"], ajax = true }).Enabled(true).Delete("DeleteStore", "Rule").Insert("AddStore", "Rule");
+        })
+        //.Scrollable(scrolling => scrolling.Enabled(true))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+)

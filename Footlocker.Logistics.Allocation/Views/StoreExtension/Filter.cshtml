@@ -1,0 +1,55 @@
+﻿@model Footlocker.Logistics.Allocation.Models.StoreBatchFilterModel
+
+@{
+    ViewBag.Title = "Filter";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+    // On DocumentReady...
+    $(function () {
+        $('#hideStoreSelectorButton').hide();
+    });
+
+
+    function onSelect(e) {
+        var files = e.files;
+        if (files[0].extension != ".xls") {
+            alert("Document must be a spreadsheet with a xls extension. ");
+            e.preventDefault();
+        }
+        else {
+            document.getElementById('spreadsheet').style.visibility = 'visible';
+        }
+        $('#message').empty();
+    }
+
+    function onComplete(e) {
+
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>" + message + "</font>");
+
+        var grid = $("#RuleGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+
+        var grid2 = $("#StoreGrid").data("tGrid");
+        $('.t-status .t-icon', grid2.element).addClass('t-loading');
+        grid.ajaxRequest();
+        grid2.ajaxRequest();
+        updateCount();
+        showStatus();
+        e.preventDefault();
+    }
+
+</script>
+
+<h2>Choose Stores</h2>
+
+<div class="fieldset">
+    @Html.Partial(Url.Content("~/Views/Rule/RuleFilter.cshtml"), Model, ViewData)
+    <br />
+</div>
+
+<div>
+    @Html.ActionLink("Back to List", "BatchUpdate", new { ruleSetID = Model.RuleSetID, isRestrictingToUnassignedCustomer = Model.IsRestrictingToUnassignedCustomer }, new { @class = "t-button" })
+</div>

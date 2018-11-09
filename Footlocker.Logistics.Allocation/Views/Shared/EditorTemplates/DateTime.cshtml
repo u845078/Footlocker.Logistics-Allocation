@@ -1,0 +1,8 @@
+@using Telerik.Web.Mvc.UI 
+
+
+@model DateTime?
+
+@(Html.Telerik().DatePickerFor(m => m)
+      .HtmlAttributes(new { id = ViewData.TemplateInfo.GetFullHtmlFieldName(string.Empty) + "_wrapper" })
+)

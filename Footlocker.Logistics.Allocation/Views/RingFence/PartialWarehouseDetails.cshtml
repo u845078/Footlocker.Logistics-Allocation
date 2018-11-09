@@ -1,0 +1,69 @@
+﻿Warehouse Inventory:<br />
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFenceDetail>()
+        .Name("WhseRingFenceDetailGrid")
+        .DetailView(dv =>
+                dv.ClientTemplate(
+                    Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.ItemPackDetail>()
+                        .Name("PackDetails_<#= Size #>")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(det => det.ID).Title("ID").Visible(false);
+                            columns.Bound(det => det.PackID).Title("PackID").Visible(false);
+                            columns.Bound(det => det.Size).Title("Size").Width(50).Visible(true);
+                            columns.Bound(det => det.Quantity).Title("Qty").Visible(true);
+                        })
+                        .DataBinding(dataBinding => dataBinding.Ajax()
+                            .Select("Ajax_GetPackDetails", "RingFence", new { ringFenceID = "<#= RingFenceID #>", packName = "<#= Size #>" })
+                        )
+                        .ClientEvents(events =>
+                        {
+                            events.OnDataBound("function() { hack_setChildGridColumnWidth(1); }");
+                        })
+                        .Footer(false)
+                        .ToHtmlString()
+                    )
+        )
+        .ClientEvents(events =>
+        {
+            events.OnDataBound("function() { hack_removeTelerikExpandIconsForChildlessNodes($('#WhseRingFenceDetailGrid .caselot-input'), function($child) { return $child.text().length < 4 }); }");
+        })
+        .DataKeys(keys =>
+        {
+            keys.Add(p => p.RingFenceID);
+            keys.Add(p => p.DCID);
+            keys.Add(p => p.PO);
+            keys.Add(p => p.Size);
+        })
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.RingFenceID).Visible(false);
+            columns.Bound(o => o.Size).Title("Size/Caselot").HtmlAttributes(new { @class = "caselot-input" }).Width(120).ReadOnly().FooterTemplate(
+                        @<text>
+                            <input type="button" name="name" value="Save" class="t-button" onclick='saveQtyChangesWhs()' />
+                        </text>
+                    );
+            columns.Bound(o => o.Warehouse).Width(100).ReadOnly();
+            columns.Bound(o => o.AvailableQty).Width(100).ReadOnly();
+            columns.Bound(o => o.Qty).Width(100);
+            columns.Bound(o => o.Message).Title("").ReadOnly().HtmlAttributes(new { @style = "color:red" });
+        })
+        .DataBinding(dataBinding =>
+            dataBinding.Ajax()
+                    .Select("_SelectWarehouses", "RingFence", new { ringFenceID = ViewData["ringFenceID"], ajax = true })
+                    .Update("_SaveBatchInsert", "RingFence")
+        )
+        .Scrollable(scrolling => scrolling.Enabled(true))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(false))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+        .Editable(editing => editing.Mode(GridEditMode.InCell))
+    )
+    <br />
+    
+    <script type="text/javascript">
+        function saveQtyChangesWhs() {
+            $('#WhseRingFenceDetailGrid').data('tGrid').submitChanges();
+        }
+    </script>

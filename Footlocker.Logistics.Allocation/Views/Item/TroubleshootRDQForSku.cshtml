@@ -1,0 +1,82 @@
+﻿@model Footlocker.Logistics.Allocation.Models.TroubleshootRDQForSkuModel
+
+@{
+    ViewBag.Title = "TroubleshootRDQ";
+}
+
+<h2>TroubleshootRDQ</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Sku) (##-##-#####-##)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Sku)
+            @Html.ValidationMessageFor(model => model.Sku)
+        </div>
+        @if (Model.ControlDate != null)
+        {
+        <div class="editor-label">
+            @Html.LabelFor(model => model.ControlDate)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.ControlDate)
+            @Html.ValidationMessageFor(model => model.ControlDate)
+        </div>
+        }
+        
+        <p>
+            <input type="submit" value="Submit" />
+        </p>
+    </fieldset>
+}
+
+
+
+<fieldset>
+    <legend>RDQs to MF</legend>
+
+	@if (!string.IsNullOrEmpty(Model.Sku))
+	{
+	<div>
+		@Html.ActionLink("Export", "ExportTroubleshootRDQ", new { sku = Model.Sku, controlDate = Model.ControlDate }, new { @class = "t-button" })
+	</div>
+	}
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQ>()
+            .Name("TroubleshootRDQForSkuToMF")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Sku);
+            columns.Bound(o => o.Size);
+            columns.Bound(o => o.DestinationType);
+            columns.Bound(o => o.Type);
+            columns.Bound(o => o.Store);
+            columns.Bound(o => o.Status);
+            columns.Bound(o => o.WarehouseName);
+            columns.Bound(o => o.PO);
+            columns.Bound(o => o.Qty).Title("Pick Qty").Aggregate(aggreages => aggreages.Sum())
+                       .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
+            columns.Bound(o => o.UnitQty).Aggregate(aggreages => aggreages.Sum())
+                       .ClientFooterTemplate("Filtered UnitQty: <#= Sum #>");
+
+            columns.Bound(o => o.QuantumRecordType.DisplayValue).Title("Record Type");
+            columns.Bound(o => o.RDQRejectedReason.Description).Title("Rejected Reason");
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_TroubleshootRDQForSkuToMF", "item", new { sku = Model.Sku, controldate = Model.ControlDate });
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+            .Footer(true)
+)
+
+</fieldset>
+

@@ -1,0 +1,127 @@
+﻿@model Footlocker.Logistics.Allocation.Models.DeliveryGroupModel
+
+@{
+    ViewBag.Title = "EditDeliveryGroup";
+}
+
+<h2>Edit Delivery Group</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Delivery Group</legend>
+        <table>
+        <tr>
+        <td>
+        @Html.LabelFor(m => m.DeliveryGroup.Name)
+        </td>
+        <td>
+        @Html.EditorFor(m => m.DeliveryGroup.Name)
+        @Html.HiddenFor(m => m.DeliveryGroup.RuleSetID)
+        @Html.HiddenFor(m => m.DeliveryGroup.PlanID)
+        @Html.HiddenFor(m => m.DeliveryGroup.StoreCount)
+        @Html.HiddenFor(m => m.DeliveryGroup.ALRStartDate)
+        @Html.HiddenFor(m => m.DeliveryGroup.ID)
+        </td>
+        </tr>
+        <tr>
+        <td>
+        @Html.LabelFor(m => m.DeliveryGroup.StartDate)
+        </td><td>
+        @(Html.Telerik().DatePickerFor(m => m.DeliveryGroup.StartDate)
+              .HtmlAttributes(new { id = ViewData.TemplateInfo.GetFullHtmlFieldName(string.Empty) + "_wrapper" })
+                .ClientEvents(events => events
+                .OnChange("setEndDate")
+                )
+        )
+        </td>
+        </tr>
+        <tr>
+        <td>
+        @Html.LabelFor(m => m.DeliveryGroup.EndDate)
+        </td><td>
+        @Html.EditorFor(m => m.DeliveryGroup.EndDate)
+        </td>
+        </tr>
+        <tr>
+@*        <td>
+        @Html.LabelFor(m => m.DeliveryGroup.MinStart)
+        </td><td>
+        @Html.EditorFor(m => m.DeliveryGroup.MinStart)
+        </td>*@
+        </tr>
+        <tr>
+        <td>
+        @Html.LabelFor(m => m.DeliveryGroup.MinEnd)
+        </td><td>
+        @Html.EditorFor(m => m.DeliveryGroup.MinEnd)
+        </td>
+        </tr>
+        </table>
+        <p>
+            <input type="submit" value="Save" />
+        </p>
+
+    </fieldset>
+}
+<script>
+    function hideStoreSelector() {
+        window.location = "/SkuRange/PresentationQuantities?planID=" + @Model.DeliveryGroup.PlanID;
+    }
+</script>
+    @Html.Partial(@Url.Content("~/Views/Rule/RuleFilter.cshtml"), Model.RuleModel, ViewData)
+<br /><br /><font color="red">*** NOTE:  Stores highlighted in red are in another delivery group.</font>
+
+@if (ViewData["LifeCycle"] != null)
+{ 
+<script type="text/javascript">
+var dg_days = @ViewData["LifeCycle"];
+</script>
+}
+else
+{ 
+<script type="text/javascript">
+    var dg_days = 365;
+</script>
+
+}
+
+<script type="text/javascript">
+        Date.prototype.addDays = function (days) {
+            var dat = new Date(this.valueOf());
+            dat.setDate(dat.getDate() + days);
+            return dat;
+        }
+
+    function setEndDate(e) {
+        //alert(e.target.id.replace('Start', 'End'));
+        var start = e.target.id;
+        start = start.replace('_', '.');
+        //alert(start);
+        var end = start.replace('Start', 'End');
+        //alert(end);
+        var date = new Date($('[name="' + start + '"]').val());
+        if ((date != 'NaN') && (date != 'Invalid Date')) {
+            if (dg_days == 365) {
+                date = new Date("12-31-2099");
+            } else
+            {
+                date = date.addDays(dg_days);
+            }
+            $('[name="' + end + '"]').val((date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear());
+        }
+        else {
+            $('[name="' + end + '"]').val('');
+        }
+    }
+</script>
+
+
+@*<div>
+    @Html.ActionLink("Back to List", "PresentationQuantities", new { planID = Model.DeliveryGroup.PlanID }, new { @class = "t-button" })
+</div>
+*@
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

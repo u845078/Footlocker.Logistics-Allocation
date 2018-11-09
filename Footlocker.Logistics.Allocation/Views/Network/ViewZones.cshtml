@@ -1,0 +1,47 @@
+﻿@model Footlocker.Logistics.Allocation.Models.NetworkZoneModel
+
+@{
+    ViewBag.Title = "ViewZones";
+}
+
+<h2>Zones for @Html.Raw(Model.Instance.Name)</h2>
+
+@*@using (Html.BeginForm("CreateZone", "Network", FormMethod.Post))
+{
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <div class="editor-label">
+        @Html.HiddenFor(model => model.LeadTimeID)
+            @Html.ValueFor(model => model.Instance.Name)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.NewZone)
+            @Html.ValidationMessageFor(model => model.NewZone)&nbsp;
+            @Html.HiddenFor(model => model.LeadTime.Name)
+            <input type="submit" value="Create Zone" class="t-button" />
+        </div>
+    </fieldset>
+} *@
+@Html.Partial(@Url.Content("~/Views/Network/PartialZoneList.cshtml"), Model.NetworkZones, ViewData)
+
+<br />
+<script>
+    function addZone() {
+        if (confirm("Are you sure you want to move this zone?")) {
+            window.location = '/Network/moveZone?ID=' + $('#moveDropDown').val() + '&leadTimeID=@Html.Raw(Model.LeadTimeID)';
+        }
+    }
+</script>
+@*Zones assigned to different Lead Times:<br />
+@Html.DropDownList("moveDropDown",new SelectList(Model.AvailableZones, "ID", "Name"))
+@Html.Raw("<a class='t-button' onclick='addZone()'>Include Zone</a>")*@
+<br /><br />
+<div>
+    @Html.ActionLink("Back to Instances", "Index", new { instanceID = -1 }, new { @class = "t-button" })
+    @Html.ActionLink("Download Excel", "DownnloadZones", new { instanceID = Model.Instance.ID }, new { @class = "t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

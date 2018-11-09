@@ -1,0 +1,51 @@
+﻿@model Footlocker.Logistics.Allocation.Models.WarehouseBlackoutModel
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Create Warehouse Blackout</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Warehouse Blackout</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.WarehouseBlackout.DCID)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.WarehouseBlackout.DCID, new SelectList(Model.Warehouses, "ID", "Name"))
+            @Html.ValidationMessageFor(model => model.WarehouseBlackout.DCID)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.WarehouseBlackout.StartDate)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.WarehouseBlackout.StartDate)
+            @Html.ValidationMessageFor(model => model.WarehouseBlackout.StartDate)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.WarehouseBlackout.EndDate)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.WarehouseBlackout.EndDate)
+            @Html.ValidationMessageFor(model => model.WarehouseBlackout.EndDate)
+        </div>
+
+        <p>
+            <input type="submit" value="Create" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new {@class="t-button"})
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

@@ -1,0 +1,45 @@
+﻿@model Footlocker.Logistics.Allocation.Models.QuantumDataDownloadModel
+
+@{
+    ViewBag.Title = "Download Quantum Data";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<font color="Red">
+    <div id="errorMessage">@ViewBag.NoDataFound </div>
+</font>
+
+@using (Html.BeginForm()) {
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Download Data For</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Sku)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Sku)
+            @Html.ValidationMessageFor(model => model.Sku)
+        </div>
+
+        <p>
+            
+            <button type="submit" name="submitAction" value="WSMextract" onclick="Submit_OnClick()">Download WSM Extract</button>
+            <button type="submit" name="submitAction" value="LostSales" onclick="Submit_OnClick()">Download Lost Sales</button>
+        </p>
+
+
+    </fieldset>
+}
+
+
+
+
+<script type="text/javascript">
+    function Submit_OnClick() {
+        $('#errorMessage').html("");
+    };
+</script>

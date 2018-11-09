@@ -1,0 +1,150 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.DirectToStoreConstraint>
+@{
+    ViewBag.Title = "AR Sku Constraints";
+}
+
+<script type="text/javascript">
+
+    // Syncs the 'Max Qty (unit)' and 'Max Qty (case)' values of the row being edited
+    function ConstraintGrid_onSave(e) {
+
+        // Determine if the user has changed the 'Max Qty (units)' or 'Max Qty (cases)'
+        if (e.dataItem.MaxQty && e.values.MaxQty && e.dataItem.MaxQty != e.values.MaxQty) {
+
+            // Get 'case qty' multiple
+            var caseQtyMultiple = Math.max(1, e.dataItem.VendorPackQty);
+
+            // Determine corresponding 'max case qty' to newly entered 'max unit qty'
+            var newMaxCaseQty = Math.round(e.values.MaxQty / caseQtyMultiple);
+
+            // Update 'max case qty'
+            e.values.MaxQtyCase = "" + newMaxCaseQty;
+
+            // Sync, entered 'max unit qty' value to multiple of case qty multiple value
+            if (e.dataItem.MaxQty != (newMaxCaseQty * caseQtyMultiple)
+                && (e.values.MaxQty != 99999 && e.values.MaxQty != "99999")) {
+
+                // Sync unit qty to multiple of case multiple qty
+                e.values.MaxQty = newMaxCaseQty * caseQtyMultiple;
+
+                // Update grid row value to show newly set, synced max unit qty
+                $(e.cell).html("<span class='t-dirty'></span>" + e.values.MaxQty);
+            }
+
+
+            // HACK: NOTE the 'max qty (case)' cell index is hardcoded!..so changing column order will break this code!
+            var _MAX_QTY_CELL_CELL_INDEX = 4;
+
+            // Get cell of 'max qty (case)' to sync...
+            var $maxQtyCaseCell = $(e.cell.parentElement.cells[_MAX_QTY_CELL_CELL_INDEX]);
+
+            // Update 'max qty (case)' value to newly calculated max case qty, and flag cell as dirty
+            $maxQtyCaseCell.html("<span class='t-dirty'></span>" + newMaxCaseQty);
+        }
+        else if (e.dataItem.MaxQtyCase && e.values.MaxQtyCase && e.dataItem.MaxQtyCase != e.values.MaxQtyCase) {
+
+            // Determine if the user entered a fractional value
+            var roundedMaxCaseQty = e.values.MaxQtyCase.toFixed();
+            if (roundedMaxCaseQty != e.values.MaxQtyCase) {
+                // Sync unit qty to multiple of case multiple qty
+                e.values.MaxQtyCase = roundedMaxCaseQty;
+
+                // Update grid row value to show newly set, synced max unit qty
+                $(e.cell).html("<span class='t-dirty'></span>" + roundedMaxCaseQty);
+            }
+
+
+            // Get 'case qty' multiple
+            var caseQtyMultiple = e.dataItem.VendorPackQty;
+
+            // Determine corresponding 'max unit qty' to newly entered 'max case qty'
+            var newMaxQty = roundedMaxCaseQty * caseQtyMultiple;
+
+            // Update 'max unit qty'
+            e.values.MaxQty = "" + newMaxQty;
+
+            
+            // HACK: NOTE the 'max qty (unit)' cell index is hardcoded!..so changing column order will break this code!
+            var _MAX_QTY_UNIT_CELL_INDEX = 3;
+
+            // Get cell of 'max qty (unit)' to sync...
+            var $maxQtyUnitCell = $(e.cell.parentElement.cells[_MAX_QTY_UNIT_CELL_INDEX]);
+
+            // Update 'max qty (unit)' value to newly calculated max qty, and flag cell as dirty
+            $maxQtyUnitCell.html("<span class='t-dirty'></span>" + newMaxQty);
+        }
+    }
+
+    function ConstraintGrid_onComplete(e) {
+        // Refresh the grid (if edits were submitted)
+        if (e.name && e.name == 'submitChanges') {
+            $('#ConstraintGrid').data('tGrid').ajaxRequest();
+        }
+    }
+
+    function saveChanges() {
+        // Submit the edits
+        $('#ConstraintGrid').data('tGrid').submitChanges('testy');
+    }
+
+    //grid on row data binding event
+    function hightlight(e) {
+        try {
+            if (e.dataItem.MaxQty != 99999) {
+                e.row.className = e.row.className + ' highlight';
+            }
+        } catch (ex) { }
+    }
+
+</script>
+    
+
+<h2>AR Sku Constraints for one size items</h2>
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.DirectToStoreConstraint>()
+    .Name("ConstraintGrid")
+    .DataKeys(keys =>
+    {
+        keys.Add(p => p.Sku);
+        keys.Add(p => p.Size);
+    })
+    .Columns(columns =>
+    {
+        columns.Bound(o => o.Sku).FooterTemplate(
+                    @<text>
+                        <input type="button" name="name" value="Save" class="t-button" onclick='saveChanges()' />
+                    </text>
+                ).ReadOnly();
+        columns.Bound(o => o.Description).ReadOnly();
+        columns.Bound(o => o.VendorNumber).Title("Vendor").ReadOnly();
+        columns.Bound(o => o.MaxQty).Title("Max Qty (unit)").EditorTemplateName("Integer");
+        columns.Bound(o => o.MaxQtyCase).Title("Max Qty (case)").EditorTemplateName("Integer");
+        columns.Bound(o => o.StartDate);
+        columns.Bound(o => o.EndDate);
+        columns.Bound(o => o.VendorPackQty).Title("Buying Multiple").ReadOnly();
+        columns.Bound(o => o.OrderDays).Title("Order Days").ReadOnly();
+        columns.Bound(o => o.Size).Visible(false).ReadOnly();
+        columns.Bound(o => o.VendorDesc).Visible(false).ReadOnly();
+    })
+    .DataBinding(dataBinding =>
+        dataBinding.Ajax()
+            .Select("_OneSizeConstraints", "DTS")
+            .Update("_SaveOneSizeDetail", "DTS")
+    )
+    .Scrollable(scrolling => scrolling.Enabled(true))
+    .Sortable(sorting => sorting.Enabled(true))
+    .Pageable(paging => paging.Enabled(false))
+    .Filterable(filtering => filtering.Enabled(true))
+    .Groupable(grouping => grouping.Enabled(false))
+    .Footer(true)
+    .Editable(editing => editing.Mode(GridEditMode.InCell))
+    .ClientEvents(events => events.OnRowDataBound("hightlight")
+        .OnSave("ConstraintGrid_onSave")
+        .OnComplete("ConstraintGrid_onComplete"))
+    )
+
+<br />
+
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new {@class="t-button"})
+</div>

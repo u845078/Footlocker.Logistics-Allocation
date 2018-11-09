@@ -1,0 +1,20 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.StoreLookup>
+
+@(Html.Telerik().Grid(Model)
+        .Name("ZoneStores")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Division);
+            columns.Bound(o => o.Store);
+            columns.Bound(o => o.Mall);
+            columns.Bound(o => o.City);
+            columns.Bound(o => o.State);
+        })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Server();
+                //dataBinding.Ajax().Select("_RefreshBTSGrid", "StoreBTS").Enabled(true);
+            })
+        .Sortable()
+        .Pageable()
+        .Filterable()) 

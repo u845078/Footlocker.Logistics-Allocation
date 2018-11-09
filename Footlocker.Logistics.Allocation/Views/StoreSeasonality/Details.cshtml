@@ -1,0 +1,160 @@
+﻿@model Footlocker.Logistics.Allocation.Models.StoreSeasonalityDetailModel
+
+@{
+    ViewBag.Title = "Seasonality Group Details";
+}
+
+<h2>Seasonality Group Details for @ViewData["GroupName"] <font size="2em">@Html.ActionLink("Edit Group Name", "Edit", new { id = ViewData["GroupID"] }, new { @class = "t-button" })</font></h2>
+
+@if ((ViewData["message"] != null) && (ViewData["message"].ToString().Length > 0))
+{ 
+    @Html.Raw("<font color=\"Red\">" + ViewData["message"] + "</font><br>")
+}
+
+@(Html.Telerik().Grid(Model.details)
+        .Name("StoreSeason")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Division);
+            columns.Bound(o => o.League);
+            columns.Bound(o => o.Store);
+            columns.Bound(o => o.DBA);
+            columns.Bound(o => o.Mall);
+            columns.Bound(o => o.City);
+            columns.Bound(o => o.State);
+            //            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(120);
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("ShowDetail")
+                .Text("History")
+                .DataRouteValues(route => { route.Add(o => o.Division).RouteKey("div"); route.Add(o => o.Store).RouteKey("store"); })
+                .Ajax(false)
+                .Action("ShowDetail", "StoreSeasonality");
+                commands
+                .Custom("Delete")
+                .Text("Delete")
+                .DataRouteValues(route => { route.Add(o => o.Division).RouteKey("div"); route.Add(o => o.Store).RouteKey("store"); })
+                .Ajax(false)
+                .Action("DeleteDetail", "StoreSeasonality").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(200);
+
+        })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Ajax().Select("_RefreshGrid", "StoreSeasonality", new { groupID = ViewData["GroupID"] }).Enabled(true);
+            })
+        .Sortable()
+        .Pageable()
+        .Filterable()
+) 
+
+@using (Html.BeginForm("AddDetail", "StoreSeasonality", FormMethod.Get))
+{
+    <fieldset>
+    <legend>Add Store</legend>
+        @Html.Hidden("ID", ViewData["GroupID"])
+        @Html.DropDownListFor(m => Model.division, new SelectList(Model.divisions, "DivCode", "DivisionName"), new { disabled = "true" })
+        @Html.Hidden("div", Model.division)
+        @Html.TextBox("Store")
+        <input type="submit" value="Add Store" class="t-button" />
+    </fieldset>
+}
+    
+<br />
+<fieldset>
+    <legend> Upload Spreadsheet </legend>
+    Spreadsheet columns should be Div (##), Store (#####).  <br />
+    @(Html.Telerik().Upload()
+        .Name("attachments")
+        .Multiple(true)
+        .Async(async => async
+            .Save("Save", "StoreSeasonality", new { groupID = ViewData["GroupID"] })
+            .AutoUpload(false))
+            .ShowFileList(true)
+        .ClientEvents(events => events
+            .OnError("onError")
+            .OnSelect("onSelect")
+                    .OnSuccess("onSuccess")
+            )
+        )
+        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
+        <br />
+        <h4> <div id="message"></div> </h4>
+</fieldset>
+     <script type="text/javascript">
+
+         function onSelect(e) {
+             var files = e.files;
+             if (files[0].extension != ".xls") {
+                 alert("Document must be a spreadsheet with a xls extension. ");
+                 e.preventDefault();
+             }
+             else {
+                 document.getElementById('spreadsheet').style.visibility = 'visible';
+             }
+             $('#message').empty();
+         }
+
+         function onError(e) {
+             var message = e.XMLHttpRequest.responseText;
+             $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='../SeasonalityErrors'>Download Errors</a>");
+
+             e.preventDefault();
+         }
+
+         function onSuccess(e) {
+             var message = e.XMLHttpRequest.responseText;
+             $('#message').empty().append("<font color='red'>Success</font>");
+
+             e.preventDefault();
+
+             var grid = $("#StoreSeason").data("tGrid");
+             grid.ajaxRequest();
+         }
+    </script>
+<br />
+<fieldset>
+    <legend> Add Unassigned Stores </legend>
+@(Html.Telerik().Grid(Model.UnassignedStores)
+        .Name("StoreGrid")
+        .DataKeys(keys =>
+        {
+            keys.Add(p => p.Store).RouteKey("store");
+            keys.Add(p => p.Division).RouteKey("div");
+        })
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Region);
+            columns.Bound(o => o.League);
+            columns.Bound(o => o.Store);
+            columns.Bound(o => o.Mall);
+            columns.Bound(o => o.State);
+            columns.Bound(o => o.City);
+            columns.Bound(o => o.DBA);
+            columns.Command(commands => commands
+           .Custom("Add")
+           .Text("Add to this group")
+           .Action("AddDetail", "StoreSeasonality"))
+           .HtmlAttributes(new { style = "text-align: center" })
+           .Width(200);
+            
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Server();
+        })
+        .Scrollable(scrolling => scrolling.Enabled(false))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+
+)
+</fieldset>
+
+<br />
+<div>
+    @Html.ActionLink("Back to List", "Index", new { message = "", div = Model.division }, new { @class = "t-button" })
+</div>

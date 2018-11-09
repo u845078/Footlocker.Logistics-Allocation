@@ -1,0 +1,56 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.RDQ>
+
+@{
+    ViewBag.Title = "Web Picks";
+}
+
+<h2>Web Picks</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create",null, new { @class = "t-button" })
+    @Html.ActionLink("Excel Upload", "ExcelUpload",null, new {@class = "t-button" })
+
+</p>
+<font color="red">@Html.Raw(ViewData["message"])</font>
+@if (Model.Count() > 0)
+{
+@(Html.Telerik().Grid(Model)
+        .Name("RDQs")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Division);
+            columns.Bound(o => o.Store).Width(200);
+            columns.Bound(o => o.Sku);
+            columns.Bound(o => o.Size);
+            columns.Bound(o => o.Qty);
+            columns.Bound(o => o.DistributionCenter.Name).Title("DC");
+            columns.Bound(o => o.Pick).Width(200);
+            columns.Bound(o => o.Status);
+            columns.Bound(o => o.CreatedBy);
+            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(120);
+            columns.Command(commands =>
+            {
+                //commands
+                //.Custom("Edit")
+                //.Text("Edit")
+                //.DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                //.Ajax(false)
+                //.Action("Edit", "StoreSeasonality");
+                commands
+                .Custom("Delete")
+                .Text("Delete")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                .Ajax(false)
+                .Action("Delete", "WebPick").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+            }).HtmlAttributes(new { style = "text-align: left" });
+        })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Server();
+                //dataBinding.Ajax().Select("_RefreshBTSGrid", "StoreBTS").Enabled(true);
+            })
+        .Sortable()
+        .Pageable()
+        .Filterable()) 
+}
+

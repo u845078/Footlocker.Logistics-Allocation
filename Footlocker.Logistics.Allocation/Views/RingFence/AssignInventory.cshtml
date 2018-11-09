@@ -1,0 +1,36 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RingFenceModel
+
+@{
+    ViewBag.Title = "AssignInventory";
+}
+
+<script src="~/Scripts/FootLocker/telerikShims_ChildGrid.js" type="text/javascript"></script>
+
+@using (Html.BeginForm("SaveAssignInventory","RingFence",FormMethod.Post))
+{
+    if ((ViewData["message"] != "") && (ViewData["message"] != null))
+    { 
+        <font color="red">@Html.Raw(ViewData["message"])</font>
+    }
+<fieldset>
+@Html.Raw("<input name=\"RingFence.ID\" type=\"hidden\" value=\"" + Model.RingFence.ID + "\"/>")
+@Html.Raw("Click on quantity value(s) below to update.  Click &quot;Save&quot; to create ring fence(s).<br><br>")
+@Html.LabelFor(model => model.RingFence.Sku)
+@Html.DisplayFor(model => model.RingFence.Sku)
+<br />
+@Html.LabelFor(model => model.RingFence.Store)
+@Html.DisplayFor(model => model.RingFence.Store)
+<br><br>
+    
+@Html.Partial(@Url.Content("~/Views/RingFence/PartialWarehouseDetails.cshtml"), null, ViewData)
+@Html.Partial(@Url.Content("~/Views/RingFence/PartialFutureDetails.cshtml"), null, ViewData)
+
+@*<p>
+    <input type="submit" value="Save" class="t-button"/>
+</p>*@
+</fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new { @class="t-button" })
+</div>

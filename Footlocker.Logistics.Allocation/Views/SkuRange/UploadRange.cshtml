@@ -1,0 +1,110 @@
+﻿
+@{
+    ViewBag.Title = "UploadRange";
+}
+
+
+<fieldset>
+    <legend> SKU Range Upload </legend>
+    This page will allow you to add stores to existing ranges in bulk. The range must already exist for the sku, and the store must not be in that range.
+    <br />
+    <br />
+    Spreadsheet columns should be Division, Store, Sku, Size, Range Start Date, Delivery group name(optional), Min, Max, Base Demand, Min End Date Override. <br/>
+    @Html.ActionLink("Download Template", "ExcelRangeTemplate", new {}, new {@class = "t-button"})
+    <br />
+    If you supply only Range Start Date, then it will be added to the delivery group that starts that day.
+    <br />
+    If you supply Delivery group name, it will apply to the delivery group with that name (and will ignore the date you specify)
+    <br/>
+    <br/>
+    <input type="checkbox" onclick="toggleUpload(this);"/>Purge range before uploading (stores, min/max/etc.).  </input>
+
+    <div id="noPurge">
+        <br/>
+        <b>Please select spreadsheets: </b>
+        <br/>
+        @(Html.Telerik().Upload()
+              .Name("attachments")
+              .Multiple(true)
+              .Async(async => async
+                  .Save("BulkSave", "SkuRange", new {purgeFirst = "FALSE"})
+                  .AutoUpload(false))
+              .ShowFileList(true)
+              .ClientEvents(events => events
+                  .OnError("onError")
+                  .OnSelect("onSelect")
+                  .OnSuccess("onSuccess")
+              )
+              )
+        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width: 150px; visibility: hidden; display: none;"/>
+    </div>
+    <div id="purge">
+        <b>Please select spreadsheets: </b>
+        <br/>
+        <br />
+        @(Html.Telerik().Upload()
+            .Name("attachments2")
+            .Multiple(true)
+            .Async(async => async
+                .Save("BulkSaveWithPurge", "SkuRange", new { purgeFirst = "TRUE" })
+                .AutoUpload(false))
+            .ShowFileList(true)
+            .ClientEvents(events => events
+                .OnError("onError")
+                .OnSelect("onSelect")
+                .OnSuccess("onSuccess")
+            )
+        )
+        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width: 150px; visibility: hidden; display: none;" />
+        <br/>
+        Note:  This range will be purged before upload.
+    </div>
+
+    <br/>
+    <h4>
+        <div id="message"></div> </h4>
+</fieldset>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#purge').hide();
+    });
+
+    function toggleUpload(checkbox) {
+        if (checkbox.checked) {
+            $('#purge').show();
+            $('#noPurge').hide();
+        } else {
+            $('#purge').hide();
+            $('#noPurge').show();
+        }
+
+    }
+
+        function onSelect(e) {
+            var files = e.files;
+            if (files[0].extension != ".xls") {
+                alert("Document must be a spreadsheet with a xls extension. ");
+                e.preventDefault();
+            }
+            else{
+                 document.getElementById('spreadsheet').style.visibility = 'visible';
+             }
+             $('#message').empty();
+        }
+
+        function onError(e) {
+            var message = e.XMLHttpRequest.responseText;
+            $('#message').empty().append("<font color='red'>" + message + "<br /></font><br><a class='t-button' href='DownloadRangeErrors'>Download Errors</a>");
+
+             e.preventDefault();
+         }
+
+         function onSuccess(e) {
+             var message = e.XMLHttpRequest.responseText;
+             $('#message').empty().append("<font color='red'>Success</font>");
+
+             e.preventDefault();
+         }
+</script>

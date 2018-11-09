@@ -1,0 +1,55 @@
+﻿@model Footlocker.Logistics.Allocation.Models.DCList
+
+@{
+    ViewBag.Title = "DCIndex";
+}
+<script>
+    function autopostback(dropdown) {
+        window.location = '/Route/DCIndex?instanceID=' + dropdown.value;
+    }
+</script>
+
+<h2>Distribution Centers</h2>
+<div class="editor-label">
+    @Html.LabelFor(model => model.InstanceID)&nbsp;
+    @Html.DropDownListFor(model => model.InstanceID, new SelectList(Model.AvailableInstances, "ID", "Name"), new { onchange = "autopostback(this);" })
+    @Html.ValidationMessageFor(model => model.InstanceID)
+</div>
+
+<p>
+    @Html.ActionLink("Create New", "CreateDC", new { instanceID = Model.InstanceID}, new { @class = "t-button" })
+</p>
+
+@if ((Model.DCs != null) && (Model.DCs.Count > 0))
+{
+    @(Html.Telerik().Grid(Model.DCs)
+        .Name("DCs")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Name);
+            columns.Bound(o => o.MFCode);
+            columns.Bound(o => o.Type);
+            columns.Bound(o => o.WarehouseAllocationType.Description).Title("Allocation Type");
+            columns.Bound(o => o.IsMinihub);
+            columns.Bound(o => o.LastModifiedUser);
+            columns.Bound(o => o.LastModifiedDate);
+            columns.Command(commands =>
+            {                
+                commands
+                .Custom("Edit")
+                .Text("Edit")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                .Ajax(false)
+                .Action("EditDC", "Route");
+
+            }).HtmlAttributes(new { style = "text-align: left" });
+        })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Server();
+                //dataBinding.Ajax().Select("_RefreshBTSGrid", "StoreBTS").Enabled(true);
+            })
+        .Sortable()
+        .Pageable()
+        .Filterable()) 
+}

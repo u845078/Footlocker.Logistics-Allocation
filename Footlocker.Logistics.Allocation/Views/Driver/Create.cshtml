@@ -1,0 +1,84 @@
+﻿@model Footlocker.Logistics.Allocation.Models.DriverModel
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Create Department Configuration</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+<fieldset>
+    <legend>Department Configuration</legend>
+
+    <div class="editor-label">
+        @Html.LabelFor(model => model.NewDriver.Division)
+        @Html.HiddenFor(model => model.NewDriver.Division)
+    </div>
+    <div class="editor-field">
+        @Html.DropDownListFor(model => model.NewDriver.Division, new SelectList(Model.Divisions, "DivCode", "DivisionName"), new { disabled = "true" })
+        @Html.ValidationMessageFor(model => model.NewDriver.Division)
+    </div>
+
+    <div class="editor-label">
+        @Html.LabelFor(model => model.NewDriver.Department)
+    </div>
+    <div class="editor-field">
+        @Html.DropDownListFor(model => model.NewDriver.Department, new SelectList(Model.Departments, "DeptNumber", "DisplayName"))
+        @Html.ValidationMessageFor(model => model.NewDriver.Department)
+    </div>
+
+    <div class="editor-label">
+        @Html.LabelFor(model => model.NewDriver.ConvertDate)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(model => model.NewDriver.ConvertDate)
+        @Html.ValidationMessageFor(model => model.NewDriver.ConvertDate)
+    </div>
+
+    <div class="editor-label">
+        @Html.LabelFor(model => model.NewDriver.AllocateDate)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(model => model.NewDriver.AllocateDate)
+        @Html.ValidationMessageFor(model => model.NewDriver.AllocateDate)
+    </div>
+
+    <div class="editor-label">
+        @Html.LabelFor(model => model.NewDriver.OrderPlanningDate)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(model => model.NewDriver.OrderPlanningDate)
+        @Html.ValidationMessageFor(model => model.NewDriver.OrderPlanningDate)
+    </div>
+
+    <div class="editor-label">
+        @Html.LabelFor(model => model.NewDriver.CheckNormals)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(model => model.NewDriver.CheckNormals)
+        @Html.ValidationMessageFor(model => model.NewDriver.CheckNormals)
+    </div>
+
+    <div class="editor-label">
+        @Html.LabelFor(model => model.NewDriver.StockedInMinihub)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(model => model.NewDriver.StockedInMinihub)
+        @Html.ValidationMessageFor(model => model.NewDriver.StockedInMinihub)
+    </div>
+
+    <p>
+        <input type="submit" value="Create" />
+    </p>
+</fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new { @class="t-button"})
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

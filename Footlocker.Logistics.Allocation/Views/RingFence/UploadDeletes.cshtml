@@ -1,0 +1,67 @@
+﻿@using Telerik.Web.Mvc;
+@{
+    ViewBag.Title = "RingFenceUploadDeletes";
+}
+
+<fieldset>
+    <legend>Upload RingFence Deletes</legend>
+    This will mass-delete ring fences by SKU and Store. Please use extreme caution when deleting ring fences as it 
+    will cause product to become available for allocation by Quantum or to be ring fenced by others.<br />
+    @Html.ActionLink("Download Template", "ExcelDeleteTemplate", new { }, new { @class = "t-button" })
+    <br />
+    <br />
+    <b>Please select spreadsheets: </b>
+        <br />
+        <br />
+    @(Html.Telerik().Upload()
+        .Name("attachments")
+        .Multiple(true)
+        .Async(async => async
+            .Save("DeleteRingFences", "RingFence")
+            .AutoUpload(false))
+            .ShowFileList(true)
+        .ClientEvents(events => events
+            .OnError("onError")
+            .OnSelect("onSelect")
+                    .OnSuccess("onSuccess")
+            )
+        )
+        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
+        <br />
+        <h4> <div id="message"></div> </h4>
+</fieldset>
+
+@Html.ActionLink("Back To List", "Index",null, new { @class="t-button"})
+
+     <script type="text/javascript">
+
+         function onSelect(e) {
+             var files = e.files;
+             if (files[0].extension != ".xls") {
+                 alert("Document must be a spreadsheet with a xls extension. ");
+                 e.preventDefault();
+             }
+             else {
+                 document.getElementById('spreadsheet').style.visibility = 'visible';
+             }
+             $('#message').empty();
+         }
+
+         function onError(e) {
+             var message = e.XMLHttpRequest.responseText;
+             if (message.indexOf("Incorrectly formatted or missing header row") != -1)
+                $('#message').empty().append("<font color='red'>" + message + "</font>");
+             else
+                $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='DownloadDeleteErrors'>Download Errors</a>");
+
+             e.preventDefault();
+         }
+
+         function onSuccess(e) {
+             var message = e.XMLHttpRequest.responseText;
+             $('#message').empty().append("<font color='red'>Success</font>");
+
+             e.preventDefault();
+         }
+    </script>
+    

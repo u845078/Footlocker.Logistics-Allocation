@@ -1,0 +1,101 @@
+﻿@model Footlocker.Logistics.Allocation.Models.FOBPack
+
+
+
+@*Header Info*@
+@Html.HiddenFor(m => m.ID, new { @class = "editor-input" })
+@Html.HiddenFor(m => m.FOBID, new { @class = "editor-input" })
+@Html.HiddenFor(m => m.Quantity, new { @class = "editor-input" })
+
+@Html.ValidationSummary(false)
+<fieldset class="form-fieldset form-fieldset-fobpack" style="text-align: center;">
+    @*<div class="form-input-area-container-first">*@
+    <div style="display: inline-block;">
+        @*Labels - Left*@
+        <div class="form-input-label-area">
+            <div class="form-input form-input-label">
+                @Html.LabelFor(m => m.FOB.Description, "FOB: ")
+            </div>
+            <div class="form-input form-input-label">
+                @Html.LabelFor(m => m.Quantity, "Qty: ")
+            </div>
+        </div>
+    
+        @*Input Controls - Left*@
+        <div class="form-input-value-area">
+            <div class="form-input" style="text-align: left;">
+                <span>@Model.FOB.Description</span>
+            </div>
+            <div class="form-input" style="text-align: left;">
+                <span>@Model.Quantity</span>
+            </div>
+        </div>
+    </div>
+</fieldset>
+
+<fieldset class="form-fieldset form-fieldset-packcost">
+    @*<div class="form-input-area-container-first">*@
+    <div style="margin: 0px auto; width: 80%;">
+        @*Labels - Left*@
+        <div class="form-input-label-area">
+            <div class="form-input form-input-label" style="margin-top: 3px;">
+                @Html.LabelFor(m => m.Cost, "Cost: ")
+            </div>
+        </div>
+        @*Input Controls - Left*@
+        <div class="form-input-value-area">
+            <div class="form-input" style="margin-top: 0px;">
+                @Html.Telerik().CurrencyTextBoxFor(m => m.Cost).HtmlAttributes(new { @class = "editor-input", tabIndex = 1 }).MinValue(0)
+                @Html.ValidationMessageFor(m => m.Cost, "*")
+
+                <button type="submit" class="button-pack-save t-button t-button-icononly right-floated" onclick="savePackButton_Click(event)">
+	                <span class="t-icon t-edit"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</fieldset>
+
+@*Divisions*@
+<fieldset class="form-fieldset form-fieldset-packoverrides">
+    <div style="margin-top: 5px;">
+        <span>Department Overrides</span>
+        <button id="addOverrideButton" class="t-button t-button-icontext" style="float: right; margin-top: -8px;" onclick="addOverrideButton_Click(event);">
+           <span class="t-icon t-add"></span>
+           Add
+        </button> 
+    </div>
+
+    <div>
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.FOBPackOverride>()
+        .Name("OverridesGrid")
+        .HtmlAttributes(new { style = "margin-top: 10px;", @class = "selectable-grid" })
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.ID).Visible(false);
+            columns.Bound(o => o.FOBDept.Department).Width(50).Title("Dept");
+            columns.Bound(o => o.Cost).Title("Cost").Format("{0:C}");
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("Grid_OverridesByFOBPack", "FOBPackOverride", new { fobPackID = Model.ID });
+        })
+        .Selectable()
+        .ClientEvents(events => events.OnRowSelect("overrideSelected").OnComplete("overridesGrid_OnComplete"))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true).PageSize(5))
+        .Filterable(filtering => filtering.Enabled(false))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+        )
+    </div>
+    <div style="margin-top: 10px;">
+        <button id="deleteOverrideButton" class="t-button t-state-disabled modify-button modify-button-delete" style="float: left;" disabled="disabled" onclick="deleteOverrideButton_Click(event)">
+            Delete
+        </button>
+        <button id="editOverrideButton" class="t-button t-state-disabled modify-button modify-button-edit" style="float: right;" disabled="disabled" onclick="editOverrideButton_Click(event)">
+            Edit
+        </button>
+    </div>
+</fieldset>
+

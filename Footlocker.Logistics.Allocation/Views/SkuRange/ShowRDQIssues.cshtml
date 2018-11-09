@@ -1,0 +1,132 @@
+﻿@model Footlocker.Logistics.Allocation.Models.QFeedModel
+
+@{
+    ViewBag.Title = "Quantum Feed";
+}
+<script>
+    function checkPrice() {
+        $('#checkPrice').hide();
+        $('#checkPriceLoad').show();       
+        $.ajax({
+            url: "/SkuRange/_CheckPrice",
+            data: "{'sku': '@Model.Sku'}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('#checkPrice').show();
+                $('#checkPriceLoad').hide();
+            },
+            success: function (result) {
+                if (result == 'error') {
+                    $('#checkPriceResults').empty().append("No Price")
+                    $('#checkPriceResults').show();                
+                }
+                else {
+                    $('#checkPriceResults').empty().append('Price is $' + result.RetailPrice)
+                    $('#checkPriceResults').show();                
+                }
+                $('#checkPrice').show();
+                $('#checkPriceLoad').hide();
+            }
+        });
+    }
+
+    function checkRoute() {
+        //get route from ddl
+        $('#checkRoute').hide();
+        $('#checkRouteLoad').show();
+
+        var grid = $("#RouteGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+
+        $.ajax({
+            url: "/SkuRange/_CheckRoute",
+            data: "{'routeid': " + $('#ddlRoute').val() + ", 'planID': @ViewData["planID"]}",
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon', grid.element).removeClass('t-loading');
+                $('#checkRoute').show();
+                $('#checkRouteLoad').hide();
+
+            },
+            success: function (result) {
+                $('.t-status .t-icon', grid.element).removeClass('t-loading');
+                grid.dataBind(result);
+                $('#checkRoute').show();
+                $('#checkRouteLoad').hide();
+                $('#routeText').empty().append(result.total + " stores with route issues")
+                $('#routeGridWrapper').show();                
+            }
+        });
+
+    }
+</script>
+<h2>Potential RDQ Issues</h2>
+
+<p>
+    @Html.ActionLink("Download", "ShowQFeedTextFast", new { planid = ViewData["planID"] }, new { @class = "t-button" })    
+    @Html.ActionLink("Troubleshoot","Troubleshoot","Item",new {sku = Model.Sku}, new {@class="t-button"})
+    @Html.ActionLink("Show Q Feed", "ShowQFeed", new { planid = ViewData["planID"] }, new { @class = "t-button" })
+</p>
+
+<font color="red">
+@foreach (string s in Model.VerificationMessages)
+{ 
+    @Html.Raw(s + "<BR>");
+}
+</font>
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RangeIssue>()
+        .Name("IssueGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Division);
+            columns.Bound(o => o.Store);
+            columns.Bound(o => o.Message);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_IssueGrid", "SkuRange", new { planID = ViewData["planID"] });
+        })
+        .Pageable()
+        .Sortable()
+        .Filterable()
+)
+<br /><br />
+
+<div id="checkPrice" class="t-button" onclick="checkPrice()">Check Price</div>
+<div id="checkPriceLoad" style="display:none;">Checking Price...</div>
+<span id="checkPriceResults" style="display:none;">Checking Price...</span>
+<br />
+
+@Html.DropDownList("ddlRoute", new SelectList(Model.Routes, "ID", "DisplayString"), new { id = "ddlRoute" })<div id="checkRoute" class="t-button" onclick="checkRoute()">Check Route</div>
+<div id="checkRouteLoad" style="display:none;">Checking Route...</div>
+
+<br /><br />
+<div id="routeGridWrapper" style="display:none;">
+<div id="routeText">Stores with route issues:</div>
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RangeIssue>()
+        .Name("RouteGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Division);
+            columns.Bound(o => o.Store);
+            columns.Bound(o => o.Message);
+        })
+        //.DataBinding(dataBinding =>
+        //{
+        //    dataBinding.Ajax().Select("_CheckRoute", "SkuRange", new { planID = ViewData["planID"] });
+        //})
+        //.Pageable()
+        //.Sortable()
+        //.Filterable()
+)
+</div>
+<p>
+    @Html.ActionLink("Back to Details", "PresentationQuantities", new { planid = ViewData["planID"] }, new { @class = "t-button" })
+</p>

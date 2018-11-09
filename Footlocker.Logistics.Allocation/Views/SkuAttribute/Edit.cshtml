@@ -1,0 +1,195 @@
+﻿@model Footlocker.Logistics.Allocation.Models.SkuAttributeModel
+
+@{
+    ViewBag.Title = "Edit";
+    bool hasEditRole = Convert.ToBoolean(ViewData["hasEditRole"]);
+}
+<script>
+    function onLoadSlider() {
+        var weightActive = $('#WeightActive').data('tSlider'); // get slider object
+        weightActive.value(@Model.WeightActive);
+    }
+
+    function enableCheckbox(cb, attr) {
+   
+        if (cb.checked) {
+            $('#Attributes_' + attr + '__WeightInt').val(0);
+            $('#Attributes_' + attr + '__WeightInt').attr("disabled", "disabled");
+            return true;
+        }
+        else
+        {
+            var isEnabled = true;
+
+            if (attr == 0) {
+                isEnabled = false;
+                alert("Department attribute is Mandatory!");
+            } 
+            else if (attr == 1 && $('#Category').val() != "") {
+                isEnabled = false;
+                alert("Category attribute is Mandatory when a Category is selected!");
+            }
+            else if (attr == 3 && $('#BrandID').val() != "") {
+                isEnabled = false;
+                alert("BrandID attribute is Mandatory when a BrandID is selected!");
+            } 
+
+            if (isEnabled == true) {
+                $('#Attributes_' + attr + '__WeightInt').removeAttr("disabled");
+                return true;
+            } else {
+                $('#Attributes_' + attr + '__WeightInt').val(0);
+                $('#Attributes_' + attr + '__WeightInt').attr("disabled", "disabled");
+                return false;
+            }
+        }
+    }
+
+    function updateSum() {
+        var sum = 0;
+        sum = sum + parseInt($('#Attributes_0__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_1__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_2__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_3__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_4__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_5__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_6__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_7__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_8__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_9__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_10__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_11__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_12__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_13__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_14__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_15__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_16__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_17__WeightInt').val());
+        sum = sum + parseInt($('#Attributes_18__WeightInt').val());
+
+        $('#sum').empty().append('Total Weight:  ' + sum);
+    }
+
+    $(document).ready(function () {
+        updateSum();
+
+    })
+
+</script>
+    @if (hasEditRole)
+    {
+        <h2>Edit Quantum Attribute Matching</h2>
+    }
+    else
+    {
+        <h2>View Quantum Attribute Matching</h2>
+    }
+
+@using (Html.BeginForm("Edit", "SkuAttribute"))
+{
+    @Html.HiddenFor(model => model.HeaderID)
+
+<fieldset>
+<div class="editor-field">
+    @Html.LabelFor(model => model.Division)
+    <br/>
+    @Html.DropDownListFor(model => model.Division, new SelectList(Model.Divisions, "DivCode", "DivisionName"), new { disabled = true })
+    @Html.HiddenFor(model => model.Division)
+</div>
+
+<div class="editor-field">
+    @Html.LabelFor(model => model.Department)
+    <br/>
+    @Html.DropDownListFor(model => model.Department, new SelectList(Model.Departments, "DeptNumber", "DisplayName"), new { disabled = true })
+    @Html.HiddenFor(model => model.Department)
+</div>
+<div class="editor-field">
+    @if (Model.Category == null)
+    { 
+        @Html.Raw("Category: default")
+    }
+    else
+    {
+        @Html.LabelFor(model => model.Category) 
+        <br/>
+        @Html.DropDownListFor(model => model.Category, new SelectList(Model.Categories, "categoryCode", "categoryDisplay"), new { disabled = true })
+    }
+    @Html.HiddenFor(model => model.Category)
+</div>
+<div class="editor-field">
+    @if (Model.BrandID == null)
+    { 
+        @Html.Raw("BrandID: default")
+    }
+    else
+    {
+        @Html.LabelFor(model => model.BrandID)
+        <br/>
+        @Html.DropDownListFor(model => model.BrandID, new SelectList(Model.Brands, "brandIDCode", "brandIDDisplay"), new { disabled = true })
+    }
+    @Html.HiddenFor(model => model.BrandID)
+</div>
+<br />
+<div class="editor-field">
+    @Html.LabelFor(model => model.WeightActive) 
+    <br />
+    @Html.TextBoxFor(model => model.WeightActive, new { @type = "number", min = 1, max = 100, @style="width: 40px; margin-top: 5px;" })
+    <label>1 = Inactive, 100 = Active</label>
+</div>
+<br />
+@if (Model.Message != null)
+{ 
+    @Html.Raw("<font color='red'>" + Model.Message + "</font>")
+}
+<table>
+@for (var count = 0; count < Model.Attributes.Count(); count++)
+{
+
+
+    //@foreach (SkuAttribute item in Model.Attributes)
+    //{ 
+    <tr>
+    <td>
+        @Html.HiddenFor(model => Model.Attributes[count].HeaderID)
+        @Html.DisplayFor(model => Model.Attributes[count].AttributeType)
+        @Html.HiddenFor(model => Model.Attributes[count].AttributeType)
+    </td>
+    <td>
+        @Html.LabelFor(model => Model.Attributes[count].Mandatory)
+        @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory, new { onclick = "return enableCheckbox(this," + count + ");" })
+    </td>
+    <td>
+        @Html.LabelFor(model => Model.Attributes[count].Weight)
+        @if (Model.Attributes[count].Mandatory)
+        {
+        @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { disabled = "disabled", style = "width: 3em;", onblur = "updateSum();" })
+        }
+        else
+        {           
+        @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { style = "width: 3em;", onblur = "updateSum();" })
+        }
+    </td>
+    </tr>
+
+}
+    <tr>
+    <td>
+    </td>
+    <td colspan="2" align="right">
+        <div id="sum">Total Weight:  0</div>
+    </td>
+    </tr>    
+</table>
+
+    @if (hasEditRole)
+    {
+        <p>
+            <input type="submit" value="Save" />
+        </p>
+    }
+
+    </fieldset>
+    
+}
+<br />
+@Html.ActionLink("Back to List", "Index",null, new {@class="t-button"})

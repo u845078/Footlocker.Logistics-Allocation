@@ -1,0 +1,33 @@
+﻿@model int
+
+@{
+    ViewBag.Title = "Concept Divisions";
+    Layout = String.Empty;
+}
+
+<script src="@Url.Content("~/Scripts/FootLocker/telerikShims_Grid_MultiSelect.js")" type="text/javascript"></script>
+
+@Html.ValidationSummary(false)
+@*<fieldset class="form-fieldset">*@
+    <div style="margin-bottom: 10px;">
+        @(Html.Telerik().Grid<Footlocker.Common.Division>()
+        .Name("ConceptDivisionsGrid")
+        .HtmlAttributes(new { @class="selectable-grid" } )
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.DivCode).Width(10).Title("Code").ReadOnly();
+            columns.Bound(o => o.DivisionName).Title("Name").ReadOnly();
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("Grid_DivisionsNotWithConceptType", "ConceptType", new { conceptTypeID = Model });
+        })
+        .ClientEvents(events => events.OnRowDataBound("hack_multiSelectGrid_onRowDataBound"))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true).PageSize(5))
+        .Filterable(filtering => filtering.Enabled(false))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+        )
+    </div>
+@*</fieldset>*@

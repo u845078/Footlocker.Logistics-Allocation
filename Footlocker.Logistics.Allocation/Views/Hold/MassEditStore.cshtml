@@ -1,0 +1,160 @@
+﻿@model Footlocker.Logistics.Allocation.Models.HoldModel
+
+@{
+    ViewBag.Title = "Edit";
+}
+<script type="text/javascript">
+    function setValueLabelToLevelSelection() {
+        // Change the 'Value' label's label text to match the Level selection, per users...
+        var levelOptions = $("#Hold_Level")[0].childNodes;
+        $(levelOptions).each(function (idx, lvl) {
+            if (lvl.selected) {
+                $('label[for="Hold_Value"]').text(lvl.text);
+                if (lvl.text == 'Store') {
+                    $("#Hold_Value").hide();
+                    $('label[for="Hold_Value"]').hide();
+                }
+                else {
+                    $("#Hold_Value").show();
+                    $('label[for="Hold_Value"]').show();
+                }
+            }
+        });
+    }
+
+    function showHideHoldType() {
+        //if permanent hold, don't allow them to reserve inventory
+        var levelOptions = $("#Hold_Duration")[0].childNodes;
+        $(levelOptions).each(function (idx, lvl) {
+            if (lvl.selected) {
+                if (lvl.text == 'Permanent') {
+                    selectCancelInventory();
+                    $("#Hold_HoldType").prop("disabled", true);
+                    $("#enddate").hide();
+                }
+                else {
+                    $("#Hold_HoldType").prop("disabled", false);
+                    $("#enddate").show();
+                }
+            }
+        });
+    }
+
+    function selectCancelInventory() {
+        //if permanent hold, don't allow them to reserve inventory
+        var levelOptions = $("#Hold_HoldType")[0].childNodes;
+        $(levelOptions).each(function (idx, lvl) {
+            if (lvl.text == 'Cancel Inventory') {
+                lvl.selected = true;
+            }
+            else {
+                lvl.selected = false;
+            }
+        });
+    }
+
+
+    $(function () {
+        // Sync the value label text to the default level selection
+        setValueLabelToLevelSelection();
+        showHideHoldType();
+        //$("#Hold_Value").hide();
+
+        // Wire up a change handler for the Level Selection (to change Value label text)
+        $("#Hold_Level").change(setValueLabelToLevelSelection);
+
+        $("#Hold_Duration").change(showHideHoldType);
+
+
+    });
+</script>
+
+
+<h2>Mass Edit Holds</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+    if ((ViewData["message"] != "") && (ViewData["message"] != null))
+    { 
+        <font color="Red">
+        @Html.Raw(Convert.ToString(ViewData["message"]))
+        </font>
+    }
+    <fieldset>
+        <legend>Hold</legend>
+
+        @Html.HiddenFor(model => model.Hold.ID)
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Hold.Division)
+        </div>
+        <div class="editor-field">       
+            @Html.DropDownListFor(model => model.Hold.Division, new SelectList(Model.Divisions, "DivCode", "DisplayName"), new { disabled = "true" })
+            @Html.HiddenFor(model => model.Hold.Division)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Hold.Duration)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.Hold.Duration, new List<SelectListItem> { new SelectListItem { Text = "Temporary", Value = "Temporary" }, new SelectListItem { Text = "Permanent", Value = "Permanent" } }, new { disabled = "true" })
+            @Html.HiddenFor(model => model.Hold.Duration)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Hold.Store)
+        </div>
+        <div class="editor-field">
+            @Html.DisplayFor(model => model.Hold.Store)
+            @Html.HiddenFor(model => model.Hold.Store)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Hold.HoldType)
+        </div>
+        <div class="editor-field">
+            @Html.DisplayFor(model => model.Hold.HoldType)
+            @Html.HiddenFor(model => model.Hold.HoldType)
+            @Html.ValidationMessageFor(model => model.Hold.ReserveInventory)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Hold.StartDate, new { title = "Hold is effective the night of the start date" })
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Hold.StartDate)
+            @Html.ValidationMessageFor(model => model.Hold.StartDate)
+        </div>
+
+        <div id="enddate">
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Hold.EndDate, new { title = "Hold is effective until the night of the end date.  RDQs will be generated this night." })
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Hold.EndDate)
+            @Html.ValidationMessageFor(model => model.Hold.EndDate)
+        </div>
+        </div>
+
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Hold.Comments)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Hold.Comments)
+            @Html.ValidationMessageFor(model => model.Hold.Comments)
+        </div>
+
+        <p>
+            <input type="submit" value="Save" class="t-button" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "IndexByProduct", null, new { @class="t-button"})
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

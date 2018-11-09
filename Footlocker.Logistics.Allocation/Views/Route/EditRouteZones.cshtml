@@ -1,0 +1,78 @@
+﻿@model Footlocker.Logistics.Allocation.Models.EditRouteZonesModel
+
+@{
+    ViewBag.Title = "EditRouteZones";
+}
+
+<b>@Html.LabelFor(model => model.Route.Name)</b>:
+@Html.DisplayFor(model => model.Route.Name)
+&nbsp;&nbsp;&nbsp;&nbsp;
+<b>@Html.LabelFor(model => model.DC.Name)</b>:
+@Html.DisplayFor(model => model.DC.Name)
+<br /><br />
+<b>Current Zones:</b>
+<br />
+<br />
+@(Html.Telerik().Grid(Model.CurrentZones)
+        .Name("CurrentZones")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Name);
+            columns.Bound(o => (from a in Model.RouteDetails where a.ZoneID == o.ID select a).First().Days);
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("ViewStores")
+                .Text("View Stores")
+                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id");
+                                            route.Add(o => Model.Route.InstanceID).RouteKey("instanceid");
+                                            route.Add(o => Model.Route.ID).RouteKey("route");
+                                            route.Add(o => Model.DC.ID).RouteKey("dc");
+                    })
+                .Ajax(false)
+                .Action("ViewStores", "Network");
+            }).HtmlAttributes(new { style = "text-align: left" });
+        })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Server();
+                //dataBinding.Ajax().Select("_RefreshBTSGrid", "StoreBTS").Enabled(true);
+            })
+        .Sortable()
+        .Pageable()
+        .Filterable()) 
+
+<br />
+@*<b>Available Zones:</b>
+<br /><br />
+<script language=javascript>
+    function AddRouteZone(zoneID, dcID, routeID) {
+        var days = $('#lead_time_' + zoneID).val();
+
+        window.location = "/Route/AddRouteZone?dcID=" + dcID + "&routeID=" + routeID + "&zoneID=" + zoneID + "&days=" + days;
+    }
+</script>
+
+<table>
+    <tr>
+        <th>Zone</th>
+        <th>Days</th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model.AvailableZones) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Name)
+        </td>
+        <td>
+            @Html.Raw("<input type=\"text\" id=\"lead_time_" + item.ID + "\">")
+        </td>
+        <td>
+            @Html.Raw("<a class=\"t-button\" href='javascript:AddRouteZone(" + item.ID + ", " + Model.DC.ID + ", " + Model.Route.ID + ");'>Add</a>")
+        </td>
+    </tr>
+}
+</table>
+*@<br />
+@Html.ActionLink("Back to Route", "EditRoute", new { ID = Model.Route.ID }, new { @class = "t-button" })

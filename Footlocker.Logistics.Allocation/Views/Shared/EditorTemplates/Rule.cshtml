@@ -1,0 +1,145 @@
+﻿@model Footlocker.Logistics.Allocation.Models.Rule
+
+@using (Html.BeginForm("AddRule", "Rule", FormMethod.Post))
+{
+    @Html.ValidationSummary(true)
+    <fieldset>           
+            @Html.HiddenFor(model =>model.RuleSetID)
+            @Html.HiddenFor(model =>model.Sort)
+            @Html.DropDownListFor(model => model.Field, new List<SelectListItem> { new SelectListItem{Text="Store",Value="Store"},
+                                                                                    new SelectListItem{Text="Division",Value="Division"},
+                                                                                    new SelectListItem{Text="Doing Business As",Value="DBA"},
+                                                                                    new SelectListItem{Text="State",Value="State"},
+                                                                                    new SelectListItem{Text="Region",Value="Region"},
+                                                                                    new SelectListItem{Text="League",Value="League"},
+                                                                                    new SelectListItem{Text="City",Value="City"},
+                                                                                    new SelectListItem{Text="Mall",Value="Mall"},
+                                                                                    new SelectListItem{Text="StoreType",Value="StoreType"},
+                                                                                    new SelectListItem{Text="Store Status",Value="status"},
+                                                                                    new SelectListItem{Text="Climate",Value="Climate"},
+                                                                                    new SelectListItem{Text="Market Area",Value="MarketArea"},
+                                                                                    new SelectListItem{Text="Store Plan",Value="StorePlan"},
+                                                                                    new SelectListItem{Text="SKU",Value="RangePlan"},
+                                                                                    new SelectListItem{Text="Store Range Plan Desc",Value="RangePlanDesc"},
+                                                                                    new SelectListItem{Text="Concept",Value="StoreExtension.ConceptType.Name"},
+                                                                                    new SelectListItem{Text="Customer",Value="StoreExtension.CustomerType.Name"},
+                                                                                    new SelectListItem{Text="Priority",Value="StoreExtension.PriorityType.Name"},
+                                                                                    new SelectListItem{Text="Strategy",Value="StoreExtension.StrategyType.Name"},
+                                                                                    new SelectListItem{Text="Ad-Hoc Code 1",Value="AdHoc1"},
+                                                                                    new SelectListItem{Text="Ad-Hoc Code 2",Value="AdHoc2"},
+                                                                                    new SelectListItem{Text="Ad-Hoc Code 3",Value="AdHoc3"},
+                                                                                    new SelectListItem{Text="Ad-Hoc Code 4",Value="AdHoc4"},
+                                                                                    new SelectListItem{Text="Ad-Hoc Code 5",Value="AdHoc5"},
+                                                                                    new SelectListItem{Text="Ad-Hoc Code 6",Value="AdHoc6"},
+                                                                                    new SelectListItem{Text="Ad-Hoc Code 7",Value="AdHoc7"},
+                                                                                    new SelectListItem{Text="Ad-Hoc Code 8",Value="AdHoc8"},
+                                                                                    new SelectListItem{Text="Ad-Hoc Code 9",Value="AdHoc9"},
+                                                                                    new SelectListItem{Text="Ad-Hoc Code 10",Value="AdHoc10"},
+                                                                                    new SelectListItem{Text="Ad-Hoc Code 11",Value="AdHoc11"},
+                                                                                    new SelectListItem{Text="Ad-Hoc Code 12",Value="AdHoc12"}
+            })
+            @Html.ValidationMessageFor(model => model.Field)
+            &nbsp;&nbsp;
+            @Html.DropDownListFor(model => model.Compare, new List<SelectListItem> { new SelectListItem{Text="Equals",Value="Equals"},
+                                                                                    new SelectListItem{Text="Does Not Equal",Value="Does Not Equal"},
+                                                                                    new SelectListItem{Text="Is less than",Value="Is less than"},
+                                                                                    new SelectListItem{Text="Is greater than",Value="Is greater than"},
+                                                                                    new SelectListItem{Text="Contains",Value="Contains"},
+                                                                                    new SelectListItem{Text="Starts With",Value="StartsWith"},
+                                                                                    new SelectListItem{Text="Ends With",Value="EndsWith"}
+            })
+            @Html.ValidationMessageFor(model => model.Compare)
+            &nbsp;&nbsp;
+            <div style="display:none">
+            @Html.EditorFor(model => model.Value)
+            </div>
+                <script type="text/javascript">
+                    function onComboBoxDataBinding(e) {
+                        var field = $('#RuleToAdd_Field').val();
+                        e.data = $.extend({}, e.data, { filterMode: 'StartsWith', type: field
+                        });
+                    }
+                     function onAutoCompleteDataBinding(e) {
+                         var field = $('#RuleToAdd_Field').val();
+                         e.data = $.extend({}, e.data, { filterMode:
+                'StartsWith', type: field
+                        });
+                    }
+
+                    function changeValue(e) {
+                        $('#RuleToAdd_Value').val(e.value);
+                    }
+
+                    function showExample() {
+                        var field = $('#RuleToAdd_Field').val();
+
+                        $.ajax({
+                            url: "/rule/GetExamples",
+                            data: "{'type': '" + field + "'}",
+                            contentType: 'application/json; charset=utf-8',
+                            type: 'POST',
+                            dataType: 'json',
+                            error: function (xhr, status) {
+                                alert(status);
+                                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+                            },
+                            success: function (result) {
+                                $('#examples').empty().append('<p>');
+
+                                for(var i=0;i<result.length;i++)
+                                {
+                                    $("#examples").append(result[i] + '<br>'); 
+                                }
+                                $('#examples').append('</p>');
+                            }
+                        });    
+
+                    }
+
+            </script>
+            <span>
+@*                @(Html.Telerik().ComboBox()
+                      .Name("AjaxComboBox")
+                      .HtmlAttributes(new { id = "AjaxComboBox_wrapper" })
+                      .AutoFill(true)
+                      .DataBinding(binding => binding.Ajax()
+                                     .Select("_AutoCompleteFilteringAjax2", "Rule")
+                                             .Delay(400)
+                                             .Cache(true))
+                      .Filterable(filtering =>
+                      {
+                          filtering.FilterMode(AutoCompleteFilterMode.StartsWith);
+                          filtering.MinimumChars(0);
+                      })
+                      .HighlightFirstMatch(true)
+                      .ClientEvents(events => events.OnDataBinding("onComboBoxDataBinding").OnChange("changeValue"))
+                )
+*@
+                @(Html.Telerik().AutoComplete()
+                    .Name("AjaxAutoComplete")
+                    .AutoFill(true)
+                    .DataBinding(binding => binding.Ajax()
+                                                   .Select("_AutoCompleteFilteringAjax", "Rule")
+                                                   .Delay(400)
+                                                   .Cache(true)
+                    )
+                    .Filterable(filtering =>
+                    {
+                        filtering.FilterMode((AutoCompleteFilterMode)Enum.Parse(typeof(AutoCompleteFilterMode),
+                            "StartsWith"));
+                        filtering.MinimumChars(1);
+                    })
+                    .Multiple(multi => multi.Enabled(false))
+                    .HighlightFirstMatch(true)
+                    .ClientEvents(events => events.OnDataBinding("onAutoCompleteDataBinding").OnChange("changeValue"))
+                )
+    </span>
+                @Html.ValidationMessageFor(model => model.Value)
+                <div class="t-button" onclick="addCurrentRule(event);">Add Rule</div>
+                <br />
+                <div class="t-button" onclick="showExample()">Show Examples</div>
+                <div id="examples"></div>
+
+@*            <input type="button" value="Add Rule" class="t-button" onclick="addCurrentRule(event);"/>
+*@    </fieldset>
+}

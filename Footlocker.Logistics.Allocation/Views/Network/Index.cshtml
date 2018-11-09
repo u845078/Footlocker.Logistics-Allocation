@@ -1,0 +1,30 @@
+﻿@model Footlocker.Logistics.Allocation.Models.NetworkLeadTimeModel
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<script>
+    function autopostback(dropdown) {
+        window.location = '/Network/Index?instanceID=' + dropdown.value;
+    }
+</script>
+<h1>Zones</h1>
+@using (Html.BeginForm("CreateLeadTime","Network",FormMethod.Post)) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.InstanceID)&nbsp;
+            @Html.DropDownListFor(model => model.InstanceID, new SelectList(Model.AvailableInstances, "ID", "Name"), new { onchange = "autopostback(this);" })
+            @Html.ValidationMessageFor(model => model.InstanceID)
+        </div>
+
+
+
+    </fieldset>
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

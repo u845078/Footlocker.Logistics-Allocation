@@ -1,0 +1,85 @@
+﻿@model Footlocker.Logistics.Allocation.Models.DriverModel
+@using Footlocker.Logistics.Allocation.Models;
+
+@{
+    ViewBag.Title = "Quantum Allocation Driver";
+}
+
+<h2>Department Config</h2>
+<script>
+    function autopostback(dropdown) {
+        window.location = '/Driver/Index?div=' + dropdown.value;
+    }
+    function create() {
+        window.location = '/Driver/Create?div=' + $('#CurrentDivision').val();
+    }
+
+</script>
+@Html.DropDownListFor(m => Model.CurrentDivision, new SelectList(Model.Divisions, "DivCode", "DivisionName"), new { onchange = "autopostback(this);" })
+<br />
+<br />
+@Html.Raw("<a onclick=\"create()\" class=\"t-button\">Create</a>")
+<br />
+<br />
+<table style="width: 100%">
+    <tr>
+        <th>
+            Department
+        </th>
+        <th title="Date to create default range">
+            Convert Date
+        </th>
+        <th title="Date to start allocating this sku">
+            Allocate Date
+        </th>
+        <th title="Date to start allocating this sku">
+            Order Planning Date
+        </th>
+        <th>
+            Last Modified User
+        </th>
+        <th>
+            Last Modified Date
+        </th>
+        <th>
+            Check Normals
+        </th>
+        <th title="Can this product be stocked in the minihub?">
+            Minihub Product
+        </th>
+        <th></th>
+    </tr>
+@foreach (AllocationDriver item in Model.Drivers)
+{ 
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Department)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ConvertDate)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.AllocateDate)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.OrderPlanningDate)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CreatedBy)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CreateDate)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CheckNormals)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.StockedInMinihub)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { div = item.Division, dept = item.Department }) |
+            @Html.ActionLink("Delete", "Delete", new { div = item.Division, dept = item.Department }, new { onclick = "return confirm('Are you sure?');" })
+        </td>
+    </tr>    
+}
+</table>

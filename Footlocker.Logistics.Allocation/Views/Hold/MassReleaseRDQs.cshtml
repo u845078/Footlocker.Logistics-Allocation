@@ -1,0 +1,167 @@
+﻿@model Footlocker.Logistics.Allocation.Models.DeleteHoldModel
+
+@{
+    ViewBag.Title = "Release Inventory for Holds";
+}
+
+<script type="text/javascript">    
+    function rebindGrid() {
+        alert('here we go');
+        var html = $('#RDQGrid').html(); $('#RDQGrid').html(html);
+        // $('#RDQGrid').data('tGrid').ajax();
+    }
+
+    function ReleaseRDQGroup(rdqGroup) {
+        //make a call to server
+        var grid = $("#RDQGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+        $.ajax({
+            url: "/Hold/MassReleaseRDQGroup",
+            data: JSON.stringify({ rdqGroup: rdqGroup }),
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                    grid.ajaxRequest();
+            }
+        });
+    }
+
+    function ReleaseRDQGroupToWarehouse(rdqGroup) {
+        //make a call to server
+        var grid = $("#RDQGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+        $.ajax({
+            url: "/Hold/MassReleaseRDQGroupToWarehouse",
+            data: JSON.stringify({ rdqGroup: rdqGroup }),
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+                $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+            },
+            success: function (result) {
+                    grid.ajaxRequest();
+            }
+        });
+    }
+
+    function getRDQTotalQtyForHold(callback) {
+        // Make ajax call to get total qty of all rdqs for this hold
+        $.ajax({
+            url: "/Hold/GetMassRDQTotalQtyForHolds",
+            data: { },
+            contentType: 'application/json; charset=utf-8',
+            type: 'GET',
+            dataType: 'json',
+            error: function (xhr, status) {
+                alert(status);
+            },
+            success: function (result) {
+                var totalQty = result.Data;
+                callback(totalQty);
+            }
+        });
+    }
+
+    function releaseAllRDQs(isReleasingToWarehouse) {
+        // Get total RDQ quantity
+        getRDQTotalQtyForHold(function(totalQty) {
+            // Prompt user for confirmation
+            if(confirm('Are you sure you want to release all ' + totalQty + ' ship units?')) {
+                // Post to warehouse release...
+                $.ajax({
+                    url: (isReleasingToWarehouse) ? "/Hold/MassReleaseAllRDQsToWarehouse" : "/Hold/MassReleaseAllRDQs",
+                    data: JSON.stringify({ }),
+                    contentType: 'application/json; charset=utf-8',
+                    type: 'POST',
+                    dataType: 'json',
+                    error: function (xhr, status) {
+                        alert(status);
+                    },
+                    success: function (result) {
+                        // Notify of successful release
+                        alert('The inventory has been successfully released.');
+                        
+                        // Redirect to Index
+                        window.location = "/Hold/IndexByProduct";
+                    }
+                });
+            }
+        });
+    }
+
+</script>
+
+<h2>Release Inventory for Holds</h2>
+@Html.DisplayFor(model => model.NumberOfHolds) Hold(s) Selected
+<br /> 
+@Html.DisplayFor(model => model.Hold.Division) 
+@Html.DisplayFor(model => model.Hold.Level) 
+@Html.DisplayFor(model => model.Hold.Value)
+<br /> 
+
+@if (Model.Hold.ReserveInventoryBool)
+{
+    @Html.Raw("<font color=\"red\">There was inventory reserved for this hold.  Please choose where to release the inventory.</font><br><br>")
+    //what do we do with the inventory
+
+    <button class="t-button link-text-button" onclick="releaseAllRDQs(false)">Release all to Assigned Store</button> <br /><br />
+    <button class="t-button link-text-button" onclick="releaseAllRDQs(true)">Release all to Warehouse Available</button> <br /><br />
+}
+
+Currently Held Inventory:
+<br />
+
+@if (Model.CurrentRDQs.Count() > 0)
+{
+    @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQGroup>()
+        .Name("RDQGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Division).Title("Div").Width(50);
+            columns.Bound(o => o.Store).Width(75);
+            columns.Bound(o => o.WarehouseName);
+            columns.Bound(o => o.Category);
+            columns.Bound(o => o.Sku).Width(125);
+            columns.Bound(o => o.IsBin).Title("All Bin");
+            columns.Bound(o => o.Qty).Title("Pick Qty");
+            columns.Bound(o => o.UnitQty);
+            columns.Template(@<text> 
+                            @Html.Raw("<a class=\"t-button\" href='javascript:ReleaseRDQGroup(item);'>This Store</a>")
+                            @Html.Raw("<a class=\"t-button\" href='javascript:ReleaseRDQGroupToWarehouse(item);'>Warehouse</a>")
+                </text>)
+                //.ClientTemplate(
+                //    "<a class=\"t-button\" href='javascript:ReleaseRDQ(\"<#= Sku #>\");'>This Store</a>"
+                //    + "<a class=\"t-button\" href='javascript:ReleaseRDQToWarehouse(\"<#= Sku #>\");'>Warehouse</a>").Title("Detail Release");
+            .ClientTemplate(
+                "<a class=\"t-button\" href='javascript:ReleaseRDQGroup({ Division: \"<#= Division #>\", Store: \"<#= Store #>\", WarehouseName: \"<#= WarehouseName #>\", Category: \"<#= Category #>\", ItemID: <#= ItemID #>, Sku: \"<#= Sku #>\" });'>This Store</a>"
+                + "<a class=\"t-button\" href='javascript:ReleaseRDQGroupToWarehouse({ Division: \"<#= Division #>\", Store: \"<#= Store #>\", WarehouseName: \"<#= WarehouseName #>\", Category: \"<#= Category #>\", ItemID: <#= ItemID #>, Sku: \"<#= Sku #>\" });'>Warehouse</a>").Title("Detail Release");
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_RDQsMass", "Hold", new { ajax = true }).Enabled(true);
+        })
+        .Scrollable(scrolling => scrolling.Enabled(false))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+    )
+}
+else
+{ 
+    @Html.Raw("No RDQs")<br /><br />
+}
+
+
+
+<br />
+@Html.ActionLink("Back to List", "IndexByProduct", new { }, new { @class="t-button"})
+

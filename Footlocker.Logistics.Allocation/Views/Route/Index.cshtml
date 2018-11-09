@@ -1,0 +1,22 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RouteModel
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<script>
+    function autopostback(dropdown) {
+        window.location = '/Route/Index?instanceID=' + dropdown.value;
+    }
+</script>
+<div class="editor-label">
+    @Html.LabelFor(model => model.InstanceID)&nbsp;
+    @Html.DropDownListFor(model => model.InstanceID, new SelectList(Model.AvailableInstances, "ID", "Name"), new { onchange = "autopostback(this);" })
+    @Html.ValidationMessageFor(model => model.InstanceID)
+</div>
+@Html.ActionLink("Create New", "Create", new { instanceID = Model.InstanceID }, new { @class = "t-button" })
+<br /><br />
+@Html.Partial(@Url.Content("~/Views/Route/PartialRouteList.cshtml"), Model.Routes)
+
+<br />
+@Html.ActionLink("Download Excel", "DownnloadRoutes", new { instanceID = Model.InstanceID }, new { @class = "t-button" })
