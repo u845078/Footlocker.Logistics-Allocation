@@ -1194,7 +1194,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else if (submitAction == "WSMextract")
             {
-                List<WSM> wsmList = dao.GetWSMextract(model.Sku);
+                List<WSM> wsmList = dao.GetWSMextract(model.Sku, model.includeinvalidrecords);
 
                 //If wsm query returns no results then inform user
                 if (!wsmList.Any())
