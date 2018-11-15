@@ -586,6 +586,7 @@
     <Content Include="Views\PurgeArchive\Create.cshtml" />
     <Content Include="Views\SkuAttribute\Upload.cshtml" />
     <Content Include="Views\RingFence\UploadDeletes.cshtml" />
+    <Content Include="Session\Index.aspx" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />
