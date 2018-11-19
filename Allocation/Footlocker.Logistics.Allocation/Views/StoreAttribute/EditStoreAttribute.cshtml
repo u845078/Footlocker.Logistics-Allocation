@@ -55,6 +55,10 @@
 </script>
 
 <h2>Edit</h2>
+@if (ViewData["message"] != null)
+{
+    @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
+}
 
 @using (Html.BeginForm()) {
     @Html.ValidationSummary(true)

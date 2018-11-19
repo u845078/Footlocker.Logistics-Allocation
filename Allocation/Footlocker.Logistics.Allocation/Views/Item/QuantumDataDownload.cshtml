@@ -23,10 +23,12 @@
         <div class="editor-field">
             @Html.EditorFor(model => model.Sku)
             @Html.ValidationMessageFor(model => model.Sku)
+            @Html.RadioButtonFor(model => model.includeinvalidrecords, false)Show Only Valid matches
+            @Html.RadioButtonFor(model => model.includeinvalidrecords, true)Show All matches
         </div>
 
         <p>
-            <button type="submit" name="submitAction" value="WSM" onclick="Submit_OnClick()">Download WSM Data</button>
+            
             <button type="submit" name="submitAction" value="WSMextract" onclick="Submit_OnClick()">Download WSM Extract</button>
             <button type="submit" name="submitAction" value="LostSales" onclick="Submit_OnClick()">Download Lost Sales</button>
         </p>

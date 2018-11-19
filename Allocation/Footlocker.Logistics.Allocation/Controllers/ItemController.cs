@@ -646,7 +646,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<Hold> holds = (from a in db.Holds select a).ToList();
 
             ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == sku select a).FirstOrDefault();
-            AllocationDriverDAO dao = new AllocationDriverDAO();
+          AllocationDriverDAO dao = new AllocationDriverDAO();
 
             holds = (from a in holds
                      where ((a.Division == item.Div) &&
@@ -660,7 +660,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                (a.Value == (item.Vendor + "-" + item.Dept + "-" + item.Category))) ||
                              ((a.Level == "DivDeptBrand") && 
                               (a.Value == (item.Div + "-" + item.Dept + "-" + item.Brand))) ||
-                             ((a.Level == "Sku") && (a.Value == sku))))
+                             ((a.Level == "Sku") && (a.Value == sku)) ||
+                             ((a.Level == "DeptCatBrand") && (a.Value == (item.Dept + "-" + item.Category + "-" + item.Brand))) ||
+                             ((a.Level == "DeptTeam") && (a.Value == item.Dept + "-" + item.TeamCode))))
                      select a).ToList();
 
             IEnumerable<Hold> distinctUsers = holds
@@ -1192,7 +1194,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else if (submitAction == "WSMextract")
             {
-                List<WSM> wsmList = dao.GetWSMextract(model.Sku);
+                List<WSM> wsmList = dao.GetWSMextract(model.Sku, model.includeinvalidrecords);
 
                 //If wsm query returns no results then inform user
                 if (!wsmList.Any())

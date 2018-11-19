@@ -6,6 +6,20 @@
 
 <h2>Create SKU</h2>
 
+<script>
+    $(function () {
+        $("#launchChk").change(function () {
+            var isChecked = $(this).is(':checked');
+            if (isChecked) {
+                $('#launchWithMinihubChk').prop('disabled', false);
+            } else {
+                $('#launchWithMinihubChk').prop('checked', false);
+                $('#launchWithMinihubChk').prop('disabled', true);
+            }
+        })
+    });
+</script>
+
 @using (Html.BeginForm())
 {
     @Html.ValidationSummary(true)
@@ -16,11 +30,14 @@
 
     <fieldset>
         <legend>SKU</legend>
-        <div class="editor-label">
+        <div class="editor-field">
+            @Html.CheckBoxFor(model => model.Launch, new { id = "launchChk" })
             @Html.LabelFor(model => model.Launch)
         </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Launch)
+
+        <div class="editor-field" style="padding-left: 15px;">
+            @Html.CheckBoxFor(model => model.LaunchMinihubInd, new { id = "launchWithMinihubChk", @disabled = "disabled" })
+            <label>Mini Hub Strategy</label>
         </div>
 
         <div class="editor-label">

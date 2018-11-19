@@ -423,8 +423,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             model.Divisions = this.Divisions();
 
-            model.WarehouseAvailable = GetWarehouseAvailable(model.RingFence);
-            model.FutureAvailable = GetFutureAvailable(model.RingFence);
+            //model.WarehouseAvailable = GetWarehouseAvailable(model.RingFence);
+            //model.FutureAvailable = GetFutureAvailable(model.RingFence);
 
             return View("AssignInventory", model);
         }
@@ -1549,7 +1549,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RingFenceDAO dao = new RingFenceDAO();
             List<RingFenceDetail> stillAvailable = dao.GetWarehouseAvailable(rf);
             stillAvailable.AddRange(dao.GetFuturePOs(rf));
-
             RingFenceDetail existing;
             foreach (RingFenceDetail det in stillAvailable)
             {
@@ -1566,7 +1565,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     det.RingFenceID = existing.RingFenceID;
                 }
             }
-
             return View(new GridModel(stillAvailable));
         }
 
@@ -3267,7 +3265,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // retrieve existing ringfences all at once, and then locally map it
             List<long> uniqueRFIDs = existingHeaders.Select(egr => egr.RingFenceID).Distinct().ToList();
 
-            List<RingFence> existingRingFences = db.RingFences.Include("ringFenceDetails").Include("ringFenceDetails.DistributionCenter").Where(rf => uniqueRFIDs.Contains(rf.ID)).ToList();
+            List<RingFence> existingRingFences = db.RingFences
+                                                    .Include("ringFenceDetails")
+                                                    .Include("ringFenceDetails.DistributionCenter")
+                                                    .Where(rf => uniqueRFIDs.Contains(rf.ID))
+                                                    .ToList();
 
             foreach (var erf in existingRingFences)
             {
@@ -3447,8 +3449,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                      });
 
             // 8) division / store combination is valid
-            var uniqueDivStoreList = parsedRFs.Select(pr => new { pr.Division, pr.Store }).Where(pr => !string.IsNullOrEmpty(pr.Store) && !pr.Store.Equals("00800")).Distinct().ToList();
-            var invalidDivStoreList = uniqueDivStoreList.Where(ds => !db.vValidStores.Any(vs => vs.Store.Equals(ds.Store) && vs.Division.Equals(ds.Division))).ToList();
+            var uniqueDivStoreList = parsedRFs
+                                        .Select(pr => new { pr.Division, pr.Store })
+                                        .Where(pr => !string.IsNullOrEmpty(pr.Store) && !pr.Store.Equals("00800"))
+                                        .Distinct()
+                                        .ToList();
+
+            var invalidDivStoreList = uniqueDivStoreList
+                                        .Where(ds => !db.StoreLookups.Any(sl => sl.Store.Equals(ds.Store) &&
+                                                                                sl.Division.Equals(ds.Division) &&
+                                                                                (sl.status.Equals("M") ||
+                                                                                 sl.status.Equals("O") ||
+                                                                                 sl.status.Equals("T") ||
+                                                                                 sl.status.Equals("N")))).ToList();
+
             parsedRFs.Where(pr => invalidDivStoreList.Contains(new { pr.Division, pr.Store }) && !string.IsNullOrEmpty(pr.Store))
                      .ToList()
                      .ForEach(rf =>

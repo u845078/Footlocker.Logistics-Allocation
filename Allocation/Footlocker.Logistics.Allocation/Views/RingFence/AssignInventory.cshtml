@@ -22,8 +22,8 @@
 @Html.DisplayFor(model => model.RingFence.Store)
 <br><br>
     
-@Html.Partial(@Url.Content("~/Views/RingFence/PartialWarehouseDetails.cshtml"), Model.WarehouseAvailable, ViewData)
-@Html.Partial(@Url.Content("~/Views/RingFence/PartialFutureDetails.cshtml"), Model.FutureAvailable, ViewData)
+@Html.Partial(@Url.Content("~/Views/RingFence/PartialWarehouseDetails.cshtml"), null, ViewData)
+@Html.Partial(@Url.Content("~/Views/RingFence/PartialFutureDetails.cshtml"), null, ViewData)
 
 @*<p>
     <input type="submit" value="Save" class="t-button"/>
