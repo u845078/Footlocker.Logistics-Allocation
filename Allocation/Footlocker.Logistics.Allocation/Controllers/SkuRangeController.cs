@@ -1160,10 +1160,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RangeFileItem> model=null;
             if ((Session["QFeedPlan"] == null) || (Convert.ToInt64(Session["QFeedPlan"]) != planID))
             {
-                RangePlan rp = (from a in db.RangePlans where a.Id == planID select a).First();
+                string SKU = (from a in db.RangePlans
+                              where a.Id == planID
+                              select a.Sku).First();
 
                 RangeFileItemDAO dao = new RangeFileItemDAO();
-                model = dao.GetRangeFileExtract(rp.Division, rp.Department, rp.Sku);
+                model = dao.GetRangeFileExtract(SKU);
                 Session["QFeed"] = model;
                 Session["QFeedPlan"] = planID;
             }
@@ -1387,10 +1389,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult ShowQFeedText(Int64 planID)
         {
-            RangePlan rp = (from a in db.RangePlans where a.Id == planID select a).First();
+            string SKU = (from a in db.RangePlans
+                          where a.Id == planID
+                          select a.Sku).First();
 
             RangeFileItemDAO dao = new RangeFileItemDAO();
-            List<RangeFileItem> model = dao.GetRangeFileExtract(rp.Division, rp.Department, rp.Sku);
+            List<RangeFileItem> model = dao.GetRangeFileExtract(SKU);
 
             string results = "";
             foreach (RangeFileItem item in model)
@@ -1400,16 +1404,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return File(Encoding.UTF8.GetBytes(results),
                          "text/plain",
-                          string.Format("{0}.txt", rp.Sku));
+                          string.Format("{0}.txt", SKU));
         }
 
         public ActionResult ShowQFeedTextFast(Int64 planID)
         {
-            RangePlan rp = (from a in db.RangePlans where a.Id == planID select a).First();
-            int instance = (from a in db.InstanceDivisions where a.Division == rp.Division select a.InstanceID).First();
+            RangePlan rp = (from a in db.RangePlans
+                            where a.Id == planID
+                            select a).First();
+
+            int instance = (from a in db.InstanceDivisions
+                            where a.Division == rp.Division
+                            select a.InstanceID).First();
 
             RangeFileItemDAO dao = new RangeFileItemDAO();
-            System.Data.IDataReader reader = dao.GetRangeFileExtractDataReader(rp.Division, rp.Department, rp.Sku);
+            System.Data.IDataReader reader = dao.GetRangeFileExtractDataReader(rp.Sku);
 
             RangeReformat reformat = new RangeReformat(instance);
             string results = "";
