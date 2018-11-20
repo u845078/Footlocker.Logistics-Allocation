@@ -1421,7 +1421,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             System.Data.IDataReader reader = dao.GetRangeFileExtractDataReader(rp.Sku);
 
             RangeReformat reformat = new RangeReformat(instance);
+
             string results = "";
+            results += reformat.GetHeader() + "\r\n";
+
             while (reader.Read())
             {
                 if (reader[11] as int? == 1) //is it ranged
