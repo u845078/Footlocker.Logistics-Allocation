@@ -586,7 +586,6 @@
     <Content Include="Views\PurgeArchive\Create.cshtml" />
     <Content Include="Views\SkuAttribute\Upload.cshtml" />
     <Content Include="Views\RingFence\UploadDeletes.cshtml" />
-    <Content Include="Session\Index.aspx" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />
@@ -726,6 +725,7 @@
     <Content Include="Views\Upload\ARConstraintsUpload.cshtml" />
     <Content Include="Views\Upload\ARSkusUpload.cshtml" />
     <Content Include="Views\Hold\Upload.cshtml" />
+    <Content Include="Views\Upload\SkuRPDGEndDateUpload.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

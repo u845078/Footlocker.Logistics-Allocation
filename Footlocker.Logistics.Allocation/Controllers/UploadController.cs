@@ -440,6 +440,111 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
 
+        /// <summary>
+        /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
+        /// </summary>
+        /// <param name="attachments"></param>
+        /// <returns></returns>
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
+        public ActionResult SaveSkuRPDGEndDate(IEnumerable<HttpPostedFileBase> attachments)
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            string Division = "";
+
+            foreach (HttpPostedFileBase file in attachments)
+            {
+                //Instantiate a Workbook object that represents an Excel file
+                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+                Byte[] data1 = new Byte[file.InputStream.Length];
+                file.InputStream.Read(data1, 0, data1.Length);
+                file.InputStream.Close();
+                MemoryStream memoryStream1 = new MemoryStream(data1);
+                workbook.Open(memoryStream1);
+                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+
+                int row = 1;
+                int validCount = 0;
+                int errorCount = 0;
+                if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Div")) && (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Dept")) &&
+                    (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Stock")) && (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("ProductType"))
+                    )
+                {
+                    Division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0');
+                    ProductTypeDAO dao = new ProductTypeDAO();
+                    List<ProductType> validationList = dao.GetProductTypeList(Division);
+                    List<ProductType> updateList = new List<ProductType>();
+                    List<ProductType> errorList = new List<ProductType>();
+                    ProductType updateProduct;
+                    ProductType tempProduct;
+                    string division;
+                    string dept;
+                    string productCode;
+                    while (mySheet.Cells[row, 0].Value != null)
+                    {
+                        division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0');
+                        if (!(Footlocker.Common.WebSecurityService.UserHasDivision(User.Identity.Name.Split('\\')[1], "allocation", division)))
+                        {
+                            return Content("You are not authorized to update division " + division);
+                        }
+                        dept = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(2, '0');
+                        productCode = Convert.ToString(mySheet.Cells[row, 3].Value);
+                        //validate the product type is okay for that div/dept
+                        var command = (from a in validationList
+                                       where ((a.Division == division)
+                                           && ((a.Dept == dept) || (a.Dept == "00"))
+                                           && (a.ProductTypeCode == productCode)
+                                           )
+                                       select a);
+                        if (command.Count() > 0)
+                        {
+                            //save the update in list
+                            tempProduct = command.First();
+                            updateProduct = new ProductType();
+                            updateProduct.Division = tempProduct.Division;
+                            updateProduct.Dept = dept;
+                            updateProduct.ProductTypeCode = tempProduct.ProductTypeCode;
+                            updateProduct.ProductTypeID = tempProduct.ProductTypeID;
+                            updateProduct.ProductTypeName = tempProduct.ProductTypeName;
+                            updateProduct.StockNumber = Convert.ToString(mySheet.Cells[row, 2].Value).PadLeft(5, '0');
+                            updateList.Add(updateProduct);
+                            validCount++;
+                        }
+                        else
+                        {
+                            updateProduct = new ProductType();
+                            updateProduct.Division = division;
+                            updateProduct.Dept = dept;
+                            updateProduct.ProductTypeCode = productCode;
+                            updateProduct.StockNumber = Convert.ToString(mySheet.Cells[row, 2].Value).PadLeft(5, '0');
+                            errorList.Add(updateProduct);
+                            errorCount++;
+                        }
+
+                        row++;
+                    }
+                    dao.UpdateList(updateList);
+
+                    if (errorCount > 0)
+                    {
+                        Session["errorList"] = errorList;
+                        return Content(errorCount + " Errors on spreadsheet (" + validCount + " successfully uploaded)");
+                    }
+                }
+                else
+                {
+                    // Inform of missing/bad header row
+                    return Content("Incorrectly formatted or missing header row. Please correct and re-process.");
+                }
+            }
+
+            return Content("");
+        }
+
+
+
+
         public ActionResult DownloadProductErrors()
         {
             List<ProductType> errorList = new List<ProductType>();
@@ -1783,10 +1888,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-        [CheckPermission(
-            Roles =
-                "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support"
-            )]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult SaveARSkus(IEnumerable<HttpPostedFileBase> attachments)
         {
             Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
@@ -1890,10 +1992,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return Content(message);
         }
 
-        [CheckPermission(
-            Roles =
-                "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support"
-            )]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult SaveARConstraints(IEnumerable<HttpPostedFileBase> attachments)
         {
             Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
