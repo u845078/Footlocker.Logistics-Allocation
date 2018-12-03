@@ -41,7 +41,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          select a.lastModifiedUser).Distinct();
             foreach (string userID in users)
             {
-                names.Add(userID, getFullUserName(userID.Replace('\\', '/')));
+                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
             }
 
             foreach (var item in filteredModel)
