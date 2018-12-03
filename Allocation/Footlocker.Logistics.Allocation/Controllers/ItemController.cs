@@ -125,10 +125,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if (model.RangePlans.Count > 0)
                 {
-                    if (model.RangePlans.First().UpdatedBy.Contains("CORP"))
+                    model.RangePlans.ForEach(rp =>
                     {
-                        model.RangePlans.First().UpdatedBy = getFullUserNameFromDatabase(model.RangePlans.First().UpdatedBy.Replace('\\', '/'));
-                    }
+                        if (rp.UpdatedBy.Contains("CORP"))
+                            rp.UpdatedBy = getFullUserNameFromDatabase(rp.UpdatedBy.Replace('\\', '/'));
+                    });
                 }
             }
             catch
@@ -1198,7 +1199,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else if (submitAction == "WSMextract")
             {
-                List<WSM> wsmList = dao.GetWSMextract(model.Sku);
+                List<WSM> wsmList = dao.GetWSMextract(model.Sku, model.includeinvalidrecords);
 
                 //If wsm query returns no results then inform user
                 if (!wsmList.Any())

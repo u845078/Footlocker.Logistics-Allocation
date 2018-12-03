@@ -22,63 +22,63 @@ namespace Footlocker.Logistics.Allocation.Services
         }
 
         
-        public IDataReader GetRangeFileExtract(string div, string dept)
-        {
+        //public IDataReader GetRangeFileExtract(string div, string dept)
+        //{
 
-            DbCommand SQLCommand;
-            string SQL = "dbo.GetRangeExtract";
+        //    DbCommand SQLCommand;
+        //    string SQL = "dbo.GetRangeExtract";
 
-            SQLCommand = _database.GetStoredProcCommand(SQL);
-            _database.AddInParameter(SQLCommand, "@div", DbType.String, div);
-            _database.AddInParameter(SQLCommand, "@dept", DbType.String, dept);
-            SQLCommand.CommandTimeout = 0;
+        //    SQLCommand = _database.GetStoredProcCommand(SQL);
+        //    _database.AddInParameter(SQLCommand, "@div", DbType.String, div);
+        //    _database.AddInParameter(SQLCommand, "@dept", DbType.String, dept);
+        //    SQLCommand.CommandTimeout = 0;
 
-            return _database.ExecuteReader(SQLCommand);
-        }
+        //    return _database.ExecuteReader(SQLCommand);
+        //}
 
         public IDataReader GetRangeFileExtract(int instance)
         {
 
             DbCommand SQLCommand;
-            string SQL = "dbo.GetRangeExtractInstance";
+            string SQL = "dbo.GetRangeExtract";
 
             SQLCommand = _database.GetStoredProcCommand(SQL);
             _database.AddInParameter(SQLCommand, "@instance", DbType.String, instance);
+            _database.AddInParameter(SQLCommand, "@SKU", DbType.String);
             SQLCommand.CommandTimeout = 0;
 
             return _database.ExecuteReader(SQLCommand);
         }
 
-        public IDataReader GetRangeFileExtractDataReader(string div, string dept, string sku)
+        public IDataReader GetRangeFileExtractDataReader(string sku)
         {
-
             DbCommand SQLCommand;
             string SQL = "dbo.GetRangeExtract";
 
             SQLCommand = _database.GetStoredProcCommand(SQL);
-            _database.AddInParameter(SQLCommand, "@div", DbType.String, div);
-            _database.AddInParameter(SQLCommand, "@dept", DbType.String, dept);
+            _database.AddInParameter(SQLCommand, "@instance", DbType.Int64);
             _database.AddInParameter(SQLCommand, "@sku", DbType.String, sku);
             SQLCommand.CommandTimeout = 0;
 
             return _database.ExecuteReader(SQLCommand);
         }
 
-        public List<RangeFileItem> GetRangeFileExtract(string div, string dept, string sku)
+        public List<RangeFileItem> GetRangeFileExtract(string sku)
         {
             List<RangeFileItem> _que;
             _que = new List<RangeFileItem>();
 
-            DbCommand SQLCommand;
-            string SQL = "dbo.GetRangeExtract";
+            IDataReader datareader = GetRangeFileExtractDataReader(sku);
+            //DbCommand SQLCommand;
+            //string SQL = "dbo.GetRangeExtract";
 
-            SQLCommand = _database.GetStoredProcCommand(SQL);
-            _database.AddInParameter(SQLCommand, "@div", DbType.String, div);
-            _database.AddInParameter(SQLCommand, "@dept", DbType.String, dept);
-            _database.AddInParameter(SQLCommand, "@sku", DbType.String, sku);
-            SQLCommand.CommandTimeout = 0;
+            //SQLCommand = _database.GetStoredProcCommand(SQL);
+            //_database.AddInParameter(SQLCommand, "@div", DbType.String, div);
+            //_database.AddInParameter(SQLCommand, "@dept", DbType.String, dept);
+            //_database.AddInParameter(SQLCommand, "@sku", DbType.String, sku);
+            //SQLCommand.CommandTimeout = 0;
 
-            IDataReader datareader = _database.ExecuteReader(SQLCommand);
+            //IDataReader datareader = _database.ExecuteReader(SQLCommand);
 
             RangeFileItemFactory factory = new RangeFileItemFactory();
 

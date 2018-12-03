@@ -206,7 +206,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             FamilyOfBusinessDAO fobDAO = new FamilyOfBusinessDAO();
             var message = ValidateStoreAttribute(model.StoreAttribute);
-            if (message != null)
+            if (message != "")
             {
                 ViewData["message"] = message;
                 model.Divisions = this.Divisions();

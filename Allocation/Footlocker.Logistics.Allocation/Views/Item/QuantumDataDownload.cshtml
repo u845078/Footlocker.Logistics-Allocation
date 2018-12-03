@@ -23,6 +23,8 @@
         <div class="editor-field">
             @Html.EditorFor(model => model.Sku)
             @Html.ValidationMessageFor(model => model.Sku)
+            @Html.RadioButtonFor(model => model.includeinvalidrecords, false)Show Only Valid matches
+            @Html.RadioButtonFor(model => model.includeinvalidrecords, true)Show All matches
         </div>
 
         <p>
