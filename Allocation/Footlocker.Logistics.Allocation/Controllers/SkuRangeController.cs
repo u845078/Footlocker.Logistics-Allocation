@@ -1055,10 +1055,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _ShowQFeed(Int64 planID)
         {
-            List<RangeFileItem> model=null;
-            RangePlan rp = (from a in db.RangePlans where a.Id == planID select a).First();
-            RangeFileItemDAO dao = new RangeFileItemDAO();
-            model = dao.GetRangeFileExtract(rp.Division, rp.Department, rp.Sku);
+            List<RangeFileItem> model = null;
+            if (planID > 0)
+            {
+                string SKU = (from a in db.RangePlans
+                              where a.Id == planID
+                              select a.Sku).First();
+
+                RangeFileItemDAO dao = new RangeFileItemDAO();
+                model = dao.GetRangeFileExtract(SKU);
+            }
             return View(new GridModel(model));
         }
 
