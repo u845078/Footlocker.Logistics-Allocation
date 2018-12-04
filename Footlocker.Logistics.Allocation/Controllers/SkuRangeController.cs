@@ -4017,9 +4017,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 }
                                 else
                                 {
-                                    deliverygroup.StartDate = Convert.ToDateTime((from dgroup in db.DeliveryGroups
-                                                                                  where dgroup.ID == deliverygroup.ID
-                                                                                  select dgroup.StartDate).FirstOrDefault());
+                                    //Start Date is allowed to be null.  don't read a current null from the database, because EF would convert it to a datetime2, which won't fit into SQL datetime
+                                    if ((from dgroup in db.DeliveryGroups
+                                         where dgroup.ID == deliverygroup.ID
+                                         select dgroup.StartDate).First() != null)
+                                    {
+                                        deliverygroup.StartDate = Convert.ToDateTime((from dgroup in db.DeliveryGroups
+                                                                                   where dgroup.ID == deliverygroup.ID
+                                                                                   select dgroup.StartDate).FirstOrDefault());
+                                    }
                                 }
                                 if (Convert.ToDateTime(mySheet.Cells[row, 3].Value) != null && Convert.ToString(mySheet.Cells[row, 3].Value).Trim() != "")
                                 {
@@ -4027,9 +4033,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 }
                                 else
                                 {
-                                    deliverygroup.EndDate = Convert.ToDateTime((from dgroup in db.DeliveryGroups
-                                                                                where dgroup.ID == deliverygroup.ID
-                                                                                select dgroup.EndDate).FirstOrDefault());
+                                    //I don't think EndDate Date is allowed to be null, but account for it anyhow.  don't read a current null from the database, because EF would convert it to a datetime2, which won't fit into SQL datetime
+                                    if ((from dgroup in db.DeliveryGroups
+                                         where dgroup.ID == deliverygroup.ID
+                                         select dgroup.EndDate).First() != null)
+                                    {
+                                        deliverygroup.EndDate = Convert.ToDateTime((from dgroup in db.DeliveryGroups
+                                                                                      where dgroup.ID == deliverygroup.ID
+                                                                                      select dgroup.EndDate).FirstOrDefault());
+                                    }
                                 }
                                 if (Convert.ToDateTime(mySheet.Cells[row, 4].Value) != null && Convert.ToString(mySheet.Cells[row, 4].Value).Trim() != "")
                                 {
