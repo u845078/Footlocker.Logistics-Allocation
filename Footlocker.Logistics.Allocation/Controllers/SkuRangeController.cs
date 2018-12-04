@@ -3994,83 +3994,86 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     string uploadsku = "";
                     string division = "";
                     string department = "";
-                    try
+                    while (mySheet.Cells[row, 0].Value != null)
                     {
-                        var RowFieldsHaveData = (mySheet.Cells[row, 0].Value != null) 
-                            && (mySheet.Cells[row, 1].Value != null)
-                            && ((mySheet.Cells[row, 2].Value != null) || (mySheet.Cells[row, 3].Value != null) ||  (mySheet.Cells[row, 4].Value != null)); // only need at least 1 of these 3 optional fields
-                        if (RowFieldsHaveData)
+                        try
                         {
-                            //range plan header has the sku that ties us to the exact range plan that we need
-                            uploadsku = Convert.ToString(mySheet.Cells[row, 0].Value).Trim();
-                            string groupname = Convert.ToString(mySheet.Cells[row, 1].Value).Trim();
-                            DeliveryGroup deliverygroup = (from devgroup in db.DeliveryGroups join rp in db.RangePlans on devgroup.PlanID equals rp.Id where rp.Sku == uploadsku where devgroup.Name == groupname select devgroup).First();
-                            db.Entry(deliverygroup).State = System.Data.EntityState.Modified;
-                            division = uploadsku.Substring(0, 2);
-                            department = uploadsku.Substring(3, 2);
+                            var RowFieldsHaveData = (mySheet.Cells[row, 0].Value != null)
+                                && (mySheet.Cells[row, 1].Value != null)
+                                && ((mySheet.Cells[row, 2].Value != null) || (mySheet.Cells[row, 3].Value != null) || (mySheet.Cells[row, 4].Value != null)); // only need at least 1 of these 3 optional fields
+                            if (RowFieldsHaveData)
+                            {
+                                //range plan header has the sku that ties us to the exact range plan that we need
+                                uploadsku = Convert.ToString(mySheet.Cells[row, 0].Value).Trim();
+                                string groupname = Convert.ToString(mySheet.Cells[row, 1].Value).Trim();
+                                DeliveryGroup deliverygroup = (from devgroup in db.DeliveryGroups join rp in db.RangePlans on devgroup.PlanID equals rp.Id where rp.Sku == uploadsku where devgroup.Name == groupname select devgroup).First();
+                                db.Entry(deliverygroup).State = System.Data.EntityState.Modified;
+                                division = uploadsku.Substring(0, 2);
+                                department = uploadsku.Substring(3, 2);
 
-                            if (Convert.ToDateTime(mySheet.Cells[row, 2].Value) != null && Convert.ToString(mySheet.Cells[row, 2].Value).Trim() != "")
-                            {
-                                deliverygroup.StartDate = Convert.ToDateTime(mySheet.Cells[row, 2].Value);
-                            }
-                            else
-                            {
-                                deliverygroup.StartDate = Convert.ToDateTime((from dgroup in db.DeliveryGroups
-                                                                                where dgroup.ID == deliverygroup.ID
-                                                                                select dgroup.StartDate).FirstOrDefault());
-                            }
-                            if (Convert.ToDateTime(mySheet.Cells[row, 3].Value) != null && Convert.ToString(mySheet.Cells[row, 3].Value).Trim() != "")
-                            {
-                                deliverygroup.EndDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value);
-                            }
-                            else
-                            {
-                                deliverygroup.EndDate = Convert.ToDateTime((from dgroup in db.DeliveryGroups
-                                                                             where dgroup.ID == deliverygroup.ID
-                                                                             select dgroup.EndDate).FirstOrDefault());
-                            }
-                            if (Convert.ToDateTime(mySheet.Cells[row, 4].Value) != null && Convert.ToString(mySheet.Cells[row, 4].Value).Trim() != "")
-                            {
-                                deliverygroup.MinEnd = Convert.ToDateTime(mySheet.Cells[row, 4].Value);
-                            }
-                            else
-                            {
-                                //minend is allowed to be null.  don't read a current null from the database, because EF would convert it to a datetime2, which won't fit into SQL datetime
-                                if ((from dgroup in db.DeliveryGroups
-                                     where dgroup.ID == deliverygroup.ID
-                                     select dgroup.MinEnd).First() != null)
+                                if (Convert.ToDateTime(mySheet.Cells[row, 2].Value) != null && Convert.ToString(mySheet.Cells[row, 2].Value).Trim() != "")
                                 {
-                                    deliverygroup.MinEnd = Convert.ToDateTime((from dgroup in db.DeliveryGroups
-                                                                               where dgroup.ID == deliverygroup.ID
-                                                                               select dgroup.MinEnd).FirstOrDefault());
+                                    deliverygroup.StartDate = Convert.ToDateTime(mySheet.Cells[row, 2].Value);
                                 }
-                                
+                                else
+                                {
+                                    deliverygroup.StartDate = Convert.ToDateTime((from dgroup in db.DeliveryGroups
+                                                                                  where dgroup.ID == deliverygroup.ID
+                                                                                  select dgroup.StartDate).FirstOrDefault());
+                                }
+                                if (Convert.ToDateTime(mySheet.Cells[row, 3].Value) != null && Convert.ToString(mySheet.Cells[row, 3].Value).Trim() != "")
+                                {
+                                    deliverygroup.EndDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value);
+                                }
+                                else
+                                {
+                                    deliverygroup.EndDate = Convert.ToDateTime((from dgroup in db.DeliveryGroups
+                                                                                where dgroup.ID == deliverygroup.ID
+                                                                                select dgroup.EndDate).FirstOrDefault());
+                                }
+                                if (Convert.ToDateTime(mySheet.Cells[row, 4].Value) != null && Convert.ToString(mySheet.Cells[row, 4].Value).Trim() != "")
+                                {
+                                    deliverygroup.MinEnd = Convert.ToDateTime(mySheet.Cells[row, 4].Value);
+                                }
+                                else
+                                {
+                                    //minend is allowed to be null.  don't read a current null from the database, because EF would convert it to a datetime2, which won't fit into SQL datetime
+                                    if ((from dgroup in db.DeliveryGroups
+                                         where dgroup.ID == deliverygroup.ID
+                                         select dgroup.MinEnd).First() != null)
+                                    {
+                                        deliverygroup.MinEnd = Convert.ToDateTime((from dgroup in db.DeliveryGroups
+                                                                                   where dgroup.ID == deliverygroup.ID
+                                                                                   select dgroup.MinEnd).FirstOrDefault());
+                                    }
+
+                                }
+
+
+
+
+                                if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", division, department)))
+                                {
+                                    message = message + @" 
+                                    " + string.Format(" You do not have permission for the division/department {0}/{1} on Row {2}.", division, department, row);
+                                    errorsFound = true;
+                                }
+
+                                list.Add(deliverygroup);
+                                row++;
                             }
-
-
-
-
-                            if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation",division , department)))
+                            else
                             {
                                 message = message + @" 
-                                    " + string.Format(" You do not have permission for the division/department {0}/{1} on Row {2}.",division, department,row);
+                                    " + string.Format(" Missing required fields on Row {0}.", row);
                                 errorsFound = true;
                             }
-
-                            list.Add(deliverygroup);
-                            row++;
                         }
-                        else
+                        catch (Exception)
                         {
-                            message = message + @" 
-                                    " + string.Format(" Missing required fields on Row {0}.",row);
                             errorsFound = true;
+                            message = "Upload failed: One ore more columns has missing or invalid data.";
                         }
-                    }
-                    catch (Exception)
-                    {
-                        errorsFound = true;
-                        message = "Upload failed: One ore more columns has missing or invalid data.";
                     }
                 }
             }
