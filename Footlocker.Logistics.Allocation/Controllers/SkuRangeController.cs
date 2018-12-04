@@ -4082,9 +4082,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 try
                 {
-                    //var dao = new DirectToStoreDAO();
-                    //dao.SaveARSkusUpload(list);
-
                     foreach (DeliveryGroup dg in list)
                     {
                         UpdateDeliveryGroupDates(dg);
