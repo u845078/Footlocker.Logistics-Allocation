@@ -4008,21 +4008,31 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             deliverygroup.Name = Convert.ToString(mySheet.Cells[row, 1].Value).Trim();
                             string groupname = deliverygroup.Name;
                             //range plan header has the sku that ties us to the exact range plan that we need
-                            deliverygroup.ID = Convert.ToInt32(from devgroup in db.DeliveryGroups
+                            deliverygroup.ID = Convert.ToInt32((from devgroup in db.DeliveryGroups
                                                                join rp in db.RangePlans on devgroup.PlanID equals rp.Id
                                                                where rp.Sku == uploadsku
                                                                where devgroup.Name == groupname
-                                                               select devgroup.ID);
-                            
+                                                               select devgroup.ID).FirstOrDefault());
+
+                            deliverygroup.PlanID= Convert.ToInt64((from dgroup in db.DeliveryGroups
+                                                                          where dgroup.ID == deliverygroup.ID
+                                                                          select dgroup.PlanID).FirstOrDefault());
+
+                            deliverygroup.RuleSetID = Convert.ToInt64((from dgroup in db.DeliveryGroups
+                                                                    where dgroup.ID == deliverygroup.ID
+                                                                    select dgroup.RuleSetID).FirstOrDefault());
+
+
+
                             if (Convert.ToDateTime(mySheet.Cells[row, 2].Value) != null && Convert.ToString(mySheet.Cells[row, 2].Value).Trim() != "")
                             {
                                 deliverygroup.StartDate = Convert.ToDateTime(mySheet.Cells[row, 2].Value);
                             }
                             else
                             {
-                                deliverygroup.StartDate = Convert.ToDateTime(from dgroup in db.DeliveryGroups
-                                                           where dgroup.ID == deliverygroup.ID
-                                                           select dgroup.StartDate);
+                                deliverygroup.StartDate = Convert.ToDateTime((from dgroup in db.DeliveryGroups
+                                                                                where dgroup.ID == deliverygroup.ID
+                                                                                select dgroup.StartDate).FirstOrDefault());
                             }
                             if (Convert.ToDateTime(mySheet.Cells[row, 3].Value) != null && Convert.ToString(mySheet.Cells[row, 3].Value).Trim() != "")
                             {
@@ -4030,9 +4040,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             }
                             else
                             {
-                                deliverygroup.EndDate = Convert.ToDateTime(from dgroup in db.DeliveryGroups
+                                deliverygroup.EndDate = Convert.ToDateTime((from dgroup in db.DeliveryGroups
                                                                              where dgroup.ID == deliverygroup.ID
-                                                                             select dgroup.EndDate);
+                                                                             select dgroup.EndDate).FirstOrDefault());
                             }
                             if (Convert.ToDateTime(mySheet.Cells[row, 4].Value) != null && Convert.ToString(mySheet.Cells[row, 4].Value).Trim() != "")
                             {
@@ -4040,9 +4050,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             }
                             else
                             {
-                                deliverygroup.MinEnd = Convert.ToDateTime(from dgroup in db.DeliveryGroups
+                                deliverygroup.MinEnd = Convert.ToDateTime((from dgroup in db.DeliveryGroups
                                                                              where dgroup.ID == deliverygroup.ID
-                                                                             select dgroup.MinEnd);
+                                                                             select dgroup.MinEnd).FirstOrDefault());
                             }
 
 
