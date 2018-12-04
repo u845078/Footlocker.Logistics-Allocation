@@ -183,10 +183,10 @@
     }
 </script>
 
-<div id="StoreSizeAllocationDiv">
+<div id="StoreSizeAllocationDiv" style="display: table; max-width: 1750px;">
 @using (Html.BeginForm("SaveStoreSizeAllocation", "SkuRange", FormMethod.Post))
 {
-    <fieldset style="max-width: 1750px; min-width: 1195px;">
+    <fieldset>
         <legend>Update Individual Stores</legend>
         <b>Show: </b>
         <script>
@@ -216,11 +216,11 @@
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleMax()" checked>Max
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleInitDemand()">Base Demand
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleMinEndDate()">Min End Date Override
-<div class="t-widget t-grid">
+<div class="t-widget t-grid" style="max-width: 1750px;">
 @*<div class="outer">
 <div class="inner">*@
 <div class="scrollablearea" style="width: inherit">
-<table class="scrolltable" style="width: inherit;" cellpadding=0 cellspacing=0>
+<table class="scrolltable" cellpadding=0 cellspacing=0>
     <tr>
         <th nowrap class='headcolLeague'>
             @Html.DisplayNameFor(model => model.League)
