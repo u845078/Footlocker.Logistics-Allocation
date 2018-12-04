@@ -1,22 +1,22 @@
 ﻿@using Telerik.Web.Mvc;
 @{
-    ViewBag.Title = "SKU Range Plan Delivery Group End Date Upload";
+    ViewBag.Title = "SKU Range Plan Delivery Group Edit Upload";
 }
 
 <fieldset>
-    <legend> SKU Range Plan Delivery Group End Date Upload </legend>
-    Spreadsheet columns should be Sku, Delivery Group Name, End Date<br />
-    @Html.ActionLink("Download Template", "ExcelSkuRangePlanDGEndUploadTemplate", new { }, new { @class = "t-button" })
+    <legend> SKU Range Plan Delivery Group Edit Upload </legend>
+    Spreadsheet columns should be Sku, Delivery Group Name, Start Date, End Date, Min End Date<br />
+    @Html.ActionLink("Download Template", "ExcelSkuRangePlanDGUploadTemplate", new { }, new { @class = "t-button" })
     <br />
     <br />
-    <b>This upload will change the End Date for the SKU Range Plan at the Delivery Group Level</b>
+    <b>This upload will change the details for the Delivery Group Level of the SKU Range Plan</b>
     <br />
     <b> upload:</b>
     <br />
     <ul>
-        <li>stuff</li>
-        <li>stuff</li>
-        <li>stuff</li>
+        <li></li>
+        <li></li>
+        <li></li>
     </ul>
     <b>Please select spreadsheet with AR Skus to upload: </b>
     <br />
@@ -25,7 +25,7 @@
                 .Name("attachments")
                 .Multiple(false)
                 .Async(async => async
-                    .Save("SaveSkuRPDGEndDate", "Upload")
+                    .Save("SaveSkuRPDG", "SkuRange")
                     .AutoUpload(false))
                     .ShowFileList(true)
                 .ClientEvents(events => events

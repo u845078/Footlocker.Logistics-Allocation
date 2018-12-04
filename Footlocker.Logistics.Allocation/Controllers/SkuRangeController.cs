@@ -3884,6 +3884,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
+
+
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
+        public ActionResult SkuRPDGUpload()
+        {
+            return View();
+        }
+
+
         public ActionResult ExcelDeliveryGroup(int deliveryGroupID)
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -3932,6 +3941,152 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             excelDocument.Save(sku + "-" + dg.Name + ".xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            return View();
+        }
+
+
+
+
+        /// <summary>
+        /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
+        /// </summary>
+        /// <param name="attachments"></param>
+        /// <returns></returns>
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
+        public ActionResult SaveSkuRPDG(IEnumerable<HttpPostedFileBase> attachments)
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            string message = string.Empty;
+            bool errorsFound = false;
+
+            List<DeliveryGroup> list = new List<DeliveryGroup>();
+
+            foreach (HttpPostedFileBase file in attachments)
+            {
+                //Instantiate a Workbook object that represents an Excel file
+                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+                Byte[] data1 = new Byte[file.InputStream.Length];
+                file.InputStream.Read(data1, 0, data1.Length);
+                file.InputStream.Close();
+                MemoryStream memoryStream1 = new MemoryStream(data1);
+                workbook.Open(memoryStream1);
+                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+
+
+                // Determine if the spreadsheet contains a valid header row
+                var hasValidHeaderRow = (Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Sku"))
+                    && (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Delivery Group Name"))
+                    && (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Start Date"))
+                    && (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("End Date"))
+                    && (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Min End"));
+
+                // Validate that the template's header row exists... (else error out)
+                if (!hasValidHeaderRow)
+                {
+                    errorsFound = true;
+                    message = "Upload failed: Incorrect header - please use template.";
+                }
+                else
+                {
+                    int row = 1;
+                    string uploadsku = "";
+                    string division = "";
+                    string department = "";
+                    try
+                    {
+                        var RowFieldsHaveData = (mySheet.Cells[row, 0].Value != null) 
+                            && (mySheet.Cells[row, 1].Value != null)
+                            && (mySheet.Cells[row, 2].Value != null)
+                            && (mySheet.Cells[row, 3].Value != null)
+                            && (mySheet.Cells[row, 4].Value != null);
+                        if (RowFieldsHaveData)
+                        {
+                            DeliveryGroup deliverygroup = new DeliveryGroup();
+                            uploadsku = Convert.ToString(mySheet.Cells[row, 0].Value).Trim();
+                            division = uploadsku.Substring(0, 2);
+                            department = uploadsku.Substring(3, 2);
+                            deliverygroup.Name = Convert.ToString(mySheet.Cells[row, 1].Value).Trim();
+                            string groupname = deliverygroup.Name;
+                            deliverygroup.StartDate = Convert.ToDateTime(mySheet.Cells[row, 2].Value);
+                            deliverygroup.EndDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value);
+                            deliverygroup.MinEnd = Convert.ToDateTime(mySheet.Cells[row, 4].Value);
+
+
+                            //range plan header has the sku that ties us to the exact range plan that we need
+                            deliverygroup.ID = Convert.ToInt32(from devgroup in db.DeliveryGroups
+                                                       join rp in db.RangePlans on devgroup.PlanID equals rp.Id
+                                                       where rp.Sku == uploadsku where devgroup.Name == groupname
+                                                       select devgroup.ID);
+
+
+                            if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation",division , department)))
+                            {
+                                message = message + $@" 
+                                    You do not have permission for the division/department {division}/{department} on Row {row}.";
+                                errorsFound = true;
+                            }
+
+                            list.Add(deliverygroup);
+                            row++;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        errorsFound = true;
+                        message = "Upload failed: One ore more columns has missing or invalid data.";
+                    }
+                }
+            }
+
+
+
+            // Upload if spreadsheet has valid data
+            if (!errorsFound)
+            {
+                try
+                {
+                    //var dao = new DirectToStoreDAO();
+                    //dao.SaveARSkusUpload(list);
+
+                    foreach (DeliveryGroup dg in list)
+                    {
+                        UpdateDeliveryGroupDates(dg);
+                    }
+
+
+
+                }
+                catch (Exception ex)
+                {
+                    message = "Upload failed: " + ex.Message;
+                }
+            }
+
+            return Content(message);
+        }
+
+
+
+
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
+        public ActionResult ExcelSkuRangePlanDGUploadTemplate()
+        {
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+            Excel excelDocument = new Excel();
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["SkuRangePlanDGUploadTemplate"]);
+            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
+            Byte[] data1 = new Byte[file.Length];
+            file.Read(data1, 0, data1.Length);
+            file.Close();
+            MemoryStream memoryStream1 = new MemoryStream(data1);
+            excelDocument.Open(memoryStream1);
+            excelDocument.Save("SkuRangePlanDGUploadTemplate.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            //return View();
             return View();
         }
     }
