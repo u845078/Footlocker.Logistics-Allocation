@@ -4001,28 +4001,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             && ((mySheet.Cells[row, 2].Value != null) || (mySheet.Cells[row, 3].Value != null) ||  (mySheet.Cells[row, 4].Value != null)); // only need at least 1 of these 3 optional fields
                         if (RowFieldsHaveData)
                         {
-                            DeliveryGroup deliverygroup = new DeliveryGroup();
+                            //range plan header has the sku that ties us to the exact range plan that we need
                             uploadsku = Convert.ToString(mySheet.Cells[row, 0].Value).Trim();
+                            string groupname = Convert.ToString(mySheet.Cells[row, 1].Value).Trim();
+                            DeliveryGroup deliverygroup = (from devgroup in db.DeliveryGroups join rp in db.RangePlans on devgroup.PlanID equals rp.Id where rp.Sku == uploadsku where devgroup.Name == groupname select devgroup).First();
+                            db.Entry(deliverygroup).State = System.Data.EntityState.Modified;
                             division = uploadsku.Substring(0, 2);
                             department = uploadsku.Substring(3, 2);
-                            deliverygroup.Name = Convert.ToString(mySheet.Cells[row, 1].Value).Trim();
-                            string groupname = deliverygroup.Name;
-                            //range plan header has the sku that ties us to the exact range plan that we need
-                            deliverygroup.ID = Convert.ToInt32((from devgroup in db.DeliveryGroups
-                                                               join rp in db.RangePlans on devgroup.PlanID equals rp.Id
-                                                               where rp.Sku == uploadsku
-                                                               where devgroup.Name == groupname
-                                                               select devgroup.ID).FirstOrDefault());
-
-                            deliverygroup.PlanID= Convert.ToInt64((from dgroup in db.DeliveryGroups
-                                                                          where dgroup.ID == deliverygroup.ID
-                                                                          select dgroup.PlanID).FirstOrDefault());
-
-                            deliverygroup.RuleSetID = Convert.ToInt64((from dgroup in db.DeliveryGroups
-                                                                    where dgroup.ID == deliverygroup.ID
-                                                                    select dgroup.RuleSetID).FirstOrDefault());
-
-
 
                             if (Convert.ToDateTime(mySheet.Cells[row, 2].Value) != null && Convert.ToString(mySheet.Cells[row, 2].Value).Trim() != "")
                             {
@@ -4050,9 +4035,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             }
                             else
                             {
-                                deliverygroup.MinEnd = Convert.ToDateTime((from dgroup in db.DeliveryGroups
-                                                                             where dgroup.ID == deliverygroup.ID
-                                                                             select dgroup.MinEnd).FirstOrDefault());
+                                //minend is allowed to be null.  don't read a current null from the database, because EF would convert it to a datetime2, which won't fit into SQL datetime
+                                if ((from dgroup in db.DeliveryGroups
+                                     where dgroup.ID == deliverygroup.ID
+                                     select dgroup.MinEnd).First() != null)
+                                {
+                                    deliverygroup.MinEnd = Convert.ToDateTime((from dgroup in db.DeliveryGroups
+                                                                               where dgroup.ID == deliverygroup.ID
+                                                                               select dgroup.MinEnd).FirstOrDefault());
+                                }
+                                
                             }
 
 
