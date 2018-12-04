@@ -4050,8 +4050,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                             if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation",division , department)))
                             {
-                                message = message + $@" 
-                                    You do not have permission for the division/department {division}/{department} on Row {row}.";
+                                message = message + @" 
+                                    " + string.Format(" You do not have permission for the division/department {0}/{1} on Row {2}.",division, department,row);
                                 errorsFound = true;
                             }
 
@@ -4060,8 +4060,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
                         else
                         {
-                            message = message + $@" 
-                                    Missing required fields on Row {row}.";
+                            message = message + @" 
+                                    " + string.Format(" Missing required fields on Row {0}.",row);
                             errorsFound = true;
                         }
                     }
