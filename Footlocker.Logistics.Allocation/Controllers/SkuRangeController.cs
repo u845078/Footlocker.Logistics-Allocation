@@ -3998,9 +3998,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         var RowFieldsHaveData = (mySheet.Cells[row, 0].Value != null) 
                             && (mySheet.Cells[row, 1].Value != null)
-                            && (mySheet.Cells[row, 2].Value != null)
-                            && (mySheet.Cells[row, 3].Value != null)
-                            && (mySheet.Cells[row, 4].Value != null);
+                            && ((mySheet.Cells[row, 2].Value != null) || (mySheet.Cells[row, 3].Value != null) ||  (mySheet.Cells[row, 4].Value != null)); // only need at least 1 of these 3 optional fields
                         if (RowFieldsHaveData)
                         {
                             DeliveryGroup deliverygroup = new DeliveryGroup();
@@ -4009,16 +4007,45 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             department = uploadsku.Substring(3, 2);
                             deliverygroup.Name = Convert.ToString(mySheet.Cells[row, 1].Value).Trim();
                             string groupname = deliverygroup.Name;
-                            deliverygroup.StartDate = Convert.ToDateTime(mySheet.Cells[row, 2].Value);
-                            deliverygroup.EndDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value);
-                            deliverygroup.MinEnd = Convert.ToDateTime(mySheet.Cells[row, 4].Value);
-
-
                             //range plan header has the sku that ties us to the exact range plan that we need
                             deliverygroup.ID = Convert.ToInt32(from devgroup in db.DeliveryGroups
-                                                       join rp in db.RangePlans on devgroup.PlanID equals rp.Id
-                                                       where rp.Sku == uploadsku where devgroup.Name == groupname
-                                                       select devgroup.ID);
+                                                               join rp in db.RangePlans on devgroup.PlanID equals rp.Id
+                                                               where rp.Sku == uploadsku
+                                                               where devgroup.Name == groupname
+                                                               select devgroup.ID);
+                            
+                            if (Convert.ToDateTime(mySheet.Cells[row, 2].Value) != null && Convert.ToString(mySheet.Cells[row, 2].Value).Trim() != "")
+                            {
+                                deliverygroup.StartDate = Convert.ToDateTime(mySheet.Cells[row, 2].Value);
+                            }
+                            else
+                            {
+                                deliverygroup.StartDate = Convert.ToDateTime(from dgroup in db.DeliveryGroups
+                                                           where dgroup.ID == deliverygroup.ID
+                                                           select dgroup.StartDate);
+                            }
+                            if (Convert.ToDateTime(mySheet.Cells[row, 3].Value) != null && Convert.ToString(mySheet.Cells[row, 3].Value).Trim() != "")
+                            {
+                                deliverygroup.EndDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value);
+                            }
+                            else
+                            {
+                                deliverygroup.EndDate = Convert.ToDateTime(from dgroup in db.DeliveryGroups
+                                                                             where dgroup.ID == deliverygroup.ID
+                                                                             select dgroup.EndDate);
+                            }
+                            if (Convert.ToDateTime(mySheet.Cells[row, 4].Value) != null && Convert.ToString(mySheet.Cells[row, 4].Value).Trim() != "")
+                            {
+                                deliverygroup.MinEnd = Convert.ToDateTime(mySheet.Cells[row, 4].Value);
+                            }
+                            else
+                            {
+                                deliverygroup.MinEnd = Convert.ToDateTime(from dgroup in db.DeliveryGroups
+                                                                             where dgroup.ID == deliverygroup.ID
+                                                                             select dgroup.MinEnd);
+                            }
+
+
 
 
                             if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation",division , department)))
@@ -4030,6 +4057,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                             list.Add(deliverygroup);
                             row++;
+                        }
+                        else
+                        {
+                            message = message + $@" 
+                                    Missing required fields on Row {row}.";
+                            errorsFound = true;
                         }
                     }
                     catch (Exception)
