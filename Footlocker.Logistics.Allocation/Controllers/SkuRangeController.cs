@@ -4006,12 +4006,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 //range plan header has the sku that ties us to the exact range plan that we need
                                 uploadsku = Convert.ToString(mySheet.Cells[row, 0].Value).Trim();
                                 string groupname = Convert.ToString(mySheet.Cells[row, 1].Value).Trim();
+                                
                                 DeliveryGroup deliverygroup = (from devgroup in db.DeliveryGroups join rp in db.RangePlans on devgroup.PlanID equals rp.Id where rp.Sku == uploadsku where devgroup.Name == groupname select devgroup).First();
-                                db.Entry(deliverygroup).State = System.Data.EntityState.Modified;
+                                
                                 division = uploadsku.Substring(0, 2);
                                 department = uploadsku.Substring(3, 2);
 
-                                if (Convert.ToDateTime(mySheet.Cells[row, 2].Value) != null && Convert.ToString(mySheet.Cells[row, 2].Value).Trim() != "")
+                                //
+                                //
+                                //
+                                // StringValueWithoutFormat
+                                //
+                                //
+                                //if (mySheet.Cells[row, 2].DateTimeValue != null && !string.IsNullOrWhiteSpace(mySheet.Cells[row, 2].StringValue)) //even though this works, not using it - it's not more readable, and aspose isn't sending me any nulls
+                                if (Convert.ToDateTime(mySheet.Cells[row, 2].Value) != null && Convert.ToString(mySheet.Cells[row, 2].Value).Trim() !="")
                                 {
                                     deliverygroup.StartDate = Convert.ToDateTime(mySheet.Cells[row, 2].Value);
                                 }
@@ -4080,12 +4088,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     " + string.Format(" Missing required fields on Row {0}.", row +1);
                                 errorsFound = true;
                             }
-                            row++;
+                            
                         }
                         catch (Exception)
                         {
                             errorsFound = true;
-                            message = "Upload failed: One ore more columns has missing or invalid data.";
+                            message = message + @" 
+                                    " +  string.Format("One ore more columns has invalid data on Row {0}", row + 1);
+                        }
+                        finally
+                        {
+                            row++;
                         }
                     }
                 }
