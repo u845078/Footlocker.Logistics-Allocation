@@ -4033,7 +4033,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 }
                                 else
                                 {
-                                    //I don't think EndDate Date is allowed to be null, but account for it anyhow.  don't read a current null from the database, because EF would convert it to a datetime2, which won't fit into SQL datetime
+                                    //db allows null.  don't read a current null from the database, because EF would convert it to a datetime2, which won't fit into SQL datetime
                                     if ((from dgroup in db.DeliveryGroups
                                          where dgroup.ID == deliverygroup.ID
                                          select dgroup.EndDate).First() != null)
@@ -4067,19 +4067,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", division, department)))
                                 {
                                     message = message + @" 
-                                    " + string.Format(" You do not have permission for the division/department {0}/{1} on Row {2}.", division, department, row);
+                                    " + string.Format(" You do not have permission for the division/department {0}/{1} on Row {2}.", division, department, row +1);
                                     errorsFound = true;
                                 }
 
                                 list.Add(deliverygroup);
-                                row++;
+                               
                             }
                             else
                             {
                                 message = message + @" 
-                                    " + string.Format(" Missing required fields on Row {0}.", row);
+                                    " + string.Format(" Missing required fields on Row {0}.", row +1);
                                 errorsFound = true;
                             }
+                            row++;
                         }
                         catch (Exception)
                         {
