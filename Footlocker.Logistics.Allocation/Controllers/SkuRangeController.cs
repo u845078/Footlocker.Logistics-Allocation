@@ -4012,46 +4012,66 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 division = uploadsku.Substring(0, 2);
                                 department = uploadsku.Substring(3, 2);
 
-                                //
-                                //
-                                //
-                                // StringValueWithoutFormat
-                                //
-                                //
-                                //if (mySheet.Cells[row, 2].DateTimeValue != null && !string.IsNullOrWhiteSpace(mySheet.Cells[row, 2].StringValue)) //even though this works, not using it - it's not more readable, and aspose isn't sending me any nulls
+                                // all these fields are intended to be a date type
+                                // test scenarios 
+                                // field contains 
+                                // : '    '
+                                // : ''
+                                // : 'xyz'
+                                // : '   02/02/2022'
+                                // : '02/02/2022'
+                                // : 02/02/2022 
 
 
 
-                                //db allows null.  don't read a current null from the database, because EF would convert it to a datetime2, which won't fit into SQL datetime
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                if (Convert.ToDateTime(mySheet.Cells[row, 2].Value) != null && Convert.ToString(mySheet.Cells[row, 2].Value).Trim() !="")
-                                {
-                                    //use the value from the cell
-                                    deliverygroup.StartDate = Convert.ToDateTime(mySheet.Cells[row, 2].Value);
-                                }
-                                else
-                                {
-                                    //lookup the value from the database - wait - do I even need to do this since I already have populated this when I instantiated?
-                                    if ((from dgroup in db.DeliveryGroups
-                                         where dgroup.ID == deliverygroup.ID
-                                         select dgroup.StartDate).First() != null)
+                                if (!string.IsNullOrWhiteSpace(mySheet.Cells[row, 2].StringValue))
+                                { 
+                                    try
                                     {
-                                        deliverygroup.StartDate = Convert.ToDateTime((from dgroup in db.DeliveryGroups
-                                                                                   where dgroup.ID == deliverygroup.ID
-                                                                                   select dgroup.StartDate).FirstOrDefault());
+                                        if (Convert.ToDateTime(mySheet.Cells[row, 2].Value) != null )
+                                        {
+                                            deliverygroup.StartDate = Convert.ToDateTime(mySheet.Cells[row, 2].Value);
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        deliverygroup.StartDate = Convert.ToDateTime((mySheet.Cells[row, 2].StringValue).Trim());
+                                    }
+                                }
+
+
+                                
+
+                                if (!string.IsNullOrWhiteSpace(mySheet.Cells[row, 3].StringValue))
+                                {
+                                    try
+                                    {
+                                        if (Convert.ToDateTime(mySheet.Cells[row, 3].Value) != null)
+                                        {
+                                            deliverygroup.EndDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value);
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        deliverygroup.EndDate = Convert.ToDateTime((mySheet.Cells[row, 3].StringValue).Trim());
+                                    }
+                                }
+
+
+
+
+                                if (!string.IsNullOrWhiteSpace(mySheet.Cells[row, 4].StringValue))
+                                {
+                                    try
+                                    {
+                                        if (Convert.ToDateTime(mySheet.Cells[row, 4].Value) != null)
+                                        {
+                                            deliverygroup.MinEnd = Convert.ToDateTime(mySheet.Cells[row, 4].Value);
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        deliverygroup.MinEnd = Convert.ToDateTime((mySheet.Cells[row, 4].StringValue).Trim());
                                     }
                                 }
 
@@ -4062,6 +4082,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
 
 
+                                //if (Convert.ToDateTime(mySheet.Cells[row, 2].Value) != null && Convert.ToString(mySheet.Cells[row, 2].Value).Trim() != "")
+                                //{
+                                //    deliverygroup.StartDate = Convert.ToDateTime(mySheet.Cells[row, 2].Value);
+                                //}
 
 
 
@@ -4069,42 +4093,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
 
 
-
-                                if (Convert.ToDateTime(mySheet.Cells[row, 3].Value) != null && Convert.ToString(mySheet.Cells[row, 3].Value).Trim() != "")
-                                {
-                                    deliverygroup.EndDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value);
-                                }
-                                else
-                                {
-                                    if ((from dgroup in db.DeliveryGroups
-                                         where dgroup.ID == deliverygroup.ID
-                                         select dgroup.EndDate).First() != null)
-                                    {
-                                        deliverygroup.EndDate = Convert.ToDateTime((from dgroup in db.DeliveryGroups
-                                                                                      where dgroup.ID == deliverygroup.ID
-                                                                                      select dgroup.EndDate).FirstOrDefault());
-                                    }
-                                }
+                                //if (Convert.ToDateTime(mySheet.Cells[row, 3].Value) != null && Convert.ToString(mySheet.Cells[row, 3].Value).Trim() != "")
+                                //{
+                                //    deliverygroup.EndDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value);
+                                //}
 
 
 
 
-                                if (Convert.ToDateTime(mySheet.Cells[row, 4].Value) != null && Convert.ToString(mySheet.Cells[row, 4].Value).Trim() != "")
-                                {
-                                    deliverygroup.MinEnd = Convert.ToDateTime(mySheet.Cells[row, 4].Value);
-                                }
-                                else
-                                {
-                                    if ((from dgroup in db.DeliveryGroups
-                                         where dgroup.ID == deliverygroup.ID
-                                         select dgroup.MinEnd).First() != null)
-                                    {
-                                        deliverygroup.MinEnd = Convert.ToDateTime((from dgroup in db.DeliveryGroups
-                                                                                   where dgroup.ID == deliverygroup.ID
-                                                                                   select dgroup.MinEnd).FirstOrDefault());
-                                    }
 
-                                }
+                                //if (Convert.ToDateTime(mySheet.Cells[row, 4].Value) != null && Convert.ToString(mySheet.Cells[row, 4].Value).Trim() != "")
+                                //{
+                                //    deliverygroup.MinEnd = Convert.ToDateTime(mySheet.Cells[row, 4].Value);
+                                //}
+
 
 
 
