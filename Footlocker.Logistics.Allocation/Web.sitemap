@@ -61,6 +61,7 @@
 	  <siteMapNode title="Uploads">
       <siteMapNode title="AR SKUs" controller="Upload" action="ARSkusUpload" />
       <siteMapNode title="AR Constraints" controller="Upload" action="ARConstraintsUpload" />
+      <siteMapNode title="Delivery Group Upload" controller="SkuRange" action="SkuRPDGUpload" />
       <siteMapNode title="Life Of SKU" controller="Upload" action="ProductTypeUpload" />
 		  <siteMapNode title="Service Type" controller="Upload" action="SkuTypeUpload" />
       <siteMapNode title="SKU Id" controller="Upload" action="SkuIdUpload" />
