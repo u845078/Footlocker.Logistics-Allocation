@@ -260,6 +260,7 @@
     <Compile Include="Models\ProductHierarchyOverrideModel.cs" />
     <Compile Include="Models\PurgeArchiveTypeModel.cs" />
     <Compile Include="Models\RingFenceUploadModelNew.cs" />
+    <Compile Include="Models\SkuSetupModel.cs" />
     <Compile Include="Models\TroubleshootRDQForSkuModel.cs" />
     <Compile Include="Models\CreateConfigParamModel.cs" />
     <Compile Include="Models\CreateConfigModel.cs" />

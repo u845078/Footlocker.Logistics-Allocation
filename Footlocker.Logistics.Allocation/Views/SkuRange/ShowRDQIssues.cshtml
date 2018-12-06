@@ -43,7 +43,7 @@
 
         $.ajax({
             url: "/SkuRange/_CheckRoute",
-            data: "{'routeid': " + $('#ddlRoute').val() + ", 'planID': @ViewData["planID"]}",
+            data: "{'routeid': " + $('#ddlRoute').val() + ", 'planID': @Model.RangePlan.Id}",
             contentType: 'application/json; charset=utf-8',
             type: 'POST',
             dataType: 'json',
@@ -60,7 +60,7 @@
                 $('#checkRoute').show();
                 $('#checkRouteLoad').hide();
                 $('#routeText').empty().append(result.total + " stores with route issues")
-                $('#routeGridWrapper').show();                
+                $('#routeGridWrapper').show();
             }
         });
 
@@ -69,9 +69,9 @@
 <h2>Potential RDQ Issues</h2>
 
 <p>
-    @Html.ActionLink("Download", "ShowQFeedTextFast", new { planid = ViewData["planID"] }, new { @class = "t-button" })    
+    @Html.ActionLink("Download", "ShowQFeedTextFast", new { planid = Model.RangePlan.Id }, new { @class = "t-button" })    
     @Html.ActionLink("Troubleshoot","Troubleshoot","Item",new {sku = Model.Sku}, new {@class="t-button"})
-    @Html.ActionLink("Show Q Feed", "ShowQFeed", new { planid = ViewData["planID"] }, new { @class = "t-button" })
+    @Html.ActionLink("Show Q Feed", "ShowQFeed", new { planid = Model.RangePlan.Id }, new { @class = "t-button" })
 </p>
 
 <font color="red">
@@ -91,7 +91,7 @@
         })
         .DataBinding(dataBinding =>
         {
-            dataBinding.Ajax().Select("_IssueGrid", "SkuRange", new { planID = ViewData["planID"] });
+            dataBinding.Ajax().Select("_IssueGrid", "SkuRange", new { planID = Model.RangePlan.Id });
         })
         .Pageable()
         .Sortable()
@@ -128,5 +128,5 @@
 )
 </div>
 <p>
-    @Html.ActionLink("Back to Details", "PresentationQuantities", new { planid = ViewData["planID"] }, new { @class = "t-button" })
+    @Html.ActionLink("Back to Details", "PresentationQuantities", new { planid = Model.RangePlan.Id }, new { @class = "t-button" })
 </p>
