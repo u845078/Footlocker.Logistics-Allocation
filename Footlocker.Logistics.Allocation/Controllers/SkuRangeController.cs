@@ -3994,7 +3994,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     string uploadsku = "";
                     string division = "";
                     string department = "";
-                    while (mySheet.Cells[row, 0].Value != null)
+                    while (RowExists(mySheet, row))
                     {
                         try
                         {
@@ -4007,23 +4007,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 uploadsku = Convert.ToString(mySheet.Cells[row, 0].Value).Trim();
                                 string groupname = Convert.ToString(mySheet.Cells[row, 1].Value).Trim();
                                 
-                                DeliveryGroup deliverygroup = (from devgroup in db.DeliveryGroups join rp in db.RangePlans on devgroup.PlanID equals rp.Id where rp.Sku == uploadsku where devgroup.Name == groupname select devgroup).First();
+                                DeliveryGroup deliverygroup = (from devgroup in db.DeliveryGroups
+                                                               join rp in db.RangePlans on devgroup.PlanID equals rp.Id
+                                                               where rp.Sku == uploadsku where devgroup.Name == groupname
+                                                               select devgroup).First();
                                 
                                 division = uploadsku.Substring(0, 2);
                                 department = uploadsku.Substring(3, 2);
 
-                                // all these fields are intended to be a date type
-                                // test scenarios 
-                                // field contains 
-                                // : '    '
-                                // : ''
-                                // : 'xyz'
-                                // : '   02/02/2022'
-                                // : '02/02/2022'
-                                // : 02/02/2022 
-
-
-
+                                //try to use the better matches for date fields first while considering aspose's internal conversions
                                 if (!string.IsNullOrWhiteSpace(mySheet.Cells[row, 2].StringValue))
                                 { 
                                     try
@@ -4038,10 +4030,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                         deliverygroup.StartDate = Convert.ToDateTime((mySheet.Cells[row, 2].StringValue).Trim());
                                     }
                                 }
-
-
-                                
-
                                 if (!string.IsNullOrWhiteSpace(mySheet.Cells[row, 3].StringValue))
                                 {
                                     try
@@ -4056,10 +4044,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                         deliverygroup.EndDate = Convert.ToDateTime((mySheet.Cells[row, 3].StringValue).Trim());
                                     }
                                 }
-
-
-
-
                                 if (!string.IsNullOrWhiteSpace(mySheet.Cells[row, 4].StringValue))
                                 {
                                     try
@@ -4074,41 +4058,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                         deliverygroup.MinEnd = Convert.ToDateTime((mySheet.Cells[row, 4].StringValue).Trim());
                                     }
                                 }
-
-
-
-
-
-
-
-
-                                //if (Convert.ToDateTime(mySheet.Cells[row, 2].Value) != null && Convert.ToString(mySheet.Cells[row, 2].Value).Trim() != "")
-                                //{
-                                //    deliverygroup.StartDate = Convert.ToDateTime(mySheet.Cells[row, 2].Value);
-                                //}
-
-
-
-
-
-
-
-                                //if (Convert.ToDateTime(mySheet.Cells[row, 3].Value) != null && Convert.ToString(mySheet.Cells[row, 3].Value).Trim() != "")
-                                //{
-                                //    deliverygroup.EndDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value);
-                                //}
-
-
-
-
-
-                                //if (Convert.ToDateTime(mySheet.Cells[row, 4].Value) != null && Convert.ToString(mySheet.Cells[row, 4].Value).Trim() != "")
-                                //{
-                                //    deliverygroup.MinEnd = Convert.ToDateTime(mySheet.Cells[row, 4].Value);
-                                //}
-
-
-
 
 
                                 if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", division, department)))
@@ -4167,7 +4116,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return Content(message);
         }
 
-
+        private bool RowExists(Worksheet sheet, int row)
+        {
+            return sheet.Cells[row, 0].Value != null ;
+        }
 
 
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
