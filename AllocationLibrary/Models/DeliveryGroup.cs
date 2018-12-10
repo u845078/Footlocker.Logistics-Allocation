@@ -1,8 +1,8 @@
-﻿ //-----------------------------------------------------------------------
- //<copyright file = "DeliveryGroup.cs" company="">
- //TODO: Update copyright text.
- //</copyright>
- //-----------------------------------------------------------------------
+﻿// -----------------------------------------------------------------------
+// <copyright file="DeliveryGroup.cs" company="">
+// TODO: Update copyright text.
+// </copyright>
+// -----------------------------------------------------------------------
 
 namespace Footlocker.Logistics.Allocation.Models
 {
@@ -30,6 +30,6 @@ namespace Footlocker.Logistics.Allocation.Models
         public DateTime? MinEnd { get; set; }
         public DateTime? ALRStartDate { get; set; }
         [NotMapped]
-        public bool Selected{ get; set; }
+        public Boolean Selected { get; set; }
     }
 }

@@ -297,8 +297,7 @@ There are some stores that are already in another group.  What would you like to
         })
         .DataBinding(dataBinding =>
         {
-            dataBinding.Ajax().Select("_StoreLookupList", "rule", new { ruleSetID = ViewData["ruleSetID"], gridtype = ViewData["gridtype"], ruleType = ViewData["ruleType"], ajax = true }).Enabled(true)
-                              .Delete("DeleteStore", "Rule").Insert("AddStore", "Rule");
+            dataBinding.Ajax().Select("_StoreLookupList", "rule", new { ruleSetID = ViewData["ruleSetID"], gridtype = ViewData["gridtype"], ruleType = ViewData["ruleType"], ajax = true }).Enabled(true).Delete("DeleteStore", "Rule").Insert("AddStore", "Rule");
         })
         .RowAction(row =>
         {

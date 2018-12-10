@@ -3,8 +3,6 @@
 <link rel="stylesheet" type="text/css" href="../../Content/gridscroll.css" />
 <![endif]-->
 
-<link rel="stylesheet" type="text/css" href="../../Content/gridscroll.css" />
-
 <style>
     .total 
     {
@@ -19,8 +17,13 @@
 
 </style>
 
+
 @if (Model.Count() > 0)
 {
+    if ((@ViewData["Chrome"] != null) && (@ViewData["Chrome"] != ""))
+    {
+    <link rel="stylesheet" type="text/css" href="../../Content/gridscroll.css" />
+    }
 <script>
     function disableFLPage() {
         $('StoreSizeAllocationDiv').hide();
@@ -186,7 +189,7 @@
 <div id="StoreSizeAllocationDiv">
 @using (Html.BeginForm("SaveStoreSizeAllocation", "SkuRange", FormMethod.Post))
 {
-    <fieldset style="max-width: 1750px; min-width: 1195px;">
+    <fieldset>
         <legend>Update Individual Stores</legend>
         <b>Show: </b>
         <script>
@@ -219,26 +222,26 @@
 <div class="t-widget t-grid">
 @*<div class="outer">
 <div class="inner">*@
-<div class="scrollablearea" style="width: inherit">
-<table class="scrolltable" style="width: inherit;" cellpadding=0 cellspacing=0>
+<div class="scrollablearea">
+<table class="scrolltable" cellpadding=0 cellspacing=0>
     <tr>
-        <th nowrap class='headcolLeague'>
+        <th nowrap class='headcolLeague' style='width:85px;'>
             @Html.DisplayNameFor(model => model.League)
             <br />
         </th>
-        <th nowrap class='headcol'>
+        <th nowrap class='headcol' style='width:85px;'>
             @Html.DisplayNameFor(model => model.Store) 
             <br />
         </th>
-        <th nowrap class='headcol2'>
+        <th nowrap class='headcol2' style='width:100px;'>
             OnRange
             <br />
         </th>
-        <th nowrap class='headcol3'>
+        <th nowrap class='headcol3' style='width:115px;'>
             End
             <br />
         </th>
-        <th nowrap class='headcol5'>
+        <th nowrap class='headcol5' style='width:55px;'>
         (<span class='total' id="DetTotal"></span>)
             <br />
         </th>
@@ -336,11 +339,11 @@
 
                     if (alternate)
                     {
-                        @Html.Raw("<td class=\"t-alt headcolLeague\">")
+                        @Html.Raw("<td class=\"t-alt headcolLeague\" style='width:85px;'>")
                     }
                     else
                     {
-                        @Html.Raw("<td class=\"headcolLeague\">")
+                        @Html.Raw("<td class=\"headcolLeague\" style='width:85px;'>")
                     }
 
                     @Html.DisplayFor(modelItem => item.League)
@@ -348,17 +351,17 @@
 
                     if (alternate)
                     {
-                    @Html.Raw("<td class=\"t-alt headcol\">")
+                    @Html.Raw("<td class=\"t-alt headcol\" style='width:85px;'>")
                 }
                 else
                 {
-                    @Html.Raw("<td class=\"headcol\">")
+                    @Html.Raw("<td class=\"headcol\" style='width:85px;'>")
                 }
                 alternate = !alternate;
 
                 @Html.DisplayFor(modelItem => item.Store)
                 @Html.Raw("</td>")
-                @Html.Raw("<td class=\"headcol2\">")
+                @Html.Raw("<td class=\"headcol2\"  style='width:100px;'>")
                 @Html.DisplayFor(m => item.StartDate);
                 @Html.Raw("<input type='hidden' id='det[" + count + "]_StartDate' name='det[" + count + "].StartDate' value='" + item.StartDate + "'/>")
 
@@ -371,13 +374,13 @@
                             .Value(item.StartDate).Enable(false)
                     )
 *@                @Html.Raw("</td>")
-                @Html.Raw("<td class=\"headcol3\">")
+                @Html.Raw("<td class=\"headcol3\" style='width:100px;'>")
                     @(Html.Telerik().DatePicker()
                             .Name("det[" + count + "].EndDate")
                             .HtmlAttributes(new { id = "DatePicker_wrapper", title = "Last day of learning (end date + store lead time)" })
                             .Value(item.EndDate).Enable(true)
                     )                
-                @Html.Raw("</td><td class=\"headcol5\">")
+                @Html.Raw("</td><td class=\"headcol5\" style='width:55px;'>")
                 @Html.Raw("(<span class='total' id='DetTotal" + count + "'></span>)")    
                 @Html.Raw("</td>")
             }
@@ -524,7 +527,7 @@
         
         </div>      
         <br />                          
-        @Html.Raw("<div class=\"t-button\" style=\"margin-bottom: 5px;\" onclick=\"SaveChanges(minCell,maxCell);\" >Save All Changes</div>")
+        @Html.Raw("<div class=\"t-button\" onclick=\"SaveChanges(minCell,maxCell);\" >Save All Changes</div>")
                           
     }
 }
@@ -534,6 +537,12 @@
 }
 </div>
 }
+
+<script type="text/javascript">
+    function () {
+        $('#DatePicker_wrapper').tooltip();
+    }
+</script>
 
 @if (ViewData["LifeCycle"] != null)
 { 

@@ -7,39 +7,39 @@
 <h2>Quantum Feed for @Html.DisplayFor(m => Model.Sku)</h2>
 
 <p>
-    @Html.ActionLink("Download", "ShowQFeedTextFast", new { planid = Model.RangePlan.Id }, new { @class = "t-button" })    
+    @Html.ActionLink("Download", "ShowQFeedTextFast", new { planid = ViewData["planID"] }, new { @class = "t-button" })    
     @Html.ActionLink("Troubleshoot","Troubleshoot","Item",new {sku = Model.Sku}, new {@class="t-button"})
-    @Html.ActionLink("Show RDQ Issues", "ShowRDQIssues", new { planid = Model.RangePlan.Id }, new { @class = "t-button" })
+    @Html.ActionLink("Show RDQ Issues", "ShowRDQIssues", new { planid = ViewData["planID"] }, new { @class = "t-button" })
 </p>
 
 @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RangeFileItem>()
-            .Name("RangeGrid")
-            .Columns(columns =>
-            {
-                columns.Bound(o => o.ProductIdent).Title("Product").Width(150);
-                columns.Bound(o => o.LocationTypeCode).Title("Type").Width(75);
-                columns.Bound(o => o.LocationID).Title("Location").Width(100);
-                columns.Bound(o => o.MaxStockQty).Title("Max").Width(75);
-                columns.Bound(o => o.NonsellableQty).Title("Min").Width(75);
-                columns.Bound(o => o.MinEndDate).Width(100);
-                columns.Bound(o => o.OnRangeDt).Width(100);
-                columns.Bound(o => o.FirstReceivableDt).Title("First Receipt").Width(100);
-                columns.Bound(o => o.MarkdownDt).Width(100);
-                columns.Bound(o => o.OffRangeDt).Width(100);
-                columns.Bound(o => o.TodayUnitCost).Title("Cost").Width(75);
-                columns.Bound(o => o.TodayUnitRetail).Title("Retail").Width(75);
-                columns.Bound(o => o.InitWklyDemand).Title("Init Demand").Width(75);
-                columns.Bound(o => o.Attribute10).Title("Launch").Width(75);
-                columns.Bound(o => o.MldInd).Title("MldInd").Width(75);
-                columns.Bound(o => o.Attribute15).Width(100);
-                columns.Bound(o => o.Attribute9).Width(100);
-                columns.Bound(o => o.LearningTransitionCode).Width(75);
-            })
-            .DataBinding(dataBinding =>
-            {
-                dataBinding.Ajax().Select("_ShowQFeed", "SkuRange", new { planID = Model.RangePlan.Id });
-            })
-            .Scrollable(scrolling => scrolling.Height("auto"))
+        .Name("RangeGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.ProductIdent).Title("Product").Width(150);
+            columns.Bound(o => o.LocationTypeCode).Title("Type");
+            columns.Bound(o => o.LocationID).Title("Location");
+            columns.Bound(o => o.MaxStockQty).Title("Max");
+            columns.Bound(o => o.NonsellableQty).Title("Min");
+            columns.Bound(o => o.MinEndDate);
+            columns.Bound(o => o.OnRangeDt);
+            columns.Bound(o => o.FirstReceivableDt).Title("First Receipt");
+            columns.Bound(o => o.MarkdownDt);
+            columns.Bound(o => o.OffRangeDt);
+            columns.Bound(o => o.TodayUnitCost).Title("Cost");
+            columns.Bound(o => o.TodayUnitRetail).Title("Retail");
+            columns.Bound(o => o.InitWklyDemand).Title("Init Demand");
+            columns.Bound(o => o.Attribute10).Title("Launch");
+            columns.Bound(o => o.MldInd).Title("MldInd");
+            columns.Bound(o => o.Attribute15);
+            columns.Bound(o => o.Attribute9);
+            columns.Bound(o => o.LearningTransitionCode);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_ShowQFeed", "SkuRange", new { planID = ViewData["planID"] });
+        })
+        .Scrollable(scrolling => scrolling.Enabled(false))
         .Sortable(sorting => sorting.Enabled(true))
         .Pageable(paging => paging.Enabled(true))
         .Filterable(filtering => filtering.Enabled(true))
@@ -55,5 +55,6 @@
 </font>
 
 <p>
-    @Html.ActionLink("Back to Details", "PresentationQuantities", new { planid = Model.RangePlan.Id }, new { @class = "t-button" })
+    @Html.ActionLink("Back to Details", "PresentationQuantities", new { planid = ViewData["planID"] }, new { @class = "t-button" })
+    @Html.ActionLink("Reset Cache", "ResetQFeed", new { planid = ViewData["planID"] }, new { @class = "t-button" })
 </p>

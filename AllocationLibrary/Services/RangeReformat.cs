@@ -22,17 +22,6 @@ namespace Footlocker.Logistics.Allocation.Services
             return Format(dr, "Y", instance);
         }
 
-        public string GetHeader()
-        {
-            string line = "";
-
-            line += "Product Ident,Location Type Code,Location ID,,,Max,,Min,,,,,On Range Date,Markdown,Off Range Date,Today Unit Cost,Today Unit Retail,";
-            line += ",,,,Initial Demand,Attribute 1,Attribute 2,,,,,,,Attribute 9,Launch,,,,,Attribute 15,,,,,MLD,First Receivable Date,Learning Transition Code,";
-            line += "Min End Date";
-
-            return line;
-        }
-
         public string Format(IDataReader dr, string MLD, int instance)
         {
             string line = "";

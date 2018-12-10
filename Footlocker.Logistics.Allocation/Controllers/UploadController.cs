@@ -440,6 +440,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
 
+
+
+
         public ActionResult DownloadProductErrors()
         {
             List<ProductType> errorList = new List<ProductType>();
@@ -1999,6 +2002,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             return View();
         }
+
+
+
 
         private bool TryGetFileLineOfSkuIdSheetRow(Cells spreadsheetCells, int rowIndex, string spreadsheetDivCode, out string constructedFileLine, out string errorMsg)
         {

@@ -422,10 +422,8 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 List<RingFenceDetail> ringFenceDetails = new List<RingFenceDetail>();
                 List<DistributionCenter> distributionCenters = new List<DistributionCenter>();
 
-                var uniqueCombos = futureInventory.Select(fi => Tuple.Create(rf.Sku, Convert.ToString(fi["STK_SIZE_NUM"]), Convert.ToString(fi["WHSE_ID_NUM"]), Convert.ToString(fi["PO_NUM"]))).Distinct().ToList();
-
                 // populate lists to pass into BuildFutureRingFenceDetails
-                this.PopulateFutureRingFenceData(ref reductionData, ref ringFenceDetails,  ref distributionCenters, uniqueCombos, rf);
+                this.PopulateFutureRingFenceData(ref reductionData, ref ringFenceDetails,  ref distributionCenters, futureInventory, rf);
 
                 foreach (DataRow dr in futureInventory)
                 {
@@ -441,27 +439,21 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             return _que;
         }
 
-        /*
-         * uniqueCombos tuple is defined below:
-         * Item1 => Sku
-         * Item2 => Size
-         * Item3 => DCID
-         * Item4 => PO
-         */
-        public void PopulateFutureRingFenceData(ref List<InventoryReductions> reductionData, ref List<RingFenceDetail> ringFenceDetails, ref List<DistributionCenter> distributionCenters, List<Tuple<string, string, string, string>> uniqueCombos, RingFence rf)
+        public void PopulateFutureRingFenceData(ref List<InventoryReductions> reductionData, ref List<RingFenceDetail> ringFenceDetails, ref List<DistributionCenter> distributionCenters, List<DataRow> futureInventory, RingFence rf)
         {
             // retrieve reduction data
+            var uniqueCombos = futureInventory.Select(fi => new { Sku = rf.Sku, Size = Convert.ToString(fi["STK_SIZE_NUM"]), DCID = Convert.ToString(fi["WHSE_ID_NUM"]), PO = Convert.ToString(fi["PO_NUM"]) }).Distinct().ToList();
             var baseReductionData = db.InventoryReductions.Where(ir => ir.Sku.Equals(rf.Sku)).ToList();
-            reductionData = baseReductionData.Where(br => uniqueCombos.Any(uc => uc.Item1.Equals(br.Sku) &&
-                                                                                     uc.Item2.Equals(br.Size) &&
-                                                                                     uc.Item3.Equals(br.MFCode) &&
-                                                                                     uc.Item4.Equals(br.PO))).ToList();
+            reductionData = baseReductionData.Where(br => uniqueCombos.Any(uc => uc.Sku.Equals(br.Sku) &&
+                                                                                     uc.Size.Equals(br.Size) &&
+                                                                                     uc.DCID.Equals(br.MFCode) &&
+                                                                                     uc.PO.Equals(br.PO))).ToList();
 
             // retrieve current ringfencedetail data
             ringFenceDetails = db.RingFenceDetails.Where(rfd => rfd.RingFenceID.Equals(rf.ID)).ToList();
 
             // retrieve distributioncenters
-            List<string> uniqueDistributionCenters = uniqueCombos.Select(uc => uc.Item3).Distinct().ToList();
+            List<string> uniqueDistributionCenters = futureInventory.Select(fi => Convert.ToString(fi["WHSE_ID_NUM"])).Distinct().ToList();
             distributionCenters = db.DistributionCenters.Where(d => uniqueDistributionCenters.Any(udc => d.MFCode.Equals(udc))).ToList();
         }
         
@@ -512,14 +504,8 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 List<RingFenceDetail> ringFenceDetails = new List<RingFenceDetail>();
                 List<DistributionCenter> distributionCenters = new List<DistributionCenter>();
 
-                var uniqueCombos = futureInventory.Select(fi => Tuple.Create(rf.Sku,
-                                                                        Convert.ToString(fi["Size"]), 
-                                                                        Convert.ToString(fi["Store"]),
-                                                                        Convert.ToString(fi["InventoryID"]).Split('-')[0]))
-                                                  .Distinct().ToList();
-
                 // populate lists to pass into BuildFutureRingFenceDetails
-                this.PopulateFutureRingFenceData(ref reductionData, ref ringFenceDetails, ref distributionCenters, uniqueCombos, rf);
+                this.PopulateFutureRingFenceData(ref reductionData, ref ringFenceDetails, ref distributionCenters, futureInventory, rf);
 
                 foreach (DataRow dr in futureInventory)
                 {

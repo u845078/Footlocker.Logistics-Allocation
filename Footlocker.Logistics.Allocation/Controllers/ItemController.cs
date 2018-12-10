@@ -68,10 +68,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             TroubleshootModel model = new TroubleshootModel();
             model.Warehouse = -1;
             SetDCs(model);
-            if (HasEditRole())
-                ViewBag.HasEditRole = true;
-            else
-                ViewBag.HasEditRole = false;
             if (sku != null)
             {
                 model.Sku = sku;
@@ -125,11 +121,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if (model.RangePlans.Count > 0)
                 {
-                    model.RangePlans.ForEach(rp =>
+                    if (model.RangePlans.First().UpdatedBy.Contains("CORP"))
                     {
-                        if (rp.UpdatedBy.Contains("CORP"))
-                            rp.UpdatedBy = getFullUserNameFromDatabase(rp.UpdatedBy.Replace('\\', '/'));
-                    });
+                        model.RangePlans.First().UpdatedBy = getFullUserNameFromDatabase(model.RangePlans.First().UpdatedBy.Replace('\\', '/'));
+                    }
                 }
             }
             catch

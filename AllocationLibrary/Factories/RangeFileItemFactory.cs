@@ -32,33 +32,51 @@ namespace Footlocker.Logistics.Allocation.Factories
 
         public RangeFileItem Create(IDataReader dr)
         {
-            RangeFileItem _newObject = new RangeFileItem
+            RangeFileItem _newObject = new RangeFileItem();
+            _newObject.ProductIdent = Convert.ToString(dr["ProductIdent"]);
+            _newObject.LocationTypeCode = Convert.ToString(dr["LocationTypeCode"]);
+            _newObject.LocationID = Convert.ToString(dr["LocationID"]);
+            try
             {
-                ProductIdent = Convert.ToString(dr["ProductIdent"]),
-                LocationTypeCode = Convert.ToString(dr["LocationTypeCode"]),
-                LocationID = Convert.ToString(dr["LocationID"]),
-                OnRangeDt = Convert.ToString(dr["OnRangeDt"]),
-                OffRangeDt = Convert.ToString(dr["OffRangeDt1"]),
-                TodayUnitCost = Convert.ToString(dr["TodayUnitCost"]),
-                TodayUnitRetail = Convert.ToString(dr["TodayUnitRetail"]),
-                NonsellableQty = Convert.ToString(dr["Min"]),
-                MaxStockQty = Convert.ToString(dr["Max"]),
-                InitWklyDemand = Convert.ToString(dr["InitialDemand"]),
-                Ranged = (dr["Range"] as int? == 1),
-                Attribute1 = Convert.ToString(dr["Attribute1"]),
-                Attribute2 = Convert.ToString(dr["Attribute2"]),
-                Attribute3 = "0",
-                Attribute4 = "0",
-                Attribute5 = "0",
-                Attribute6 = "0",
-                Attribute7 = "0",
-                Attribute8 = "0"
-            };
+                _newObject.OnRangeDt = Convert.ToDateTime(dr["OnRangeDt"]).ToString("yyyyMMdd");
+            }
+            catch
+            { 
+                //legacy
+                _newObject.OnRangeDt = Convert.ToString(dr["OnRangeDt"]);
+            }
+            try
+            {
+                _newObject.OffRangeDt = Convert.ToDateTime(dr["OffRangeDt1"]).ToString("yyyyMMdd");
+            }
+            catch
+            {
+                //legacy
+                _newObject.OffRangeDt = Convert.ToString(dr["OffRangeDt1"]);
+            }
+
+            _newObject.TodayUnitCost = Convert.ToString(dr["TodayUnitCost"]);
+            _newObject.TodayUnitRetail = Convert.ToString(dr["TodayUnitRetail"]);
+            _newObject.NonsellableQty = Convert.ToString(dr["Min"]);
+            _newObject.MaxStockQty = Convert.ToString(dr["Max"]);
+            _newObject.InitWklyDemand = Convert.ToString(dr["InitialDemand"]);
+            _newObject.Ranged = (dr["Range"] as int? == 1);
+
+            //_newObject.MarkdownRetail = "0";
+            _newObject.Attribute1 = Convert.ToString(dr["Attribute1"]);
+            _newObject.Attribute2 = Convert.ToString(dr["Attribute2"]);
+            _newObject.Attribute3 = "0";
+            _newObject.Attribute4 = "0";
+            _newObject.Attribute5 = "0";
+            _newObject.Attribute6 = "0";
+            _newObject.Attribute7 = "0";
+            _newObject.Attribute8 = "0";
 
             if (!(Convert.IsDBNull(dr["Attribute_9"])))
             {
                 _newObject.Attribute9 = Convert.ToString(dr["Attribute_9"]);
             }
+
 
             if (!(Convert.IsDBNull(dr["Launch"])))
             {
