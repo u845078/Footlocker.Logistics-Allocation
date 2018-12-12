@@ -121,10 +121,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if (model.RangePlans.Count > 0)
                 {
-                    if (model.RangePlans.First().UpdatedBy.Contains("CORP"))
+                    model.RangePlans.ForEach(rp =>
                     {
-                        model.RangePlans.First().UpdatedBy = getFullUserNameFromDatabase(model.RangePlans.First().UpdatedBy.Replace('\\', '/'));
-                    }
+                        if (rp.UpdatedBy.Contains("CORP"))
+                            rp.UpdatedBy = getFullUserNameFromDatabase(rp.UpdatedBy.Replace('\\', '/'));
+                    });
                 }
             }
             catch
