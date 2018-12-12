@@ -4111,6 +4111,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     message = "Upload failed: " + ex.Message;
                 }
+                ClearSessionVariables();
             }
 
             return Content(message);
