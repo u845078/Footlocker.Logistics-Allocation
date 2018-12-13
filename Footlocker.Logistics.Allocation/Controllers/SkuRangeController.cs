@@ -4114,6 +4114,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     foreach (DeliveryGroup dg in list)
                     {
                         UpdateDeliveryGroupDates(dg);
+                        UpdateRangeHeader(dg.PlanID);
                     }
 
 
