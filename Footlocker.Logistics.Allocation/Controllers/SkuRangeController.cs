@@ -4114,7 +4114,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     foreach (DeliveryGroup dg in list)
                     {
                         UpdateDeliveryGroupDates(dg);
-                        UpdateRangeHeader(dg.PlanID);
+                        //UpdateRangeHeader(dg.PlanID);
                     }
 
 
@@ -4125,6 +4125,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     message = "Upload failed: " + ex.Message;
                 }
                 ClearSessionVariables();
+                Session["SkuSetup"] = null;
             }
 
             return Content(message);
