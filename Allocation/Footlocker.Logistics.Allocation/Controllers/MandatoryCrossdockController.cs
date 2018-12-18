@@ -27,7 +27,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 temp.AddRange((from a in WebSecurityService.ListUserDepartments(UserName, "Allocation", div) select div + '-' + a.DeptNumber).ToList());
             }
 
-            List<MandatoryCrossdock> model = db.MandatoryCrossdocks.Include("ItemMaster").Where(u => temp.Contains(u.ItemMaster.MerchantSku.Substring(0, 5))).ToList();
+            //List<MandatoryCrossdock> model = db.MandatoryCrossdocks.Include("ItemMaster").Where(u => temp.Contains(u.ItemMaster.MerchantSku.Substring(0, 5))).ToList();
+
+            var query = (from mc in db.MandatoryCrossdocks
+                         join im in db.ItemMasters
+                           on mc.ItemID equals im.ID
+                         select new { MandatoryCrossDock = mc, Division = im.Div, Department = im.Dept }).ToList();
+
+            List<MandatoryCrossdock> model = query.Where(q => temp.Contains(q.Division + "-" + q.Department))
+                                                   .Select(q => q.MandatoryCrossDock)
+                                                   .ToList();
             return model;
         }
 

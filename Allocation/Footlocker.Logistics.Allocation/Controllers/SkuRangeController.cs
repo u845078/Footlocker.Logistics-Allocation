@@ -93,35 +93,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 temp.AddRange((from a in WebSecurityService.ListUserDepartments(UserName, "Allocation", div) select div + '-' + a.DeptNumber).ToList());
             }
 
-            List<RangePlan> model = db.RangePlans.Include("ItemMaster").Where(u => temp.Contains(u.Sku.Substring(0, 5))).OrderBy(a => a.Sku).ToList();
+            var query = (from rp in db.RangePlans
+                         join im in db.ItemMasters
+                           on rp.ItemID equals im.ID
+                         select new { RangePlan = rp, Division = im.Div, Department = im.Dept }).ToList();
+
+            List<RangePlan> model = query.Where(q => temp.Contains(q.Division + "-" + q.Department))
+                                          .Select(q => q.RangePlan)
+                                          .OrderBy(q => q.Sku)
+                                          .ToList();
+
+            //List<RangePlan> model = db.RangePlans.Include("ItemMaster").Where(u => temp.Contains(u.Sku.Substring(0, 5))).OrderBy(a => a.Sku).ToList();
             return model;
         }
-
-        //[GridAction]
-        //public ActionResult _Index()
-        //{
-        //    List<Division> divs = Divisions();
-        //    List<RangePlan> list = (from a in db.RangePlans select a).ToList();
-
-        //    List<Department> temp = new List<Department>();
-
-        //    foreach (Division div in divs)
-        //    {
-        //        temp.AddRange(WebSecurityService.ListUserDepartments(UserName, "Allocation", div.DivCode));
-        //    }
-        //    list = (from a in list
-        //            join d in divs on a.Division equals d.DivCode
-        //            join dp in temp on (a.Division + a.Department) equals (dp.DivCode + dp.DeptNumber)
-        //            select a).ToList();
-
-        //    List<RangePlanModel> model = new List<RangePlanModel>();
-        //    foreach (RangePlan p in list)
-        //    {
-        //        model.Add(new RangePlanModel(p));
-        //    }
-
-        //    return View(new GridModel(model));
-        //}
 
         public ActionResult Manage()
         {
@@ -139,36 +123,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        //[GridAction]
-        //public ActionResult _Manage()
-        //{
-        //    List<string> divs = (from a in Divisions() select a.DivCode).ToList();
-
-        //    List<string> temp = new List<String>();
-
-        //    foreach (string div in divs)
-        //    {
-        //        temp.AddRange((from a in WebSecurityService.ListUserDepartments(UserName, "Allocation", div) select div + '-' + a.DeptNumber).ToList());
-        //    }
-
-        //    List<RangePlan> model = db.RangePlans.Where(u => temp.Contains(u.Sku.Substring(0, 5))).ToList();
-
-        //    return View(new GridModel(model));
-        //}
-
         public ActionResult Delete(Int64 planID)
         {
-            var rangeQuery = (from a in db.RangePlans where a.Id == planID select a);
-            if (rangeQuery.Count() == 0)
+            var rangePlanExists = db.RangePlans.Any(rp => rp.Id.Equals(planID));
+            if (!rangePlanExists)
             {
                 return RedirectToAction("Index", new { message = "Range no longer exists." });
             }
-            RangePlan plan = rangeQuery.First();
-            db.RangePlans.Remove(plan);
-            db.SaveChanges();
-            Session["SkuSetup"] = null;
+            RangePlanDAO rpDAO = new RangePlanDAO();
+            rpDAO.DeleteRangePlan(planID);
+
+            // remove plan from session data if it exists
+            if (Session["SkuSetup"] != null)
+            {
+                var rps = (List<RangePlan>)Session["SkuSetup"];
+                var planToDelete = rps.Where(rp => rp.Id.Equals(planID)).FirstOrDefault();
+                if (planToDelete != null)
+                {
+                    rps.Remove(planToDelete);
+                    Session["SkuSetup"] = rps;
+                }
+            }
+
             return RedirectToAction("Index");
-            //return Json("Success");
         }
 
         public ActionResult DeleteConfirm(Int64 planID)
