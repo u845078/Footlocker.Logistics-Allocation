@@ -33,11 +33,11 @@
                 .Action("Delete", "MandatoryCrossdock", new { message = "" });
             }).HtmlAttributes(new { style = "text-align: left" }).Width(200);
         })
-        .DataBinding(dataBinding =>
-        {
-            dataBinding.Server().Select("Index", "MandatoryCrossdock");
-            //dataBinding.Ajax().Select("_Index", "SkuRange"); //note, this breaks images
-        })
+        //.DataBinding(dataBinding =>
+        //{
+        //    dataBinding.Server().Select("Index", "MandatoryCrossdock");
+        //    //dataBinding.Ajax().Select("_Index", "SkuRange"); //note, this breaks images
+        //})
         //.Scrollable(scrolling => scrolling.Enabled(true))
         .Sortable(sorting => sorting.Enabled(true))
         .Pageable(paging => paging.Enabled(true))

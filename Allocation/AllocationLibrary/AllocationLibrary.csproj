@@ -277,6 +277,7 @@
     <Compile Include="Services\PurgeArchiveDAO.cs" />
     <Compile Include="Services\QuantumDAO.cs" />
     <Compile Include="Services\RangeFileItemDAO.cs" />
+    <Compile Include="Services\RangePlanDAO.cs" />
     <Compile Include="Services\RangeReformat.cs" />
     <Compile Include="Services\RingFenceDAO.cs" />
     <Compile Include="Services\RingFenceSummaryDAO.cs" />
