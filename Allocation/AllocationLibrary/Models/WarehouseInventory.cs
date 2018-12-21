@@ -15,7 +15,18 @@ namespace Footlocker.Logistics.Allocation.Models
         public string PO { get; set; }
         public ItemPack caseLot { get; set; }
         public int quantity { get; set; }
-        public int totalQuantity { get; set; }
+        public int totalQuantity
+        {
+            get
+            {
+                if (caseLot != null)
+                {
+                    return caseLot.TotalQty * quantity;
+                }
+                else
+                    return quantity;
+            }
+        }
         public string combinedQuantity
         {
             get
@@ -23,8 +34,21 @@ namespace Footlocker.Logistics.Allocation.Models
                 return quantity.ToString() + " (" + totalQuantity.ToString() + ")";
             }
         }
+
         public int pickReserve { get; set; }
-        public int totalPickReserve { get; set; }
+        public int totalPickReserve
+        {
+            get
+            {
+                if (caseLot != null)
+                {
+                    return caseLot.TotalQty * pickReserve;
+                }
+                else
+                    return pickReserve;
+            }
+        }
+
         public string combinedPickReserve
         {
             get
@@ -32,8 +56,21 @@ namespace Footlocker.Logistics.Allocation.Models
                 return pickReserve.ToString() + " (" + totalPickReserve.ToString() + ")";
             }
         }
+
         public int ringFenceQuantity { get; set; }
-        public int totalRingFenceQuantity { get; set; }
+        public int totalRingFenceQuantity
+        {
+            get
+            {
+                if (caseLot != null)
+                {
+                    return caseLot.TotalQty * ringFenceQuantity;
+                }
+                else
+                    return ringFenceQuantity;
+            }
+        }
+
         public string combinedRingFenceQuantity
         {
             get
@@ -41,8 +78,22 @@ namespace Footlocker.Logistics.Allocation.Models
                 return ringFenceQuantity.ToString() + " (" + totalRingFenceQuantity.ToString() + ")";
             }
         }
+
+        public int orderQuantity { get; set; }
+
         public int rdqQuantity { get; set; }
-        public int totalRDQQuantity { get; set; }
+        public int totalRDQQuantity
+        {
+            get
+            {
+                if (caseLot != null)
+                {
+                    return caseLot.TotalQty * rdqQuantity;
+                }
+                else
+                    return rdqQuantity;
+            }
+        }
         public string combinedRDQQuantity
         {
             get
@@ -54,14 +105,14 @@ namespace Footlocker.Logistics.Allocation.Models
         {
             get
             {
-                return quantity - pickReserve - ringFenceQuantity;
+                return quantity - pickReserve - ringFenceQuantity - orderQuantity;
             }
         }
         public int totalAvailableQuantity
         {
             get
             {
-                return totalQuantity - totalPickReserve - totalRingFenceQuantity;
+                return totalQuantity - totalPickReserve - totalRingFenceQuantity - orderQuantity;
             }
         }
         public string combinedAvailableQuantity
@@ -80,42 +131,42 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         public WarehouseInventory()
-            : base()
         {
-            this.itemID = 0;
-            this.DistributionCenterID = string.Empty;
-            this.distributionCenter = null;
-            this.Sku = string.Empty;
-            this.size = string.Empty;
-            this.PO = string.Empty;
-            this.caseLot = null;
-            this.quantity = 0;
-            this.totalQuantity = 0;
-            this.pickReserve = 0;
-            this.totalPickReserve = 0;
-            this.ringFenceQuantity = 0;
-            this.totalRingFenceQuantity = 0;
-            this.rdqQuantity = 0;
-            this.totalRDQQuantity = 0;
+            itemID = 0;
+            DistributionCenterID = string.Empty;
+            distributionCenter = null;
+            Sku = string.Empty;
+            size = string.Empty;
+            PO = string.Empty;
+            caseLot = null;
+            quantity = 0;
+            //totalQuantity = 0;
+            pickReserve = 0;
+            //totalPickReserve = 0;
+            ringFenceQuantity = 0;
+            //totalRingFenceQuantity = 0;
+            rdqQuantity = 0;
+            orderQuantity = 0;
+            //totalRDQQuantity = 0;
         }
 
-        public WarehouseInventory(string sku, string size, string DCID, int allocatableQuantity)
+        public WarehouseInventory(string sku, string size, string DCID, int warehouseQuantity)
             : this()
         {
-            this.Sku = sku;
+            Sku = sku;
             this.size = size;
-            this.DistributionCenterID = DCID;
-            this.totalQuantity = allocatableQuantity;
+            DistributionCenterID = DCID;
+            quantity = warehouseQuantity;
         }
 
-        public WarehouseInventory(string sku, string size, string DCID, int allocatableQuantity, int pickReserveQuantity)
-            : this(sku, size, DCID, allocatableQuantity)
+        public WarehouseInventory(string sku, string size, string DCID, int warehouseQuantity, int pickReserveQuantity)
+            : this(sku, size, DCID, warehouseQuantity)
         {
-            this.totalPickReserve = pickReserveQuantity;
+            this.pickReserve = pickReserveQuantity;
         }
 
-        public WarehouseInventory(string sku, string size, string DCID, string PO, int allocatableQuantity)
-            : this(sku, size, DCID, allocatableQuantity)
+        public WarehouseInventory(string sku, string size, string DCID, string PO, int warehouseQuantity)
+            : this(sku, size, DCID, warehouseQuantity)
         {
             this.PO = PO;
         }

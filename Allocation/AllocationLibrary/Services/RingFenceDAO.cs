@@ -782,7 +782,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
                 if (reduce != null)
                 {
-                    reduce.totalRingFenceQuantity = ed.Qty;
+                    reduce.ringFenceQuantity = ed.Qty;
                 }
             });
 
@@ -806,7 +806,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                                                                 ir.InstanceID.Equals(instanceID)).FirstOrDefault();
                     if (inventoryReduction != null)
                     {
-                        ai.totalQuantity -= inventoryReduction.Qty;
+                        ai.quantity -= inventoryReduction.Qty;
                     }
                 }
             }

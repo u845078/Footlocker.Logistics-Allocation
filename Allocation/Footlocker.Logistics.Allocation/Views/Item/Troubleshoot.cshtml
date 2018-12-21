@@ -254,7 +254,7 @@
         <h3>Warehouse Inventory</h3>
         <p>This data represents warehouse information found on the mainframe system. Summed values in the footer represent
         selling unit quantities. The Whse Avail Qty is calculated as the Total Whse Avail Qty - Pick Reserve Qty - Ring Fence 
-        @@ Whse Qty.</p>
+        @@ Whse Qty - Online Orders Qty. Quantities are only shown for sizes where the Total Whse Avail Qty is greater than zero.</p>
         @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.WarehouseInventory>()
             .Name("WarehouseInventoryGrid")
             .Columns(columns =>
@@ -263,10 +263,10 @@
                 columns.Bound(o => o.distributionCenter.displayValue).Title("Distribution Center").Width(100).Visible(true);
                 columns.Bound(o => o.size).Title("Bin Size / Caselot Sched #").Width(75).HtmlAttributes(new { @class = "caselot-input" });
 
-                columns.Bound(o => o.totalAvailableQuantity).Title("Whse Avail Qty").Width(80).Aggregate(totAvailable => totAvailable.Sum())
+                columns.Bound(o => o.totalQuantity).Width(80).Title("Total Whse Avail Qty").Aggregate(availQty => availQty.Sum())
                     .ClientFooterTemplate("<#= Sum #>");
 
-                columns.Bound(o => o.availableQuantity).Title("Whse Avail Pick Qty").Width(80);
+                columns.Bound(o => o.quantity).Width(80).Title("Total Whse Avail Pick Qty");
 
                 columns.Bound(o => o.totalPickReserve).Width(75).Title("Pick Reserve Qty").Aggregate(totPickRsv => totPickRsv.Sum())
                     .ClientFooterTemplate("<#= Sum #>");
@@ -283,10 +283,13 @@
 
                 columns.Bound(o => o.rdqQuantity).Title("Held RDQ @ Whse Pick Qty").Width(80);
 
-                columns.Bound(o => o.totalQuantity).Width(80).Title("Total Whse Avail Qty").Aggregate(availQty => availQty.Sum())
+                columns.Bound(o => o.orderQuantity).Title("Online Orders Qty").Width(80).Aggregate(order => order.Sum())
                     .ClientFooterTemplate("<#= Sum #>");
 
-                columns.Bound(o => o.quantity).Width(80).Title("Total Whse Avail Pick Qty");
+                columns.Bound(o => o.totalAvailableQuantity).Title("Whse Avail Qty").Width(80).Aggregate(totAvailable => totAvailable.Sum())
+                    .ClientFooterTemplate("<#= Sum #>");
+
+                columns.Bound(o => o.availableQuantity).Title("Whse Avail Pick Qty").Width(80);
             })
             .DataBinding(dataBinding =>
             {
