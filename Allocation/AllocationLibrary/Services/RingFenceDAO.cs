@@ -706,7 +706,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         public List<WarehouseInventory> GetWarehouseAvailableNew(List<Tuple<string, string, string>> uniqueCombos)
         {
             List<WarehouseInventory> returnValue = new List<WarehouseInventory>();
-            WarehouseInventoryDAO d = new WarehouseInventoryDAO();
+            //WarehouseInventoryDAO d = new WarehouseInventoryDAO();
             string division = string.Empty, SQL = string.Empty;
             var uniqueSizeCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(3)).ToList();
             var uniqueCaselotCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(5)).ToList();

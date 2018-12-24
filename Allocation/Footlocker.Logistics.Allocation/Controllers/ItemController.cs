@@ -363,9 +363,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                select w.MFCode).FirstOrDefault().ToString();
             }
 
-            WarehouseInventoryDAO dao = new WarehouseInventoryDAO();
+            WarehouseInventoryDAO dao = new WarehouseInventoryDAO(sku, warehouseID);
 
-            List<WarehouseInventory> warehouseInventoryList = dao.GetWarehouseInventory(sku, warehouseID);
+            List<WarehouseInventory> warehouseInventoryList = dao.GetWarehouseInventory();
 
             return View(new GridModel(warehouseInventoryList));
         }
