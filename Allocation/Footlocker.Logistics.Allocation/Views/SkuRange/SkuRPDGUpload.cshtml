@@ -1,0 +1,69 @@
+﻿@using Telerik.Web.Mvc;
+@{
+    ViewBag.Title = "SKU Range Plan Delivery Group Edit Upload";
+}
+
+<fieldset>
+    <legend> SKU Range Plan Delivery Group Edit Upload </legend>
+    Spreadsheet columns should be Sku, Delivery Group Name, Start Date, End Date, Min End Date<br />
+    @Html.ActionLink("Download Template", "ExcelSkuRangePlanDGUploadTemplate", new { }, new { @class = "t-button" })
+    <br />
+    <br />
+    <b>This upload will change the details for the Delivery Group Level of the SKU Range Plan</b>
+    <br />
+    <b> </b>
+    <br />
+    <ul>
+        <li>SKU and Delivery Group Name are required.</li>
+        <li>At least one of the other columns is required.</li>
+        <li></li>
+    </ul>
+    <b>Please select spreadsheet with Skus to upload: </b>
+    <br />
+    <br />
+    @(Html.Telerik().Upload()
+                .Name("attachments")
+                .Multiple(false)
+                .Async(async => async
+                    .Save("SaveSkuRPDG", "SkuRange")
+                    .AutoUpload(false))
+                    .ShowFileList(true)
+                .ClientEvents(events => events
+                    .OnError("onError")
+                    .OnSelect("onSelect")
+                            .OnSuccess("onSuccess")
+                    )
+    )
+    <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;" />
+    <br />
+    <h4> <div id="message"></div> </h4>
+</fieldset>
+
+<script type="text/javascript">
+
+        function onSelect(e) {
+            var files = e.files;
+            if (files[0].extension != ".xls") {
+                alert("Document must be a spreadsheet with a xls extension. ");
+                e.preventDefault();
+            }
+            else{
+                 document.getElementById('spreadsheet').style.visibility = 'visible';
+             }
+             $('#message').empty();
+        }
+
+        function onError(e) {
+            var message = e.XMLHttpRequest.responseText;
+            $('#message').empty().append("<font color='red'>"+message+"</font>");
+
+             e.preventDefault();
+         }
+
+         function onSuccess(e) {
+             var message = e.XMLHttpRequest.responseText;
+             $('#message').empty().append("<font color='red'>Success</font>");
+
+             e.preventDefault();
+         }
+</script>
