@@ -1586,8 +1586,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 var invalidRDQsAndAvailableQty = (  from  r in dcRDQsGroupedBySize
                                                     join  d in details on new { Sku = r.Sku, Size = r.Size, DC = r.DC }
                                                                    equals new { Sku = d.Sku, Size = d.size, DC = d.DistributionCenterID }
-                                                    where r.Quantity > d.totalQuantity
-                                                   select Tuple.Create(r, d.totalQuantity)).ToList(); 
+                                                    where r.Quantity > d.quantity
+                                                   select Tuple.Create(r, d.quantity)).ToList(); 
 
                 foreach (var r in invalidRDQsAndAvailableQty)
                 {
