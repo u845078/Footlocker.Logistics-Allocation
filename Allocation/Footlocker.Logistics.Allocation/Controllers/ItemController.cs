@@ -68,6 +68,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             TroubleshootModel model = new TroubleshootModel();
             model.Warehouse = -1;
             SetDCs(model);
+            if (HasEditRole())
+                ViewBag.HasEditRole = true;
+            else
+                ViewBag.HasEditRole = false;
             if (sku != null)
             {
                 model.Sku = sku;
