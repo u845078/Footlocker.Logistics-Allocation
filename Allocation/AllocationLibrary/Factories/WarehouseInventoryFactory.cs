@@ -20,25 +20,25 @@ namespace Footlocker.Logistics.Allocation.Factories
             _newObject.ringFenceQuantity = ringFenceQuantity;
             _newObject.rdqQuantity = rdqQuantity;
 
-            if (size.Length > 3)
-            {
-                _newObject.caseLot = caselot;
+            //if (size.Length > 3)
+            //{
+            //    _newObject.caseLot = caselot;
 
-                if (caselot != null)
-                {
-                    _newObject.totalQuantity = quantity * caselot.TotalQty;
-                    _newObject.totalPickReserve = pickReserve * caselot.TotalQty;
-                    _newObject.totalRingFenceQuantity = ringFenceQuantity * caselot.TotalQty;
-                    _newObject.totalRDQQuantity = rdqQuantity * caselot.TotalQty;
-                }
-            }
-            else
-            {
-                _newObject.totalQuantity = quantity;
-                _newObject.totalPickReserve = pickReserve;
-                _newObject.totalRingFenceQuantity = ringFenceQuantity;
-                _newObject.totalRDQQuantity = rdqQuantity;
-            }
+            //    if (caselot != null)
+            //    {
+            //        _newObject.totalQuantity = quantity * caselot.TotalQty;
+            //        _newObject.totalPickReserve = pickReserve * caselot.TotalQty;
+            //        _newObject.totalRingFenceQuantity = ringFenceQuantity * caselot.TotalQty;
+            //        _newObject.totalRDQQuantity = rdqQuantity * caselot.TotalQty;
+            //    }
+            //}
+            //else
+            //{
+            //    _newObject.totalQuantity = quantity;
+            //    _newObject.totalPickReserve = pickReserve;
+            //    _newObject.totalRingFenceQuantity = ringFenceQuantity;
+            //    _newObject.totalRDQQuantity = rdqQuantity;
+            //}
 
             return _newObject;
         }

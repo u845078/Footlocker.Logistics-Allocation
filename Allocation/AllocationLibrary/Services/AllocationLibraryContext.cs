@@ -73,6 +73,8 @@ namespace Footlocker.Logistics.Allocation.Services
 
         public DbSet<Vendors> Vendors { get; set; }
 
+        public DbSet<InventoryReductionsByType> InventoryReductionsByType { get; set; }
+
         public AllocationLibraryContext()
             : base("AllocationContext")
         {

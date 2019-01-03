@@ -706,7 +706,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         public List<WarehouseInventory> GetWarehouseAvailableNew(List<Tuple<string, string, string>> uniqueCombos)
         {
             List<WarehouseInventory> returnValue = new List<WarehouseInventory>();
-            WarehouseInventoryDAO d = new WarehouseInventoryDAO();
+            //WarehouseInventoryDAO d = new WarehouseInventoryDAO();
             string division = string.Empty, SQL = string.Empty;
             var uniqueSizeCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(3)).ToList();
             var uniqueCaselotCombos = uniqueCombos.Where(c => c.Item2.Length.Equals(5)).ToList();
@@ -782,7 +782,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
                 if (reduce != null)
                 {
-                    reduce.totalRingFenceQuantity = ed.Qty;
+                    reduce.ringFenceQuantity = ed.Qty;
                 }
             });
 
@@ -806,7 +806,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                                                                 ir.InstanceID.Equals(instanceID)).FirstOrDefault();
                     if (inventoryReduction != null)
                     {
-                        ai.totalQuantity -= inventoryReduction.Qty;
+                        ai.quantity -= inventoryReduction.Qty;
                     }
                 }
             }
