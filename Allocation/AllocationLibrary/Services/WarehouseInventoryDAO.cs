@@ -127,7 +127,8 @@ namespace Footlocker.Logistics.Allocation.Services
             SetCaselots(itemID);
 
             var reductionDataForSku = (from rd in db.InventoryReductionsByType
-                                       where rd.Sku == _SKU.SKU
+                                       where rd.Sku == _SKU.SKU &&
+                                             rd.PO == ""
                                        select rd).ToList();
 
             var reductionData = (from r in reductionDataForSku
