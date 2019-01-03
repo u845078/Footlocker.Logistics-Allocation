@@ -1783,10 +1783,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-        [CheckPermission(
-            Roles =
-                "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support"
-            )]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult SaveARSkus(IEnumerable<HttpPostedFileBase> attachments)
         {
             Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
@@ -1890,10 +1887,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return Content(message);
         }
 
-        [CheckPermission(
-            Roles =
-                "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support"
-            )]
+        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult SaveARConstraints(IEnumerable<HttpPostedFileBase> attachments)
         {
             Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
