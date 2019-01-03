@@ -34,9 +34,6 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Aspose.Excel">
       <HintPath>C:\Footlocker\Aspose.Excel.dll</HintPath>
@@ -156,6 +153,7 @@
     <Compile Include="Models\InterfaceFile.cs" />
     <Compile Include="Models\InvalidTransaction.cs" />
     <Compile Include="Models\InventoryReductions.cs" />
+    <Compile Include="Models\InventoryReductionsByType.cs" />
     <Compile Include="Models\InventorySummary.cs" />
     <Compile Include="Models\LegacyFutureInventory.cs" />
     <Compile Include="Models\LegacyInventory.cs" />
@@ -280,6 +278,7 @@
     <Compile Include="Services\PurgeArchiveDAO.cs" />
     <Compile Include="Services\QuantumDAO.cs" />
     <Compile Include="Services\RangeFileItemDAO.cs" />
+    <Compile Include="Services\RangePlanDAO.cs" />
     <Compile Include="Services\RangeReformat.cs" />
     <Compile Include="Services\RingFenceDAO.cs" />
     <Compile Include="Services\RingFenceSummaryDAO.cs" />
