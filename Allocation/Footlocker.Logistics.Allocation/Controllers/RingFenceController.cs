@@ -3519,8 +3519,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                             join d in details
                                               on new { Sku = rf.Sku, Size = rf.Size, DC = rf.DC } equals
                                                  new { Sku = d.Sku, Size = d.size, DC = d.DistributionCenterID }
-                                            where rf.Quantity > d.totalAvailableQuantity
-                                           select Tuple.Create(rf, d.totalAvailableQuantity)).ToList();
+                                            where rf.Quantity > d.availableQuantity
+                                           select Tuple.Create(rf, d.availableQuantity)).ToList();
 
             foreach (var rf in invalidRingFenceQuantity)
             {
@@ -3574,8 +3574,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                        join d in details
                                          on new { Sku = r.Sku, PO = r.PO, Size = r.Size, DC = r.DC }
                                      equals new { Sku = d.Sku, PO = d.PO, Size = d.size, DC = d.DistributionCenterID }
-                                      where r.Quantity > d.totalAvailableQuantity
-                                     select Tuple.Create(r, d.totalAvailableQuantity)).ToList();
+                                      where r.Quantity > d.availableQuantity
+                                     select Tuple.Create(r, d.availableQuantity)).ToList();
 
             foreach (var r in invalidFutureCombos)
             {

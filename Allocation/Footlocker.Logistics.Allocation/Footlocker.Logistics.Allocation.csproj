@@ -260,6 +260,7 @@
     <Compile Include="Models\ProductHierarchyOverrideModel.cs" />
     <Compile Include="Models\PurgeArchiveTypeModel.cs" />
     <Compile Include="Models\RingFenceUploadModelNew.cs" />
+    <Compile Include="Models\SkuSetupModel.cs" />
     <Compile Include="Models\TroubleshootRDQForSkuModel.cs" />
     <Compile Include="Models\CreateConfigParamModel.cs" />
     <Compile Include="Models\CreateConfigModel.cs" />
@@ -508,6 +509,7 @@
     <None Include="Content\Templates\SkuIdUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="Content\Templates\SkuRangePlanDGUploadTemplate.xls" />
     <None Include="Content\Templates\SkuTypeUpload.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -725,6 +727,7 @@
     <Content Include="Views\Upload\ARConstraintsUpload.cshtml" />
     <Content Include="Views\Upload\ARSkusUpload.cshtml" />
     <Content Include="Views\Hold\Upload.cshtml" />
+    <Content Include="Views\SkuRange\SkuRPDGUpload.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -742,6 +745,9 @@
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
