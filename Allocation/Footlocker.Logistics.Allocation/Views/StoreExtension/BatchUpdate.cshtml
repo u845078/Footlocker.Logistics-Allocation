@@ -28,6 +28,7 @@
         $('#SelectedCustomerTypeID option[value=' + extensionData.CustomerTypeID + ']').attr('selected', 'selected');
         $('#SelectedPriorityTypeID option[value=' + extensionData.PriorityTypeID + ']').attr('selected', 'selected');
         $('#SelectedStrategyTypeID option[value=' + extensionData.StrategyTypeID + ']').attr('selected', 'selected');
+        $('#SelectedMinihubStrategyInd option[value=' + extensionData.MinihubStrategy + ']').attr('selected', 'selected');
     }
 
     function storeExtensionsGrid_DataBound(e) {
@@ -139,7 +140,7 @@
                     @Html.DropDownListFor(m => m.SelectedStrategyTypeID, new SelectList(Model.StrategyTypes, "ID", "Name"), new { @class = "batch-dropdown", style = "width: 130px;" })
                 </div>
                 <div class="form-input">
-                    @Html.CheckBoxFor(m => m.SelectedMinihubStrategyInd)
+                    @Html.DropDownListFor(m => m.SelectedMinihubStrategyInd, new SelectList(Model.MiniHubValues, "Key", "Value"), new { @class = "batch-dropdown", style = "width: 210px;"})                    
                 </div>
             </div>
         </div>
