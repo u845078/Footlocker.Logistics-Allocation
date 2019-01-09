@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
+
+
     public class StoreBatchModel
     {
         public long RuleSetID { get; set; }
@@ -15,7 +17,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public int SelectedPriorityTypeID { get; set; }
         public int SelectedStrategyTypeID { get; set; }
 
-        public bool SelectedMinihubStrategyInd { get; set; }
+        public int SelectedMinihubStrategyInd { get; set; }
 
         public int SelectedExcludeStore { get; set; }
         public DateTime? FirstReceipt { get; set; }
@@ -24,5 +26,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public IList<CustomerType> CustomerTypes { get; set; }
         public IList<PriorityType> PriorityTypes { get; set; }
         public IList<StrategyType> StrategyTypes { get; set; }
+
+        public IList<KeyValuePair<int, string>> MiniHubValues { get; set; }
     }
 }

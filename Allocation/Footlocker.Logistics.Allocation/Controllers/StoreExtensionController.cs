@@ -58,6 +58,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             viewModel.CustomerTypes = customerTypeList;
             viewModel.PriorityTypes = priorityTypeList;
             viewModel.StrategyTypes = strategyTypeList;
+
+            viewModel.MiniHubValues = new List<KeyValuePair<int, string>>();
+            viewModel.MiniHubValues.Add(new KeyValuePair<int, string>(-1, "N/A"));
+            viewModel.MiniHubValues.Add(new KeyValuePair<int, string>(0, "Do Not Use Minihub Strategy"));
+            viewModel.MiniHubValues.Add(new KeyValuePair<int, string>(1, "Use Minihub Strategy"));
         }
 
         #endregion
@@ -177,7 +182,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 || model.SelectedCustomerTypeID > 0 
                 || model.SelectedPriorityTypeID > 0 
                 || model.SelectedStrategyTypeID > 0
-                || model.SelectedExcludeStore > 0)
+                || model.SelectedExcludeStore > 0
+                || model.SelectedMinihubStrategyInd > 0)
             {
                 var currentDate = DateTime.Now;
 
@@ -204,11 +210,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             { sl.StoreExtension.PriorityTypeID = model.SelectedPriorityTypeID; }
                         if (model.SelectedStrategyTypeID > 0 && sl.StoreExtension.StrategyTypeID != model.SelectedStrategyTypeID)
                             { sl.StoreExtension.StrategyTypeID = model.SelectedStrategyTypeID; }
+                        if (model.SelectedMinihubStrategyInd > 0 && (sl.StoreExtension.MinihubStrategyInd ? 1 : 0) != model.SelectedMinihubStrategyInd)
+                        {
+                            sl.StoreExtension.MinihubStrategyInd = (model.SelectedMinihubStrategyInd == 1);
+                        }
                         if (model.SelectedExcludeStore > 0)
                         {
                             sl.StoreExtension.ExcludeStore = (model.SelectedExcludeStore == 1); 
-                        }
-                        sl.StoreExtension.MinihubStrategyInd = model.SelectedMinihubStrategyInd;
+                        }                        
                     });
 
                 db.SaveChanges();
@@ -231,7 +240,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                      .Include("Stores.StoreLookup.StoreExtension.ConceptType")
                      .Include("Stores.StoreLookup.StoreExtension.CustomerType")
                      .Include("Stores.StoreLookup.StoreExtension.PriorityType")
-                     .Include("Stores.StoreLookup.StoreExtension.StrategyType")
+                     .Include("Stores.StoreLookup.StoreExtension.StrategyType")                     
                      .Single(rs => rs.RuleSetID == ruleSetID)
                      .Stores
                      .Select(s => s.StoreLookup);
@@ -247,6 +256,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             var customerTypeIDs = domainObjects.Select(sl => (sl.StoreExtension != null) ? sl.StoreExtension.CustomerTypeID : -1).Distinct();
             var strategyTypeIDs = domainObjects.Select(sl => (sl.StoreExtension != null) ? sl.StoreExtension.StrategyTypeID : -1).Distinct();
             var priorityTypeIDs = domainObjects.Select(sl => (sl.StoreExtension != null) ? sl.StoreExtension.PriorityTypeID : -1).Distinct();
+            var minihubStrategies = domainObjects.Select(sl => (sl.StoreExtension != null) ? ((sl.StoreExtension.MinihubStrategyInd) ? 1 : 0) : -1).Distinct();
 
             // Get concepts of divisions which current user has access to
             var accessibleDivCodes = Divisions().Select(d => d.DivCode);
@@ -266,6 +276,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             var sharedCustomerTypeID = (customerTypeIDs.Count() > 1) ? mixedValue : customerTypeIDs.FirstOrDefault() ?? mixedValue;
             var sharedStrategyTypeID = (strategyTypeIDs.Count() > 1) ? mixedValue : strategyTypeIDs.FirstOrDefault() ?? mixedValue;
             var sharedPriorityTypeID = (priorityTypeIDs.Count() > 1) ? mixedValue : priorityTypeIDs.FirstOrDefault() ?? mixedValue;
+            var sharedMinihubStrat = (minihubStrategies.Count() > 1) ? mixedValue : minihubStrategies.FirstOrDefault();
 
             return View(new StoreLookupGridModel(domainObjects) 
                 { 
@@ -274,7 +285,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             ConceptTypeID = sharedConceptTypeID,
                             CustomerTypeID = sharedCustomerTypeID,
                             PriorityTypeID = sharedPriorityTypeID,
-                            StrategyTypeID = sharedStrategyTypeID 
+                            StrategyTypeID = sharedStrategyTypeID,
+                            MinihubStrategy = sharedMinihubStrat
                         } 
                 });
         }
@@ -289,6 +301,7 @@ public class StoreLookupGridExtensionData
     public int CustomerTypeID { get; set; }
     public int PriorityTypeID { get; set; }
     public int StrategyTypeID { get; set; }
+    public int MinihubStrategy { get; set; }
 }
 
 public class StoreLookupGridModel : GridModel
