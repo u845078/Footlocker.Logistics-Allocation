@@ -1456,14 +1456,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     foreach (var error in errorList)
                     {
                         col = 0;
-                        if (error.Item1.Store.Length == 5)
+                        if (error.Item1.Store != null && error.Item1.Store.Length == 5)
                             mySheet.Cells[row, col].PutValue(error.Item1.Store);
                         else
                             mySheet.Cells[row, col].PutValue("");
 
                         col++;
 
-                        if (error.Item1.Store.Length == 2)
+                        if (error.Item1.Store != null && error.Item1.Store.Length == 2)
                             mySheet.Cells[row, col].PutValue(error.Item1.Store);
                         else
                             mySheet.Cells[row, col].PutValue("");
