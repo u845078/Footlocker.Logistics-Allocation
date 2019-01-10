@@ -564,8 +564,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             //reduce allocs to only selected stores.
             allocs = (from a in allocs
-                      join b in selectedStores 
+                      join b in selectedStores
                       on new { a.Division, a.Store } equals new { b.Division, b.Store }
+                      join c in stores
+                      on new { b.Division, b.Store } equals new { c.Division, c.Store }
                       select a).ToList();
 
             stores = (from a in stores
