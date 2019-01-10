@@ -1571,7 +1571,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _SelectWarehouses(Int64 ringFenceID)
         {
-            RingFence ringFence = (from a in db.RingFences where a.ID == ringFenceID select a).First();
+            RingFence ringFence = (from a in db.RingFences
+                                   where a.ID == ringFenceID
+                                   select a).First();
             return View(new GridModel(GetWarehouseAvailable(ringFence)));
         }
 

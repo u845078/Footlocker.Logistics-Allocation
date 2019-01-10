@@ -172,61 +172,14 @@ namespace Footlocker.Logistics.Allocation.Services
             return _que;
         }
 
-        public Int32 GetWarehouseAvailable(string sku, string size, string warehouse)
-        {
-            RingFenceDAO dao = new RingFenceDAO();
+        //public Int32 GetWarehouseAvailable(string sku, string size, string warehouse)
+        //{
+        //    RingFenceDAO dao = new RingFenceDAO();
 
-            List<RingFenceDetail> list = dao.GetWarehouseAvailableCommon(sku, size, warehouse, null);
+        //    List<RingFenceDetail> list = dao.GetWarehouseAvailableCommon(sku, size, warehouse, null);
 
-            return (from a in list where a.Size == size select a.AvailableQty).Sum();
-
-            /*
-            string stock, color, dept, div;
-            string[] tokens = sku.Split('-');
-            div = tokens[0];
-            dept = tokens[1];
-            stock = tokens[2];
-            color = tokens[3];
-
-            Database currDatabase = null;
-            if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(div))
-            {
-                currDatabase = DatabaseFactory.CreateDatabase("DB2EURP");
-            }
-            else
-            {
-                currDatabase = DatabaseFactory.CreateDatabase("DB2PROD");
-            }
-            List<RingFenceDetail> _que;
-            _que = new List<RingFenceDetail>();
-
-            DbCommand SQLCommand;
-
-            string SQL = "select ALLOCATABLE_BS_QTY from TC052002 ";
-            SQL = SQL + " where ";
-            SQL = SQL + "retl_oper_div_cd = '" + div + "' ";
-            SQL = SQL + "and stk_dept_num = '" + dept + "' ";
-            SQL = SQL + "and stk_num = '" + stock + "' ";
-            SQL = SQL + "and stk_wc_num = '" + color + "' ";
-            SQL = SQL + "and WHSE_ID_NUM = '" + warehouse + "' ";
-            SQL = SQL + "and STK_SIZE_NUM = " + Convert.ToInt32(size);
-
-            SQLCommand = currDatabase.GetSqlStringCommand(SQL);
-
-            DataSet data = new DataSet();
-            data = currDatabase.ExecuteDataSet(SQLCommand);
-
-            if (data.Tables.Count > 0)
-            {
-                AllocationLibraryContext db = new AllocationLibraryContext();
-                foreach (DataRow dr in data.Tables[0].Rows)
-                {
-                    return Convert.ToInt32(dr["ALLOCATABLE_BS_QTY"]);
-                }
-            }
-            return 0;
-             * */
-        }
+        //    return (from a in list where a.Size == size select a.AvailableQty).Sum();
+        //}
 
         /// <summary>
         /// Gets RDQs that are for this hold only, not including ones that are also on hold for another reason

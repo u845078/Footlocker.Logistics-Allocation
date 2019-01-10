@@ -832,13 +832,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             stock = tokens[2];
             color = tokens[3];
 
-            Int32 instanceid = (from a in db.InstanceDivisions
-                                where a.Division == div
-                                select a.InstanceID).First();
-
-            RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
-            List<RingFenceSummary> list = summaryDAO.GetRingFenceSummaries(Convert.ToString(instanceid));
-
             Database currDatabase = null;
             if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(div))
             {
@@ -848,8 +841,8 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             {
                 currDatabase = _database;
             }
-            List<RingFenceDetail> _que;
-            _que = new List<RingFenceDetail>();
+
+            List<RingFenceDetail> _que = new List<RingFenceDetail>();
 
             DbCommand SQLCommand;
             string SQL = "select WHSE_ID_NUM,STK_SIZE_NUM,ALLOCATABLE_BS_QTY from TC052002 ";
@@ -869,6 +862,14 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
             DataSet data = new DataSet();
             data = currDatabase.ExecuteDataSet(SQLCommand);
+
+            Int32 instanceid = (from a in db.InstanceDivisions
+                                where a.Division == div
+                                select a.InstanceID).First();
+
+            RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
+            List<RingFenceSummary> list = summaryDAO.GetRingFenceSummaries(Convert.ToString(instanceid));
+
             RingFenceDetail det;
             if (data.Tables.Count > 0)
             {                

@@ -11,6 +11,12 @@ namespace Footlocker.Logistics.Allocation.Services
 {
     public class WarehouseInventoryDAO
     {
+        public enum InventoryListType
+        {
+            ListAllSizes,
+            ListOnlyAvailableSizes
+        }
+
         readonly Database _database;
         readonly Database _databaseEurope;
         readonly Database _sqlDB;
@@ -18,6 +24,8 @@ namespace Footlocker.Logistics.Allocation.Services
         readonly SKUStruct _SKU;
         readonly string _WarehouseID;
         List<WarehouseInventory> warehouseInventory;
+        private InventoryListType _inventoryListType;
+
 
         public struct SKUStruct
         {
@@ -70,28 +78,31 @@ namespace Footlocker.Logistics.Allocation.Services
             string SQL = "select to_char(WHSE_ID_NUM) as WHSE_ID_NUM, lpad(to_char(STK_SIZE_NUM), 3, '0') as Size, ";
             SQL = SQL + " to_number(ALLOCATABLE_BS_QTY) as OnHandQty, pick_rsrv_bs_qty as PickReserve ";
             SQL = SQL + " from TC052002 ";
-            SQL = SQL + " where retl_oper_div_cd = '" + _SKU.Division + "' ";
-            SQL = SQL + "and stk_dept_num = '" + _SKU.Department + "' ";
-            SQL = SQL + "and stk_num = '" + _SKU.Stock + "' ";
-            SQL = SQL + "and stk_wc_num = '" + _SKU.Color + "' ";
-            SQL = SQL + "and ALLOCATABLE_BS_QTY > 0 ";
+            SQL = SQL + " where retl_oper_div_cd = '" + _SKU.Division + "' and ";
+            SQL = SQL + " stk_dept_num = '" + _SKU.Department + "' and ";
+            SQL = SQL + " stk_num = '" + _SKU.Stock + "' and ";
+            SQL = SQL + " stk_wc_num = '" + _SKU.Color + "' ";
+
+            if (_inventoryListType == InventoryListType.ListOnlyAvailableSizes)
+               SQL = SQL + " and ALLOCATABLE_BS_QTY > 0 ";
 
             if (_WarehouseID != "-1")
-                SQL = SQL + " and WHSE_ID_NUM = " + _WarehouseID;
+                SQL = SQL + " and WHSE_ID_NUM = '" + _WarehouseID + "'";
 
             SQL = SQL + " union ";
             SQL = SQL + "select to_char(WHSE_ID_NUM) as WHSE_ID_NUM, to_char(CL_SCHED_NUM) as Size, ";
             SQL = SQL + " to_number(ALLOCATABLE_CL_QTY) as OnHandQty, pick_rsrv_cl_qty as PickReserve ";
             SQL = SQL + " from TC052010 ";
-            SQL = SQL + " where ";
-            SQL = SQL + "retl_oper_div_cd = '" + _SKU.Division + "' ";
-            SQL = SQL + "and stk_dept_num = '" + _SKU.Department + "' ";
-            SQL = SQL + "and stk_num = '" + _SKU.Stock + "' ";
-            SQL = SQL + "and stk_wc_num = '" + _SKU.Color + "' ";
-            SQL = SQL + "and ALLOCATABLE_CL_QTY > 0 ";
+            SQL = SQL + " where retl_oper_div_cd = '" + _SKU.Division + "' and ";
+            SQL = SQL + " stk_dept_num = '" + _SKU.Department + "' and ";
+            SQL = SQL + " stk_num = '" + _SKU.Stock + "' and ";
+            SQL = SQL + " stk_wc_num = '" + _SKU.Color + "' ";
+
+            if (_inventoryListType == InventoryListType.ListOnlyAvailableSizes)
+                SQL = SQL + "and ALLOCATABLE_CL_QTY > 0 ";
 
             if (_WarehouseID != "-1")
-                SQL = SQL + " and WHSE_ID_NUM = " + _WarehouseID;
+                SQL = SQL + " and WHSE_ID_NUM = '" + _WarehouseID + "'";
 
             SQLCommand = currDatabase.GetSqlStringCommand(SQL);
 
@@ -115,8 +126,10 @@ namespace Footlocker.Logistics.Allocation.Services
         }
 
 
-        public List<WarehouseInventory> GetWarehouseInventory()
+        public List<WarehouseInventory> GetWarehouseInventory(InventoryListType inventoryList)
         {
+            _inventoryListType = inventoryList;
+
             long itemID = (from a in db.ItemMasters
                            where a.MerchantSku.Equals(_SKU.SKU)
                            select a.ID).FirstOrDefault();
