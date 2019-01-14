@@ -23,28 +23,10 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Size { get; set; }
 
         public Int32? Min { get; set; }
-        //public string MinString 
-        //{ 
-        //    get 
-        //    {
-        //        if (Min >= 0)
-        //        {
-        //            return Min.ToString();
-        //        }
-        //        else
-        //        {
-        //            return "";
-        //        }
-        //    }
 
-        //    set
-        //    {
-        //        Min = Convert.ToInt32(value);
-        //    }
-        //}
         public Int32? Max { get; set; }
-        public Int32? Days { get; set; }
 
+        public Int32? Days { get; set; }
 
         public Int16 RangeFromDB 
         {
@@ -56,6 +38,26 @@ namespace Footlocker.Logistics.Allocation.Models
             {
                 Range = Convert.ToBoolean(value);
             } 
+        }
+
+        public int? MinEndDays { get; set; }
+
+        public DateTime DeliveryGroupStartDate { get; set; }
+
+        public int? StoreLeadTime { get; set; }
+
+        [NotMapped]
+        public string CalculatedMinEndDate
+        {
+            get
+            {
+                if (StoreLeadTime != null && DeliveryGroupStartDate != DateTime.MinValue && MinEndDays != null)
+                {
+                    int bufferDays = (int)(StoreLeadTime + MinEndDays);
+                    return DeliveryGroupStartDate.AddDays(bufferDays).ToString("MM/dd/yyyy");
+                }
+                return null;
+            }
         }
 
         [NotMapped]

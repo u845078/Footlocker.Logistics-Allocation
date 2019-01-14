@@ -82,7 +82,7 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.AddInParameter(SQLCommand, "@max", DbType.String, sa.Max);
             _database.AddInParameter(SQLCommand, "@days", DbType.String, sa.Days);
             _database.AddInParameter(SQLCommand, "@demand", DbType.String, sa.InitialDemand);
-            _database.AddInParameter(SQLCommand, "@minEndDate", DbType.String, sa.MinEndDate);
+            _database.AddInParameter(SQLCommand, "@minEndDays", DbType.Int32, sa.MinEndDays);
             if (sa.Range)
             {
                 _database.AddInParameter(SQLCommand, "@range", DbType.Int16, 1);
@@ -237,7 +237,7 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.ExecuteNonQuery(SQLCommand);
         }
 
-        public void SaveMinEndDate(SizeAllocation sa, IEnumerable<StoreLookup> stores)
+        public void SaveMinEndDays(SizeAllocation sa, IEnumerable<StoreLookup> stores)
         {
             DbCommand SQLCommand;
             string SQL;
@@ -265,7 +265,7 @@ namespace Footlocker.Logistics.Allocation.Services
 
             _database.AddInParameter(SQLCommand, "@plan", DbType.Int64, sa.PlanID);
             _database.AddInParameter(SQLCommand, "@size", DbType.String, sa.Size);
-            _database.AddInParameter(SQLCommand, "@MinEndDate", DbType.DateTime, sa.MinEndDate);
+            _database.AddInParameter(SQLCommand, "@minEndDays", DbType.Int32, sa.MinEndDays);
 
 
             _database.ExecuteNonQuery(SQLCommand);

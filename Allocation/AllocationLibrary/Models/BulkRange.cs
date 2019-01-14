@@ -20,6 +20,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Max { get; set; }
         public string BaseDemand { get; set; }
         public string MinEndDateOverride { get; set; }
+        public string MinEndDaysOverride { get; set; }
         public string Error { get; set; }
         public string EndDate { get; set; }
     

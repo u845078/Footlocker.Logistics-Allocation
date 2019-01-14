@@ -4,15 +4,13 @@
     .total 
     {
     }
-    .changecell
-    {
-        background-color:yellow !important;
+    .changecell {
+        background-color: rgba(239, 255, 0, 0.47);
     }
 
-    .initdemand
-    {
-        font-color:Red; 
-        background-color : #99FFCC;
+    .initdemand {
+        font-color: Red; 
+        background-color: #99FFCC;
     }
     
 </style>
@@ -135,7 +133,7 @@ else
                                 @Html.HiddenFor(modelItem => item.Division, new { id = "[" + count + "].Division" })
                                 @Html.HiddenFor(modelItem => item.Store, new { id = "[" + count + "].Store" })
                                 @Html.HiddenFor(modelItem => item.Size, new { id = "[" + count + "].Size" })
-                                @Html.Raw("Range<br>Min Target&nbsp;(<span id='MinTotal' class='total'>0</span>)<br />Max Target<br>Base Demand<br>Min End Override<br>&nbsp;&nbsp;&nbsp;</td>")
+                                @Html.Raw("Range<br>Min Target&nbsp;(<span id='MinTotal' class='total'>0</span>)<br />Max Target<br>Base Demand<br>Min End Days Override<br>&nbsp;&nbsp;&nbsp;</td>")
                             }
 
                             @Html.Raw("<td padding=\"0px\">")
@@ -152,16 +150,18 @@ else
                             @Html.Raw("<input name=\"[" + count + "].MaxInit\" type=\"hidden\" value=\"" + item.Max + "\" />")
                             //@Html.TextBoxFor(modelItem => item.Max, new { style = "Width:20px", id = "[" + count + "].Max" })
                             @Html.Raw("<br>")
-                            @Html.Raw("<input class=\"initdemand\" name=\"[" + count + "].InitialDemand\" type=\"text\" value=\"" + item.InitialDemand + "\" style = \"Width:40px\"/ onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" >")
+                            @Html.Raw("<input class=\"initdemand\" name=\"[" + count + "].InitialDemand\" type=\"text\" value=\"" + item.InitialDemand + "\" style = \"Width:28px\"/ onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" >")
                             @Html.Raw("<input name=\"[" + count + "].InitialDemandInit\" type=\"hidden\" value=\"" + item.InitialDemand + "\" />")
                             @Html.Raw("<br>")
-    
-                            @(Html.Telerik().DatePicker()
+                            @Html.Raw("<input name=\"[" + count + "].MinEndDays\" type=\"text\" value=\"" + item.MinEndDays + "\" style=\"Width:28px\" onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" />")
+                            @Html.Raw("<input name=\"[" + count + "].MinEndDaysInit\" type=\"hidden\" value=\"" + item.MinEndDays + "\" />")
+
+                            @*@(Html.Telerik().DatePicker()
                                   .Name("[" + count + "].MinEndDate")
                                   .HtmlAttributes(new { style="width:90px", id = "DatePicker_wrapper", title = "Override of delivery group min end date" })
                                   .Value(item.MinEndDate).Enable(true).Format("MM/dd/yyyy").ClientEvents(events => events.OnChange("onChangeDatePicker"))
-                             )
-                            @Html.Raw("<input name=\"[" + count + "].MinEndDateInit\" type=\"hidden\" value=\"" + String.Format("{0:MM/dd/yy}", item.MinEndDate) + "\" />")
+                             )*@
+                            @*@Html.Raw("<input name=\"[" + count + "].MinEndDateInit\" type=\"hidden\" value=\"" + String.Format("{0:MM/dd/yy}", item.MinEndDate) + "\" />")*@
 
                             if (!(item.ModifiedStore))
                             {
