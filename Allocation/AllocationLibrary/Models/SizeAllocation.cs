@@ -58,7 +58,7 @@ namespace Footlocker.Logistics.Allocation.Models
                     int bufferDays = (int)(StoreLeadTime + MinEndDays);
                     return DeliveryGroupStartDate.AddDays(bufferDays).ToString("MM/dd/yyyy");
                 }
-                else if (StoreLeadTime != null && DeliveryGroupStartDate != DateTime.MinValue && MinEndDays == null && DeliveryGroupMinEndDays != null)
+                else if (StoreLeadTime != null && DeliveryGroupStartDate != DateTime.MinValue && MinEndDays == null && DeliveryGroupMinEndDays != null && Range)
                 {
                     int bufferDays = (int)(StoreLeadTime + DeliveryGroupMinEndDays);
                     return DeliveryGroupStartDate.AddDays(bufferDays).ToString("MM/dd/yyyy");
