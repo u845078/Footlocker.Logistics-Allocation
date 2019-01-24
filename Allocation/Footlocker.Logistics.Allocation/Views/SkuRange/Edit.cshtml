@@ -56,9 +56,6 @@
             @Html.ValidationMessageFor(model => model.Description)
         </div>
 
-        <div class="editor-label">
-            @Html.LabelFor(model => model.Launch)
-        </div>
         <div class="editor-field">
             @Html.CheckBoxFor(model => model.Launch, new { id = "launchChk" })
             @Html.LabelFor(model => model.Launch)
