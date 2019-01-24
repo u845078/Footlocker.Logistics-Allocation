@@ -2245,7 +2245,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     List<RingFenceUploadModel> Errors = new List<RingFenceUploadModel>();
                     RingFenceUploadModel model;
 
-                    while (mySheet.Cells[row, 0].Value != null)
+                    while (mySheet.Cells[row, 0].Value != null || mySheet.Cells[row, 1].Value != null)
                     {
                         sku = Convert.ToString(mySheet.Cells[row, 1].Value);
                         division = sku.Substring(0, 2);
@@ -2264,12 +2264,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
                         else
                         {
-                            int rfCount = (from r in db.RingFences
-                                           where r.Store == store &&
-                                                 r.Sku == sku &&
-                                                 r.Division == division
-                                           select r).Count();
-                            if (rfCount == 0)
+                            bool ringFenceExists = db.RingFences.Any(rf => rf.Sku.Equals(model.SKU) &&
+                                                                           (rf.Store == model.Store ||
+                                                                           (string.IsNullOrEmpty(model.Store) && string.IsNullOrEmpty(rf.Store))));
+
+                            if (!ringFenceExists)
                             {
                                 model.ErrorMessage = "There was no ring fence found for this store and SKU";
                                 Errors.Add(model);
@@ -2303,7 +2302,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         foreach (var rfDel in ProcessList)
                         {
                             var rfToDelete = (from r in db.RingFences
-                                              where r.Store == rfDel.Store &&
+                                              where (r.Store == rfDel.Store ||
+                                                     (string.IsNullOrEmpty(r.Store) && string.IsNullOrEmpty(rfDel.Store))) &&
                                                     r.Sku == rfDel.SKU &&
                                                     r.Division == rfDel.Division
                                               select r).ToList();
