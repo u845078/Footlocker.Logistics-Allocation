@@ -67,7 +67,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                           .OrderBy(q => q.Sku)
                                           .ToList();
 
-            //List<RangePlan> model = db.RangePlans.Include("ItemMaster").Where(u => temp.Contains(u.Sku.Substring(0, 5))).OrderBy(a => a.Sku).ToList();
             return model;
         }
 
@@ -98,19 +97,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             RangePlanDAO rpDAO = new RangePlanDAO();
             rpDAO.DeleteRangePlan(planID);
-
-            // remove plan from session data if it exists
-            //if (Session["SkuSetup"] != null)
-            //{
-            //    var rps = (List<RangePlan>)Session["SkuSetup"];
-            //    var planToDelete = rps.Where(rp => rp.Id.Equals(planID)).FirstOrDefault();
-            //    if (planToDelete != null)
-            //    {
-            //        rps.Remove(planToDelete);
-            //        Session["SkuSetup"] = rps;
-            //    }
-            //}
-
             return RedirectToAction("Index");
         }
 
