@@ -384,7 +384,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     dgNew.StartDate = dg.StartDate;
                     dgNew.EndDate = dg.EndDate;
                     dgNew.Name = dg.Name;
-                    dgNew.MinEnd = dg.MinEnd;
+                    dgNew.MinEndDays = dg.MinEndDays;
                     dgNew.RuleSetID = NewRuleSets[OldRuleSets.IndexOf(dg.RuleSetID)];
                     db.DeliveryGroups.Add(dgNew);
                 }
@@ -434,7 +434,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         sa.Size = saFrom.Size;
                         sa.StartDate = saFrom.StartDate;
                         sa.Store = saFrom.Store;
-                        sa.MinEndDate = saFrom.MinEndDate;
+                        sa.MinEndDays = saFrom.MinEndDays;
                         db.SizeAllocations.Add(sa);
                     }
                 }
@@ -981,7 +981,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     currentTotal.InitialDemand = sa.InitialDemand;
                     currentTotal.StartDate = sa.StartDate;
                     currentTotal.EndDate = sa.EndDate;
-                    currentTotal.MinEndDate = sa.MinEndDate;
                     currentTotal.MinEndDays = sa.MinEndDays;
                 }
 
@@ -990,7 +989,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     (currentTotal.Max != sa.Max) || 
                     (currentTotal.Range != sa.Range) || 
                     (currentTotal.InitialDemand != sa.InitialDemand) || 
-                    (currentTotal.MinEndDate != sa.MinEndDate) ||
                     (currentTotal.MinEndDays != sa.MinEndDays))
                 {
                     //if ((sa.Days != null) && (sa.Min != null) && (sa.Max != null))

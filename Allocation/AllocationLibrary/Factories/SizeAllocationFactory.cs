@@ -46,10 +46,6 @@ namespace Footlocker.Logistics.Allocation.Factories
             {
                 _newObject.EndDate = Convert.ToDateTime(dr["EndDate"]);
             }
-            if (!(Convert.IsDBNull(dr["MinEndDate"])))
-            {
-                _newObject.MinEndDate = Convert.ToDateTime(dr["MinEndDate"]);
-            }
             if (!(Convert.IsDBNull(dr["MinEndDays"])))
             {
                 _newObject.MinEndDays = Convert.ToInt32(dr["MinEndDays"]);
