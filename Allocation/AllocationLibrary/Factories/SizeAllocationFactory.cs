@@ -36,7 +36,7 @@ namespace Footlocker.Logistics.Allocation.Factories
             }
             if (!(Convert.IsDBNull(dr["InitialDemand"])))
             {
-                _newObject.InitialDemand = Convert.ToString(dr["InitialDemand"]);
+                _newObject.InitialDemand = Convert.ToDecimal(dr["InitialDemand"]);
             }
             if (!(Convert.IsDBNull(dr["StartDate"])))
             {

@@ -81,7 +81,7 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.AddInParameter(SQLCommand, "@min", DbType.String, sa.Min);
             _database.AddInParameter(SQLCommand, "@max", DbType.String, sa.Max);
             _database.AddInParameter(SQLCommand, "@days", DbType.String, sa.Days);
-            _database.AddInParameter(SQLCommand, "@demand", DbType.String, sa.InitialDemand);
+            _database.AddInParameter(SQLCommand, "@demand", DbType.Decimal, sa.InitialDemand);
             _database.AddInParameter(SQLCommand, "@minEndDays", DbType.Int32, sa.MinEndDays);
             if (sa.Range)
             {
@@ -190,7 +190,7 @@ namespace Footlocker.Logistics.Allocation.Services
 
             _database.AddInParameter(SQLCommand, "@plan", DbType.Int64, sa.PlanID);
             _database.AddInParameter(SQLCommand, "@size", DbType.String, sa.Size);
-            _database.AddInParameter(SQLCommand, "@demand", DbType.String, sa.InitialDemand);
+            _database.AddInParameter(SQLCommand, "@demand", DbType.Decimal, sa.InitialDemand);
 
 
             _database.ExecuteNonQuery(SQLCommand);

@@ -26,6 +26,8 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public Int32? Max { get; set; }
 
+        public decimal? InitialDemand { get; set; }
+
         public Int32? Days { get; set; }
 
         public Int16 RangeFromDB 
@@ -42,10 +44,13 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public int? MinEndDays { get; set; }
 
+        [NotMapped]
         public DateTime DeliveryGroupStartDate { get; set; }
 
+        [NotMapped]
         public int? DeliveryGroupMinEndDays { get; set; }
 
+        [NotMapped]
         public int? StoreLeadTime { get; set; }
 
         [NotMapped]
@@ -70,7 +75,6 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [NotMapped]
         public Boolean Range { get; set; }
-        public string InitialDemand { get; set; }
 
         [NotMapped]
         public string League { get; set; }
