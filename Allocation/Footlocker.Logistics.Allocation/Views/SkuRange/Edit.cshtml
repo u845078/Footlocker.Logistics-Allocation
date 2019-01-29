@@ -6,6 +6,27 @@
 
 <h2>Edit</h2>
 
+<script>
+    $(function () {
+
+        if ($('#launchChk').is(':checked')) {
+            $('#launchWithMinihubChk').prop('disabled', false);
+        } else {
+            $('#launchWithMinihubChk').prop('disabled', true);
+        }
+
+        $("#launchChk").change(function () {
+            var isChecked = $(this).is(':checked');
+            if (isChecked) {
+                $('#launchWithMinihubChk').prop('disabled', false);
+            } else {
+                $('#launchWithMinihubChk').prop('checked', false);
+                $('#launchWithMinihubChk').prop('disabled', true);
+            }
+        });
+    });
+</script>
+
 @using (Html.BeginForm()) {
     @Html.ValidationSummary(true)
 
@@ -35,12 +56,14 @@
             @Html.ValidationMessageFor(model => model.Description)
         </div>
 
-        <div class="editor-label">
+        <div class="editor-field">
+            @Html.CheckBoxFor(model => model.Launch, new { id = "launchChk" })
             @Html.LabelFor(model => model.Launch)
         </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Launch)
-            @Html.ValidationMessageFor(model => model.Launch)
+
+        <div class="editor-field" style="padding-left: 15px;">
+            @Html.CheckBoxFor(model => model.LaunchMinihubInd, new { id = "launchWithMinihubChk" })
+            <label>Mini Hub Strategy</label>
         </div>
 
         <div class="editor-label">

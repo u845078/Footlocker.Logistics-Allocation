@@ -9,6 +9,7 @@ using Telerik.Web.Mvc;
 using Footlocker.Common;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Models.Services;
+using Footlocker.Logistics.Allocation.Models.Factories;
 using Aspose.Excel;
 using System.IO;
 
@@ -76,7 +77,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private List<RingFenceDetail> GetWarehouseAvailable(RingFence ringFence)
         {
             RingFenceDAO dao = new RingFenceDAO();
-            return dao.GetWarehouseAvailable(ringFence);
+
+            return dao.GetWarehouseAvailable(ringFence.Sku, ringFence.Size, ringFence.ID)
+                .OrderBy(r => r.Size.Length)
+                .ThenBy(rf => rf.Size).ToList();
+
+            //return dao.GetWarehouseAvailableCommon(ringFence.Sku, ringFence.Size, "", ringFence.ID);
         }
 
         private string ValidateStorePick(RingFencePickModel rf)
@@ -1547,7 +1553,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             where a.ID == ringFenceID
                             select a).First();
             RingFenceDAO dao = new RingFenceDAO();
-            List<RingFenceDetail> stillAvailable = dao.GetWarehouseAvailable(rf);
+
+            List<RingFenceDetail> stillAvailable = dao.GetWarehouseAvailable(rf.Sku, rf.Size, rf.ID);
+            //List<RingFenceDetail> stillAvailable = dao.GetWarehouseAvailableCommon(rf.Sku, rf.Size, "", rf.ID);
+
             stillAvailable.AddRange(dao.GetFuturePOs(rf));
             RingFenceDetail existing;
             foreach (RingFenceDetail det in stillAvailable)
@@ -2208,7 +2217,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             foreach (RingFenceUploadModel rfum in ProcessList)
             {
                 if ((rfum.PO == "") && (Available == null))
-                    Available = dao.GetWarehouseAvailable(tempRingFence);
+                    Available = dao.GetWarehouseAvailable(tempRingFence.Sku, tempRingFence.Size, tempRingFence.ID);
+                //Available = dao.GetWarehouseAvailableCommon(tempRingFence.Sku, tempRingFence.Size, "", tempRingFence.ID);
 
                 if ((rfum.PO != "") && (FuturePOs == null))
                     FuturePOs = GetFutureAvailable(tempRingFence);
@@ -2247,7 +2257,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     List<RingFenceUploadModel> Errors = new List<RingFenceUploadModel>();
                     RingFenceUploadModel model;
 
-                    while (mySheet.Cells[row, 0].Value != null)
+                    while (mySheet.Cells[row, 0].Value != null || mySheet.Cells[row, 1].Value != null)
                     {
                         sku = Convert.ToString(mySheet.Cells[row, 1].Value);
                         division = sku.Substring(0, 2);
@@ -2266,12 +2276,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
                         else
                         {
-                            int rfCount = (from r in db.RingFences
-                                           where r.Store == store &&
-                                                 r.Sku == sku &&
-                                                 r.Division == division
-                                           select r).Count();
-                            if (rfCount == 0)
+                            bool ringFenceExists = db.RingFences.Any(rf => rf.Sku.Equals(model.SKU) &&
+                                                                           (rf.Store == model.Store ||
+                                                                           (string.IsNullOrEmpty(model.Store) && string.IsNullOrEmpty(rf.Store))));
+
+                            if (!ringFenceExists)
                             {
                                 model.ErrorMessage = "There was no ring fence found for this store and SKU";
                                 Errors.Add(model);
@@ -2305,7 +2314,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         foreach (var rfDel in ProcessList)
                         {
                             var rfToDelete = (from r in db.RingFences
-                                              where r.Store == rfDel.Store &&
+                                              where (r.Store == rfDel.Store ||
+                                                     (string.IsNullOrEmpty(r.Store) && string.IsNullOrEmpty(rfDel.Store))) &&
                                                     r.Sku == rfDel.SKU &&
                                                     r.Division == rfDel.Division
                                               select r).ToList();

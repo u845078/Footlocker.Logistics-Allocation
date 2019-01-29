@@ -9,6 +9,10 @@ namespace Footlocker.Logistics.Allocation.Models
     {
         public long itemID { get; set; }
         public string Sku { get; set; }
+
+        /// <summary>
+        /// This is the mainframe code - ex. 08 = Junction City
+        /// </summary>
         public string DistributionCenterID { get; set; }
         public DistributionCenter distributionCenter { get; set; }
         public string size { get; set; }

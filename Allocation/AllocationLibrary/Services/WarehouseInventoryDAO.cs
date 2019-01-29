@@ -19,6 +19,7 @@ namespace Footlocker.Logistics.Allocation.Services
 
         readonly Database _database;
         readonly Database _databaseEurope;
+        Database _currentDB2Database;
         readonly Database _sqlDB;
         AllocationLibraryContext db = new AllocationLibraryContext();
         readonly SKUStruct _SKU;
@@ -45,7 +46,11 @@ namespace Footlocker.Logistics.Allocation.Services
                 Color = tokens[3];
             }
         }
-
+        /// <summary>
+        /// This is a data access object that will figure out what inventory is available for allocation
+        /// </summary>
+        /// <param name="sku">The SKU that you need information</param>
+        /// <param name="warehouseID">The warehouse for which to restrict inventory. Use -1 if you do not want to restrict inventory to just one warehouse</param>
         public WarehouseInventoryDAO(string sku, string warehouseID)
         {
             _database = DatabaseFactory.CreateDatabase("DB2PROD");
@@ -53,8 +58,21 @@ namespace Footlocker.Logistics.Allocation.Services
             _sqlDB = DatabaseFactory.CreateDatabase("AllocationContext");
             _SKU = new SKUStruct(sku);
             _WarehouseID = warehouseID;
+            SetCurrentDB2Database();
         }
 
+        private void SetCurrentDB2Database()
+        {
+            if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(_SKU.Division))
+            {
+                _currentDB2Database = _databaseEurope;
+            }
+            else
+            {
+                _currentDB2Database = _database;
+            }
+        }
+       
         private List<WarehouseInventory> GetMainframeWarehouseInventory()
         {
             string size;
@@ -63,16 +81,6 @@ namespace Footlocker.Logistics.Allocation.Services
             int pickReserve;
 
             List<WarehouseInventory> warehouseInventoryList = new List<WarehouseInventory>();
-
-            Database currDatabase = null;
-            if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(_SKU.Division))
-            {
-                currDatabase = _databaseEurope;
-            }
-            else
-            {
-                currDatabase = _database;
-            }
 
             DbCommand SQLCommand;
             string SQL = "select to_char(WHSE_ID_NUM) as WHSE_ID_NUM, lpad(to_char(STK_SIZE_NUM), 3, '0') as Size, ";
@@ -104,10 +112,10 @@ namespace Footlocker.Logistics.Allocation.Services
             if (_WarehouseID != "-1")
                 SQL = SQL + " and WHSE_ID_NUM = '" + _WarehouseID + "'";
 
-            SQLCommand = currDatabase.GetSqlStringCommand(SQL);
+            SQLCommand = _currentDB2Database.GetSqlStringCommand(SQL);
 
             DataSet data = new DataSet();
-            data = currDatabase.ExecuteDataSet(SQLCommand);
+            data = _currentDB2Database.ExecuteDataSet(SQLCommand);
 
             if (data.Tables.Count > 0)
             {                
@@ -124,7 +132,6 @@ namespace Footlocker.Logistics.Allocation.Services
 
             return warehouseInventoryList;
         }
-
 
         public List<WarehouseInventory> GetWarehouseInventory(InventoryListType inventoryList)
         {

@@ -111,6 +111,7 @@
     <Compile Include="Factories\RangeFileItemFactory.cs" />
     <Compile Include="Factories\RangePlanFactory.cs" />
     <Compile Include="Factories\RDQExtractFactory.cs" />
+    <Compile Include="Factories\RingFenceDataFactory.cs" />
     <Compile Include="Factories\RingFenceFactory.cs" />
     <Compile Include="Factories\RingFenceSummaryFactory.cs" />
     <Compile Include="Factories\FoqExtractFactory.cs" />
@@ -156,7 +157,7 @@
     <Compile Include="Models\InterfaceFile.cs" />
     <Compile Include="Models\InvalidTransaction.cs" />
     <Compile Include="Models\InventoryReductions.cs" />
-	<Compile Include="Models\InventoryReductionsByType.cs" />
+    <Compile Include="Models\InventoryReductionsByType.cs" />
     <Compile Include="Models\InventorySummary.cs" />
     <Compile Include="Models\LegacyFutureInventory.cs" />
     <Compile Include="Models\LegacyInventory.cs" />
@@ -281,10 +282,9 @@
     <Compile Include="Services\PurgeArchiveDAO.cs" />
     <Compile Include="Services\QuantumDAO.cs" />
     <Compile Include="Services\RangeFileItemDAO.cs" />
-	<Compile Include="Services\RangePlanDAO.cs" />
+    <Compile Include="Services\RangePlanDAO.cs" />
     <Compile Include="Services\RangeReformat.cs" />
     <Compile Include="Services\RingFenceDAO.cs" />
-    <Compile Include="Services\RingFenceSummaryDAO.cs" />
     <Compile Include="Services\SizeDAO.cs" />
     <Compile Include="Services\StoreInventoryDAO.cs" />
     <Compile Include="Services\VendorGroupDetailDAO.cs" />
