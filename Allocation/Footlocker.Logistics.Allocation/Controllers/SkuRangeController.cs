@@ -3814,7 +3814,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 mySheet.Cells[row, 8].PutValue(br.Min);
                 mySheet.Cells[row, 9].PutValue(br.Max);
                 mySheet.Cells[row, 10].PutValue(br.BaseDemand);
-                mySheet.Cells[row, 11].PutValue(br.MinEndDateOverride);
+                mySheet.Cells[row, 11].PutValue(br.MinEndDaysOverride);
                 mySheet.Cells[row, 12].PutValue(br.EndDate);
                 row++;
             }
