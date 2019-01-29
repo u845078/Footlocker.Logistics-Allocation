@@ -125,7 +125,7 @@ namespace Footlocker.Logistics.Allocation.Services
                     dg.BaseDemand = Convert.ToString(dr["BaseDemand"]);
                     dg.Max = Convert.ToString(dr["Max"]);
                     dg.Min = Convert.ToString(dr["Min"]);
-                    dg.MinEndDaysOverride = Convert.ToString(dr["MinEndDays"]);
+                    dg.MinEndDaysOverride = Convert.ToString(dr["MinEndDaysOverride"]);
                     dg.Range = Convert.ToString(dr["Range"]);
                     dg.RangeStartDate = Convert.ToString(dr["RangeStartDate"]);
                     dg.Size = Convert.ToString(dr["Size"]);
