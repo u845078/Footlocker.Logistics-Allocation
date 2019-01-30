@@ -2025,90 +2025,77 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         //ecomm all countries store
                         //EcommInventory ecommInv = new EcommInventory();
                         RingFenceDetail newDet = new RingFenceDetail();
-                        List<EcommWeight> weights;
 
-                        weights = new List<EcommWeight>();
-                        EcommWeight weight = new EcommWeight
-                        {
-                            Division = ringFence.Division,
-                            Store = ringFence.Store,
-                            Weight = 1
-                        };
-
-                        weights.Add(weight);
                         Boolean addDetail;
-                        foreach (EcommWeight w in weights)
+                        RingFence rf = (from a in db.RingFences
+                                        where ((a.Sku == ringFence.Sku) && 
+                                               (a.Store == ringFence.Store))
+                                        select a).First();
+                        foreach (RingFenceDetail det in updated)
                         {
-                            RingFence rf = (from a in db.RingFences
-                                            where ((a.Sku == ringFence.Sku) && 
-                                                   (a.Store == w.Store))
-                                            select a).First();
-                            foreach (RingFenceDetail det in updated)
+                            availableQty = 0;
+                            try
                             {
-                                availableQty = 0;
-                                try
-                                {
-                                    availableQty += (from a in futures
-                                                     where ((a.PO == det.PO) && 
-                                                            (a.Size == det.Size) && 
-                                                            (a.DCID == det.DCID))
-                                                     select a.AvailableQty).Sum();
-                                }
-                                catch { }
-                                try
-                                {
-                                    availableQty += (from a in warehouse
-                                                     where ((a.Size == det.Size) && (a.DCID == det.DCID))
-                                                     select a.AvailableQty).Sum();
-                                }
-                                catch { }
+                                availableQty += (from a in futures
+                                                    where ((a.PO == det.PO) && 
+                                                        (a.Size == det.Size) && 
+                                                        (a.DCID == det.DCID))
+                                                    select a.AvailableQty).Sum();
+                            }
+                            catch { }
+                            try
+                            {
+                                availableQty += (from a in warehouse
+                                                    where ((a.Size == det.Size) && (a.DCID == det.DCID))
+                                                    select a.AvailableQty).Sum();
+                            }
+                            catch { }
 
-                                if ((det.Qty > availableQty) && (det.Qty > 0))
+                            if ((det.Qty > availableQty) && (det.Qty > 0))
+                            {
+                                message = message + "Max Qty for " + det.Warehouse + " " + det.PO + " is " + (det.AvailableQty);
+                                det.Message = message;
+                            }
+                            else
+                            {
+                                addDetail = false;
+                                det.Size = det.Size.Trim();
+                                newDet = (from a in db.RingFenceDetails
+                                            where ((a.Size == det.Size) && 
+                                                    (a.RingFenceID == rf.ID) && 
+                                                    (a.PO == det.PO) &&
+                                                    (a.ActiveInd == "1"))                                              
+                                            select a).FirstOrDefault();
+                                if (newDet == null)
                                 {
-                                    message = message + "Max Qty for " + det.Warehouse + " " + det.PO + " is " + (det.AvailableQty);
-                                    det.Message = message;
+                                    newDet = new RingFenceDetail();
+                                    addDetail = true;
+                                    newDet.Size = det.Size;
+                                }
+                                newDet.DCID = det.DCID;
+                                newDet.ActiveInd = "1";
+                                newDet.LastModifiedDate = DateTime.Now;
+                                newDet.LastModifiedUser = User.Identity.Name;
+                                if (string.IsNullOrEmpty(det.PO))
+                                {
+                                    newDet.PO = "";
+                                    newDet.ringFenceStatusCode = "4";
                                 }
                                 else
                                 {
-                                    addDetail = false;
-                                    det.Size = det.Size.Trim();
-                                    newDet = (from a in db.RingFenceDetails
-                                              where ((a.Size == det.Size) && 
-                                                     (a.RingFenceID == rf.ID) && 
-                                                     (a.PO == det.PO) &&
-                                                     (a.ActiveInd == "1"))                                              
-                                              select a).FirstOrDefault();
-                                    if (newDet == null)
-                                    {
-                                        newDet = new RingFenceDetail();
-                                        addDetail = true;
-                                        newDet.Size = det.Size;
-                                    }
-                                    newDet.DCID = det.DCID;
-                                    newDet.ActiveInd = "1";
-                                    newDet.LastModifiedDate = DateTime.Now;
-                                    newDet.LastModifiedUser = User.Identity.Name;
-                                    if (det.PO == null)
-                                    {
-                                        newDet.PO = "";
-                                        newDet.ringFenceStatusCode = "4";
-                                    }
-                                    else
-                                    {
-                                        newDet.PO = det.PO;
-                                        newDet.ringFenceStatusCode = "1";
-                                    }
-                                    newDet.Qty = Convert.ToInt32(det.Qty * w.Weight);
-
-                                    newDet.RingFenceID = rf.ID;
-                                    if (addDetail)
-                                    {
-                                        db.RingFenceDetails.Add(newDet);
-                                    }
-
-                                    //save individually so the logic to automatically calculate the total works
-                                    db.SaveChanges(User.Identity.Name);
+                                    newDet.PO = det.PO;
+                                    newDet.ringFenceStatusCode = "1";
                                 }
+                                newDet.Qty += det.Qty;
+
+                                newDet.RingFenceID = rf.ID;
+                                if (addDetail)
+                                {
+                                    db.RingFenceDetails.Add(newDet);
+                                }
+
+                                //save individually so the logic to automatically calculate the total works
+                                db.SaveChanges(User.Identity.Name);
                             }
                         }
                         return View(new GridModel(updated));
