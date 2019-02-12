@@ -36,7 +36,7 @@ namespace Footlocker.Logistics.Allocation.Factories
             }
             if (!(Convert.IsDBNull(dr["InitialDemand"])))
             {
-                _newObject.InitialDemand = Convert.ToString(dr["InitialDemand"]);
+                _newObject.InitialDemand = Convert.ToDecimal(dr["InitialDemand"]);
             }
             if (!(Convert.IsDBNull(dr["StartDate"])))
             {
@@ -46,9 +46,21 @@ namespace Footlocker.Logistics.Allocation.Factories
             {
                 _newObject.EndDate = Convert.ToDateTime(dr["EndDate"]);
             }
-            if (!(Convert.IsDBNull(dr["MinEndDate"])))
+            if (!(Convert.IsDBNull(dr["MinEndDays"])))
             {
-                _newObject.MinEndDate = Convert.ToDateTime(dr["MinEndDate"]);
+                _newObject.MinEndDays = Convert.ToInt32(dr["MinEndDays"]);
+            }
+            if (!(Convert.IsDBNull(dr["StoreLeadTime"])))
+            {
+                _newObject.StoreLeadTime = Convert.ToInt32(dr["StoreLeadTime"]);
+            }
+            if (!(Convert.IsDBNull(dr["DeliveryGroupStartDate"])))
+            {
+                _newObject.DeliveryGroupStartDate = Convert.ToDateTime(dr["DeliveryGroupStartDate"]);
+            }
+            if (!(Convert.IsDBNull(dr["DeliveryGroupMinEndDays"])))
+            {
+                _newObject.DeliveryGroupMinEndDays = Convert.ToInt32(dr["DeliveryGroupMinEndDays"]);
             }
 
             return _newObject;

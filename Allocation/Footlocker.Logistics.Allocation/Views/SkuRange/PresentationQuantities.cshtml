@@ -121,7 +121,8 @@
             columns.Bound(o => o.StartDate).Format("{0:MM/dd/yyyy}").Width(60);
             columns.Bound(o => o.EndDate).Format("{0:MM/dd/yyyy}").Width(60);
             //columns.Bound(o => o.MinStart).Format("{0:MM/dd/yyyy}").Width(60).Title("Min Start");
-            columns.Bound(o => o.MinEnd).Format("{0:MM/dd/yyyy}").Width(60).Title("Min End");
+            //columns.Bound(o => o.MinEnd).Format("{0:MM/dd/yyyy}").Width(60).Title("Min End");
+            columns.Bound(o => o.MinEndDays).Width(100).Title("Min End Days");
             columns.Command(commands =>
             {
                 commands
@@ -174,7 +175,7 @@
                 dataBinding.Server();
             })
             .Footer(false)
-            .HtmlAttributes(new { style = "width: 865px" })
+            .HtmlAttributes(new { style = "width: 1000px;" })
             .RowAction(row =>
             {
                 if (row.DataItem.Selected)

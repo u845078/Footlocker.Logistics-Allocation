@@ -96,7 +96,7 @@
                 "InitialDemand": $("input[name='det[" + i + "].InitialDemand']").val(),
                 "StartDate": $("input[name='det[" + daterow + "].StartDate']").val(),
                 "EndDate": $("input[name='det[" + daterow + "].EndDate']").val(),
-                "MinEndDate": $("input[name='det[" + i + "].MnEndDate']").val()
+                "MinEndDays": $("input[name='det[" + i + "].MinEndDays']").val()
             });
         }
 
@@ -145,7 +145,7 @@
 
         $('input').filter(function () { return /^det.*Min/.test(this.name); }).each(function () {
             current = this.name.split('[')[1].split(']')[0];
-            qty=Number($(this).val());
+            qty = Number($(this).val());
             totalsum += Number($(this).val());
             if ($.inArray(Number(current), breakIndexes) >= 0) {
                 $('#DetTotal' + lastBreak).empty().append(Number(sum));
@@ -210,12 +210,15 @@
             {
                 $(".range").toggle();
             }
+            function toggleMinEndDays() {
+                $(".minEndDays").toggle();
+            }
         </script>
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleRange()" checked>Range
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleMin()" checked>Min
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleMax()" checked>Max
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleInitDemand()">Base Demand
-        <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleMinEndDate()">Min End Date Override
+        <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleMinEndDays()">Min End Days Override
 <div class="t-widget t-grid">
 @*<div class="outer">
 <div class="inner">*@
@@ -283,7 +286,7 @@
         int minStore = page * 10 - 10;
         int maxStore = page * 10 - 1;
         Int64 planID;
-        string scriptContent="";
+        string scriptContent = "";
 
         List<String> extraSizes = new List<String>();
         List<int> extraQty = new List<int>();
@@ -299,7 +302,7 @@
 
                         @Html.Raw("<td nowrap class=\"long\"><div class=\"t-button\" onclick=\"SaveChanges('" + startCount + "', '" + count + "');\" >Save</div></td>")
                         @Html.Raw("</tr>");
-                        scriptContent += "maxCell = " + count+ ";";
+                        scriptContent += "maxCell = " + count + ";";
                         scriptContent += "if (minCell == -1)";
                         scriptContent += "{";
                         scriptContent += "minCell = " + startCount;
@@ -395,7 +398,7 @@
             @Html.Raw("<input name=\"det[" + count + "].Size\" type=\"hidden\" value=\"" + item.Size + "\"/>")
     
            @Html.Raw("<span name=\"det[" + count + "].checkbox\" >")
-           @Html.CheckBox("det[" + count + "].Range", item.Range, new { @class="range", onChange = "checkForChangeCheckBox(\"det[" + count + "].checkbox\");" })
+           @Html.CheckBox("det[" + count + "].Range", item.Range, new { @class = "range", onChange = "checkForChangeCheckBox(\"det[" + count + "].checkbox\");" })
            @Html.Raw("</span>")
             
             
@@ -405,12 +408,15 @@
             @Html.Raw("&nbsp;")
             @Html.Raw("<input class=\"initdemand idtoggle\" placeholder=\"base\" hidden=true name=\"det[" + count + "].InitialDemand\" type=\"text\" value=\"" + item.InitialDemand + "\" style = \"Width:40px\" onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" />")
             @Html.Raw("&nbsp;")
-            @(Html.Telerik().DatePicker()
+            @Html.Raw("<input class=\"minEndDays\"name=\"det[" + count + "].MinEndDays\" hidden=true type=\"text\" value=\"" + item.MinEndDays + "\" style=\"Width:28px\" onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" />")
+            @Html.Raw("&nbsp;")
+            @Html.Raw("<span style=\"display: none;\" class=\"minEndDays\">" + (item.CalculatedMinEndDate == null ? "" : "(" + item.CalculatedMinEndDate + ")") + "</span>")
+            @*@(Html.Telerik().DatePicker()
                                     .Name("det[" + count + "].MnEndDate")
                                     .HtmlAttributes(new { style = "display:none;width:90px", hidden="true", id = "DatePicker_wrapper", title = "Override of delivery group min end date", @class="minEndDate" })
                                         .Value(item.MinEndDate).Enable(true).Format("MM/dd/yyyy")
      
-            )
+            )*@
             @Html.Raw("</td>")
         }
         else
@@ -487,22 +493,22 @@
         @{
                 int numpages = 0;
                 int currentpage = 0;
-                int pageSet = Convert.ToInt32((page - 1)/25);
+                int pageSet = Convert.ToInt32((page - 1) / 25);
                 int jpageSet;
                 for (int j = 0; j <= storeCount; j += 10)
                 {
-                    jpageSet = Convert.ToInt32((j/10)/25);
+                    jpageSet = Convert.ToInt32((j/10) / 25);
 
                     if (pageSet == jpageSet)
                     {
                         if ((j/10) == (page - 1))
                         {
-                            @Html.Raw("<span class=\"t-state-active\" >" + j/10 + "</span>")
-                            currentpage = j/10;
+                            @Html.Raw("<span class=\"t-state-active\" >" + j / 10 + "</span>")
+                            currentpage = j / 10;
                         }
                         else
                         {
-                            @Html.Raw("<div class=\"t-link\" onclick=\"Page('" + j/10 + "');\" >" + j/10 + "</div>")
+                            @Html.Raw("<div class=\"t-link\" onclick=\"Page('" + j / 10 + "');\" >" + j / 10 + "</div>")
                         }
                     }
                     numpages = j / 10;
@@ -510,7 +516,7 @@
                 if (page < numpages)
                 {
                     currentpage = currentpage + 1;
-                    <a class="t-link t-state-enabled" onclick="Page('@((Convert.ToInt32((currentpage - 1) / 25) + 1)*25)');"><span class="t-icon t-arrow-next">next</span></a>
+                    <a class="t-link t-state-enabled" onclick="Page('@((Convert.ToInt32((currentpage - 1) / 25) + 1) * 25)');"><span class="t-icon t-arrow-next">next</span></a>
                     <a class="t-link t-state-enabled" onclick="Page('@numpages ');"><span class="t-icon t-arrow-last">last</span></a>
                 }
                 else
@@ -563,7 +569,7 @@ else
         var end = start.replace('Start', 'End');
         //alert(end);
         var date = new Date($('[name="' + start + '"]').val());
-        if ((date != 'NaN')&&(date != 'Invalid Date')) {
+        if ((date != 'NaN') && (date != 'Invalid Date')) {
             date = date.addDays(ss_days);
             $('[name="' + end + '"]').val((date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear());
         }

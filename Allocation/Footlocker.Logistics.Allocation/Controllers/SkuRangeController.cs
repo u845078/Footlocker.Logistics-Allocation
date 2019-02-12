@@ -67,7 +67,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                           .OrderBy(q => q.Sku)
                                           .ToList();
 
-            //List<RangePlan> model = db.RangePlans.Include("ItemMaster").Where(u => temp.Contains(u.Sku.Substring(0, 5))).OrderBy(a => a.Sku).ToList();
             return model;
         }
 
@@ -98,19 +97,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             RangePlanDAO rpDAO = new RangePlanDAO();
             rpDAO.DeleteRangePlan(planID);
-
-            // remove plan from session data if it exists
-            //if (Session["SkuSetup"] != null)
-            //{
-            //    var rps = (List<RangePlan>)Session["SkuSetup"];
-            //    var planToDelete = rps.Where(rp => rp.Id.Equals(planID)).FirstOrDefault();
-            //    if (planToDelete != null)
-            //    {
-            //        rps.Remove(planToDelete);
-            //        Session["SkuSetup"] = rps;
-            //    }
-            //}
-
             return RedirectToAction("Index");
         }
 
@@ -398,7 +384,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     dgNew.StartDate = dg.StartDate;
                     dgNew.EndDate = dg.EndDate;
                     dgNew.Name = dg.Name;
-                    dgNew.MinEnd = dg.MinEnd;
+                    dgNew.MinEndDays = dg.MinEndDays;
                     dgNew.RuleSetID = NewRuleSets[OldRuleSets.IndexOf(dg.RuleSetID)];
                     db.DeliveryGroups.Add(dgNew);
                 }
@@ -448,7 +434,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         sa.Size = saFrom.Size;
                         sa.StartDate = saFrom.StartDate;
                         sa.Store = saFrom.Store;
-                        sa.MinEndDate = saFrom.MinEndDate;
+                        sa.MinEndDays = saFrom.MinEndDays;
                         db.SizeAllocations.Add(sa);
                     }
                 }
@@ -630,14 +616,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 count = (from a in totals
                          where a.Size == t.Size &&
-                              a.MinEndDate != t.MinEndDate
+                              a.MinEndDays != t.MinEndDays
                          select a).Count();
 
                 if (count > 0)
                 {
                     //we have a change on UI, write update to db
                     processedCount++;
-                    dao.SaveMinEndDate((SizeAllocation)t, stores);
+                    dao.SaveMinEndDays((SizeAllocation)t, stores);
                 }
             }
 
@@ -995,7 +981,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     currentTotal.InitialDemand = sa.InitialDemand;
                     currentTotal.StartDate = sa.StartDate;
                     currentTotal.EndDate = sa.EndDate;
-                    currentTotal.MinEndDate = sa.MinEndDate;
+                    currentTotal.MinEndDays = sa.MinEndDays;
                 }
 
                 if ((currentTotal.Days != sa.Days) || 
@@ -1003,7 +989,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     (currentTotal.Max != sa.Max) || 
                     (currentTotal.Range != sa.Range) || 
                     (currentTotal.InitialDemand != sa.InitialDemand) || 
-                    (currentTotal.MinEndDate != sa.MinEndDate))
+                    (currentTotal.MinEndDays != sa.MinEndDays))
                 {
                     //if ((sa.Days != null) && (sa.Min != null) && (sa.Max != null))
                     //{
@@ -3507,7 +3493,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         && (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Min")) &&
                         (Convert.ToString(mySheet.Cells[0, 9].Value).Contains("Max"))
                         && (Convert.ToString(mySheet.Cells[0, 10].Value).Contains("Base Demand")) &&
-                        (Convert.ToString(mySheet.Cells[0, 11].Value).Contains("Min End Date")) &&
+                        (Convert.ToString(mySheet.Cells[0, 11].Value).Contains("Min End Days")) &&
                         (Convert.ToString(mySheet.Cells[0, 12].Value).Contains("End Date"))
                         )
                     {
@@ -3543,15 +3529,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             range.Size = Convert.ToString(mySheet.Cells[row, 5].Value).Trim().PadLeft(3, '0').ToUpper();
                             range.RangeStartDate = Convert.ToString(mySheet.Cells[row, 6].Value).Trim();
                             range.DeliveryGroupName = Convert.ToString(mySheet.Cells[row, 7].Value).Trim();
-                            //range.Range = Convert.ToString(mySheet.Cells[row, 5].Value);
-                            //if (range.Range.ToUpper().Equals("TRUE"))
-                            //{
                             range.Range = "1";
-                            //}
-                            //else
-                            //{
-                            //    range.Range = "0";
-                            //}
                             range.Min = Convert.ToString(mySheet.Cells[row, 8].Value);
                             range.Max = Convert.ToString(mySheet.Cells[row, 9].Value);
                             string baseDemand = Convert.ToString(mySheet.Cells[row, 10].Value).Trim();
@@ -3563,7 +3541,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             {
                                 range.BaseDemand = "";
                             }
-                            range.MinEndDateOverride = Convert.ToString(mySheet.Cells[row, 11].Value);
+                            range.MinEndDaysOverride = Convert.ToString(mySheet.Cells[row, 11].Value);
                             range.EndDate = Convert.ToString(mySheet.Cells[row, 12].Value);
                             //doing this to preserve nulls for blank
                             if (range.Min == "")
@@ -3578,9 +3556,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             {
                                 range.BaseDemand = "-1";
                             }
-                            if (range.MinEndDateOverride == "")
+                            if (range.MinEndDaysOverride == "")
                             {
-                                range.MinEndDateOverride = "-1";
+                                range.MinEndDaysOverride = "-1";
                             }
                             if (range.EndDate == "")
                             {
@@ -3709,7 +3687,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 mySheet.Cells[row, 8].PutValue(p.Min);
                 mySheet.Cells[row, 9].PutValue(p.Max);
                 mySheet.Cells[row, 10].PutValue(p.BaseDemand);
-                mySheet.Cells[row, 11].PutValue(p.MinEndDateOverride);
+                mySheet.Cells[row, 11].PutValue(p.MinEndDaysOverride);
                 mySheet.Cells[row, 12].PutValue(p.EndDate);
                 mySheet.Cells[row, 13].PutValue(p.Error);
                 mySheet.Cells[row, 14].Style.Font.Color = Color.Red;
@@ -3773,7 +3751,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 mySheet.Cells[row, 8].PutValue(p.Min);
                 mySheet.Cells[row, 9].PutValue(p.Max);
                 mySheet.Cells[row, 10].PutValue(p.BaseDemand);
-                mySheet.Cells[row, 11].PutValue(p.MinEndDateOverride);
+                mySheet.Cells[row, 11].PutValue(p.MinEndDaysOverride);
                 mySheet.Cells[row, 12].PutValue(p.EndDate);
                 row++;
             }
@@ -3834,7 +3812,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 mySheet.Cells[row, 8].PutValue(br.Min);
                 mySheet.Cells[row, 9].PutValue(br.Max);
                 mySheet.Cells[row, 10].PutValue(br.BaseDemand);
-                mySheet.Cells[row, 11].PutValue(br.MinEndDateOverride);
+                mySheet.Cells[row, 11].PutValue(br.MinEndDaysOverride);
                 mySheet.Cells[row, 12].PutValue(br.EndDate);
                 row++;
             }
