@@ -203,7 +203,7 @@
     //grid on row data binding event
     function hightlight(e) {
         try {
-            if (e.dataItem.InCurrentPlan) {
+            if (e.dataItem.InCurrentDeliveryGroup) {
                 e.row.className = e.row.className + ' highlight';
             }
             if (e.dataItem.InSimilarRuleSet) {
@@ -232,9 +232,9 @@
         });
     }
     $(document).ready(
-function () {
-    showStatus();
-});
+        function () {
+            showStatus();
+        });
 </script>
 
 @(Html.Telerik().Window()
@@ -245,14 +245,14 @@ function () {
 .Visible(false)
 .Title("Warning")
 .Content(
-@<text>
-<div id="popup-edit">
-There are some stores that are already in another group.  What would you like to do?<br /><br />
-<div class="t-button" onclick="AddAllForce();">Add All Stores</div><br /><br />
-<div class="t-button" onclick="AddAllNotInAnotherGroup();">Add only Stores not in another group</div><br /><br />
-<div class="t-button" onclick="closeVerify();">Cancel</div>
-</div>
-</text>))
+    @<text>
+        <div id="popup-edit">
+            There are some stores that are already in another group.  What would you like to do?<br /><br />
+            <div class="t-button" onclick="AddAllForce();">Add All Stores</div><br /><br />
+            <div class="t-button" onclick="AddAllNotInAnotherGroup();">Add only Stores not in another group</div><br /><br />
+            <div class="t-button" onclick="closeVerify();">Cancel</div>
+        </div>
+    </text>))
 
 <div id="statusdiv">
 </div>
@@ -277,23 +277,21 @@ There are some stores that are already in another group.  What would you like to
             columns.Bound(o => o.status).Title("Status");
             columns.Bound(o => o.InCurrentPlan).Title("")
                 .ClientTemplate(
-                "<# if (InCurrentPlan) { #>"
+                "<# if (InCurrentDeliveryGroup) { #>"
                 + "<a class=\"t-button\" href='javascript:DeleteGrid(\"<#= Store #>\", \"<#= Division #>\");'>Delete</a>"
                 + "<# } else { #>"
                 + "<a class=\"t-button\" href='javascript:AddGrid(\"<#= Store #>\", \"<#= Division #>\");'>Add</a>"
                 + "<# } #>")
-                .Template(@<text> 
-
-                       @if (item.InCurrentPlan)
-                       { 
-                           @Html.Raw("<a class=\"t-button\" href='javascript:DeleteGrid(\"" + item.Store + "\", \"" + item.Division + "\");'>Delete</a>")
-                       }
-                       else
-                       {
-                           @Html.Raw("<a class=\"t-button\" href='javascript:AddGrid(\"" + item.Store + "\", \"" + item.Division + "\");'>Add</a>")
-                       }
-
-                   </text>);
+                .Template(@<text>
+                    @if (item.InCurrentDeliveryGroup)
+                    {
+                        @Html.Raw("<a class=\"t-button\" href='javascript:DeleteGrid(\"" + item.Store + "\", \"" + item.Division + "\");'>Delete</a>")
+                    }
+                    else
+                    {
+                        @Html.Raw("<a class=\"t-button\" href='javascript:AddGrid(\"" + item.Store + "\", \"" + item.Division + "\");'>Add</a>")
+                    }
+                </text>);
         })
         .DataBinding(dataBinding =>
         {
@@ -302,14 +300,14 @@ There are some stores that are already in another group.  What would you like to
         })
         .RowAction(row =>
         {
-            if (row.DataItem.InCurrentPlan)
-            {
-                row.HtmlAttributes["style"] = "color:blue;";
-            }
-            if (row.DataItem.InSimilarRuleSet)
-            {
-                row.HtmlAttributes["style"] = "color:red;";
-            }
+            //if (row.DataItem.InCurrentDeliveryGroup)
+            //{
+            //    row.HtmlAttributes["style"] = "color:blue;";
+            //}
+            //if (row.DataItem.InSimilarRuleSet)
+            //{
+            //    row.HtmlAttributes["style"] = "color:red;";
+            //}
         }
         )
         .Scrollable(scrolling => scrolling.Enabled(false))
