@@ -28,6 +28,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public int StoreCount { get; set; }
         public DateTime? MinStart { get; set; }
         public DateTime? MinEnd { get; set; }
+        public int? MinEndDays { get; set; }
         public DateTime? ALRStartDate { get; set; }
         [NotMapped]
         public bool Selected{ get; set; }

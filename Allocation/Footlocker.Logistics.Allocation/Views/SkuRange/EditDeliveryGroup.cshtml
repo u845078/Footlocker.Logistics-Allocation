@@ -12,52 +12,47 @@
     <fieldset>
         <legend>Delivery Group</legend>
         <table>
-        <tr>
-        <td>
-        @Html.LabelFor(m => m.DeliveryGroup.Name)
-        </td>
-        <td>
-        @Html.EditorFor(m => m.DeliveryGroup.Name)
-        @Html.HiddenFor(m => m.DeliveryGroup.RuleSetID)
-        @Html.HiddenFor(m => m.DeliveryGroup.PlanID)
-        @Html.HiddenFor(m => m.DeliveryGroup.StoreCount)
-        @Html.HiddenFor(m => m.DeliveryGroup.ALRStartDate)
-        @Html.HiddenFor(m => m.DeliveryGroup.ID)
-        </td>
-        </tr>
-        <tr>
-        <td>
-        @Html.LabelFor(m => m.DeliveryGroup.StartDate)
-        </td><td>
-        @(Html.Telerik().DatePickerFor(m => m.DeliveryGroup.StartDate)
-              .HtmlAttributes(new { id = ViewData.TemplateInfo.GetFullHtmlFieldName(string.Empty) + "_wrapper" })
-                .ClientEvents(events => events
-                .OnChange("setEndDate")
-                )
-        )
-        </td>
-        </tr>
-        <tr>
-        <td>
-        @Html.LabelFor(m => m.DeliveryGroup.EndDate)
-        </td><td>
-        @Html.EditorFor(m => m.DeliveryGroup.EndDate)
-        </td>
-        </tr>
-        <tr>
-@*        <td>
-        @Html.LabelFor(m => m.DeliveryGroup.MinStart)
-        </td><td>
-        @Html.EditorFor(m => m.DeliveryGroup.MinStart)
-        </td>*@
-        </tr>
-        <tr>
-        <td>
-        @Html.LabelFor(m => m.DeliveryGroup.MinEnd)
-        </td><td>
-        @Html.EditorFor(m => m.DeliveryGroup.MinEnd)
-        </td>
-        </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.DeliveryGroup.Name)
+                </td>
+                <td>
+                    @Html.EditorFor(m => m.DeliveryGroup.Name)
+                    @Html.HiddenFor(m => m.DeliveryGroup.RuleSetID)
+                    @Html.HiddenFor(m => m.DeliveryGroup.PlanID)
+                    @Html.HiddenFor(m => m.DeliveryGroup.StoreCount)
+                    @Html.HiddenFor(m => m.DeliveryGroup.ALRStartDate)
+                    @Html.HiddenFor(m => m.DeliveryGroup.ID)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.DeliveryGroup.StartDate)
+                </td>
+                <td>
+                    @(Html.Telerik().DatePickerFor(m => m.DeliveryGroup.StartDate)
+                          .HtmlAttributes(new { id = ViewData.TemplateInfo.GetFullHtmlFieldName(string.Empty) + "_wrapper" })
+                          .ClientEvents(events => events
+                          .OnChange("setEndDate")))
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.DeliveryGroup.EndDate)
+                </td>
+                <td>
+                    @Html.EditorFor(m => m.DeliveryGroup.EndDate)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.DeliveryGroup.MinEndDays)
+                </td>
+                <td>
+                    @* used raw input element without EditorFor since it was such a pain to put inline style on EditorFor *@
+                    <input id="DeliveryGroup_MinEndDays" name="DeliveryGroup.MinEndDays" type="number" value="@Model.DeliveryGroup.MinEndDays" style="width: 50px;" />
+                </td>
+            </tr>
         </table>
         <p>
             <input type="submit" value="Save" />
@@ -70,21 +65,22 @@
         window.location = "/SkuRange/PresentationQuantities?planID=" + @Model.DeliveryGroup.PlanID;
     }
 </script>
-    @Html.Partial(@Url.Content("~/Views/Rule/RuleFilter.cshtml"), Model.RuleModel, ViewData)
-<br /><br /><font color="red">*** NOTE:  Stores highlighted in red are in another delivery group.</font>
 
+@Html.Partial(@Url.Content("~/Views/Rule/RuleFilter.cshtml"), Model.RuleModel, ViewData)
+<br />
+<br />
+<font color="red">*** NOTE:  Stores highlighted in red are in another delivery group.</font>
 @if (ViewData["LifeCycle"] != null)
 { 
-<script type="text/javascript">
-var dg_days = @ViewData["LifeCycle"];
-</script>
+    <script type="text/javascript">
+    var dg_days = @ViewData["LifeCycle"];
+    </script>
 }
 else
 { 
-<script type="text/javascript">
-    var dg_days = 365;
-</script>
-
+    <script type="text/javascript">
+        var dg_days = 365;
+    </script>
 }
 
 <script type="text/javascript">
