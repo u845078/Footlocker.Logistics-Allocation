@@ -3857,7 +3857,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     && (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Delivery Group Name"))
                     && (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Start Date"))
                     && (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("End Date"))
-                    && (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Min End"));
+                    && (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Min End Days"));
 
                 // Validate that the template's header row exists... (else error out)
                 if (!hasValidHeaderRow)
@@ -3925,14 +3925,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 {
                                     try
                                     {
-                                        if (Convert.ToDateTime(mySheet.Cells[row, 4].Value) != null)
+                                        if (Convert.ToInt32(mySheet.Cells[row, 4].Value) > 0)
                                         {
-                                            deliverygroup.MinEnd = Convert.ToDateTime(mySheet.Cells[row, 4].Value);
+                                            deliverygroup.MinEndDays = Convert.ToInt32(mySheet.Cells[row, 4].Value);
                                         }
                                     }
                                     catch
                                     {
-                                        deliverygroup.MinEnd = Convert.ToDateTime((mySheet.Cells[row, 4].StringValue).Trim());
+                                        deliverygroup.MinEndDays = Convert.ToInt32((mySheet.Cells[row, 4].StringValue).Trim());
                                     }
                                 }
 
