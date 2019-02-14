@@ -1556,11 +1556,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RingFence rf = (from a in db.RingFences
                             where a.ID == ringFenceID
                             select a).First();
-            RingFenceDAO dao = new RingFenceDAO();
-
-            List<RingFenceDetail> stillAvailable = dao.GetWarehouseAvailable(rf.Sku, rf.Size, rf.ID);
+            
+            List<RingFenceDetail> stillAvailable = GetWarehouseAvailable(rf);
+            //List<RingFenceDetail> stillAvailable = dao.GetWarehouseAvailable(rf.Sku, rf.Size, rf.ID);
             //List<RingFenceDetail> stillAvailable = dao.GetWarehouseAvailableCommon(rf.Sku, rf.Size, "", rf.ID);
 
+            RingFenceDAO dao = new RingFenceDAO();
             stillAvailable.AddRange(dao.GetFuturePOs(rf));
             RingFenceDetail existing;
             foreach (RingFenceDetail det in stillAvailable)
