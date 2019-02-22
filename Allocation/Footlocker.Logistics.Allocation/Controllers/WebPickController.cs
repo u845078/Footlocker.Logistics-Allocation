@@ -728,28 +728,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private Int32 InventoryAvailableToPick(RDQ rdq)
         {
-            List<WarehouseInventory> whInventory;
-            int qtyAvailable;
-
+            //find maximum qty
+            RDQDAO dao = new RDQDAO();
             string warehouse = (from a in db.DistributionCenters
                                 where a.ID == rdq.DCID
                                 select a.MFCode).FirstOrDefault();
             if (warehouse == null)
                 return 0;
+            Int32 QtyAvailable = dao.GetWarehouseAvailable(rdq.Sku, rdq.Size, warehouse);
 
-            //find maximum qty
-            WarehouseInventoryDAO dao = new WarehouseInventoryDAO(rdq.Sku, warehouse);
-            whInventory = dao.GetWarehouseInventory(WarehouseInventoryDAO.InventoryListType.ListOnlyAvailableSizes);
-            qtyAvailable = (from wi in whInventory
-                            where wi.size == rdq.Size
-                            select wi.availableQuantity).FirstOrDefault();
-
-            return qtyAvailable;
-
-            //RDQDAO dao = new RDQDAO();
-            //Int32 QtyAvailable = dao.GetWarehouseAvailable(rdq.Sku, rdq.Size, warehouse);
-
-            //return QtyAvailable;
+            return QtyAvailable;
         }
 
         /// <summary>

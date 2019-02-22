@@ -11,22 +11,13 @@ namespace Footlocker.Logistics.Allocation.Services
 {
     public class WarehouseInventoryDAO
     {
-        public enum InventoryListType
-        {
-            ListAllSizes,
-            ListOnlyAvailableSizes
-        }
-
         readonly Database _database;
         readonly Database _databaseEurope;
-        Database _currentDB2Database;
         readonly Database _sqlDB;
         AllocationLibraryContext db = new AllocationLibraryContext();
         readonly SKUStruct _SKU;
         readonly string _WarehouseID;
         List<WarehouseInventory> warehouseInventory;
-        private InventoryListType _inventoryListType;
-
 
         public struct SKUStruct
         {
@@ -46,11 +37,7 @@ namespace Footlocker.Logistics.Allocation.Services
                 Color = tokens[3];
             }
         }
-        /// <summary>
-        /// This is a data access object that will figure out what inventory is available for allocation
-        /// </summary>
-        /// <param name="sku">The SKU that you need information</param>
-        /// <param name="warehouseID">The warehouse for which to restrict inventory. Use -1 if you do not want to restrict inventory to just one warehouse</param>
+
         public WarehouseInventoryDAO(string sku, string warehouseID)
         {
             _database = DatabaseFactory.CreateDatabase("DB2PROD");
@@ -58,21 +45,8 @@ namespace Footlocker.Logistics.Allocation.Services
             _sqlDB = DatabaseFactory.CreateDatabase("AllocationContext");
             _SKU = new SKUStruct(sku);
             _WarehouseID = warehouseID;
-            SetCurrentDB2Database();
         }
 
-        private void SetCurrentDB2Database()
-        {
-            if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(_SKU.Division))
-            {
-                _currentDB2Database = _databaseEurope;
-            }
-            else
-            {
-                _currentDB2Database = _database;
-            }
-        }
-       
         private List<WarehouseInventory> GetMainframeWarehouseInventory()
         {
             string size;
@@ -82,40 +56,47 @@ namespace Footlocker.Logistics.Allocation.Services
 
             List<WarehouseInventory> warehouseInventoryList = new List<WarehouseInventory>();
 
+            Database currDatabase = null;
+            if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(_SKU.Division))
+            {
+                currDatabase = _databaseEurope;
+            }
+            else
+            {
+                currDatabase = _database;
+            }
+
             DbCommand SQLCommand;
             string SQL = "select to_char(WHSE_ID_NUM) as WHSE_ID_NUM, lpad(to_char(STK_SIZE_NUM), 3, '0') as Size, ";
             SQL = SQL + " to_number(ALLOCATABLE_BS_QTY) as OnHandQty, pick_rsrv_bs_qty as PickReserve ";
             SQL = SQL + " from TC052002 ";
-            SQL = SQL + " where retl_oper_div_cd = '" + _SKU.Division + "' and ";
-            SQL = SQL + " stk_dept_num = '" + _SKU.Department + "' and ";
-            SQL = SQL + " stk_num = '" + _SKU.Stock + "' and ";
-            SQL = SQL + " stk_wc_num = '" + _SKU.Color + "' ";
-
-            if (_inventoryListType == InventoryListType.ListOnlyAvailableSizes)
-               SQL = SQL + " and ALLOCATABLE_BS_QTY > 0 ";
+            SQL = SQL + " where retl_oper_div_cd = '" + _SKU.Division + "' ";
+            SQL = SQL + "and stk_dept_num = '" + _SKU.Department + "' ";
+            SQL = SQL + "and stk_num = '" + _SKU.Stock + "' ";
+            SQL = SQL + "and stk_wc_num = '" + _SKU.Color + "' ";
+            SQL = SQL + "and ALLOCATABLE_BS_QTY > 0 ";
 
             if (_WarehouseID != "-1")
-                SQL = SQL + " and WHSE_ID_NUM = '" + _WarehouseID + "'";
+                SQL = SQL + " and WHSE_ID_NUM = " + _WarehouseID;
 
             SQL = SQL + " union ";
             SQL = SQL + "select to_char(WHSE_ID_NUM) as WHSE_ID_NUM, to_char(CL_SCHED_NUM) as Size, ";
             SQL = SQL + " to_number(ALLOCATABLE_CL_QTY) as OnHandQty, pick_rsrv_cl_qty as PickReserve ";
             SQL = SQL + " from TC052010 ";
-            SQL = SQL + " where retl_oper_div_cd = '" + _SKU.Division + "' and ";
-            SQL = SQL + " stk_dept_num = '" + _SKU.Department + "' and ";
-            SQL = SQL + " stk_num = '" + _SKU.Stock + "' and ";
-            SQL = SQL + " stk_wc_num = '" + _SKU.Color + "' ";
-
-            if (_inventoryListType == InventoryListType.ListOnlyAvailableSizes)
-                SQL = SQL + "and ALLOCATABLE_CL_QTY > 0 ";
+            SQL = SQL + " where ";
+            SQL = SQL + "retl_oper_div_cd = '" + _SKU.Division + "' ";
+            SQL = SQL + "and stk_dept_num = '" + _SKU.Department + "' ";
+            SQL = SQL + "and stk_num = '" + _SKU.Stock + "' ";
+            SQL = SQL + "and stk_wc_num = '" + _SKU.Color + "' ";
+            SQL = SQL + "and ALLOCATABLE_CL_QTY > 0 ";
 
             if (_WarehouseID != "-1")
-                SQL = SQL + " and WHSE_ID_NUM = '" + _WarehouseID + "'";
+                SQL = SQL + " and WHSE_ID_NUM = " + _WarehouseID;
 
-            SQLCommand = _currentDB2Database.GetSqlStringCommand(SQL);
+            SQLCommand = currDatabase.GetSqlStringCommand(SQL);
 
             DataSet data = new DataSet();
-            data = _currentDB2Database.ExecuteDataSet(SQLCommand);
+            data = currDatabase.ExecuteDataSet(SQLCommand);
 
             if (data.Tables.Count > 0)
             {                
@@ -133,10 +114,9 @@ namespace Footlocker.Logistics.Allocation.Services
             return warehouseInventoryList;
         }
 
-        public List<WarehouseInventory> GetWarehouseInventory(InventoryListType inventoryList)
-        {
-            _inventoryListType = inventoryList;
 
+        public List<WarehouseInventory> GetWarehouseInventory()
+        {
             long itemID = (from a in db.ItemMasters
                            where a.MerchantSku.Equals(_SKU.SKU)
                            select a.ID).FirstOrDefault();

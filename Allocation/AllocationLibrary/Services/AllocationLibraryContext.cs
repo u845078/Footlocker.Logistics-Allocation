@@ -137,22 +137,6 @@ namespace Footlocker.Logistics.Allocation.Services
                 .Property(x => x.PO)
                 .HasColumnType("VARCHAR");
 
-            modelBuilder.Entity<InventoryReductionsByType>()
-                .Property(x => x.Sku)
-                .HasColumnType("VARCHAR");
-
-            modelBuilder.Entity<InventoryReductionsByType>()
-                .Property(x => x.Size)
-                .HasColumnType("VARCHAR");
-
-            modelBuilder.Entity<InventoryReductionsByType>()
-                .Property(x => x.MFCode)
-                .HasColumnType("VARCHAR");
-
-            modelBuilder.Entity<InventoryReductionsByType>()
-                .Property(x => x.PO)
-                .HasColumnType("VARCHAR");
-
             modelBuilder.Entity<ValidStoreLookup>().Map(m =>
             {
                 m.MapInheritedProperties();

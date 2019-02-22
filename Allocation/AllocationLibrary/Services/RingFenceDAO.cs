@@ -6,7 +6,7 @@ using System.Data;
 using System.Data.Common;
 using Microsoft.Practices.EnterpriseLibrary.Data;
 using Footlocker.Logistics.Allocation.Models;
-using Footlocker.Logistics.Allocation.Factories;
+using Footlocker.Logistics.Allocation.Models.Factories;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Common;
 using System.Linq;
@@ -538,6 +538,58 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             return _que;
         }
 
+        public List<RingFenceDetail> GetWarehouseAvailable(RingFence rf)
+        {
+            List<RingFenceDetail> _que = GetWarehouseAvailableCommon(rf.Sku, rf.Size, "", rf.ID);
+
+            return _que;
+        }
+
+        public RingFenceDetail BuildCurrentRingFenceDetail(string sku, string stockSizeNumber, string warehouseCode, long? currentRingfenceID, List<RingFenceSummary> rfSummaryList, int allocatableQty)
+        {
+            RingFenceDetail det = new RingFenceDetail();
+            DistributionCenter dc;
+            int existingRingFenceQty = 0;
+            int currentRingFenceQty = 0;
+
+            det.Size = stockSizeNumber;
+            dc = (from a in db.DistributionCenters
+                  where a.MFCode == warehouseCode
+                  select a).FirstOrDefault();
+
+            if (dc != null)
+            {
+                det.Warehouse = dc.Name;
+                det.DCID = dc.ID;
+                if (currentRingfenceID != null)
+                {
+                    det.RingFenceID = Convert.ToInt64(currentRingfenceID);
+                }
+                det.PO = "";
+                det.ActiveInd = "1";
+                det.ringFenceStatusCode = "4";
+                existingRingFenceQty = (from a in rfSummaryList
+                                        where ((a.Sku == sku) &&
+                                               (a.Size == det.Size) &&
+                                               (a.DC == warehouseCode) &&
+                                              ((a.PO == "N\\A") || (a.PO == "")))
+                                        select a.Qty).Sum();
+
+                currentRingFenceQty = (from a in db.RingFenceDetails
+                                    where ((a.RingFenceID == det.RingFenceID) &&
+                                           (a.Size == det.Size) &&
+                                           (a.DCID == dc.ID) &&
+                                           (a.ActiveInd == "1") &&
+                                           ((a.PO == "N\\A") || (a.PO == "")))
+                                    select a.Qty).DefaultIfEmpty(0).Sum();
+
+                det.AvailableQty = allocatableQty - existingRingFenceQty + currentRingFenceQty;
+                return det;
+            }
+            else
+                return null;
+        }
+
         /// <summary>
         /// Will generate SQL to be executed on the mainframe to determine the quantities for unique sizes OR caselots passed.
         /// </summary>
@@ -763,20 +815,110 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             return availableInventory;
         }
 
-        public List<RingFenceDetail> GetWarehouseAvailable(string sku, string size, long? currentRingFenceID)
+        /// <summary>
+        /// This will find the warehouse available from the mainframe and reduce it by ringfenced quantities.
+        /// </summary>
+        /// <param name="sku">merchant sku 31-12-12345-00</param>
+        /// <param name="size">size or caselot</param>
+        /// <param name="warehouse">(optional) 2 digit mf code</param>
+        /// <param name="currentRingfenceID">(optional) ID of ringfence, null if you aren't checking for a specific ringfence</param>
+        /// <returns></returns>
+        public List<RingFenceDetail> GetWarehouseAvailableCommon(string sku, string size, string warehouse, long? currentRingfenceID)
         {
-            List<WarehouseInventory> warehouseInventory;
-            List<RingFenceDetail> rfDetailData;
+            string stock, color, dept, div;
+            string[] tokens = sku.Split('-');
+            div = tokens[0];
+            dept = tokens[1];
+            stock = tokens[2];
+            color = tokens[3];
 
-            RingFenceDataFactory rfDataFactory = new RingFenceDataFactory();
-            WarehouseInventoryDAO warehouseInventoryDAO = new WarehouseInventoryDAO(sku, "-1");
+            Int32 instanceid = (from a in db.InstanceDivisions
+                                where a.Division == div
+                                select a.InstanceID).First();
 
-            warehouseInventory = warehouseInventoryDAO.GetWarehouseInventory(WarehouseInventoryDAO.InventoryListType.ListAllSizes);
+            RingFenceSummaryDAO summaryDAO = new RingFenceSummaryDAO();
+            List<RingFenceSummary> list = summaryDAO.GetRingFenceSummaries(Convert.ToString(instanceid));
 
-            rfDetailData = rfDataFactory.CreateRFDetailsFromWarehouseInventory(warehouseInventory, currentRingFenceID);
+            Database currDatabase = null;
+            if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(div))
+            {
+                currDatabase = _databaseEurope;
+            }
+            else
+            {
+                currDatabase = _database;
+            }
+            List<RingFenceDetail> _que;
+            _que = new List<RingFenceDetail>();
 
-            return rfDetailData;
-        }
+            DbCommand SQLCommand;
+            string SQL = "select WHSE_ID_NUM,STK_SIZE_NUM,ALLOCATABLE_BS_QTY from TC052002 ";
+            SQL = SQL + " where ";
+            SQL = SQL + "retl_oper_div_cd = '" + div + "' ";
+            SQL = SQL + "and stk_dept_num = '" + dept + "' ";
+            SQL = SQL + "and stk_num = '" + stock + "' ";
+            SQL = SQL + "and stk_wc_num = '" + color + "' ";
+            if (warehouse != "")
+            {
+                SQL = SQL + "and WHSE_ID_NUM = '" + warehouse + "' ";
+            }
+            //SQL = SQL + "and WHSE_ID_NUM = '" + warehouse + "' ";
+            //SQL = SQL + "and STK_SIZE_NUM = " + Convert.ToInt32(size);
+
+            SQLCommand = currDatabase.GetSqlStringCommand(SQL);
+
+            DataSet data = new DataSet();
+            data = currDatabase.ExecuteDataSet(SQLCommand);
+            RingFenceDetail det;
+            if (data.Tables.Count > 0)
+            {                
+                foreach (DataRow dr in data.Tables[0].Rows)
+                {
+                    det = BuildCurrentRingFenceDetail(sku, Convert.ToString(dr["STK_SIZE_NUM"]).PadLeft(3, '0'),
+                        Convert.ToString(dr["WHSE_ID_NUM"]), currentRingfenceID, list,
+                        Convert.ToInt32(dr["ALLOCATABLE_BS_QTY"]));
+
+                    if (det != null)
+                    {
+                        _que.Add(det);
+                    }
+                }
+            }
+
+            //now pull caselots
+            SQL = "select WHSE_ID_NUM,CL_SCHED_NUM,ALLOCATABLE_CL_QTY from TC052010 ";
+            SQL = SQL + " where ";
+            SQL = SQL + "retl_oper_div_cd = '" + div + "' ";
+            SQL = SQL + "and stk_dept_num = '" + dept + "' ";
+            SQL = SQL + "and stk_num = '" + stock + "' ";
+            SQL = SQL + "and stk_wc_num = '" + color + "' ";
+            if (warehouse != "")
+            {
+                SQL = SQL + "and WHSE_ID_NUM = '" + warehouse + "' ";
+            }
+            //SQL = SQL + "and WHSE_ID_NUM = '" + warehouse + "' ";
+            //SQL = SQL + "and STK_SIZE_NUM = " + Convert.ToInt32(size);
+
+            SQLCommand = currDatabase.GetSqlStringCommand(SQL);
+
+            data = currDatabase.ExecuteDataSet(SQLCommand);
+
+            if (data.Tables.Count > 0)
+            {
+                foreach (DataRow dr in data.Tables[0].Rows)
+                {
+                    det = BuildCurrentRingFenceDetail(sku, Convert.ToString(dr["CL_SCHED_NUM"]).PadLeft(5, '0'),
+                        Convert.ToString(dr["WHSE_ID_NUM"]), currentRingfenceID, list,
+                        Convert.ToInt32(dr["ALLOCATABLE_CL_QTY"]));
+
+                    if (det != null)
+                    {
+                        _que.Add(det);
+                    }
+                }
+            }
+            return _que;
+        }        
 
         public bool canUserUpdateRingFence(RingFence rf, string userName, out string errorMessage)
         {

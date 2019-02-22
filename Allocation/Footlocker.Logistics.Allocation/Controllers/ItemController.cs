@@ -369,7 +369,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             WarehouseInventoryDAO dao = new WarehouseInventoryDAO(sku, warehouseID);
 
-            List<WarehouseInventory> warehouseInventoryList = dao.GetWarehouseInventory(WarehouseInventoryDAO.InventoryListType.ListOnlyAvailableSizes);            
+            List<WarehouseInventory> warehouseInventoryList = dao.GetWarehouseInventory();
 
             return View(new GridModel(warehouseInventoryList));
         }
@@ -521,24 +521,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             foreach (var rf in newRingFences)
             {
-                RingFenceSummary newRF = new RingFenceSummary
-                {
-                    RingFenceID = rf.RingFence.ID,
-                    Division = rf.RingFence.Division,
-                    Store = rf.RingFence.Store,
-                    Sku = rf.RingFence.Sku,
-                    PickQuantity = rf.RingFenceDetail.Qty,
-                    ItemID = rf.RingFence.ItemID,
-                    Qty = rf.RingFenceDetail.Qty,
-                    StartDate = rf.RingFence.StartDate,
-                    EndDate = rf.RingFence.EndDate,
-                    Size = rf.RingFenceDetail.Size,
-                    PO = rf.RingFenceDetail.PO,
-                    CreatedBy = rf.RingFence.CreatedBy,
-                    CreateDate = rf.RingFence.CreateDate.Value,
-                    RingFenceStatus = rfStatusCodes.Find(s => s.ringFenceStatusCode == rf.RingFenceDetail.ringFenceStatusCode)
-                };
-            
+                RingFenceSummary newRF = new RingFenceSummary();
+                newRF.RingFenceID = rf.RingFence.ID;
+                newRF.Division = rf.RingFence.Division;
+                newRF.Store = rf.RingFence.Store;
+                newRF.Sku = rf.RingFence.Sku;
+                newRF.PickQuantity = rf.RingFenceDetail.Qty;
+                newRF.ItemID = rf.RingFence.ItemID;                
+                newRF.Qty = rf.RingFenceDetail.Qty;
+                newRF.StartDate = rf.RingFence.StartDate;
+                newRF.EndDate = rf.RingFence.EndDate;
+                newRF.Size = rf.RingFenceDetail.Size;
+                newRF.PO = rf.RingFenceDetail.PO;
+                newRF.CreatedBy = rf.RingFence.CreatedBy;
+                newRF.CreateDate = rf.RingFence.CreateDate.Value;
+                newRF.RingFenceStatus = rfStatusCodes.Find(s => s.ringFenceStatusCode == rf.RingFenceDetail.ringFenceStatusCode);
+
                 ringFences.Add(newRF);
             }
 
