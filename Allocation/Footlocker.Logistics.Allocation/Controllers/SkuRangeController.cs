@@ -57,15 +57,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 temp.AddRange((from a in WebSecurityService.ListUserDepartments(UserName, "Allocation", div) select div + '-' + a.DeptNumber).ToList());
             }
 
-            var query = (from rp in db.RangePlans
-                         join im in db.ItemMasters
-                           on rp.ItemID equals im.ID
-                         select new { RangePlan = rp, Division = im.Div, Department = im.Dept }).ToList();
+            //var query = (from rp in db.RangePlans
+            //             join im in db.ItemMasters
+            //               on rp.ItemID equals im.ID
+            //             select new { RangePlan = rp, Division = im.Div, Department = im.Dept }).ToList();
 
-            List<RangePlan> model = query.Where(q => temp.Contains(q.Division + "-" + q.Department))
-                                          .Select(q => q.RangePlan)
-                                          .OrderBy(q => q.Sku)
-                                          .ToList();
+            //List<RangePlan> model = query.Where(q => temp.Contains(q.Division + "-" + q.Department))
+            //                              .Select(q => q.RangePlan)
+            //                              .OrderBy(q => q.Sku)
+            //                              .ToList();
+
+            List<RangePlan> model = db.RangePlans.Include("ItemMaster").Where(u => temp.Contains(u.Sku.Substring(0, 5))).OrderBy(a => a.Sku).ToList();
 
             return model;
         }
