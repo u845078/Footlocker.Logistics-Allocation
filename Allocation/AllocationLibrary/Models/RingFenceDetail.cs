@@ -52,10 +52,6 @@ namespace Footlocker.Logistics.Allocation.Models
             get
             {
                 return _PO;
-                //to avoid the "N/A" vs "" logic everywhere, return "" for N/A.
-                //if ((_PO != null)&&(_PO != ""))
-                //    return _PO;
-                //return "N/A";
             }
             set 
             {

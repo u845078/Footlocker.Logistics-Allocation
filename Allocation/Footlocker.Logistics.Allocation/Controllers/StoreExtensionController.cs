@@ -59,10 +59,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             viewModel.PriorityTypes = priorityTypeList;
             viewModel.StrategyTypes = strategyTypeList;
 
-            viewModel.MiniHubValues = new List<KeyValuePair<int, string>>();
-            viewModel.MiniHubValues.Add(new KeyValuePair<int, string>(-1, "N/A"));
-            viewModel.MiniHubValues.Add(new KeyValuePair<int, string>(0, "Do Not Use Minihub Strategy"));
-            viewModel.MiniHubValues.Add(new KeyValuePair<int, string>(1, "Use Minihub Strategy"));
+            viewModel.MiniHubValues = new List<KeyValuePair<int, string>>
+            {
+                new KeyValuePair<int, string>(-1, "N/A"),
+                new KeyValuePair<int, string>(0, "Do Not Use Minihub Strategy"),
+                new KeyValuePair<int, string>(1, "Use Minihub Strategy")
+            };
         }
 
         #endregion
@@ -97,12 +99,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Update()
         {
             return View();
-            //List<StoreLookup> Stores = (from a in db.StoreLookups.Include("StoreExtension") select a).ToList();
-            //Stores = (from a in Stores join b in Divisions() on a.Division equals b.DivCode select a).ToList();
-
-            //return View(Stores);
         }
-
 
         [GridAction]
         public ActionResult _Update()
