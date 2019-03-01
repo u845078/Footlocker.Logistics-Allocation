@@ -20,10 +20,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Index(int instanceID = 1)
         {
-            RouteModel model = new RouteModel();
-            model.InstanceID = instanceID;
-            model.AvailableInstances = (from a in db.Instances select a).ToList();
-            model.Routes = (from a in db.Routes where a.InstanceID == instanceID select a).ToList();
+            RouteModel model = new RouteModel
+            {
+                InstanceID = instanceID,
+                AvailableInstances = (from a in db.Instances
+                                      select a).ToList(),
+                Routes = (from a in db.Routes
+                          where a.InstanceID == instanceID
+                          select a).ToList()
+            };
             return View(model);
         }
 
@@ -336,9 +341,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult StoreLeadTimes(string div)
         {
-            StoreLeadTimeModel model = new StoreLeadTimeModel();
-
-            model.Divisions = this.Divisions();
+            StoreLeadTimeModel model = new StoreLeadTimeModel()
+            {
+                Divisions = Divisions()
+            };
+            
             if ((div == null) && (model.Divisions.Count > 0))
             {
                 div = model.Divisions[0].DivCode;
