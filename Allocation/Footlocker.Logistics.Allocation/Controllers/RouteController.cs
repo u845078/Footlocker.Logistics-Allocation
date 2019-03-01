@@ -82,11 +82,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Create(Route model)
         {
-            //RangePlan p = new RangePlan();
-            //p.Description = description;
             model.CreatedBy = User.Identity.Name;
             model.CreateDate = DateTime.Now;
-            //p.PlanType = "SkuRange";
 
             db.Routes.Add(model);
             db.SaveChanges();
@@ -136,8 +133,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.CurrentZones = (from b in db.RouteDetails join a in db.NetworkZones on b.ZoneID equals a.ID where ((b.RouteID == routeID) && (b.DCID == dcID)) select a).ToList();
             model.AvailableZones = (from a in db.NetworkZones join lt in db.NetworkLeadTimes on a.LeadTimeID equals lt.ID where ((lt.InstanceID == model.Route.InstanceID)&&(!(from b in db.RouteDetails where ((b.ZoneID == a.ID)&&(b.RouteID == routeID) && (b.DCID == dcID)) select b).Any())) select a).ToList();
                                                                   
-            //a.join b in db.RouteDetails on a.ID equals b.ZoneID where ((b.RouteID == routeID) && (b.DCID == dcID)) select a).ToList();
-
             return View(model);
         }
 
@@ -344,21 +339,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             StoreLeadTimeModel model = new StoreLeadTimeModel();
 
             model.Divisions = this.Divisions();
-            if ((div == null)&&(model.Divisions.Count > 0))
+            if ((div == null) && (model.Divisions.Count > 0))
             {
                 div = model.Divisions[0].DivCode;
             }
             model.Division = div;
             model.StoreZones = new List<StoreZoneModel>();
-
-            //var query = from a in db.vValidStores
-            //            join b in
-            //                (from c in db.NetworkZoneStores join d in db.NetworkZones on c.ZoneID equals d.ID select new { d.Name, c.Division,c.Store,c.ZoneID }) 
-            //                on new { a.Division, a.Store } equals new { b.Division, b.Store } into gj
-            //            from subStore in gj.DefaultIfEmpty()
-            //            where a.Division == div
-            //            orderby subStore.ZoneID
-            //            select new { a.Division, a.Store, a.Mall, a.State, ZoneName = (subStore.Store == null ? "<unassigned>" : subStore.Name) };
 
             var query1 = (from a in db.vValidStores
                           join b in db.NetworkZoneStores 
@@ -384,18 +370,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             foreach (var item in query3.ToList())
             {
-                StoreZoneModel m = new StoreZoneModel();
-                m.Division = item.Division;
-                m.Store = item.Store;
-                m.State = item.State;
-                m.Mall = item.Mall;
-                m.City = item.City;
-                m.ZoneName = item.ZoneName;
-                m.IsMinihubStore = item.MinihubStore;
+                StoreZoneModel m = new StoreZoneModel()
+                {
+                    Division = item.Division,
+                    Store = item.Store,
+                    State = item.State,
+                    Mall = item.Mall,
+                    City = item.City,
+                    ZoneName = item.ZoneName,
+                    IsMinihubStore = item.MinihubStore
+                };
 
-                Boolean ecommwarehouse = ((from a in db.EcommWarehouses
-                                           where ((a.Division == m.Division) && (a.Store == m.Store))
-                                           select a).Count() > 0);
+                Boolean ecommwarehouse = false;
+
                 if ((m.Store == "00900") && (m.Division == "31"))
                 {
                     //alshaya
@@ -418,7 +405,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult DownnloadStoreLeadTimes(string div)
         {
-
             Aspose.Excel.License license = new Aspose.Excel.License();
             //Set the license 
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
@@ -916,50 +902,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public void ReassignStartDates(StoreLeadTime lt)
         {
-            //List<RangePlanDetail> updateList = (from a in db.RangePlanDetails
-            //                                    where ((a.Division == lt.Division) && (a.Store == lt.Store))
-            //                                    select a).ToList();
-
-            //var groupData = (from a in db.DeliveryGroups
-            //                 join b in db.RuleSelectedStores on a.RuleSetID equals b.RuleSetID
-            //                 where ((b.Division == lt.Division)&&(b.Store == lt.Store))
-            //                 select new { start = a.StartDate, end = a.EndDate, planid = a.PlanID}).ToList();
-
-            //int days;
-            //Boolean update = false;
-            //foreach (RangePlanDetail rpd in updateList)
-            //{
-            //    //get delivery start date
-            //    var query = (from a in groupData
-            //                 where a.planid == rpd.ID
-            //                 select a);
-
-            //    if (query.Count() > 0)
-            //    {
-            //        var dateInfo = query.First();
-            //        update = true;
-            //        if ((rpd.StartDate != null)&&(dateInfo.start != null))
-            //        {
-            //            //get new max lead time
-            //            days = (from a in db.MaxLeadTimes
-            //                    where ((a.Division == lt.Division) && (a.Store == lt.Store))
-            //                    select a.LeadTime).First();
-
-            //            days = days - (((DateTime)rpd.StartDate) - ((DateTime)dateInfo.start)).Days;
-            //            rpd.StartDate = ((DateTime)rpd.StartDate).AddDays(days);
-
-            //            if ((rpd.EndDate != null) && (dateInfo.end != null))
-            //            {
-            //                rpd.EndDate = ((DateTime)rpd.EndDate).AddDays(days);
-            //            }
-            //        }
-            //    }
-            //}
-            //if (update)
-            //{
-            //    db.SaveChanges(UserName);
-            //}
-
             RangePlanDetailDAO dao = new RangePlanDetailDAO();
             dao.ReassignStartDates(lt.Division, lt.Store);
         }
