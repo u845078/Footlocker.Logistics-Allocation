@@ -60,12 +60,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
             var query = (from rp in db.RangePlans
                          join im in db.ItemMasters
                            on rp.ItemID equals im.ID
+                         join di in divs
+                           on im.Div equals di
                          select new { RangePlan = rp, Division = im.Div, Department = im.Dept }).ToList();
 
             List<RangePlan> model = query.Where(q => temp.Contains(q.Division + "-" + q.Department))
                                           .Select(q => q.RangePlan)
                                           .OrderBy(q => q.Sku)
                                           .ToList();
+
 
             return model;
         }

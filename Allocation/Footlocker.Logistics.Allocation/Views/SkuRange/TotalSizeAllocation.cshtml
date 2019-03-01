@@ -21,7 +21,7 @@
         //name like [0].Min, but exclude det[0].Min and [0].MinEndDate and [0].MinInit
         //name like [0].Min, but exclude det[0].Min and [0].MinEndDate and [0].MinInit
         //[0].MinInit, det[0].MinInit and [0].MinEndDate all have 't' in them
-        $("input[name*='].Min']:not([name*='t']").each(function () {
+        $("input[name$='].Min']:not([name*='t']").each(function () {
             sum += Number($(this).val());
         }); 
         $('#MinTotal').empty().append(sum);

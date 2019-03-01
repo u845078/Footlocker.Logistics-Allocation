@@ -96,7 +96,7 @@
                 "InitialDemand": $("input[name='det[" + i + "].InitialDemand']").val(),
                 "StartDate": $("input[name='det[" + daterow + "].StartDate']").val(),
                 "EndDate": $("input[name='det[" + daterow + "].EndDate']").val(),
-                "MinEndDays": $("input[name='det[" + i + "].MinEndDays']").val()
+                "MinEndDays": $("input[name='det[" + i + "].MnEndDays']").val()
             });
         }
 
@@ -142,7 +142,6 @@
             $(this).empty().append(window['extra' + me.replace('sizeTotal', '')]);
             totalsum += window['extra' + me.replace('sizeTotal', '')];
         }); 
-
         $('input').filter(function () { return /^det.*Min/.test(this.name); }).each(function () {
             current = this.name.split('[')[1].split(']')[0];
             qty = Number($(this).val());
@@ -408,7 +407,7 @@
             @Html.Raw("&nbsp;")
             @Html.Raw("<input class=\"initdemand idtoggle\" placeholder=\"base\" hidden=true name=\"det[" + count + "].InitialDemand\" type=\"text\" value=\"" + item.InitialDemand + "\" style = \"Width:40px\" onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" />")
             @Html.Raw("&nbsp;")
-            @Html.Raw("<input class=\"minEndDays\"name=\"det[" + count + "].MinEndDays\" hidden=true type=\"text\" value=\"" + item.MinEndDays + "\" style=\"Width:28px\" onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" />")
+            @Html.Raw("<input class=\"minEndDays\"name=\"det[" + count + "].MnEndDays\" hidden=true type=\"text\" value=\"" + item.MinEndDays + "\" style=\"Width:28px\" onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" />")
             @Html.Raw("&nbsp;")
             @Html.Raw("<span style=\"display: none;\" class=\"minEndDays\">" + (item.CalculatedMinEndDate == null ? "" : "(" + item.CalculatedMinEndDate + ")") + "</span>")
             @*@(Html.Telerik().DatePicker()
