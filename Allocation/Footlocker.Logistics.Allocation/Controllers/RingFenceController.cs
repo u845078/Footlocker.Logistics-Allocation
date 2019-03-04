@@ -3207,23 +3207,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
             var skuItemIDMapping = (from im in db.ItemMasters.Where(im => uniqueSkus.Contains(im.MerchantSku))
                                     select new { Sku = im.MerchantSku, ItemID = im.ID }).ToList();
 
-            List<ItemPack> uniqueItemIDCaselots = new List<ItemPack>();
-            List<ItemPack> uniqueCaselotQtys = new List<ItemPack>();
+            List<Tuple<string, int>> uniqueCaselotNameQtys = new List<Tuple<string, int>>();
+            List<string> uniqueCaselots = new List<string>();
 
             if (validRFs.Any(vr => vr.Size.Length.Equals(5)))
             {
-                // unique caselot schedule names (numbers)
-                uniqueItemIDCaselots = (from vr in validRFs
-                                        join si in skuItemIDMapping
-                                          on vr.Sku equals si.Sku
-                                        where vr.Size.Length.Equals(5)
-                                        select new ItemPack { Name = vr.Size, ItemID = si.ItemID }).Distinct().ToList();
 
-                uniqueCaselotQtys = (from uic in uniqueItemIDCaselots
-                                     join ip in db.ItemPacks
-                                       on new { Name = uic.Name, ItemID = uic.ItemID } equals
-                                          new { Name = ip.Name, ItemID = ip.ItemID }
-                                     select ip).Distinct().ToList();
+                // unique caselot schedule names
+                uniqueCaselots = validRFs.Where(rf => rf.Size.Length.Equals(5))
+                                         .Select(rf => rf.Size)
+                                         .Distinct()
+                                         .ToList();
+
+                var itempacks = db.ItemPacks.Where(ip => uniqueCaselots.Contains(ip.Name)).ToList();
+                uniqueCaselotNameQtys = itempacks.Select(ip => Tuple.Create(ip.Name, ip.TotalQty))
+                                                 .Distinct()
+                                                 .ToList();
             }
 
             var ecommWhse = db.EcommWarehouses.ToList();
@@ -3265,7 +3264,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     rfd.LastModifiedUser = User.Identity.Name;
                     rf.ringFenceDetails.Add(rfd);
                 }
-                rf.Qty = this.CalculateHeaderQty(uniqueCaselotQtys, rf.ringFenceDetails);
+                rf.Qty = this.CalculateHeaderQty(uniqueCaselotNameQtys, rf.ringFenceDetails);
                 db.RingFences.Add(rf);
             }
 
@@ -3354,7 +3353,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 var endDate = groupedRF.Details.Select(d => d.EndDate).FirstOrDefault();
                 erf.EndDate = endDate;
                 db.Entry(erf).State = System.Data.EntityState.Modified;
-                erf.Qty = this.CalculateHeaderQty(uniqueCaselotQtys, erf.ringFenceDetails);
+                erf.Qty = this.CalculateHeaderQty(uniqueCaselotNameQtys, erf.ringFenceDetails);
                 erf.Comments = groupedRF.Details.FirstOrDefault().Comments;
             }
 
@@ -3362,7 +3361,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.SaveChangesBulk(User.Identity.Name);
         }
 
-        private int CalculateHeaderQty(List<ItemPack> uniqueCaselotQtys, List<RingFenceDetail> ringFenceDetails)
+        private int CalculateHeaderQty(List<Tuple<string, int>> uniqueCaselotNameQtys, List<RingFenceDetail> ringFenceDetails)
         {
             int totalQuantity = 0;
             foreach (var rfd in ringFenceDetails)
@@ -3371,10 +3370,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     if (rfd.Size.Length.Equals(5))
                     {
-                        var caselotDetail = uniqueCaselotQtys.Where(ucq => ucq.Name.Equals(rfd.Size)).FirstOrDefault();
+                        // Item1 => the ItemPack's name (caselot size i.e. "00009")
+                        var caselotDetail = uniqueCaselotNameQtys.Where(ucq => ucq.Item1.Equals(rfd.Size)).FirstOrDefault();
                         if (caselotDetail != null)
                         {
-                            totalQuantity += (rfd.Qty * caselotDetail.TotalQty);
+                            // Item2 => the ItemPack's TotalQty
+                            totalQuantity += (rfd.Qty * caselotDetail.Item2);
                         }
                     }
                     else
