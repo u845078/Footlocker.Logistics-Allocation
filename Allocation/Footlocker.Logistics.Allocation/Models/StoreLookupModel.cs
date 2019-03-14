@@ -78,5 +78,6 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public Boolean InSimilarRuleSet { get; set; }
 
+        public Boolean InCurrentDeliveryGroup { get; set; }
     }
 }
