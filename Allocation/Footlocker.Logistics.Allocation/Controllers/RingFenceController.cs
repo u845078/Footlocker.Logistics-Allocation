@@ -1634,7 +1634,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                (a.Size == det.Size))
                                         select a.AvailableQty).FirstOrDefault();
 
-                    if (isRingFenceDetailValid(det))
+                    if (IsRingFenceDetailValid(det))
                     {
                         var detailRec = (from a in ringFence.ringFenceDetails
                                          where ((a.RingFenceID == det.RingFenceID) &&
@@ -1760,16 +1760,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(new GridModel(final));
         }
 
-        bool isRingFenceDetailValid(RingFenceDetail rfDetail)
+        bool IsRingFenceDetailValid(RingFenceDetail rfDetail)
         {
-            if (rfDetail.Qty > rfDetail.AvailableQty)
+            if (rfDetail.Qty > 0)
             {
-                if (string.IsNullOrEmpty(rfDetail.PO))
-                    rfDetail.Message = "Max Quantity for " + rfDetail.Warehouse + " is " + rfDetail.AvailableQty;
-                else
-                    rfDetail.Message = "Max Quantity for PO  " + rfDetail.PO + " is " + rfDetail.AvailableQty;
+                if (rfDetail.Qty > rfDetail.AvailableQty)
+                {
+                    if (string.IsNullOrEmpty(rfDetail.PO))
+                        rfDetail.Message = String.Format("Max Quantity for {0} is {1}", rfDetail.Warehouse, rfDetail.AvailableQty);
+                    else
+                        rfDetail.Message = String.Format("Max Quantity for PO {0} is {1}", rfDetail.PO, rfDetail.AvailableQty);
 
-                return false;
+                    return false;
+                }
             }
 
             if (rfDetail.Qty < 0)
@@ -1834,7 +1837,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     foreach (RingFenceDetail det in updated)
                     {
-                        if (isRingFenceDetailValid(det))
+                        if (IsRingFenceDetailValid(det))
                         {
                             if (det.Qty > 0)
                             {
