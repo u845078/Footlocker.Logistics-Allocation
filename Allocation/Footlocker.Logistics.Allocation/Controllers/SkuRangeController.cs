@@ -3533,8 +3533,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             range.RangeStartDate = Convert.ToString(mySheet.Cells[row, 6].Value).Trim();
                             range.DeliveryGroupName = Convert.ToString(mySheet.Cells[row, 7].Value).Trim();
                             range.Range = "1";
-                            range.Min = Convert.ToString(mySheet.Cells[row, 8].Value);
-                            range.Max = Convert.ToString(mySheet.Cells[row, 9].Value);
+                            range.Min = Convert.ToString(mySheet.Cells[row, 8].Value).Trim();
+                            range.Max = Convert.ToString(mySheet.Cells[row, 9].Value).Trim();
                             string baseDemand = Convert.ToString(mySheet.Cells[row, 10].Value).Trim();
                             if (!string.IsNullOrEmpty(baseDemand))
                             {
@@ -3544,7 +3544,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             {
                                 range.BaseDemand = "";
                             }
-                            range.MinEndDaysOverride = Convert.ToString(mySheet.Cells[row, 11].Value);
+                            range.MinEndDaysOverride = Convert.ToString(mySheet.Cells[row, 11].Value).Trim();
                             range.EndDate = Convert.ToString(mySheet.Cells[row, 12].Value);
                             //doing this to preserve nulls for blank
                             if (range.Min == "")
