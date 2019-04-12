@@ -20,8 +20,8 @@ namespace Footlocker.Logistics.Allocation.Services
         readonly Database _database;
         readonly Database _databaseEurope;
         Database _currentDB2Database;
-        readonly Database _sqlDB;
-        AllocationLibraryContext db = new AllocationLibraryContext();
+        //readonly Database _sqlDB;
+        readonly AllocationLibraryContext db = new AllocationLibraryContext();
         readonly SKUStruct _SKU;
         readonly string _WarehouseID;
         List<WarehouseInventory> warehouseInventory;
@@ -55,7 +55,7 @@ namespace Footlocker.Logistics.Allocation.Services
         {
             _database = DatabaseFactory.CreateDatabase("DB2PROD");
             _databaseEurope = DatabaseFactory.CreateDatabase("DB2EURP");
-            _sqlDB = DatabaseFactory.CreateDatabase("AllocationContext");
+            //_sqlDB = DatabaseFactory.CreateDatabase("AllocationContext");
             _SKU = new SKUStruct(sku);
             _WarehouseID = warehouseID;
             SetCurrentDB2Database();
@@ -84,37 +84,37 @@ namespace Footlocker.Logistics.Allocation.Services
 
             DbCommand SQLCommand;
             string SQL = "select to_char(WHSE_ID_NUM) as WHSE_ID_NUM, lpad(to_char(STK_SIZE_NUM), 3, '0') as Size, ";
-            SQL = SQL + " to_number(ALLOCATABLE_BS_QTY) as OnHandQty, pick_rsrv_bs_qty as PickReserve ";
-            SQL = SQL + " from TC052002 ";
-            SQL = SQL + " where retl_oper_div_cd = '" + _SKU.Division + "' and ";
-            SQL = SQL + " stk_dept_num = '" + _SKU.Department + "' and ";
-            SQL = SQL + " stk_num = '" + _SKU.Stock + "' and ";
-            SQL = SQL + " stk_wc_num = '" + _SKU.Color + "' ";
+            SQL += " to_number(ALLOCATABLE_BS_QTY) as OnHandQty, pick_rsrv_bs_qty as PickReserve ";
+            SQL += " from TC052002 ";
+            SQL += " where retl_oper_div_cd = '" + _SKU.Division + "' and ";
+            SQL += " stk_dept_num = '" + _SKU.Department + "' and ";
+            SQL += " stk_num = '" + _SKU.Stock + "' and ";
+            SQL += " stk_wc_num = '" + _SKU.Color + "' ";
 
             if (_inventoryListType == InventoryListType.ListOnlyAvailableSizes)
-               SQL = SQL + " and ALLOCATABLE_BS_QTY > 0 ";
+               SQL += " and ALLOCATABLE_BS_QTY > 0 ";
 
             if (_WarehouseID != "-1")
-                SQL = SQL + " and WHSE_ID_NUM = '" + _WarehouseID + "'";
+                SQL += " and WHSE_ID_NUM = '" + _WarehouseID + "'";
 
-            SQL = SQL + " union ";
-            SQL = SQL + "select to_char(WHSE_ID_NUM) as WHSE_ID_NUM, to_char(CL_SCHED_NUM) as Size, ";
-            SQL = SQL + " to_number(ALLOCATABLE_CL_QTY) as OnHandQty, pick_rsrv_cl_qty as PickReserve ";
-            SQL = SQL + " from TC052010 ";
-            SQL = SQL + " where retl_oper_div_cd = '" + _SKU.Division + "' and ";
-            SQL = SQL + " stk_dept_num = '" + _SKU.Department + "' and ";
-            SQL = SQL + " stk_num = '" + _SKU.Stock + "' and ";
-            SQL = SQL + " stk_wc_num = '" + _SKU.Color + "' ";
+            SQL += " union ";
+            SQL += "select to_char(WHSE_ID_NUM) as WHSE_ID_NUM, to_char(CL_SCHED_NUM) as Size, ";
+            SQL += " to_number(ALLOCATABLE_CL_QTY) as OnHandQty, pick_rsrv_cl_qty as PickReserve ";
+            SQL += " from TC052010 ";
+            SQL += " where retl_oper_div_cd = '" + _SKU.Division + "' and ";
+            SQL += " stk_dept_num = '" + _SKU.Department + "' and ";
+            SQL += " stk_num = '" + _SKU.Stock + "' and ";
+            SQL += " stk_wc_num = '" + _SKU.Color + "' ";
 
             if (_inventoryListType == InventoryListType.ListOnlyAvailableSizes)
-                SQL = SQL + "and ALLOCATABLE_CL_QTY > 0 ";
+                SQL += " and ALLOCATABLE_CL_QTY > 0 ";
 
             if (_WarehouseID != "-1")
-                SQL = SQL + " and WHSE_ID_NUM = '" + _WarehouseID + "'";
+                SQL += " and WHSE_ID_NUM = '" + _WarehouseID + "'";
 
             SQLCommand = _currentDB2Database.GetSqlStringCommand(SQL);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _currentDB2Database.ExecuteDataSet(SQLCommand);
 
             if (data.Tables.Count > 0)

@@ -109,14 +109,16 @@ namespace Footlocker.Logistics.Allocation.Models
         {
             get
             {
-                return quantity - pickReserve - ringFenceQuantity - orderQuantity;
+                //return quantity - pickReserve - ringFenceQuantity - orderQuantity;
+                return quantity - rdqQuantity - ringFenceQuantity - orderQuantity;
             }
         }
         public int totalAvailableQuantity
         {
             get
             {
-                return totalQuantity - totalPickReserve - totalRingFenceQuantity - orderQuantity;
+                //return totalQuantity - totalPickReserve - totalRingFenceQuantity - orderQuantity;
+                return totalQuantity - totalRDQQuantity - totalRingFenceQuantity - orderQuantity;
             }
         }
         public string combinedAvailableQuantity
