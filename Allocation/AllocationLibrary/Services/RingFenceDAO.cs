@@ -699,40 +699,26 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         public List<WarehouseInventory> ReduceRingFenceQuantities(List<WarehouseInventory> warehouseInventory)
         {
             var uniqueSkus = warehouseInventory.Select(wi => wi.Sku).Distinct().ToList();
-            var existingDetails = (from rf in db.RingFences
-                                   join rfd in db.RingFenceDetails
-                                     on rf.ID equals rfd.RingFenceID
-                                   join dc in db.DistributionCenters
-                                     on rfd.DCID equals dc.ID
-                                   where uniqueSkus.Contains(rf.Sku) &&
-                                         (rf.EndDate == null || rf.EndDate > DateTime.Now) &&
-                                         rfd.Qty > 0
-                                  select new { Sku = rf.Sku, MFCode = dc.MFCode, RingFenceDetail = rfd }).ToList();
-            existingDetails = existingDetails.Where(ed => warehouseInventory.Any(wi => wi.size.Equals(ed.RingFenceDetail.Size) &&
-                                                                                       wi.DistributionCenterID.Equals(ed.MFCode) &&
-                                                                                       wi.PO.Equals(ed.RingFenceDetail.PO))).ToList();
+            var inventoryReductions = (from ir in db.InventoryReductionsByType
+                                       join us in uniqueSkus
+                                       on ir.Sku equals us
+                                       select ir).ToList();
 
-            (from row in existingDetails
-             group row by new { Sku = row.Sku, Size = row.RingFenceDetail.Size, DC = row.MFCode, PO = row.RingFenceDetail.PO } into g
-             select new
-             {
-                Sku = g.Key.Sku,
-                Size = g.Key.Size,
-                DC = g.Key.DC,
-                PO = g.Key.PO,
-                Qty = g.Sum(x => x.RingFenceDetail.Qty)
-             }).ToList().ForEach(ed =>
+
+            foreach (var wi in warehouseInventory)
             {
-                var reduce = warehouseInventory.Where(wi => wi.Sku.Equals(ed.Sku) &&
-                                                            wi.size.Equals(ed.Size) &&
-                                                            wi.DistributionCenterID.Equals(ed.DC) &&
-                                                            wi.PO.Equals(ed.PO)).FirstOrDefault();
+                var tempIR = inventoryReductions.Where(ir => ir.Sku == wi.Sku &&
+                                                             ir.Size == wi.size &&
+                                                             ir.PO == wi.PO &&
+                                                             ir.MFCode == wi.DistributionCenterID).FirstOrDefault();
 
-                if (reduce != null)
+                if (tempIR != null)
                 {
-                    reduce.ringFenceQuantity = ed.Qty;
+                    wi.ringFenceQuantity = tempIR.RingFenceQuantity;
+                    wi.rdqQuantity = tempIR.RDQQuantity;
+                    wi.orderQuantity = Convert.ToInt32(tempIR.OrderQuantity);                    
                 }
-            });
+            }
 
             return warehouseInventory;
         }
