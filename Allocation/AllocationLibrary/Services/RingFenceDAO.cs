@@ -699,11 +699,10 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         public List<WarehouseInventory> ReduceRingFenceQuantities(List<WarehouseInventory> warehouseInventory)
         {
             var uniqueSkus = warehouseInventory.Select(wi => wi.Sku).Distinct().ToList();
-            var inventoryReductions = (from ir in db.InventoryReductionsByType
-                                       join us in uniqueSkus
-                                       on ir.Sku equals us
-                                       select ir).ToList();
 
+            var inventoryReductions = (from ir in db.InventoryReductionsByType
+                                       where uniqueSkus.Contains(ir.Sku)
+                                       select ir).ToList();
 
             foreach (var wi in warehouseInventory)
             {
