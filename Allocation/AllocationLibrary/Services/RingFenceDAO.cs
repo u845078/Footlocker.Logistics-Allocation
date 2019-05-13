@@ -211,6 +211,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                            wc.retl_oper_div_code = sd.retl_oper_div_code and
                                            h.po_num = wc.po_num and
                                            wc.po_num = sd.po_num and
+                                           h.edit_phase_ind = 'A' and
                                            wc.status_ind in (' ', 'P', 'R') and
                                            wc.stk_dept_num = sd.stk_dept_num and
                                            wc.stk_num = sd.stk_num and
@@ -247,6 +248,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                            wc.retl_oper_div_code = rd.retl_oper_div_code and
                                            h.po_num = wc.po_num and
                                            wc.po_num = rd.po_num and
+                                           h.edit_phase_ind = 'A' and
                                            wc.status_ind in (' ', 'P', 'R') and
                                            wc.stk_dept_num = rd.stk_dept_num and
                                            wc.stk_num = rd.stk_num and
@@ -349,46 +351,48 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             color = tokens[3];
 
             string SQL = "select a.EXPECTED_DELV_DATE, a.retl_oper_div_code, a.PO_NUM,b.STATUS_IND,a.PRIORITY_CODE, ";
-            SQL = SQL + "c.WHSE_ID_NUM,RTRIM(c.STK_SIZE_NUM) as STK_SIZE_NUM,SUM(c.ORDER_QTY - c.RECEIVED_QTY) as due_in ";
-            SQL = SQL + " from tkpod001 a,tkpod003 b, tkpod005 c ";
-            SQL = SQL + " where ";
-            SQL = SQL + " a.retl_oper_div_code = b.retl_oper_div_code ";
-            SQL = SQL + " and b.retl_oper_div_code = c.retl_oper_div_code ";
-            SQL = SQL + " and a.PO_NUM = b.PO_NUM ";
-            SQL = SQL + " and b.PO_NUM = c.PO_NUM ";
-            SQL = SQL + " and b.STATUS_IND in (' ','P','R') ";
-            SQL = SQL + " and b.STK_DEPT_NUM = c.STK_DEPT_NUM ";
-            SQL = SQL + " and b.STK_NUM = c.STK_NUM  ";
-            SQL = SQL + " and b.WDTH_COLOR_NUM = c.WDTH_COLOR_NUM ";
-            SQL = SQL + " and a.RETL_OPER_DIV_CODE = '" + rf.Division + "'";
-            SQL = SQL + " and b.STK_DEPT_NUM = '" + dept + "' ";
-            SQL = SQL + " and b.STK_NUM = '" + stock + "' ";
-            SQL = SQL + " and b.WDTH_COLOR_NUM = '" + color + "' ";
-            SQL = SQL + " and c.WHSE_ID_NUM != '' ";
-            SQL = SQL + " group by a.EXPECTED_DELV_DATE, a.retl_oper_div_code, a.PO_NUM,a.PRIORITY_CODE,b.STATUS_IND,c.WHSE_ID_NUM,c.STK_SIZE_NUM ";
-            SQL = SQL + " having SUM(c.ORDER_QTY - c.RECEIVED_QTY) > 0 ";
+            SQL += "c.WHSE_ID_NUM,RTRIM(c.STK_SIZE_NUM) as STK_SIZE_NUM,SUM(c.ORDER_QTY - c.RECEIVED_QTY) as due_in ";
+            SQL += " from tkpod001 a,tkpod003 b, tkpod005 c ";
+            SQL += " where ";
+            SQL += " a.retl_oper_div_code = b.retl_oper_div_code ";
+            SQL += " and b.retl_oper_div_code = c.retl_oper_div_code ";
+            SQL += " and a.PO_NUM = b.PO_NUM ";
+            SQL += " and b.PO_NUM = c.PO_NUM ";
+            SQL += " and b.STATUS_IND in (' ','P','R') ";
+            SQL += " and a.edit_phase_ind = 'A' ";
+            SQL += " and b.STK_DEPT_NUM = c.STK_DEPT_NUM ";
+            SQL += " and b.STK_NUM = c.STK_NUM  ";
+            SQL += " and b.WDTH_COLOR_NUM = c.WDTH_COLOR_NUM ";
+            SQL += " and a.RETL_OPER_DIV_CODE = '" + rf.Division + "'";
+            SQL += " and b.STK_DEPT_NUM = '" + dept + "' ";
+            SQL += " and b.STK_NUM = '" + stock + "' ";
+            SQL += " and b.WDTH_COLOR_NUM = '" + color + "' ";
+            SQL += " and c.WHSE_ID_NUM != '' ";
+            SQL += " group by a.EXPECTED_DELV_DATE, a.retl_oper_div_code, a.PO_NUM,a.PRIORITY_CODE,b.STATUS_IND,c.WHSE_ID_NUM,c.STK_SIZE_NUM ";
+            SQL += " having SUM(c.ORDER_QTY - c.RECEIVED_QTY) > 0 ";
 
-            SQL = SQL + " UNION ALL ";
+            SQL += " UNION ALL ";
 
-            SQL = SQL + " select a.EXPECTED_DELV_DATE, a.retl_oper_div_code, a.PO_NUM,b.STATUS_IND,a.PRIORITY_CODE, ";
-            SQL = SQL + " c.WHSE_ID_NUM,c.CASELOT_NUMBER as STK_SIZE_NUM,SUM(c.ORDER_QTY - c.RECEIVED_QTY) as due_in ";
-            SQL = SQL + " from tkpod001 a,tkpod003 b, tkpod007 c ";
-            SQL = SQL + " where ";
-            SQL = SQL + " a.retl_oper_div_code = b.retl_oper_div_code ";
-            SQL = SQL + " and b.retl_oper_div_code = c.retl_oper_div_code ";
-            SQL = SQL + " and a.PO_NUM = b.PO_NUM ";
-            SQL = SQL + " and b.PO_NUM = c.PO_NUM ";
-            SQL = SQL + " and b.STATUS_IND in (' ','P','R') ";
-            SQL = SQL + " and b.STK_DEPT_NUM = c.STK_DEPT_NUM ";
-            SQL = SQL + " and b.STK_NUM = c.STK_NUM  ";
-            SQL = SQL + " and b.WDTH_COLOR_NUM = c.WDTH_COLOR_NUM ";
-            SQL = SQL + " and a.RETL_OPER_DIV_CODE = '" + rf.Division + "'";
-            SQL = SQL + " and b.STK_DEPT_NUM = '" + dept + "' ";
-            SQL = SQL + " and b.STK_NUM = '" + stock + "' ";
-            SQL = SQL + " and b.WDTH_COLOR_NUM = '" + color + "' ";
-            SQL = SQL + " and c.WHSE_ID_NUM != '' ";
-            SQL = SQL + " group by a.EXPECTED_DELV_DATE, a.retl_oper_div_code, a.PO_NUM,a.PRIORITY_CODE,b.STATUS_IND,c.WHSE_ID_NUM,c.CASELOT_NUMBER ";
-            SQL = SQL + " having SUM(c.ORDER_QTY - c.RECEIVED_QTY) > 0 ";
+            SQL += " select a.EXPECTED_DELV_DATE, a.retl_oper_div_code, a.PO_NUM,b.STATUS_IND,a.PRIORITY_CODE, ";
+            SQL += " c.WHSE_ID_NUM,c.CASELOT_NUMBER as STK_SIZE_NUM,SUM(c.ORDER_QTY - c.RECEIVED_QTY) as due_in ";
+            SQL += " from tkpod001 a, tkpod003 b, tkpod007 c ";
+            SQL += " where ";
+            SQL += " a.retl_oper_div_code = b.retl_oper_div_code ";
+            SQL += " and b.retl_oper_div_code = c.retl_oper_div_code ";
+            SQL += " and a.PO_NUM = b.PO_NUM ";
+            SQL += " and b.PO_NUM = c.PO_NUM ";
+            SQL += " and a.edit_phase_ind = 'A' ";
+            SQL += " and b.STATUS_IND in (' ','P','R') ";
+            SQL += " and b.STK_DEPT_NUM = c.STK_DEPT_NUM ";
+            SQL += " and b.STK_NUM = c.STK_NUM  ";
+            SQL += " and b.WDTH_COLOR_NUM = c.WDTH_COLOR_NUM ";
+            SQL += " and a.RETL_OPER_DIV_CODE = '" + rf.Division + "'";
+            SQL += " and b.STK_DEPT_NUM = '" + dept + "' ";
+            SQL += " and b.STK_NUM = '" + stock + "' ";
+            SQL += " and b.WDTH_COLOR_NUM = '" + color + "' ";
+            SQL += " and c.WHSE_ID_NUM != '' ";
+            SQL += " group by a.EXPECTED_DELV_DATE, a.retl_oper_div_code, a.PO_NUM,a.PRIORITY_CODE,b.STATUS_IND,c.WHSE_ID_NUM,c.CASELOT_NUMBER ";
+            SQL += " having SUM(c.ORDER_QTY - c.RECEIVED_QTY) > 0 ";
 
             SQLCommand = currDatabase.GetSqlStringCommand(SQL);
 
