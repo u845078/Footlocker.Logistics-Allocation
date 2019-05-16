@@ -176,7 +176,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             SQL += " group by d.WHSE_ID_NUM, a.PO_NUM, a.EXPECTED_DELV_DATE, b.RETL_OPER_DIV_CODE, b.stk_dept_num,";
             SQL += " b.stk_num, b.WDTH_COLOR_NUM, b.TOT_WC_RETL_AMT, c.GENL_STK_DESC, a.po_status_code, a.vend_num, a.crte_date";
 
-            SQL += SQL + " UNION ALL ";
+            SQL += " UNION ALL ";
 
             SQL += "select DISTINCT d.WHSE_ID_NUM, a.PO_NUM, a.EXPECTED_DELV_DATE, b.RETL_OPER_DIV_CODE, b.stk_dept_num, b.stk_num, b.WDTH_COLOR_NUM, b.TOT_WC_RETL_AMT, c.GENL_STK_DESC";
             SQL += " ,sum(d.order_qty * (STK_SIZE_QTY_1 +STK_SIZE_QTY_2 +STK_SIZE_QTY_3 +STK_SIZE_QTY_4 +STK_SIZE_QTY_5 +STK_SIZE_QTY_6 +STK_SIZE_QTY_7 +STK_SIZE_QTY_8 +STK_SIZE_QTY_9 +STK_SIZE_QTY_10 +STK_SIZE_QTY_11 +STK_SIZE_QTY_12 +STK_SIZE_QTY_13 +STK_SIZE_QTY_14 +STK_SIZE_QTY_15 +STK_SIZE_QTY_16 +STK_SIZE_QTY_17 +STK_SIZE_QTY_18)) as qty,";
