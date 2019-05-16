@@ -5,7 +5,6 @@ using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Text;
-
 using Footlocker.Logistics.Allocation.Models;
 
 namespace Footlocker.Logistics.Allocation.Services
@@ -80,45 +79,38 @@ namespace Footlocker.Logistics.Allocation.Services
         public void Insert(string interfaceFileName, string creatingProgramName, string interfaceFileDescription
             , decimal serverRecordCount)
         {
-            string sql = @"INSERT
-                           INTO     TCQTM002
-                                  ( INTERFACE_ID
-                                  , INTERFCE_FILE_NAME
-                                  , CREATE_DTTM
-                                  , UPDATING_PGM
-                                  , CRTE_PGM_NAME
-                                  , INTERFCE_FILE_DESC
-                                  , HOST_REC_COUNT
-                                  , SERVER_REC_COUNT
-                                  , LAST_DTTM_UPDATE
-                                  )
-                           VALUES ( ?
-                                  , ?
-                                  , CURRENT_TIMESTAMP
-                                  , SPACE(8)
-                                  , ?
-                                  , ?
-                                  , 0
-                                  , ?
-                                  , '9999-12-31-23:59:59.999999'
-                                  )";
+            string sql = @"INSERT INTO TCQTM002
+                                  ( INTERFACE_ID,
+                                    INTERFCE_FILE_NAME,
+                                    CREATE_DTTM,
+                                    UPDATING_PGM,
+                                    CRTE_PGM_NAME,
+                                    INTERFCE_FILE_DESC,
+                                    HOST_REC_COUNT,
+                                    SERVER_REC_COUNT,
+                                    LAST_DTTM_UPDATE)
+                           VALUES (?,
+                                   ?,
+                                   CURRENT_TIMESTAMP,
+                                   SPACE(8),
+                                   ?,
+                                   ?,
+                                   0,
+                                   ?,
+                                   to_date('9999-12-31-23:59:59.999999', 'YYYY-MM-DD-HH24:MI:SS.NNNNNN'))";
 
             try
             {
                 using (DbCommand command = this.Db.GetSqlStringCommand(sql))
                 {
-                    this.Db.AddInParameter(command, "INTERFACE_ID", DbType.String
-                        , InterfaceLogDAO.ConvertStringToDb2Char(this.Instance.InterfaceId
-                            , InterfaceLogDAO.InterfaceIdentifierLength));
-                    this.Db.AddInParameter(command, "INTERFCE_FILE_NAME", DbType.String
-                        , InterfaceLogDAO.ConvertStringToDb2Char(interfaceFileName
-                            , InterfaceLogDAO.InterfaceFileNameLength));
-                    this.Db.AddInParameter(command, "CRTE_PGM_NAME", DbType.String
-                        , InterfaceLogDAO.ConvertStringToDb2Char(creatingProgramName
-                            , InterfaceLogDAO.CreatingProgramNameLength));
-                    this.Db.AddInParameter(command, "INTERFCE_FILE_DESC", DbType.String
-                        , InterfaceLogDAO.ConvertStringToDb2Char(interfaceFileDescription
-                            , InterfaceLogDAO.InterfaceFileDescLength));
+                    this.Db.AddInParameter(command, "INTERFACE_ID", DbType.String, 
+                        InterfaceLogDAO.ConvertStringToDb2Char(this.Instance.InterfaceId, InterfaceLogDAO.InterfaceIdentifierLength));
+                    this.Db.AddInParameter(command, "INTERFCE_FILE_NAME", DbType.String, 
+                        InterfaceLogDAO.ConvertStringToDb2Char(interfaceFileName, InterfaceLogDAO.InterfaceFileNameLength));
+                    this.Db.AddInParameter(command, "CRTE_PGM_NAME", DbType.String, 
+                        InterfaceLogDAO.ConvertStringToDb2Char(creatingProgramName, InterfaceLogDAO.CreatingProgramNameLength));
+                    this.Db.AddInParameter(command, "INTERFCE_FILE_DESC", DbType.String, 
+                        InterfaceLogDAO.ConvertStringToDb2Char(interfaceFileDescription, InterfaceLogDAO.InterfaceFileDescLength));
                     this.Db.AddInParameter(command, "SERVER_REC_COUNT", DbType.Decimal, serverRecordCount);
                     this.Db.ExecuteNonQuery(command);
                 }
@@ -126,11 +118,9 @@ namespace Footlocker.Logistics.Allocation.Services
             catch (Exception ex)
             {
                 throw new DataException(
-                    String.Format(
-                        "An exception occurred while inserting an interface log row (interface identifier: {0}, interface file name: {1}, creating program name: {2}, interface file description: {3}, server record count {4})."
-                        , this.Instance.InterfaceId, interfaceFileName, creatingProgramName, interfaceFileDescription
-                        , serverRecordCount)
-                    , ex);
+                    String.Format("An exception occurred while inserting an interface log row (interface identifier: {0}, interface file name: {1}, creating program name: {2}, interface file description: {3}, server record count {4}).".
+                         this.Instance.InterfaceId, interfaceFileName, creatingProgramName, interfaceFileDescription,
+                         serverRecordCount), ex);
             }
         }
 
@@ -160,7 +150,7 @@ namespace Footlocker.Logistics.Allocation.Services
                                  , LAST_DTTM_UPDATE = CURRENT_TIMESTAMP
                           WHERE    INTERFACE_ID = ?
                                        AND INTERFCE_FILE_NAME = ?
-                                       AND LAST_DTTM_UPDATE = '9999-12-31-23:59:59.999999'";
+                                       AND LAST_DTTM_UPDATE = to_date('9999-12-31-23:59:59.999999', 'YYYY-MM-DD-HH24:MI:SS.NNNNNN')";
 
             try
             {
@@ -212,7 +202,7 @@ namespace Footlocker.Logistics.Allocation.Services
                            FROM     TCQTM002
                            WHERE    INTERFACE_ID = ?
                                         AND INTERFCE_FILE_NAME = ?
-                                        AND LAST_DTTM_UPDATE = '9999-12-31-23:59:59.999999'";
+                                        AND LAST_DTTM_UPDATE = to_date('9999-12-31-23:59:59.999999', 'YYYY-MM-DD-HH24:MI:SS.NNNNNN')";
             object hostRecordCount = null;
 
             try
