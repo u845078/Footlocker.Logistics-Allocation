@@ -118,7 +118,7 @@ namespace Footlocker.Logistics.Allocation.Services
             catch (Exception ex)
             {
                 throw new DataException(
-                    String.Format("An exception occurred while inserting an interface log row (interface identifier: {0}, interface file name: {1}, creating program name: {2}, interface file description: {3}, server record count {4}).".
+                    String.Format("An exception occurred while inserting an interface log row (interface identifier: {0}, interface file name: {1}, creating program name: {2}, interface file description: {3}, server record count {4}).",
                          this.Instance.InterfaceId, interfaceFileName, creatingProgramName, interfaceFileDescription,
                          serverRecordCount), ex);
             }
