@@ -28,6 +28,9 @@ namespace Footlocker.Logistics.Allocation.Models
         [Column("MinihubInd")]
         public bool IsMinihub { get; set; }
 
+        [Column("FulfillmentCenterInd")]
+        public bool IsFulfillmentCenter { get; set; }
+
         [Column("WarehouseAllocationType")]        
         [ForeignKey("WarehouseAllocationType")]
         public int WarehouseAllocationTypeCode { get; set; }

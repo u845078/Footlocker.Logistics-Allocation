@@ -173,15 +173,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult DCIndex(string instanceID)
         {
-            DCList model = new DCList();
-            model.AvailableInstances = (from a in db.Instances
-                                        select a).ToList();
-            
-            model.InstanceID = Convert.ToInt32(instanceID);
+            DCList model = new DCList
+            {
+                AvailableInstances = (from a in db.Instances
+                                      select a).ToList(),
+                InstanceID = Convert.ToInt32(instanceID)
+            };
+
             if (model.InstanceID == 0)
             {
                 model.InstanceID = 1;
             }
+
             model.DCs = (from a in db.DistributionCenters
                          join b in db.InstanceDistributionCenters 
                            on a.ID equals b.DCID
