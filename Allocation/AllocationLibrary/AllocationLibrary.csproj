@@ -140,6 +140,7 @@
     <Compile Include="Models\ConfigParam.cs" />
     <Compile Include="Models\ControlDate.cs" />
     <Compile Include="Models\Departments.cs" />
+    <Compile Include="Models\EcomCustomerFulfillmentXref.cs" />
     <Compile Include="Models\InstanceDistributionCenter.cs" />
     <Compile Include="Models\CrossDockExclusion.cs" />
     <Compile Include="Models\CustomerType.cs" />
