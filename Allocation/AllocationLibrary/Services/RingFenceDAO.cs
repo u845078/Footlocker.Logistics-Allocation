@@ -719,13 +719,12 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                                              ir.Size == wi.size &&
                                                              ir.PO == wi.PO &&
                                                              ir.MFCode == wi.DistributionCenterID).FirstOrDefault();
-
-                wi.HasSeparateECOMInventory = (from d in divisionCache
-                                               where d.DivisionCode == tempIR.Sku.Substring(0, 2)
-                                               select d.HasSeparateECOMInventory).FirstOrDefault();
-
                 if (tempIR != null)
                 {
+                    wi.HasSeparateECOMInventory = (from d in divisionCache
+                                                   where d.DivisionCode == tempIR.Sku.Substring(0, 2)
+                                                   select d.HasSeparateECOMInventory).FirstOrDefault();
+
                     wi.ringFenceQuantity = tempIR.RingFenceQuantity;
                     wi.rdqQuantity = tempIR.RDQQuantity;
                     wi.orderQuantity = Convert.ToInt32(tempIR.OrderQuantity);                    
