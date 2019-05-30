@@ -18,6 +18,8 @@ namespace Footlocker.Logistics.Allocation.Models
         public string size { get; set; }
         public string PO { get; set; }
         public ItemPack caseLot { get; set; }
+
+        public bool HasSeparateECOMInventory { get; set; }
         public int quantity { get; set; }
         public int totalQuantity
         {
@@ -109,16 +111,20 @@ namespace Footlocker.Logistics.Allocation.Models
         {
             get
             {
-                //return quantity - pickReserve - ringFenceQuantity - orderQuantity;
-                return quantity - rdqQuantity - ringFenceQuantity - orderQuantity;
+                if (HasSeparateECOMInventory)
+                    return quantity - rdqQuantity - ringFenceQuantity;
+                else
+                    return quantity - rdqQuantity - ringFenceQuantity - orderQuantity;
             }
         }
         public int totalAvailableQuantity
         {
             get
             {
-                //return totalQuantity - totalPickReserve - totalRingFenceQuantity - orderQuantity;
-                return totalQuantity - totalRDQQuantity - totalRingFenceQuantity - orderQuantity;
+                if (HasSeparateECOMInventory)
+                    return totalQuantity - totalRDQQuantity - totalRingFenceQuantity;
+                else
+                    return totalQuantity - totalRDQQuantity - totalRingFenceQuantity - orderQuantity;
             }
         }
         public string combinedAvailableQuantity
@@ -145,6 +151,7 @@ namespace Footlocker.Logistics.Allocation.Models
             size = string.Empty;
             PO = string.Empty;
             caseLot = null;
+            HasSeparateECOMInventory = false;
             quantity = 0;
             //totalQuantity = 0;
             pickReserve = 0;
