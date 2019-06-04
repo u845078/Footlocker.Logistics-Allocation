@@ -40,10 +40,19 @@ namespace Footlocker.Logistics.Allocation.Models
             {
                 if (!string.IsNullOrEmpty(value))
                 {
-                    _store = value.PadLeft(5, '0');
+                    if (value.Length <= 2)
+                    {
+                        _store = value.PadLeft(2, '0');
+                    }
+                    else
+                    {
+                        _store = value.PadLeft(5, '0');
+                    }
                 }
                 else
+                {
                     _store = value;
+                }
             }
         }
 

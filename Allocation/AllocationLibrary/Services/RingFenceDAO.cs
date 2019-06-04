@@ -703,10 +703,15 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         public List<WarehouseInventory> ReduceRingFenceQuantities(List<WarehouseInventory> warehouseInventory)
         {
             var uniqueSkus = warehouseInventory.Select(wi => wi.Sku).Distinct().ToList();
+            var uniqueDivisions = warehouseInventory.Select(wid => wid.Sku.Substring(0, 2)).Distinct().ToList();            
 
             var inventoryReductions = (from ir in db.InventoryReductionsByType
                                        where uniqueSkus.Contains(ir.Sku)
                                        select ir).ToList();
+
+            var divisionCache = (from dc in db.AllocationDivisions
+                                 where uniqueDivisions.Contains(dc.DivisionCode)
+                                 select dc).ToList();
 
             foreach (var wi in warehouseInventory)
             {
@@ -714,9 +719,12 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                                              ir.Size == wi.size &&
                                                              ir.PO == wi.PO &&
                                                              ir.MFCode == wi.DistributionCenterID).FirstOrDefault();
-
                 if (tempIR != null)
                 {
+                    wi.HasSeparateECOMInventory = (from d in divisionCache
+                                                   where d.DivisionCode == tempIR.Sku.Substring(0, 2)
+                                                   select d.HasSeparateECOMInventory).FirstOrDefault();
+
                     wi.ringFenceQuantity = tempIR.RingFenceQuantity;
                     wi.rdqQuantity = tempIR.RDQQuantity;
                     wi.orderQuantity = Convert.ToInt32(tempIR.OrderQuantity);                    

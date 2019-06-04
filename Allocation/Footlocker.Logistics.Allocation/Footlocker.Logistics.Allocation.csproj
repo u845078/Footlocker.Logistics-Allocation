@@ -119,7 +119,6 @@
     </Reference>
     <Reference Include="System.Web.Mvc, Version=4.0.0.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.Mvc.4.0.40804.0\lib\net40\System.Web.Mvc.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.Web.Optimization, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -214,6 +213,7 @@
     <Compile Include="Controllers\ConfigController.cs" />
     <Compile Include="Controllers\CrossDockExclusionController.cs" />
     <Compile Include="Controllers\DTSController.cs" />
+    <Compile Include="Controllers\EcomCustXrefController.cs" />
     <Compile Include="Controllers\FOBController.cs" />
     <Compile Include="Controllers\FOBPackController.cs" />
     <Compile Include="Controllers\FOBPackOverrideController.cs" />
@@ -255,6 +255,7 @@
     <Compile Include="Models\AuditRDQModel.cs" />
     <Compile Include="Models\BulkRDQModel.cs" />
     <Compile Include="Models\CheckBoxModel.cs" />
+    <Compile Include="Models\EcomCustomerFulfillmentXrefModel.cs" />
     <Compile Include="Models\InstanceModel.cs" />
     <Compile Include="Models\QuantumDataDownloadModel.cs" />
     <Compile Include="Models\ProductHierarchyOverrideModel.cs" />
@@ -588,6 +589,8 @@
     <Content Include="Views\PurgeArchive\Create.cshtml" />
     <Content Include="Views\SkuAttribute\Upload.cshtml" />
     <Content Include="Views\RingFence\UploadDeletes.cshtml" />
+    <Content Include="Views\EcomCustXref\Index.cshtml" />
+    <Content Include="Views\EcomCustXref\Create.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />

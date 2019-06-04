@@ -55,7 +55,6 @@ namespace Footlocker.Logistics.Allocation.Services
         {
             _database = DatabaseFactory.CreateDatabase("DB2PROD");
             _databaseEurope = DatabaseFactory.CreateDatabase("DB2EURP");
-            //_sqlDB = DatabaseFactory.CreateDatabase("AllocationContext");
             _SKU = new SKUStruct(sku);
             _WarehouseID = warehouseID;
             SetCurrentDB2Database();
@@ -146,6 +145,10 @@ namespace Footlocker.Logistics.Allocation.Services
             SetDistributionCenters();
             SetCaselots(itemID);
 
+            var AllocationDivision = (from d in db.AllocationDivisions
+                                      where d.DivisionCode == _SKU.Division
+                                      select d).FirstOrDefault();
+
             var reductionDataForSku = (from rd in db.InventoryReductionsByType
                                        where rd.Sku == _SKU.SKU &&
                                              rd.PO == ""
@@ -166,6 +169,8 @@ namespace Footlocker.Logistics.Allocation.Services
 
             foreach (var wi in warehouseInventory)
             {
+                wi.HasSeparateECOMInventory = AllocationDivision.HasSeparateECOMInventory;
+
                 var reductionRec = reductionData.Where(x => x.Size == wi.size && x.MFCode == wi.DistributionCenterID).FirstOrDefault();
 
                 if (reductionRec != null)

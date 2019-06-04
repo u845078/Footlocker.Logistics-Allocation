@@ -1,0 +1,50 @@
+﻿@using Footlocker.Logistics.Allocation.Models
+@model IEnumerable<EcomCustomerFulfillmentXref>
+
+@{
+    ViewBag.Title = "ECOM Customer Fulfillment Cross References";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create", null, new { @class = "t-button" })
+</p>
+
+@Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
+
+@(Html.Telerik().Grid(Model)
+        .Name("EcomCustXrefGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.Country);
+            columns.Bound(o => o.State).Width(50);
+            columns.Bound(o => o.City).Width(150);
+            columns.Bound(o => o.PostalCode);
+            columns.Bound(o => o.FulfillmentCenter.displayValue).Width(175);
+            columns.Bound(o => o.EffectiveFromDate);
+            columns.Bound(o => o.EffectiveToDate);
+            columns.Bound(o => o.LastModifiedUser).Title("Updated By");
+            columns.Bound(o => o.LastModifiedDate).Title("Last Updated");
+            columns.Command(commands =>
+            {
+                commands.Custom("Edit")
+                        .Text("Edit")
+                        .DataRouteValues(route => { route.Add(o => o.FulfillmentCenterID).RouteKey("ID"); })
+                        .Ajax(false)
+                        .Action("Edit", "EcomCustXref");
+                commands.Custom("Delete")
+                        .Text("Delete")
+                        .DataRouteValues(route => { route.Add(o => o.FulfillmentCenterID).RouteKey("ID"); })
+                        .Ajax(false)
+                        .Action("Delete", "EcomCustXref").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
+        })
+        .DataBinding(dataBinding => dataBinding.Server()
+                .Select("Index", "EcomCustXref"))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+        .Footer(true)
+)

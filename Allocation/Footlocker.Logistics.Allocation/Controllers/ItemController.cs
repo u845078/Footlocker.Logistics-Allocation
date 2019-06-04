@@ -353,9 +353,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _WarehouseInventory(string sku, int warehouseNum)
         {
-            long itemID = (from a in db.ItemMasters
-                           where a.MerchantSku.Equals(sku)
-                           select a.ID).FirstOrDefault();
+            //long itemID = (from a in db.ItemMasters
+            //               where a.MerchantSku.Equals(sku)
+            //               select a.ID).FirstOrDefault();
 
             string warehouseID;
             if (warehouseNum == -1)

@@ -70,8 +70,9 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<MinihubStore> MinihubStores { get; set; }
         public DbSet<CancelInventoryHoldsNextBatch> CancelInventoryHolds { get; set; }
         public DbSet<QuantumRecordTypeCode> QuantumRecordTypes { get; set; }
+        public DbSet<AllocationDivision> AllocationDivisions { get; set; }
 
-        public DbSet<EcomCustomerFulfillmentXref> EcomCustomerFulfillmentXrefs { get; set; }
+        //public DbSet<EcomCustomerFulfillmentXref> EcomCustomerFulfillmentXrefs { get; set; }
 
         public DbSet<Vendors> Vendors { get; set; }
 
