@@ -591,6 +591,8 @@
     <Content Include="Views\RingFence\UploadDeletes.cshtml" />
     <Content Include="Views\EcomCustXref\Index.cshtml" />
     <Content Include="Views\EcomCustXref\Create.cshtml" />
+    <Content Include="Views\EcomCustXref\FormLayout.cshtml" />
+    <Content Include="Views\EcomCustXref\Edit.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />

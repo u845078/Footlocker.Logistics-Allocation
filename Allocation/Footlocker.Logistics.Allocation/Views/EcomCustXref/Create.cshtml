@@ -6,24 +6,15 @@
 }
 
 <h2>@ViewBag.Title</h2>
-
-@using (Html.BeginForm()) {
-    @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true)
-
-    <fieldset>
-        <legend>Effective Dates</legend>
-
-    </fieldset>
-}
-
-<div>
-    <div style="text-align: left;">
-        <button id="saveButton" type="submit" name="submitAction" value="submit">Create Cross Reference</button>
-    </div>
-    @Html.ActionLink("Back to List", "Index")
-</div>
-
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
+}
+
+@using (Html.BeginForm("Create", "EcomCustXref"))
+{
+    @Html.Partial(@Url.Content("~/Views/EcomCustXref/FormLayout.cshtml"), Model, ViewData)
+
+    <div style="text-align: center;">
+        <button id="saveButton" type="submit" name="submitAction" value="submit">Submit</button>
+    </div>
 }
