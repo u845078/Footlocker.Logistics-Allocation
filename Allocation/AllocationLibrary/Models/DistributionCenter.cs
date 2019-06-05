@@ -9,7 +9,10 @@ namespace Footlocker.Logistics.Allocation.Models
 {
     public class DistributionCenter
     {
+        [Key]
+        [Column("ID")]
         public int ID { get; set; }
+
         [Required]
         [Display(Name="DC")]
         public string Name { get; set; }
@@ -36,6 +39,8 @@ namespace Footlocker.Logistics.Allocation.Models
         public int WarehouseAllocationTypeCode { get; set; }
 
         public virtual WarehouseAllocationType WarehouseAllocationType { get; set; }
+        public virtual ICollection<EcomCustomerFulfillmentXref> ECOMCustomerXrefs { get; set; }
+
 
         public string displayValue
         {

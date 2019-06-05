@@ -4,9 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
+    [Table("EcomCustomerFulfillmentXRef")]
     public class EcomCustomerFulfillmentXref
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Key]
         public long FulfillmentXrefID { get; set; }
 
         public string City { get; set; }
@@ -14,10 +16,10 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public string State { get; set; }
         public string Country { get; set; }
+        
+        public int FulfillmentCenterID { get; set; }
 
-        [ForeignKey("DistributionCenter")]
-        public Int32 FulfillmentCenterID { get; set; }
-
+        [ForeignKey("FulfillmentCenterID")]
         public virtual DistributionCenter FulfillmentCenter { get; set; }
 
         public DateTime EffectiveFromDate { get; set; }

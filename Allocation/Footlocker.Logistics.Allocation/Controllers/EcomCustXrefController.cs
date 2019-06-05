@@ -16,15 +16,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
         //
         // GET: /EcomCustXref/
 
-        //public ActionResult Index()
-        //{
-        //    List<EcomCustomerFulfillmentXref> model;
+        public ActionResult Index()
+        {
+            List<EcomCustomerFulfillmentXref> model;
 
-        //    model = (from ecfx in db.EcomCustomerFulfillmentXrefs
-        //             select ecfx).ToList();
+            model = (from ecfx in db.EcomCustomerFulfillmentXrefs
+                     select ecfx).ToList();
 
-        //    return View(model);
-        //}
+            return View(model);
+        }
 
         public ActionResult Create()
         {
@@ -32,22 +32,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                               where fc.IsFulfillmentCenter == true
                                                               select fc).ToList();
 
-            EcomCustomerFulfillmentXrefModel model = new EcomCustomerFulfillmentXrefModel();
-            
+            EcomCustomerFulfillmentXrefModel model = new EcomCustomerFulfillmentXrefModel
+            {
+                FulfillmentCenters = new List<SelectListItem>()
+            };
+
             foreach (var fcl in fulfillmentCenterList)
             {
                 model.FulfillmentCenters.Add(new SelectListItem { Text = fcl.displayValue, Value = fcl.ID.ToString() });
             }
-
-            var instanceList = (from i in db.Instances
-                                select i).ToList();
-
-            foreach (var il in instanceList)
-            {
-                model.Instances.Add(new SelectListItem { Text = il.Name, Value = il.ID.ToString() });
-            }
          
-            return View(model);
+            return View(model);            
         }
 
         public ActionResult Edit()

@@ -72,7 +72,7 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<QuantumRecordTypeCode> QuantumRecordTypes { get; set; }
         public DbSet<AllocationDivision> AllocationDivisions { get; set; }
 
-        //public DbSet<EcomCustomerFulfillmentXref> EcomCustomerFulfillmentXrefs { get; set; }
+        public DbSet<EcomCustomerFulfillmentXref> EcomCustomerFulfillmentXrefs { get; set; }
 
         public DbSet<Vendors> Vendors { get; set; }
 

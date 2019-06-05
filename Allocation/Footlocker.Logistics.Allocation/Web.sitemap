@@ -9,6 +9,7 @@
 		  <siteMapNode title="Department Config" controller="Driver" action="Index" />
       <siteMapNode title="Seasonality Overrides" controller="ProductHierarchyOverride" action="Index" />
       <siteMapNode title="Purge Criteria" controller="PurgeArchive" action="Index"/>
+      <siteMapNode title="ECOM Customer Mapping" controller="EcomCustXref" action="Index"/>
     </siteMapNode>
 
 	  <siteMapNode title="Location">
@@ -16,7 +17,7 @@
 		  <siteMapNode title="Like Stores" controller="StoreAttribute" action="Index" />
 		  <siteMapNode title="Seasonality" controller="StoreSeasonality" action="Index" />
       <siteMapNode title="Store Attributes">
-        <siteMapNode title="Concepts" controller="ConceptType" action="Index" />
+      <siteMapNode title="Concepts" controller="ConceptType" action="Index" />
 		  <siteMapNode title="Individual Update" controller="StoreExtension" action="Update" />
 		  <siteMapNode title="Batch Update" controller="StoreExtension" action="BatchUpdate" />
 	  </siteMapNode>

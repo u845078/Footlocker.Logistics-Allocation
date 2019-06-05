@@ -10,9 +10,5 @@ namespace Footlocker.Logistics.Allocation.Models
     {
         public EcomCustomerFulfillmentXref DataRec { get; set; }
         public List<SelectListItem> FulfillmentCenters { get; set; }
-
-        public string SelectedInstanceID { get; set; }
-
-        public List<SelectListItem> Instances { get; set; }
     }
 }

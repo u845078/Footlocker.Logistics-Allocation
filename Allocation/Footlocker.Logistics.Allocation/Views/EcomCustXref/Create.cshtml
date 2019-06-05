@@ -2,7 +2,7 @@
 @model EcomCustomerFulfillmentXrefModel
 
 @{
-    ViewBag.Title = "Create ECOM Customer Fulfillment Center XREF";
+    ViewBag.Title = "Create New Customer Location/Fulfillment Center Cross Reference";
 }
 
 <h2>@ViewBag.Title</h2>
@@ -12,15 +12,15 @@
     @Html.ValidationSummary(true)
 
     <fieldset>
-        <legend>ECOM Customer Fulfillment Center XREF</legend>
+        <legend>Effective Dates</legend>
 
-        <p>
-            <input type="submit" value="Create" />
-        </p>
     </fieldset>
 }
 
 <div>
+    <div style="text-align: left;">
+        <button id="saveButton" type="submit" name="submitAction" value="submit">Create Cross Reference</button>
+    </div>
     @Html.ActionLink("Back to List", "Index")
 </div>
 
