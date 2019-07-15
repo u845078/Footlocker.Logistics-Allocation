@@ -96,15 +96,14 @@ namespace Footlocker.Logistics.Allocation.DAO
         public DbSet<PurchaseOrder> POs { get; set; }
         public DbSet<AllocationDriver> AllocationDrivers { get; set; }
         public DbSet<POStatus> POStatusCodes { get; set; }
-
         public DbSet<WarehouseAllocationType> WarehouseAllocationTypes { get; set; }
-
         public DbSet<MinihubStore> MinihubStores { get; set; }
         public DbSet<Vendors> Vendors { get; set; }
         public DbSet<TeamCodes> TeamCodes { get; set; }
-
         public DbSet<QuantumRecordTypeCode> QuantumRecordTypes { get; set; }
         public DbSet<RDQRejectReasonCode> RDQRejectReasons { get; set; }
+        public DbSet<RDQRestriction> RDQRestrictions { get; set; }
+        public DbSet<RDQType> RDQTypes { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

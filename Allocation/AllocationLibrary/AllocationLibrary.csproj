@@ -185,6 +185,8 @@
     <Compile Include="Models\RDQExtract.cs" />
     <Compile Include="Models\RDQGroup.cs" />
     <Compile Include="Models\RDQRejectReasonCode.cs" />
+    <Compile Include="Models\RDQRestriction.cs" />
+    <Compile Include="Models\RDQType.cs" />
     <Compile Include="Models\RingFenceBIExtract.cs" />
     <Compile Include="Models\RingFenceSizeSummary.cs" />
     <Compile Include="Models\RingFenceStatusCodes.cs" />

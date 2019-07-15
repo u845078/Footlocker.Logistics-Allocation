@@ -1,0 +1,238 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RDQRestrictionModel
+
+<style>
+    .row:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    .row {
+        width: 85%;
+    }
+
+    .column {
+        float: left;
+        width: 33.33%;
+        padding: 10px;
+        height: 215px;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+</style>
+
+<script type="text/javascript">
+    $(function () {
+        var loading = '<option>Loading...</option>';
+
+        if ($('#departmentList').val() === 'N/A') {
+            $('#categoryList').prop("disabled", true);
+            $('#brandList').prop("disabled", true);
+        }
+
+        function populateHtmlItems(data) {
+            var items = '';
+            data.forEach(function (d) {
+                items += "<option value='" + d.Value + "'>" + d.Text + "</option>";
+            });
+            return items;
+        };
+
+
+        $('#divisionList').change(function () {
+            var divisionFilter = $('#divisionList').val();
+
+            // change departments list
+            var url = '/RDQRestriction/GetNewDepartments?division=' + divisionFilter;
+            $('#departmentList').html(loading);
+            $('#categoryList').html(loading);
+            $('#brandList').html(loading);
+            $('#saveButton').prop('disabled', true);
+            $.getJSON(url, function (data) {
+                var items = populateHtmlItems(data);
+                $('#departmentList').html(items);
+                $('#departmentList').change();
+            });
+        });
+
+        $('#departmentList').change(function () {
+            var divisionFilter = $('#divisionList').val();
+            var departmentFilter = $('#departmentList').val();
+            if (departmentFilter === 'N/A') {
+                $('#categoryList').prop("disabled", true);
+                $('#brandList').prop("disabled", true);
+                var departments = $('#departmentList')[0];
+                if (departments.length > 1) {
+                    departmentFilter = departments[1].value;
+                }
+            } else {
+                $('#categoryList').prop("disabled", false);
+                $('#brandList').prop("disabled", false);
+            }
+            var url = '/RDQRestriction/GetNewCategories?division=' + divisionFilter + '&department=' + departmentFilter;
+            $('#categoryList').html(loading);
+            $('#brandList').html(loading);
+            $('#saveButton').prop('disabled', true);
+            $.getJSON(url, function (data) {
+                $('#categoryList').html(populateHtmlItems(data));
+                $('#categoryList').change();
+            });
+        });
+
+        $('#categoryList').change(function () {
+            var divisionFilter = $('#divisionList').val();
+            var departmentFilter = $('#departmentList').val();
+            var categoryFilter = $('#categoryList').val();
+            if (departmentFilter === 'N/A') {
+                var departments = $('#departmentList')[0];
+                if (departments.length > 1) {
+                    departmentFilter = departments[1].value;
+                }
+            }
+            if (categoryFilter === 'N/A') {
+                var categories = $('#categoryList')[0];
+                if (categories.length > 1) {
+                    categoryFilter = categories[1].value;
+                }
+            }
+            var url = '/RDQRestriction/GetNewBrands?division=' + divisionFilter
+                + '&department=' + departmentFilter + '&category=' + categoryFilter;
+            $('#brandList').html(loading);
+            $('#saveButton').prop('disabled', true);
+            $.getJSON(url, function (data) {
+                $('#brandList').html(populateHtmlItems(data));
+            });
+        });
+
+
+    })
+</script>
+
+<fieldset>
+    <legend>RDQ Restriction</legend>
+
+    <table>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.RDQRestriction.FromDate)
+            </td>
+            <td>
+                @(Html.Telerik().DatePickerFor(model => model.RDQRestriction.FromDate))
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.RDQRestriction.ToDate)
+            </td>
+            <td>
+                @(Html.Telerik().DatePickerFor(model => model.RDQRestriction.ToDate))
+            </td>
+        </tr>
+    </table>
+
+    <br />
+
+    <div class="row">
+        <div class="column">
+            <div id="divisionDiv">
+                <div class="editor-label">
+                    Division
+                </div>
+                <div class="editor-field">
+                    @Html.DropDownListFor(m => m.RDQRestriction.Division, Model.Divisions, new { id = "divisionList" })
+                </div>
+            </div>
+
+            <div id="departmentDiv">
+                <div class="editor-label">
+                    Department
+                </div>
+                <div class="editor-field">
+                    @Html.DropDownListFor(m => m.RDQRestriction.Department, Model.Departments, new { id = "departmentList" })
+                </div>
+            </div>
+
+            <div id="categoryDiv">
+                <div class="editor-label">
+                    Category
+                </div>
+                <div class="editor-field">
+                    @Html.DropDownListFor(m => m.RDQRestriction.Category, Model.Categories, new { id = "categoryList" })
+                </div>
+            </div>
+
+            <div id="brandDiv">
+                <div class="editor-label">
+                    Brand
+                </div>
+                <div class="editor-field">
+                    @Html.DropDownListFor(m => m.RDQRestriction.Brand, Model.Brands, new { id = "brandList" })
+                </div>
+            </div>
+        </div>
+        <div class="column">
+            <div id="fromDCCodeDiv">
+                <div class="editor-label">
+                    @Html.LabelFor(model => model.RDQRestriction.FromDCCode)
+                </div>
+                <div class="editor-field">
+                    @Html.DropDownListFor(m => m.RDQRestriction.FromDCCode, Model.DistributionCenters, new { id = "fromDCList" })
+                </div>
+            </div>
+
+            <div id="toDCCodeDiv">
+                <div class="editor-label">
+                    @Html.LabelFor(model => model.RDQRestriction.ToDCCode)
+                </div>
+                <div class="editor-field">
+                    @Html.DropDownListFor(m => m.RDQRestriction.ToDCCode, Model.DistributionCenters, new { id = "toDCList" })
+                </div>
+            </div>
+
+            <div class="editor-label">
+                @Html.LabelFor(model => model.RDQRestriction.RDQType)
+            </div>
+
+            <div class="editor-field">
+                @Html.DropDownListFor(model => model.RDQRestriction.RDQType, Model.RDQTypes, new { id = "rdqTypeList" })
+            </div>
+
+            <div id="vendorDiv">
+                <div class="editor-label">
+                    @Html.LabelFor(model => model.RDQRestriction.Vendor)
+                </div>
+                <div class="editor-field">
+                    @Html.TextBoxFor(model => model.RDQRestriction.Vendor)
+                </div>
+            </div>
+        </div>
+        <div class="column">
+            <div id="storeDiv">
+                <div class="editor-label">
+                    @Html.LabelFor(model => model.RDQRestriction.ToStore)
+                </div>
+                <div class="editor-field">
+                    @Html.TextBoxFor(model => model.RDQRestriction.ToStore)
+                </div>
+            </div>
+            <div id="leagueDiv">
+                <div class="editor-label">
+                    @Html.LabelFor(model => model.RDQRestriction.ToLeague)
+                </div>
+                <div class="editor-field">
+                    @Html.TextBoxFor(model => model.RDQRestriction.ToLeague)
+                </div>
+            </div>
+            <div id="regionDiv">
+                <div class="editor-label">
+                    @Html.LabelFor(model => model.RDQRestriction.ToRegion)
+                </div>
+
+                <div class="editor-field">
+                    @Html.TextBoxFor(model => model.RDQRestriction.ToRegion)
+                </div>
+            </div>
+        </div>
+</fieldset>
