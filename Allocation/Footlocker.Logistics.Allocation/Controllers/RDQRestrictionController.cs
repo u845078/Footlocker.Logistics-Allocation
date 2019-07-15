@@ -543,6 +543,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 workSheet.Cells[row, col].PutValue("To Store");
                 workSheet.Cells[row, col].Style.Font.IsBold = true;
                 col++;
+                workSheet.Cells[row, col].PutValue("To DC Code");
+                workSheet.Cells[row, col].Style.Font.IsBold = true;
+                col++;
                 workSheet.Cells[row, col].PutValue("Message");
                 workSheet.Cells[row, col].Style.Font.IsBold = true;
                 col++;
@@ -576,14 +579,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             workSheet.Cells[row, col++].PutValue(error.Item1.ToDate);
                         }
                         workSheet.Cells[row, col++].PutValue(error.Item1.FromDCCode);
-                        workSheet.Cells[row, col++].PutValue(error.Item1.ToDCCode);
                         workSheet.Cells[row, col++].PutValue(error.Item1.ToLeague);
                         workSheet.Cells[row, col++].PutValue(error.Item1.ToRegion);
                         workSheet.Cells[row, col++].PutValue(error.Item1.ToStore);
+                        workSheet.Cells[row, col++].PutValue(error.Item1.ToDCCode);
                         workSheet.Cells[row++, col].PutValue(error.Item2);
                     }
 
-                    for (int i = 0; i < 12; i++)
+                    for (int i = 0; i < 14; i++)
                     {
                         workSheet.AutoFitColumn(i);
                     }
