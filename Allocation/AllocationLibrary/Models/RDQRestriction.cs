@@ -82,6 +82,15 @@ namespace Footlocker.Logistics.Allocation.Models
             this.ToDCCode = string.Empty;
         }
 
+        public RDQRestriction(string division, string department, string category, string brand)
+            : this()
+        {
+            this.Division = division;
+            this.Department = department;
+            this.Category = category;
+            this.Brand = brand;
+        }
+
         public RDQRestriction(string division, string department, string category, string brand, string vendor, string rdqType, DateTime fromDate,
                                 DateTime toDate, string fromDCCode, string toLeague, string toRegion, string toStore, string toDCCode)
             : this()

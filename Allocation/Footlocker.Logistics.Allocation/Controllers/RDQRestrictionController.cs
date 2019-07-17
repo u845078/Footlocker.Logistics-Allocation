@@ -30,9 +30,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Index()
         {
+            RDQRestrictionModel model = RetrieveModel();
+            return View(model);
+        }
+
+        private RDQRestrictionModel RetrieveModel()
+        {
             RDQRestrictionModel model = new RDQRestrictionModel();
             var permissions = WebSecurityService.ListUserRoles(UserName, "Allocation");
             model.CanEdit = permissions.Contains("IT");
+            return model;
+        }
+
+        public ActionResult IndexByProduct(string message)
+        {
+            ViewData["message"] = message;
+            RDQRestrictionModel model = RetrieveModel();
+            return View(model);
+        }
+
+        public ActionResult IndexByStore(string message)
+        {
+            ViewData["message"] = message;
+            RDQRestrictionModel model = RetrieveModel();
             return View(model);
         }
 
@@ -113,6 +133,80 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.SaveChanges();
 
             return RedirectToAction("Index");
+        }
+
+        [GridAction]
+        public ActionResult _RDQRestrictionStores()
+        {
+            List<StoreLookup> returnValue = new List<StoreLookup>();
+
+            List<Division> divs = this.Divisions();
+            var list = (from rr in db.RDQRestrictions
+                           join sl in db.StoreLookups
+                             on new { Division = rr.Division, Store = rr.ToStore } equals
+                                new { Division = sl.Division, Store = sl.Store }
+                           select sl).Distinct().ToList();
+
+            returnValue = (from a in list
+                           join d in divs
+                             on a.Division equals d.DivCode
+                         select a).ToList();
+
+
+            return PartialView(new GridModel(returnValue));
+        }
+
+        [GridAction]
+        public ActionResult _RDQRestrictionsForStore(string div, string store)
+        {
+            List<RDQRestriction> returnValue = new List<RDQRestriction>();
+            returnValue = db.RDQRestrictions.Where(rr => rr.Division.Equals(div) && rr.ToStore.Equals(store)).ToList();
+            return PartialView(new GridModel(returnValue));
+        }
+
+        [GridAction]
+        public ActionResult _RDQRestrictionProducts()
+        {
+            List<RDQRestriction> returnValue = new List<RDQRestriction>();
+
+            List<string> divisions 
+                = this.Divisions()
+                    .Select(d => d.DivCode)
+                    .Distinct()
+                    .ToList();
+
+            var list
+                = db.RDQRestrictions
+                    .Where(rr => divisions.Contains(rr.Division))
+                    .Select(rr => new { rr.Division, rr.Department, rr.Category, rr.Brand })
+                    .Distinct()
+                    .ToList();
+
+            returnValue
+                = list
+                    .Select(rr => new RDQRestriction(rr.Division, rr.Department, rr.Category, rr.Brand))
+                    .OrderBy(rr => rr.Division)
+                    .ThenBy(rr => rr.Department)
+                    .ThenBy(rr => rr.Category)
+                    .ThenBy(rr => rr.Brand)
+                    .ToList();
+
+            return PartialView(new GridModel(returnValue));
+        }
+
+        [GridAction]
+        public ActionResult _RDQRestrictionsForProduct(string div, string dept, string cat, string brand)
+        {
+            List<RDQRestriction> returnValue = new List<RDQRestriction>();
+
+            returnValue
+                = db.RDQRestrictions
+                    .Where(rr => rr.Division.Equals(div) &&
+                                 (string.IsNullOrEmpty(dept) || rr.Department.Equals(dept)) &&
+                                 (string.IsNullOrEmpty(cat) || rr.Category.Equals(cat)) &&
+                                 (string.IsNullOrEmpty(brand) || rr.Brand.Equals(brand))).ToList();
+
+            return PartialView(new GridModel(returnValue));
         }
 
         private void RevertDefaultValues(RDQRestriction rr)
