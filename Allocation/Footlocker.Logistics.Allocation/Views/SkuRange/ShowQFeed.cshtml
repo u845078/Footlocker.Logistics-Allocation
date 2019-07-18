@@ -6,6 +6,11 @@
 
 <h2>Quantum Feed for @Html.DisplayFor(m => Model.Sku)</h2>
 
+<p>Note: Min values are only shown if Quantum will use them. Quantum ceases to use minimums from the Store Lead Time before the Minimum End Date due to the 
+    inability to get product to the store in time.</p>
+
+<p>Minimum End Dates are calculated as being the On Range Store Date + Store Lead Time + Minimum Sales Days.</p>
+
 <p>
     @Html.ActionLink("Download", "ShowQFeedTextFast", new { planid = Model.RangePlan.Id }, new { @class = "t-button" })    
     @Html.ActionLink("Troubleshoot","Troubleshoot","Item",new {sku = Model.Sku}, new {@class="t-button"})
