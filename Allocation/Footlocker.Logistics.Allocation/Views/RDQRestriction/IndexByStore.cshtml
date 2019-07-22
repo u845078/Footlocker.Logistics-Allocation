@@ -67,7 +67,6 @@
                 })
                 .Pageable(p => p.PageSize(10))
                 .Filterable()
-                .Groupable(grouping => grouping.Enabled(true))
                 .Footer(true)
                 .DetailView(rrDetails => rrDetails.ClientTemplate(
                     Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQRestriction>()
@@ -87,9 +86,9 @@
                             columns.Bound(rr => rr.ToLeague);
                             columns.Bound(rr => rr.ToRegion);
                             columns.Template(@<text>
-                                                    @Html.ActionLink("Edit", "Edit", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
-                                                    @Html.ActionLink("Delete", "Delete", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
-                                                  </text>)
+                                                @Html.ActionLink("Edit", "Edit", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
+                                                @Html.ActionLink("Delete", "Delete", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
+                                            </text>)
                                    .Width(250)
                                    .ClientTemplate(
                                         "<a class='t-button' href='" + Url.Content("~/RDQRestriction/Edit/<#= RDQRestrictionID #>") + "'>Edit</a>" +

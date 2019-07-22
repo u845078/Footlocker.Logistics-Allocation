@@ -209,6 +209,42 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return PartialView(new GridModel(returnValue));
         }
 
+        public ActionResult DeleteRDQRestrictionsByProduct(string div, string dept, string cat, string brand)
+        {
+            List<RDQRestriction> rdqRestrictions = (from rr in db.RDQRestrictions
+                                                   where rr.Division == div &&
+                                                         (string.IsNullOrEmpty(dept) || rr.Department == dept) &&
+                                                         (string.IsNullOrEmpty(cat) || rr.Category == cat) &&
+                                                         (string.IsNullOrEmpty(brand) || rr.Brand == brand)
+                                                  select rr).ToList();
+
+            foreach (var rr in rdqRestrictions)
+            {
+                db.RDQRestrictions.Remove(rr);
+            }
+
+            db.SaveChanges();
+            string message = "Deleted " + rdqRestrictions.Count() + " RDQ Restrictions.";           
+            return RedirectToAction("IndexByProduct", new { message = message });
+        }
+
+        public ActionResult DeleteRDQRestrictionsByStore(string div, string store)
+        {
+            List<RDQRestriction> rdqRestrictions
+                = db.RDQRestrictions
+                    .Where(rr => rr.Division.Equals(div) &&
+                                 rr.ToStore.Equals(store)).ToList();
+
+            foreach (var rr in rdqRestrictions)
+            {
+                db.RDQRestrictions.Remove(rr);
+            }
+
+            db.SaveChanges();
+            string message = "Deleted " + rdqRestrictions.Count() + " RDQ Restrictions.";
+            return RedirectToAction("IndexByStore", new { message = message });
+        }
+
         private void RevertDefaultValues(RDQRestriction rr)
         {
             const string defaultValue = "N/A";
