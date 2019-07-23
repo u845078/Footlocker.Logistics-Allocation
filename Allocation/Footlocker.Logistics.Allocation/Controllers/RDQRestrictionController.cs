@@ -49,10 +49,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        public ActionResult IndexByStore(string message)
+        public ActionResult IndexByDestination(string message, string destinationType)
         {
             ViewData["message"] = message;
             RDQRestrictionModel model = RetrieveModel();
+            model.DestinationTypes = GetDestinationsList();
+            if (string.IsNullOrEmpty(destinationType))
+            {
+                if (model.DestinationTypes.Count() > 0)
+                {
+                    model.DestinationType = model.DestinationTypes[0].Value;
+                }
+            }
+            else
+            {
+                model.DestinationType = destinationType;
+            }
             return View(model);
         }
 
@@ -157,10 +169,92 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [GridAction]
+        public ActionResult _RDQRestrictionRegions()
+        {
+            List<Region> returnValue = new List<Region>();
+
+            var list = (from rr in db.RDQRestrictions
+                        join re in db.Regions
+                          on new { Division = rr.Division, Region = rr.ToRegion } equals
+                             new { Division = re.Division, Region = re.RegionCode }
+                      select re).Distinct().ToList();
+
+            returnValue = (from a in list
+                           join d in this.Divisions()
+                             on a.Division equals d.DivCode
+                         select a).ToList();
+
+            return PartialView(new GridModel(returnValue));
+        }
+
+        [GridAction]
+        public ActionResult _RDQRestrictionLeagues()
+        {
+            List<League> returnValue = new List<League>();
+
+            var list = (from rr in db.RDQRestrictions
+                        join le in db.Leagues
+                          on new { Division = rr.Division, League = rr.ToLeague } equals
+                             new { Division = le.Division, League = le.LeagueCode }
+                      select le).Distinct().ToList();
+
+            returnValue = (from a in list
+                           join d in this.Divisions()
+                             on a.Division equals d.DivCode
+                         select a).ToList();
+
+            return PartialView(new GridModel(returnValue));
+        }
+
+        [GridAction]
+        public ActionResult _RDQRestrictionDCs()
+        {
+            List<DistributionCenter> returnValue = new List<DistributionCenter>();
+
+            var list = (from rr in db.RDQRestrictions
+                        join id in db.InstanceDivisions
+                          on rr.Division equals id.Division
+                        join dc in db.DistributionCenters
+                          on rr.ToDCCode equals dc.MFCode
+                      select new { Division = rr.Division, DistributionCenter = dc}).Distinct().ToList();
+
+            returnValue = (from a in list
+                           join d in this.Divisions()
+                             on a.Division equals d.DivCode
+                         select a.DistributionCenter).ToList();
+
+            return PartialView(new GridModel(returnValue));
+        }
+
+        [GridAction]
         public ActionResult _RDQRestrictionsForStore(string div, string store)
         {
             List<RDQRestriction> returnValue = new List<RDQRestriction>();
             returnValue = db.RDQRestrictions.Where(rr => rr.Division.Equals(div) && rr.ToStore.Equals(store)).ToList();
+            return PartialView(new GridModel(returnValue));
+        }
+
+        [GridAction]
+        public ActionResult _RDQRestrictionsForRegion(string div, string region)
+        {
+            List<RDQRestriction> returnValue = new List<RDQRestriction>();
+            returnValue = db.RDQRestrictions.Where(rr => rr.Division.Equals(div) && rr.ToRegion.Equals(region)).ToList();
+            return PartialView(new GridModel(returnValue));
+        }
+
+        [GridAction]
+        public ActionResult _RDQRestrictionsForLeague(string div, string league)
+        {
+            List<RDQRestriction> returnValue = new List<RDQRestriction>();
+            returnValue = db.RDQRestrictions.Where(rr => rr.Division.Equals(div) && rr.ToLeague.Equals(league)).ToList();
+            return PartialView(new GridModel(returnValue));
+        }
+
+        [GridAction]
+        public ActionResult _RDQRestrictionsForDC(string dc)
+        {
+            List<RDQRestriction> returnValue = new List<RDQRestriction>();
+            returnValue = db.RDQRestrictions.Where(rr => rr.ToDCCode.Equals(dc)).ToList();
             return PartialView(new GridModel(returnValue));
         }
 
@@ -242,7 +336,57 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             db.SaveChanges();
             string message = "Deleted " + rdqRestrictions.Count() + " RDQ Restrictions.";
-            return RedirectToAction("IndexByStore", new { message = message });
+            return RedirectToAction("IndexByDestination", new { message = message });
+        }
+
+        public ActionResult DeleteRDQRestrictionsByLeague(string div, string league)
+        {
+            List<RDQRestriction> rdqRestrictions
+                = db.RDQRestrictions
+                    .Where(rr => rr.Division.Equals(div) &&
+                                 rr.ToLeague.Equals(league)).ToList();
+
+            foreach (var rr in rdqRestrictions)
+            {
+                db.RDQRestrictions.Remove(rr);
+            }
+
+            db.SaveChanges();
+            string message = string.Format("Deleted {0} RDQ restrictions", rdqRestrictions.Count());
+            return RedirectToAction("IndexByDestination", new { message = message });
+        }
+
+        public ActionResult DeleteRDQRestrictionsByRegion(string div, string region)
+        {
+            List<RDQRestriction> rdqRestrictions
+                = db.RDQRestrictions
+                    .Where(rr => rr.Division.Equals(div) &&
+                                 rr.ToRegion.Equals(region)).ToList();
+
+            foreach (var rr in rdqRestrictions)
+            {
+                db.RDQRestrictions.Remove(rr);
+            }
+
+            db.SaveChanges();
+            string message = string.Format("Deleted {0} RDQRestrictions", rdqRestrictions.Count());
+            return RedirectToAction("IndexByDestination", new { message = message });
+        }
+
+        public ActionResult DeleteRDQRestrictionsByDC(string dc)
+        {
+            List<RDQRestriction> rdqRestrictions
+                = db.RDQRestrictions
+                    .Where(rr => rr.ToDCCode.Equals(dc)).ToList();
+
+            foreach (var rr in rdqRestrictions)
+            {
+                db.RDQRestrictions.Remove(rr);
+            }
+
+            db.SaveChanges();
+            string message = string.Format("Deleted {0} RDQ Restrictions.", rdqRestrictions.Count());
+            return RedirectToAction("IndexByDestination", new { message = message });
         }
 
         private void RevertDefaultValues(RDQRestriction rr)
@@ -1346,6 +1490,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
             rdqTypesList.Insert(0, new SelectListItem { Text = "Select an RDQ Type", Value = "N/A" });
 
             return rdqTypesList;
+        }
+
+        private List<SelectListItem> GetDestinationsList()
+        {
+            List<SelectListItem> destinationsList = new List<SelectListItem>();
+
+            destinationsList.Add(new SelectListItem { Text = "Store", Value = "Store" });
+            destinationsList.Add(new SelectListItem { Text = "Region", Value = "Region" });
+            destinationsList.Add(new SelectListItem { Text = "League", Value = "League" });
+            destinationsList.Add(new SelectListItem { Text = "DC", Value = "DC" });            
+
+            return destinationsList;
         }
 
         #endregion

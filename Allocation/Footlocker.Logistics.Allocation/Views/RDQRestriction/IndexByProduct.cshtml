@@ -5,10 +5,6 @@
 
 <script>
     function MassDeleteGrid(division, department, category, brand) {
-        console.log(division);
-        console.log(department);
-        console.log(category);
-        console.log(brand);
         if (confirm('Are you sure you want to delete this group of RDQ Restrictions?')) {
             window.location = "/RDQRestriction/DeleteRDQRestrictionsByProduct?div=" + division +
                 "&dept=" + department + "&cat=" + category + "&brand=" + brand;
@@ -45,7 +41,7 @@
             </li>
             <li class="t-item t-state-default" role="tab" aria-controls="tabstrip-2">
                 <span class="t-complete">
-                    <a class="t-link" href="/RDQRestriction/IndexByStore">
+                    <a class="t-link" href="/RDQRestriction/IndexByDestination">
                         By Destination
                     </a>
                 </span>

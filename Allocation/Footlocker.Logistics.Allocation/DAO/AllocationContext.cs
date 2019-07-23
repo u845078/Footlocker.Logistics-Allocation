@@ -104,6 +104,8 @@ namespace Footlocker.Logistics.Allocation.DAO
         public DbSet<RDQRejectReasonCode> RDQRejectReasons { get; set; }
         public DbSet<RDQRestriction> RDQRestrictions { get; set; }
         public DbSet<RDQType> RDQTypes { get; set; }
+        public DbSet<Region> Regions { get; set; }
+        public DbSet<League> Leagues { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

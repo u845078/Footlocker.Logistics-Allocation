@@ -597,7 +597,7 @@
     <Content Include="Views\RDQRestriction\FormLayout.cshtml" />
     <Content Include="Views\RDQRestriction\Upload.cshtml" />
     <Content Include="Views\RDQRestriction\IndexByProduct.cshtml" />
-    <Content Include="Views\RDQRestriction\IndexByStore.cshtml" />
+    <Content Include="Views\RDQRestriction\IndexByDestination.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />

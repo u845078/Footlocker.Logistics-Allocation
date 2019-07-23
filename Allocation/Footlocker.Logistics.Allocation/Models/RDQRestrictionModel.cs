@@ -26,9 +26,13 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public List<StoreLookup> SelectedStores { get; set; }
 
+        public List<SelectListItem> DestinationTypes { get; set; }
+
         public List<RDQRestriction> RDQRestrictionDetails { get; set; }
 
         public bool CanEdit { get; set; }
+
+        public string DestinationType { get; set; }
 
         public RDQRestrictionModel()
         {
