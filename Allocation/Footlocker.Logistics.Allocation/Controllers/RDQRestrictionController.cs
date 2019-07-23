@@ -336,7 +336,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             db.SaveChanges();
             string message = "Deleted " + rdqRestrictions.Count() + " RDQ Restrictions.";
-            return RedirectToAction("IndexByDestination", new { message = message });
+            return RedirectToAction("IndexByDestination", new { message = message, destinationType = "Store" });
         }
 
         public ActionResult DeleteRDQRestrictionsByLeague(string div, string league)
@@ -353,7 +353,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             db.SaveChanges();
             string message = string.Format("Deleted {0} RDQ restrictions", rdqRestrictions.Count());
-            return RedirectToAction("IndexByDestination", new { message = message });
+            return RedirectToAction("IndexByDestination", new { message = message, destinationType = "League" });
         }
 
         public ActionResult DeleteRDQRestrictionsByRegion(string div, string region)
@@ -370,7 +370,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             db.SaveChanges();
             string message = string.Format("Deleted {0} RDQRestrictions", rdqRestrictions.Count());
-            return RedirectToAction("IndexByDestination", new { message = message });
+            return RedirectToAction("IndexByDestination", new { message = message, destinationType = "Region" });
         }
 
         public ActionResult DeleteRDQRestrictionsByDC(string dc)
@@ -386,7 +386,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             db.SaveChanges();
             string message = string.Format("Deleted {0} RDQ Restrictions.", rdqRestrictions.Count());
-            return RedirectToAction("IndexByDestination", new { message = message });
+            return RedirectToAction("IndexByDestination", new { message = message, destinationType = "DC" });
         }
 
         private void RevertDefaultValues(RDQRestriction rr)
