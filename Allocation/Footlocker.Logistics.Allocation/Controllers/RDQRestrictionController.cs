@@ -9,6 +9,7 @@ using Footlocker.Logistics.Allocation.DAO;
 using Telerik.Web.Mvc;
 using Aspose.Excel;
 using System.IO;
+using Footlocker.Logistics.Allocation.Common;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -47,6 +48,67 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ViewData["message"] = message;
             RDQRestrictionModel model = RetrieveModel();
             return View(model);
+        }
+
+        [GridAction]
+        public ActionResult ExportGrid(GridCommand settings)
+        {
+            IQueryable<RDQRestriction> rdqRestrictions = (from rr in db.RDQRestrictions.AsEnumerable()
+                                                          join d in Divisions()
+                                                            on rr.Division equals d.DivCode
+                                                       orderby rr.Division, rr.Department, rr.Category, rr.Brand
+                                                        select rr).AsQueryable();
+
+            if (settings.FilterDescriptors.Any())
+            {
+                rdqRestrictions = rdqRestrictions.ApplyFilters(settings.FilterDescriptors);
+            }
+            Excel excelDocument = CreateRDQRestrictionsExport(rdqRestrictions.ToList());
+            excelDocument.Save("RDQRestrictions.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            return RedirectToAction("Index");
+        }
+
+        private Excel CreateRDQRestrictionsExport(List<RDQRestriction> rdqRestrictions)
+        {
+            Excel excelDocument = RetrieveRDQRestrictionExcelFile();
+            int row = 1;
+            Worksheet workSheet = excelDocument.Worksheets[0];
+            foreach (var rr in rdqRestrictions)
+            {
+                workSheet.Cells[row, 0].PutValue(rr.Division);
+                workSheet.Cells[row, 0].Style.HorizontalAlignment = TextAlignmentType.Right;
+                workSheet.Cells[row, 1].PutValue(rr.Department);
+                workSheet.Cells[row, 1].Style.HorizontalAlignment = TextAlignmentType.Right;
+                workSheet.Cells[row, 2].PutValue(rr.Category);
+                workSheet.Cells[row, 2].Style.HorizontalAlignment = TextAlignmentType.Right;
+                workSheet.Cells[row, 3].PutValue(rr.Brand);
+                workSheet.Cells[row, 3].Style.HorizontalAlignment = TextAlignmentType.Right;
+                workSheet.Cells[row, 4].PutValue(rr.Vendor);
+                workSheet.Cells[row, 4].Style.HorizontalAlignment = TextAlignmentType.Right;
+                workSheet.Cells[row, 5].PutValue(rr.RDQType);
+                workSheet.Cells[row, 5].Style.HorizontalAlignment = TextAlignmentType.Right;
+                workSheet.Cells[row, 6].PutValue(rr.FromDate);
+                workSheet.Cells[row, 6].Style.Number = 14;
+                workSheet.Cells[row, 7].PutValue(rr.ToDate);
+                workSheet.Cells[row, 7].Style.Number = 14;
+                workSheet.Cells[row, 8].PutValue(rr.FromDCCode);
+                workSheet.Cells[row, 8].Style.HorizontalAlignment = TextAlignmentType.Right;
+                workSheet.Cells[row, 9].PutValue(rr.ToLeague);
+                workSheet.Cells[row, 9].Style.HorizontalAlignment = TextAlignmentType.Right;
+                workSheet.Cells[row, 10].PutValue(rr.ToRegion);
+                workSheet.Cells[row, 10].Style.HorizontalAlignment = TextAlignmentType.Right;
+                workSheet.Cells[row, 11].PutValue(rr.ToStore);
+                workSheet.Cells[row, 11].Style.HorizontalAlignment = TextAlignmentType.Right;
+                workSheet.Cells[row, 12].PutValue(rr.ToDCCode);
+                workSheet.Cells[row, 12].Style.HorizontalAlignment = TextAlignmentType.Right;
+                row++;
+            }
+
+            for (int i = 0; i < 13; i++)
+            {
+                workSheet.AutoFitColumn(i);
+            }
+            return excelDocument;
         }
 
         public ActionResult IndexByDestination(string message, string destinationType)
@@ -768,6 +830,63 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
+        public Excel RetrieveRDQRestrictionExcelFile()
+        {
+            int row = 0;
+            int col = 0;
+
+            License license = new License();
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+            Excel excelDocument = new Excel();
+            Worksheet workSheet = excelDocument.Worksheets[0];
+
+            workSheet.Cells[row, col].PutValue("Division");
+            workSheet.Cells[row, col].Style.Font.IsBold = true;
+            col++;
+            workSheet.Cells[row, col].PutValue("Department");
+            workSheet.Cells[row, col].Style.Font.IsBold = true;
+            col++;
+            workSheet.Cells[row, col].PutValue("Category");
+            workSheet.Cells[row, col].Style.Font.IsBold = true;
+            col++;
+            workSheet.Cells[row, col].PutValue("Brand");
+            workSheet.Cells[row, col].Style.Font.IsBold = true;
+            col++;
+            workSheet.Cells[row, col].PutValue("Vendor");
+            workSheet.Cells[row, col].Style.Font.IsBold = true;
+            col++;
+            workSheet.Cells[row, col].PutValue("RDQ Type");
+            workSheet.Cells[row, col].Style.Font.IsBold = true;
+            col++;
+            workSheet.Cells[row, col].PutValue("From Date");
+            workSheet.Cells[row, col].Style.Font.IsBold = true;
+            col++;
+            workSheet.Cells[row, col].PutValue("To Date");
+            workSheet.Cells[row, col].Style.Font.IsBold = true;
+            col++;
+            workSheet.Cells[row, col].PutValue("From DC Code");
+            workSheet.Cells[row, col].Style.Font.IsBold = true;
+            col++;
+            workSheet.Cells[row, col].PutValue("To League");
+            workSheet.Cells[row, col].Style.Font.IsBold = true;
+            col++;
+            workSheet.Cells[row, col].PutValue("To Region");
+            workSheet.Cells[row, col].Style.Font.IsBold = true;
+            col++;
+            workSheet.Cells[row, col].PutValue("To Store");
+            workSheet.Cells[row, col].Style.Font.IsBold = true;
+            col++;
+            workSheet.Cells[row, col].PutValue("To DC Code");
+            workSheet.Cells[row, col].Style.Font.IsBold = true;
+            col++;
+            workSheet.Cells[row, col].PutValue("Message");
+            workSheet.Cells[row, col].Style.Font.IsBold = true;
+            col++;
+
+            return excelDocument;
+        }
+
         public ActionResult DownloadErrors()
         {
             int row = 0;
@@ -778,52 +897,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 License license = new License();
                 license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
-                Excel excelDocument = new Excel();
+                Excel excelDocument = RetrieveRDQRestrictionExcelFile();
                 Worksheet workSheet = excelDocument.Worksheets[0];
-                
-                workSheet.Cells[row, col].PutValue("Division");
-                workSheet.Cells[row, col].Style.Font.IsBold = true;
-                col++;
-                workSheet.Cells[row, col].PutValue("Department");
-                workSheet.Cells[row, col].Style.Font.IsBold = true;
-                col++;
-                workSheet.Cells[row, col].PutValue("Category");
-                workSheet.Cells[row, col].Style.Font.IsBold = true;
-                col++;
-                workSheet.Cells[row, col].PutValue("Brand");
-                workSheet.Cells[row, col].Style.Font.IsBold = true;
-                col++;
-                workSheet.Cells[row, col].PutValue("Vendor");
-                workSheet.Cells[row, col].Style.Font.IsBold = true;
-                col++;
-                workSheet.Cells[row, col].PutValue("RDQ Type");
-                workSheet.Cells[row, col].Style.Font.IsBold = true;
-                col++;
-                workSheet.Cells[row, col].PutValue("From Date");
-                workSheet.Cells[row, col].Style.Font.IsBold = true;
-                col++;
-                workSheet.Cells[row, col].PutValue("To Date");
-                workSheet.Cells[row, col].Style.Font.IsBold = true;
-                col++;
-                workSheet.Cells[row, col].PutValue("From DC Code");
-                workSheet.Cells[row, col].Style.Font.IsBold = true;
-                col++;
-                workSheet.Cells[row, col].PutValue("To League");
-                workSheet.Cells[row, col].Style.Font.IsBold = true;
-                col++;
-                workSheet.Cells[row, col].PutValue("To Region");
-                workSheet.Cells[row, col].Style.Font.IsBold = true;
-                col++;
-                workSheet.Cells[row, col].PutValue("To Store");
-                workSheet.Cells[row, col].Style.Font.IsBold = true;
-                col++;
-                workSheet.Cells[row, col].PutValue("To DC Code");
-                workSheet.Cells[row, col].Style.Font.IsBold = true;
-                col++;
-                workSheet.Cells[row, col].PutValue("Message");
-                workSheet.Cells[row, col].Style.Font.IsBold = true;
-                col++;
-
                 row = 1;
                 if (errorList != null && errorList.Count() > 0)
                 {

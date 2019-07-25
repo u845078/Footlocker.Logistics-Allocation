@@ -80,6 +80,7 @@ namespace Footlocker.Logistics.Allocation.Common
                 }
                 if (method != null)
                 {
+                    data = RemoveNulls(sParam, left, data);
                     MethodCallExpression callExp = Expression.Call(left, method, right);
                     whereCallExpression = Expression.Call
                         (
@@ -104,6 +105,37 @@ namespace Footlocker.Logistics.Allocation.Common
 
                 data = data.Provider.CreateQuery<T>(whereCallExpression).AsQueryable();
             }
+            return data;
+        }
+
+        /// <summary>
+        /// Remove any null values when attempting to use the methods: Contains, StartsWith, EndsWith
+        /// This is necessary because if you attempt to use these methods where the property value
+        /// is null, it will throw a null reference exception.  There is probably a way to do this
+        /// by concatenating the method calls above with this method call expression but I wasn't
+        /// positive how to do so.
+        /// </summary>
+        /// <typeparam name="T">Generic type of Model being filtered with supplied list</typeparam>
+        /// <param name="sParam">The generated parameter expression</param>
+        /// <param name="left">The property that is originally being evaluated from the calling method</param>
+        /// <param name="data">The data to be filtered</param>
+        /// <returns>The data excluding any null values for the specified left parameter</returns>
+        private static IQueryable<T> RemoveNulls<T>(ParameterExpression sParam, Expression left, IQueryable<T> data)
+        {
+            Expression right = Expression.Constant(null);
+            Expression conditional = Expression.NotEqual(left, right);
+            MethodCallExpression whereCallExpression 
+                = Expression.Call
+                    (
+                        typeof(Queryable),
+                        "Where",
+                        new Type[] { data.ElementType },
+                        data.Expression,
+                        Expression.Lambda<Func<T, bool>>(conditional, new ParameterExpression[] { sParam })
+                    );
+
+            data = data.Provider.CreateQuery<T>(whereCallExpression).AsQueryable();
+
             return data;
         }
 
