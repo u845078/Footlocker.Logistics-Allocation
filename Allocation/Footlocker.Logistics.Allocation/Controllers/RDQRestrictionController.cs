@@ -70,7 +70,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private Excel CreateRDQRestrictionsExport(List<RDQRestriction> rdqRestrictions)
         {
-            Excel excelDocument = RetrieveRDQRestrictionExcelFile();
+            Excel excelDocument = RetrieveRDQRestrictionExcelFile(false);
             int row = 1;
             Worksheet workSheet = excelDocument.Worksheets[0];
             foreach (var rr in rdqRestrictions)
@@ -830,7 +830,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
-        public Excel RetrieveRDQRestrictionExcelFile()
+        public Excel RetrieveRDQRestrictionExcelFile(bool errorFile)
         {
             int row = 0;
             int col = 0;
@@ -879,11 +879,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
             col++;
             workSheet.Cells[row, col].PutValue("To DC Code");
             workSheet.Cells[row, col].Style.Font.IsBold = true;
-            col++;
-            workSheet.Cells[row, col].PutValue("Message");
-            workSheet.Cells[row, col].Style.Font.IsBold = true;
-            col++;
-
+            if (errorFile)
+            {
+                col++;
+                workSheet.Cells[row, col].PutValue("Message");
+                workSheet.Cells[row, col].Style.Font.IsBold = true;
+            }
+            
             return excelDocument;
         }
 
@@ -897,7 +899,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 License license = new License();
                 license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
-                Excel excelDocument = RetrieveRDQRestrictionExcelFile();
+                Excel excelDocument = RetrieveRDQRestrictionExcelFile(true);
                 Worksheet workSheet = excelDocument.Worksheets[0];
                 row = 1;
                 if (errorList != null && errorList.Count() > 0)

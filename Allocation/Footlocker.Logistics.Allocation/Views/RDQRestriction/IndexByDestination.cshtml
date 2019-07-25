@@ -11,7 +11,7 @@
 
         $('#destinationTypesList').change(function () {
             var destinationType = $('#destinationTypesList').val();
-            showAppropriateGrid(destinationType);             
+            showAppropriateGrid(destinationType);
         });
 
         function showAppropriateGrid(destinationType) {
@@ -42,34 +42,7 @@
                     break;
             }
         }
-    })
-
-    function MassDeleteStoreGrid(division, store) {
-        if (confirm('Are you sure you want to delete this group of RDQ Restrictions?')) {
-            window.location = "/RDQRestriction/DeleteRDQRestrictionsByStore?div=" + division +
-                "&store=" + store;
-        }
-    }
-
-    function MassDeleteRegionGrid(division, region) {
-        if (confirm('Are you sure you want to delete this group of RDQ Restrictions?')) {
-            window.location = "/RDQRestriction/DeleteRDQRestrictionsByRegion?div=" + division +
-                "&region=" + region;
-        }
-    }
-
-    function MassDeleteLeagueGrid(division, league) {
-        if (confirm('Are you sure you want to delete this group of RDQ Restrictions?')) {
-            window.location = "/RDQRestriction/DeleteRDQRestrictionsByLeague?div=" + division +
-                "&league=" + league;
-        }
-    }
-
-    function MassDeleteDCGrid(distributionCenter) {
-        if (confirm('Are you sure you want to delete this group of RDQ Restrictions?')) {
-            window.location = "/RDQRestriction/DeleteRDQRestrictionsByLeague?dc=" + distributionCenter;
-        }
-    }
+    });
 </script>
 
 <h2>RDQ Restrictions</h2>
@@ -125,245 +98,16 @@
             </div>
 
             <div id="storeGrid">
-                @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreLookup>()
-                    .Name("RDQRestrictionsStoreGrid")
-                    .Columns(columns =>
-                    {
-                        columns.Bound(sl => sl.Division).Visible(true);
-                        columns.Bound(sl => sl.Store).Visible(true);
-                        columns.Bound(sl => sl.Mall).Visible(true);
-                        columns.Bound(sl => sl.City).Visible(true);
-                        columns.Bound(sl => sl.State).Visible(true);
-                        columns.Template(@<text>
-                                            @Html.Raw("<a class=\"t-button\" href='javascript:MassDeleteStoreGrid(\"" + item.Division + "\",\"" + item.Store + "\");'>Delete</a>")
-                                         </text>)
-                                    .ClientTemplate("<a class=\"t-button\" href='javascript:MassDeleteStoreGrid(\"<#= Division #>\",\"<#= Store #>\");'>Delete</a>");
-                    })
-                    .DataBinding(dataBinding =>
-                    {
-                        dataBinding.Ajax().Select("_RDQRestrictionStores", "RDQRestriction");
-                    })
-                    .Sortable(s =>
-                    {
-                        s.SortMode(GridSortMode.MultipleColumn);
-                    })
-                    .Pageable(p => p.PageSize(10))
-                    .Filterable()
-                    .Footer(true)
-                    .DetailView(rrDetails => rrDetails.ClientTemplate(
-                        Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQRestriction>()
-                            .Name("RDQRestriction" + "_<#= Store #>")
-                            .Columns(columns =>
-                            {
-                                columns.Bound(rr => rr.Division);
-                                columns.Bound(rr => rr.Department);
-                                columns.Bound(rr => rr.Category);
-                                columns.Bound(rr => rr.Brand);
-                                columns.Bound(rr => rr.Vendor);
-                                columns.Bound(rr => rr.RDQType);
-                                columns.Bound(rr => rr.FromDate).Format("{0:MM/dd/yyyy}");
-                                columns.Bound(rr => rr.ToDate).Format("{0:MM/dd/yyyy}");
-                                columns.Bound(rr => rr.FromDCCode);
-                                columns.Bound(rr => rr.ToDCCode);
-                                columns.Bound(rr => rr.ToLeague);
-                                columns.Bound(rr => rr.ToRegion);
-                                columns.Template(@<text>
-                                                    @Html.ActionLink("Edit", "Edit", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
-                                                    @Html.ActionLink("Delete", "Delete", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
-                                                </text>)
-                                        .Width(250)
-                                        .ClientTemplate(
-                                            "<a class='t-button' href='" + Url.Content("~/RDQRestriction/Edit/<#= RDQRestrictionID #>") + "'>Edit</a>" +
-                                            "<a class='t-button' href='" + Url.Content("~/RDQRestriction/Delete/<#= RDQRestrictionID #>") + "'>Delete</a>"
-                                        );
-                            })
-                            .DataBinding(dataBinding =>
-                            {
-                                dataBinding.Ajax().Select("_RDQRestrictionsForStore", "RDQRestriction", new { div = "<#= Division #>", store = "<#= Store #>" });
-                            })
-                            .Pageable()
-                            .Sortable()
-                            .Filterable()
-                            .ToHtmlString()
-                    ))
-                )
+                @Html.Partial(@Url.Content("~/Views/RDQRestriction/IndexByDestination_StoreGrid.cshtml"), Model, ViewData)
             </div>
             <div id="regionGrid">
-                @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.Region>()
-                    .Name("RDQRestrictionRegionsGrid")
-                    .Columns(columns =>
-                    {
-                        columns.Bound(r => r.Division);
-                        columns.Bound(r => r.RegionCode).Title("Region");
-                        columns.Bound(r => r.Description);
-                        columns.Template(@<text>
-                                            @Html.Raw("<a class=\"t-button\" href='javascript:MassDeleteRegionGrid(\"" + item.Division + "\",\"" + item.RegionCode + "\");'>Delete</a>")
-                                         </text>)
-                               .ClientTemplate("<a class=\"t-button\" href='javascript:MassDeleteRegionGrid(\"<#= Division #>\",\"<#= RegionCode #>\");'>Delete</a>");
-                    })
-                    .DataBinding(dataBinding =>
-                    {
-                        dataBinding.Ajax().Select("_RDQRestrictionRegions", "RDQRestriction");
-                    })
-                    .Sortable(s =>
-                    {
-                        s.SortMode(GridSortMode.MultipleColumn);
-                    })
-                    .Pageable(p => p.PageSize(10))
-                    .Filterable()
-                    .Footer(true)
-                    .DetailView(rrDetails => rrDetails.ClientTemplate(
-                        Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQRestriction>()
-                            .Name("RDQRestriction" + "_<#= RegionCode #>")
-                            .Columns(columns =>
-                            {
-                                columns.Bound(rr => rr.Division);
-                                columns.Bound(rr => rr.Department);
-                                columns.Bound(rr => rr.Category);
-                                columns.Bound(rr => rr.Brand);
-                                columns.Bound(rr => rr.Vendor);
-                                columns.Bound(rr => rr.RDQType);
-                                columns.Bound(rr => rr.FromDate);
-                                columns.Bound(rr => rr.ToDate);
-                                columns.Bound(rr => rr.FromDCCode);
-                                columns.Template(@<text>
-                                                    @Html.ActionLink("Edit", "Edit", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
-                                                    @Html.ActionLink("Delete", "Delete", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
-                                                </text>)
-                                       .Width(250)
-                                       .ClientTemplate(
-                                            "<a class='t-button' href='" + Url.Content("~/RDQRestriction/Edit/<#= RDQRestrictionID #>") + "'>Edit</a>" +
-                                            "<a class='t-button' href='" + Url.Content("~/RDQRestriction/Delete/<#= RDQRestrictionID #>") + "'>Delete</a>"
-                                       );
-                            })
-                            .DataBinding(dataBinding =>
-                            {
-                                dataBinding.Ajax().Select("_RDQRestrictionsForRegion", "RDQRestriction", new { div = "<#= Division #>", region = "<#= RegionCode #>" });
-                            })
-                            .Pageable()
-                            .Sortable()
-                            .Filterable()
-                            .ToHtmlString()
-                    ))
-                 )
+                @Html.Partial(@Url.Content("~/Views/RDQRestriction/IndexByDestination_RegionGrid.cshtml"), Model, ViewData)
             </div>
             <div id="leagueGrid">
-                @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.League>()
-                    .Name("RDQRestrictionLeaguesGrid")
-                    .Columns(columns =>
-                    {
-                        columns.Bound(l => l.Division);
-                        columns.Bound(l => l.LeagueCode).Title("League");
-                        columns.Bound(l => l.Description);
-                        columns.Template(@<text>
-                                            @Html.Raw("<a class=\"t-button\" href='javascript:MassDeleteLeagueGrid(\"" + item.Division + "\",\"" + item.LeagueCode + "\");'>Delete</a>")
-                                         </text>)
-                               .ClientTemplate("<a class=\"t-button\" href='javascript:MassDeleteLeagueGrid(\"<#= Division #>\",\"<#= LeagueCode #>\");'>Delete</a>");
-                    })
-                    .DataBinding(dataBinding =>
-                    {
-                        dataBinding.Ajax().Select("_RDQRestrictionLeagues", "RDQRestriction");
-                    })
-                    .Sortable(s =>
-                    {
-                        s.SortMode(GridSortMode.MultipleColumn);
-                    })
-                    .Pageable(p => p.PageSize(10))
-                    .Filterable()
-                    .Footer(true)
-                    .DetailView(rrDetails => rrDetails.ClientTemplate(
-                        Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQRestriction>()
-                            .Name("RDQRestriction" + "_<#= LeagueCode #>")
-                            .Columns(columns =>
-                            {
-                                columns.Bound(rr => rr.Division);
-                                columns.Bound(rr => rr.Department);
-                                columns.Bound(rr => rr.Category);
-                                columns.Bound(rr => rr.Brand);
-                                columns.Bound(rr => rr.Vendor);
-                                columns.Bound(rr => rr.RDQType);
-                                columns.Bound(rr => rr.FromDate);
-                                columns.Bound(rr => rr.ToDate);
-                                columns.Bound(rr => rr.FromDCCode);
-                                columns.Template(@<text>
-                                                    @Html.ActionLink("Edit", "Edit", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
-                                                    @Html.ActionLink("Delete", "Delete", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
-                                                </text>)
-                                       .Width(250)
-                                       .ClientTemplate(
-                                            "<a class='t-button' href='" + Url.Content("~/RDQRestriction/Edit/<#= RDQRestrictionID #>") + "'>Edit</a>" +
-                                            "<a class='t-button' href='" + Url.Content("~/RDQRestriction/Delete/<#= RDQRestrictionID #>") + "'>Delete</a>"
-                                       );
-                            })
-                            .DataBinding(dataBinding =>
-                            {
-                                dataBinding.Ajax().Select("_RDQRestrictionsForLeague", "RDQRestriction", new { div = "<#= Division #>", league = "<#= LeagueCode #>" });
-                            })
-                            .Pageable()
-                            .Sortable()
-                            .Filterable()
-                            .ToHtmlString()
-                    ))
-                )
+                @Html.Partial(@Url.Content("~/Views/RDQRestriction/IndexByDestination_LeagueGrid.cshtml"), Model, ViewData)
             </div>
             <div id="dcGrid">
-                @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.DistributionCenter>()
-                    .Name("RDQRestrictionDCsGrid")
-                    .Columns(columns =>
-                    {
-                    columns.Bound(dc => dc.Name);
-                    columns.Bound(dc => dc.MFCode);
-                    columns.Bound(dc => dc.Type);
-                    columns.Template(@<text>
-                                            @Html.Raw("<a class=\"t-button\" href='javascript:MassDeleteDCGrid(\"" + item.MFCode + "\");'>Delete</a>")
-                                         </text>)
-                               .ClientTemplate("<a class=\"t-button\" href='javascript:MassDeleteDCGrid(\"<#= MFCode #>\");'>Delete</a>");
-                    })
-                    .DataBinding(dataBinding =>
-                    {
-                        dataBinding.Ajax().Select("_RDQRestrictionDCs", "RDQRestriction");
-                    })
-                    .Sortable(s =>
-                    {
-                        s.SortMode(GridSortMode.MultipleColumn);
-                    })
-                    .Pageable(p => p.PageSize(10))
-                    .Filterable()
-                    .Footer(true)
-                    .DetailView(rrDetails => rrDetails.ClientTemplate(
-                        Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQRestriction>()
-                            .Name("RDQRestriction" + "_<#= MFCode #>")
-                            .Columns(columns =>
-                            {
-                                columns.Bound(rr => rr.Division);
-                                columns.Bound(rr => rr.Department);
-                                columns.Bound(rr => rr.Category);
-                                columns.Bound(rr => rr.Brand);
-                                columns.Bound(rr => rr.Vendor);
-                                columns.Bound(rr => rr.RDQType);
-                                columns.Bound(rr => rr.FromDate);
-                                columns.Bound(rr => rr.ToDate);
-                                columns.Bound(rr => rr.FromDCCode);
-                                columns.Template(@<text>
-                                                    @Html.ActionLink("Edit", "Edit", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
-                                                    @Html.ActionLink("Delete", "Delete", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
-                                                </text>)
-                                       .Width(250)
-                                       .ClientTemplate(
-                                            "<a class='t-button' href='" + Url.Content("~/RDQRestriction/Edit/<#= RDQRestrictionID #>") + "'>Edit</a>" +
-                                            "<a class='t-button' href='" + Url.Content("~/RDQRestriction/Delete/<#= RDQRestrictionID #>") + "'>Delete</a>"
-                                       );
-                            })
-                            .DataBinding(dataBinding =>
-                            {
-                                dataBinding.Ajax().Select("_RDQRestrictionsForDC", "RDQRestriction", new { dc = "<#= MFCode #>"});
-                            })
-                            .Pageable()
-                            .Sortable()
-                            .Filterable()
-                            .ToHtmlString()
-                    ))
-                )
+                @Html.Partial(@Url.Content("~/Views/RDQRestriction/IndexByDestination_DCGrid.cshtml"), Model, ViewData)
             </div>
 
         </div>
