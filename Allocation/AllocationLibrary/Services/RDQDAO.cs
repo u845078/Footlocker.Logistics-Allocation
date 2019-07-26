@@ -322,6 +322,7 @@ namespace Footlocker.Logistics.Allocation.Services
         {
             DbCommand SQLCommand;
             string SQL;
+            int holds = 0;
             SQL = "dbo.[SetRDQStatus]";
 
             SQLCommand = _database.GetStoredProcCommand(SQL);
@@ -332,19 +333,19 @@ namespace Footlocker.Logistics.Allocation.Services
 
             _database.AddInParameter(SQLCommand, "@instanceID", DbType.String, instance);
             _database.AddInParameter(SQLCommand, "@rdqs", DbType.Xml, xout);
-            //SQLCommand.CommandTimeout = 300;
-            DataSet data = new DataSet();
-            data = _database.ExecuteDataSet(SQLCommand);
+            SQLCommand.CommandTimeout = 0;
+            //DataSet data = new DataSet();
+            holds = (int)_database.ExecuteScalar(SQLCommand);
 
-            RDQFactory factory = new RDQFactory();
-            int holds = 0;
-            if (data.Tables.Count > 0)
-            {
-                foreach (DataRow dr in data.Tables[0].Rows)
-                {
-                    holds = Convert.ToInt32(dr[0]);
-                }
-            }
+            //RDQFactory factory = new RDQFactory();
+            
+            //if (data.Tables.Count > 0)
+            //{
+            //    foreach (DataRow dr in data.Tables[0].Rows)
+            //    {
+            //        holds = Convert.ToInt32(dr[0]);
+            //    }
+            //}
             return holds;
         }
 
