@@ -1300,9 +1300,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             }
                         }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        message = "Upload failed: One or more columns has unexpected missing or invalid data.";
+                        message = String.Format("Upload failed: One or more columns has unexpected missing or invalid data. <br /> System error message: {0}", ex.Message);
                         // clear out error list
                         Session["errorList"] = null;
                         return Content(message);
