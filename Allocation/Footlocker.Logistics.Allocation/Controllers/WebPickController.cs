@@ -1303,6 +1303,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     catch (Exception ex)
                     {
                         message = String.Format("Upload failed: One or more columns has unexpected missing or invalid data. <br /> System error message: {0}", ex.Message);
+                        FLLogger logger = new FLLogger("C:\\Log\\allocation");
+                        logger.Log(ex.Message + ": " + ex.StackTrace, FLLogger.eLogMessageType.eError);
                         // clear out error list
                         Session["errorList"] = null;
                         return Content(message);
