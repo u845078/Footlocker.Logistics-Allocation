@@ -27,10 +27,10 @@
     $(function () {
         var loading = '<option>Loading...</option>';
 
-        if ($('#departmentList').val() === 'N/A') {
-            $('#categoryList').prop("disabled", true);
-            $('#brandList').prop("disabled", true);
-        }
+        //if ($('#departmentList').val() === 'N/A') {
+        //    $('#categoryList').prop("disabled", true);
+        //    $('#brandList').prop("disabled", true);
+        //}
 
         function populateHtmlItems(data) {
             var items = '';
@@ -39,6 +39,17 @@
             });
             return items;
         };
+
+        function refreshDCLists(division) {
+            var url = '/RDQRestriction/GetNewDistributionCenters?division=' + division;
+            $('#fromDCList').html(loading);
+            $('#toDCList').html(loading);
+            $.getJSON(url, function (data) {
+                var items = populateHtmlItems(data);
+                $('#fromDCList').html(items);
+                $('#toDCList').html(items);
+            });
+        }
 
 
         $('#divisionList').change(function () {
@@ -54,23 +65,14 @@
                 var items = populateHtmlItems(data);
                 $('#departmentList').html(items);
                 $('#departmentList').change();
+                $('#categoryList').change();
             });
+            refreshDCLists(divisionFilter);
         });
 
         $('#departmentList').change(function () {
             var divisionFilter = $('#divisionList').val();
             var departmentFilter = $('#departmentList').val();
-            if (departmentFilter === 'N/A') {
-                $('#categoryList').prop("disabled", true);
-                $('#brandList').prop("disabled", true);
-                var departments = $('#departmentList')[0];
-                if (departments.length > 1) {
-                    departmentFilter = departments[1].value;
-                }
-            } else {
-                $('#categoryList').prop("disabled", false);
-                $('#brandList').prop("disabled", false);
-            }
             var url = '/RDQRestriction/GetNewCategories?division=' + divisionFilter + '&department=' + departmentFilter;
             $('#categoryList').html(loading);
             $('#brandList').html(loading);
@@ -85,18 +87,6 @@
             var divisionFilter = $('#divisionList').val();
             var departmentFilter = $('#departmentList').val();
             var categoryFilter = $('#categoryList').val();
-            if (departmentFilter === 'N/A') {
-                var departments = $('#departmentList')[0];
-                if (departments.length > 1) {
-                    departmentFilter = departments[1].value;
-                }
-            }
-            if (categoryFilter === 'N/A') {
-                var categories = $('#categoryList')[0];
-                if (categories.length > 1) {
-                    categoryFilter = categories[1].value;
-                }
-            }
             var url = '/RDQRestriction/GetNewBrands?division=' + divisionFilter
                 + '&department=' + departmentFilter + '&category=' + categoryFilter;
             $('#brandList').html(loading);

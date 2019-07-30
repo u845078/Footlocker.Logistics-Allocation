@@ -666,7 +666,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             // populate from distribution centers
-            model.DistributionCenters = GetDistributionCentersList();
+            model.DistributionCenters = GetDistributionCentersList(model.RDQRestriction.Division);
             bool existentFromDC = model.DistributionCenters.Any(dc => dc.Value.Equals(rr.FromDCCode));
             if (!existentFromDC && model.DistributionCenters.Count() > 0)
             {
@@ -1440,7 +1440,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public JsonResult GetNewDistributionCenters(string division)
         {
-            List<SelectListItem> newDistributionCenters = GetDistributionCentersList();
+            List<SelectListItem> newDistributionCenters = GetDistributionCentersList(division);
             return Json(new SelectList(newDistributionCenters.ToArray(), "Value", "Text"), JsonRequestBehavior.AllowGet);
         }
 
@@ -1529,12 +1529,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return brandIDList;
         }
 
-        private List<SelectListItem> GetDistributionCentersList()
+        private List<SelectListItem> GetDistributionCentersList(string division)
         {
             List<SelectListItem> distributionCentersList = new List<SelectListItem>();
             List<DistributionCenter> distributionCenters = new List<DistributionCenter>();
 
-            distributionCenters = GetValidDistributionCenters();
+            distributionCenters = GetValidDistributionCenters(division);
 
             if (distributionCenters.Count() > 0)
             {
@@ -1619,20 +1619,39 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private List<Categories> GetValidCategories(string division, string department)
         {
             List<Categories> categories = new List<Categories>();
+            const string defaultValue = "N/A";
 
-            categories = (from im in db.ItemMasters
-                          join c in db.Categories
-                            on new { Category = im.Category, Division = im.Div, Department = im.Dept } equals
-                               new { Category = c.categoryCode, Division = c.divisionCode, Department = c.departmentCode }
-                          where im.Div == division &&
-                                im.Dept == department &&
-                               // ensure that the brandid associated with ItemMaster record exists in the Brands table.
-                               (from b in db.BrandIDs
-                                where b.brandIDCode == im.Brand &&
-                                      b.divisionCode == im.Div &&
-                                      b.departmentCode == im.Dept
-                                select b.brandIDCode).Distinct().Contains(im.Brand)
-                          select c).Distinct().ToList();
+            if (department.Equals(defaultValue))
+            {
+                categories = (from im in db.ItemMasters
+                              join c in db.Categories
+                                on new { Division = im.Div, Category = im.Category } equals
+                                   new { Division = c.divisionCode, Category = c.categoryCode }
+                             where im.Div == division &&
+                                   (from b in db.BrandIDs
+                                   where b.brandIDCode == im.Brand &&
+                                         b.divisionCode == im.Div
+                                  select b.brandIDCode).Distinct().Contains(im.Brand)
+                            select c).Distinct().ToList();
+            }
+            else
+            {
+                categories = (from im in db.ItemMasters
+                              join c in db.Categories
+                                on new { Category = im.Category, Division = im.Div, Department = im.Dept } equals
+                                   new { Category = c.categoryCode, Division = c.divisionCode, Department = c.departmentCode }
+                             where im.Div == division &&
+                                   im.Dept == department &&
+                                   // ensure that the brandid associated with ItemMaster record exists in the Brands table.
+                                   (from b in db.BrandIDs
+                                   where b.brandIDCode == im.Brand &&
+                                         b.divisionCode == im.Div &&
+                                         b.departmentCode == im.Dept
+                                  select b.brandIDCode).Distinct().Contains(im.Brand)
+                           select c).Distinct().ToList();
+            }
+
+            categories = categories.Select(c => new Categories { divisionCode = c.divisionCode, categoryCode = c.categoryCode, CategoryName = c.CategoryName }).Distinct().ToList();
 
             return categories;
         }
@@ -1648,24 +1667,86 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private List<BrandIDs> GetValidBrands(string division, string department, string category)
         {
             List<BrandIDs> brands = new List<BrandIDs>();
+            const string defaultValue = "N/A";
+
+            bool departmentExists = !department.Equals(defaultValue);
+            bool categoryExists = !category.Equals(defaultValue);
 
             brands = (from im in db.ItemMasters
                       join b in db.BrandIDs
-                        on new { Brand = im.Brand, Division = im.Div, Department = im.Dept } equals
-                           new { Brand = b.brandIDCode, Division = b.divisionCode, Department = b.departmentCode }
-                      where im.Div == division &&
-                            im.Dept == department &&
-                            im.Category == category
-                      select b).Distinct().ToList();
+                        on new { Division = im.Div, Department = im.Dept, Brand = im.Brand} equals
+                           new { Division = b.divisionCode, Department = b.departmentCode, Brand = b.brandIDCode }
+                     where im.Div == division &&
+                           im.Dept == (departmentExists ? department : im.Dept) &&
+                           im.Category == (categoryExists ? category : im.Category)
+                    select b).Distinct().ToList();
+
+            brands = brands.Select(b => new BrandIDs { divisionCode = b.divisionCode, brandIDCode = b.brandIDCode, brandIDName = b.brandIDName }).Distinct().ToList();
+
+            //if (departmentExists && categoryExists)
+            //{
+            //    brands = (from im in db.ItemMasters
+            //              join b in db.BrandIDs
+            //                on new { Brand = im.Brand, Division = im.Div, Department = im.Dept } equals
+            //                   new { Brand = b.brandIDCode, Division = b.divisionCode, Department = b.departmentCode }
+            //              where im.Div == division &&
+            //                    im.Dept == department &&
+            //                    im.Category == category
+            //              select b).Distinct().ToList();
+            //}
+            //else if (departmentExists && !categoryExists)
+            //{
+            //    brands = (from im in db.ItemMasters
+            //              join b in db.BrandIDs
+            //                on new { Brand = im.Brand, Division = im.Div, Department = im.Dept } equals
+            //                   new { Brand = b.brandIDCode, Division = b.divisionCode, Department = b.departmentCode }
+            //             where im.Div == division &&
+            //                   im.Dept == department
+            //            select b).Distinct().ToList();
+            //}
+            //else if (!departmentExists && categoryExists)
+            //{
+            //    brands = (from im in db.ItemMasters
+            //              join b in db.BrandIDs
+            //                on new { Brand = im.Brand, Division = im.Div} equals
+            //                   new { Brand = b.brandIDCode, Division = b.divisionCode }
+            //             where im.Div == division &&
+            //                   im.Category == category
+            //            select b).Distinct().ToList();
+            //}
+            //else if (!departmentExists && !categoryExists)
+            //{
+            //    brands = (from im in db.ItemMasters
+            //              join b in db.BrandIDs
+            //                on new { Brand = im.Brand, Division = im.Div } equals
+            //                   new { Brand = b.brandIDCode, Division = b.divisionCode }
+            //             where im.Div == division
+            //            select b).Distinct().ToList();
+            //}
+
+            //brands = brands.Select(b => new BrandIDs { divisionCode = b.divisionCode, brandIDCode = b.brandIDCode, brandIDName = b.brandIDName }).Distinct().ToList();
 
             return brands;
         }
 
-        private List<DistributionCenter> GetValidDistributionCenters()
+        private List<DistributionCenter> GetValidDistributionCenters(string division)
         {
             List<DistributionCenter> distributionCenters = new List<DistributionCenter>();
 
-            distributionCenters = db.DistributionCenters.ToList();
+            int instanceID
+                = db.InstanceDivisions
+                    .Where(id => id.Division.Equals(division))
+                    .Select(id => id.InstanceID)
+                    .FirstOrDefault();
+
+            if (instanceID > 0)
+            {
+                distributionCenters = (from idc in db.InstanceDistributionCenters
+                                       join dc in db.DistributionCenters
+                                         on idc.DCID equals dc.ID
+                                      where idc.InstanceID.Equals(instanceID)
+                                     select dc).Distinct().ToList();
+            }
 
             return distributionCenters;
         }
