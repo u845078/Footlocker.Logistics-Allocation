@@ -143,6 +143,9 @@ namespace Footlocker.Logistics.Allocation.Services
             warehouseInventory = GetMainframeWarehouseInventory();
 
             SetDistributionCenters();
+
+            warehouseInventory = warehouseInventory.Where(wi => wi.distributionCenter != null).ToList();
+
             SetCaselots(itemID);
 
             var AllocationDivision = (from d in db.AllocationDivisions
