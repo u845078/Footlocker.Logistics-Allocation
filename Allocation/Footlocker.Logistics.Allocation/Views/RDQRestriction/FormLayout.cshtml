@@ -100,6 +100,12 @@
     })
 </script>
 
+@if (ViewData["message"] != null && ViewData["message"] != "")
+{
+    <div id="errorMessage" style="color: red;">@Html.Raw(Convert.ToString(ViewData["message"]))</div>
+    <br /><br />
+}
+
 <fieldset>
     <legend>RDQ Restriction</legend>
 

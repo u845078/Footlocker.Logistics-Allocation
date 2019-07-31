@@ -30,6 +30,8 @@ namespace Footlocker.Logistics.Allocation.Models
             }
         }
 
+        #region override comparisons
+
         public override bool Equals(object obj)
         {
             Categories c = obj as Categories;
@@ -53,7 +55,7 @@ namespace Footlocker.Logistics.Allocation.Models
                            c.categoryCode == this.categoryCode &&
                            c.CategoryName == this.CategoryName;
                 }
-                
+
             }
         }
 
@@ -62,5 +64,7 @@ namespace Footlocker.Logistics.Allocation.Models
             string departmentCode = string.IsNullOrEmpty(this.departmentCode) ? "" : this.departmentCode;
             return (this.divisionCode + departmentCode + this.categoryCode + this.CategoryName).GetHashCode();
         }
+
+        #endregion
     }
 }

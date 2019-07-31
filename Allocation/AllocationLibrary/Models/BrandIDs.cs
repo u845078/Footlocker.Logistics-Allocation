@@ -36,10 +36,6 @@ namespace Footlocker.Logistics.Allocation.Models
 
         #region override comparisons
 
-
-
-        #endregion
-
         public override bool Equals(object obj)
         {
             BrandIDs b = obj as BrandIDs;
@@ -72,5 +68,9 @@ namespace Footlocker.Logistics.Allocation.Models
             string departmentCode = string.IsNullOrEmpty(this.departmentCode) ? "" : this.departmentCode;
             return (this.divisionCode + departmentCode + this.brandIDCode + this.brandIDName).GetHashCode();
         }
+
+        #endregion
+
+
     }
 }

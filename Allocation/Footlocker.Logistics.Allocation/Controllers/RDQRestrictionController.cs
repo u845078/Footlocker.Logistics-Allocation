@@ -29,8 +29,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             this.db = new AllocationContext();
         }
 
-        public ActionResult Index()
+        public ActionResult Index(string message)
         {
+            ViewData["errorMessage"] = message;
             RDQRestrictionModel model = RetrieveModel();
             return View(model);
         }
@@ -170,6 +171,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Edit(int id)
         {
             RDQRestrictionModel model = null;
+            string errorMessage = string.Empty;
 
             RDQRestriction rr
                 = db.RDQRestrictions
@@ -179,14 +181,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (rr != null)
             {
                 model = new RDQRestrictionModel(rr);
+                if (!ValidateCombination(model.RDQRestriction, out errorMessage))
+                {
+                    ViewData["message"] = errorMessage;
+                    model = FillModelLists(model);
+                    return View(model);
+                }
             }
             else
             {
-                // err
+                errorMessage = "The RDQ restriction you have referenced no longer exists.";
+                ViewData["errorMessage"] = errorMessage;
+                return RedirectToAction("Index", new { message = errorMessage });
             }
 
             model = FillModelLists(model);
-
             return View(model);
         }
 
@@ -1749,6 +1758,119 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             return distributionCenters;
+        }
+
+        private bool ValidateCombination(RDQRestriction rr, out string errorMessage)
+        {
+            bool result = true;
+            errorMessage = null;
+
+            bool departmentExists = !string.IsNullOrEmpty(rr.Department);
+            bool categoryExists = !string.IsNullOrEmpty(rr.Category);
+            bool brandExists = !string.IsNullOrEmpty(rr.Brand);
+
+            if (!departmentExists && !categoryExists && !brandExists)
+            {
+                var comboExists
+                    = db.ItemMasters
+                        .Any(im => im.Div.Equals(rr.Division));
+
+                if (!comboExists)
+                {
+                    result = false;
+                    errorMessage = string.Format("The division does not exist within the system. {0}", rr.Division);
+                }
+            }
+            else if (departmentExists && !categoryExists && !brandExists)
+            {
+                var comboExists
+                    = db.ItemMasters
+                        .Any(im => im.Div.Equals(rr.Division) &&
+                                   im.Dept.Equals(rr.Department));
+
+                if (!comboExists)
+                {
+                    result = false;
+                    errorMessage = string.Format(
+                        "The division / department combination does not exist within the system. {0}-{1}"
+                        , rr.Division
+                        , rr.Department);
+                }
+            }
+            else if (departmentExists && categoryExists && !brandExists)
+            {
+                var comboExists
+                    = db.ItemMasters
+                        .Any(im => im.Div.Equals(rr.Division) &&
+                                   im.Dept.Equals(rr.Department) &&
+                                   im.Category.Equals(rr.Category));
+
+                if (!comboExists)
+                {
+                    result = false;
+                    errorMessage = string.Format(
+                        "The division / department / category combination does not exist within the system. {0}-{1}-{2}"
+                        , rr.Division
+                        , rr.Department
+                        , rr.Category);
+                }
+            }
+            else if (departmentExists && categoryExists && brandExists)
+            {
+                var comboExists
+                    = db.ItemMasters
+                        .Any(im => im.Div.Equals(rr.Division) &&
+                                   im.Dept.Equals(rr.Department) &&
+                                   im.Category.Equals(rr.Category) &&
+                                   im.Brand.Equals(rr.Brand));
+
+                if (!comboExists)
+                {
+                    result = false;
+                    errorMessage = string.Format(
+                        "The division / department / category / brand combination does not exist within the system. {0}-{1}-{2}-{3}"
+                        , rr.Division
+                        , rr.Department
+                        , rr.Category
+                        , rr.Brand);
+                }
+            }
+            else if (!departmentExists && !categoryExists && brandExists)
+            {
+                var comboExists
+                    = db.ItemMasters
+                        .Any(im => im.Div.Equals(rr.Division) &&
+                                   im.Brand.Equals(rr.Brand));
+
+                if (!comboExists)
+                {
+                    result = false;
+                    errorMessage = string.Format(
+                        "The division / brand combination does not exist within the system. {0}-{1}"
+                        , rr.Division
+                        , rr.Brand);
+                }
+            }
+            else if (departmentExists && !categoryExists && brandExists)
+            {
+                var comboExists
+                    = db.ItemMasters
+                        .Any(im => im.Div.Equals(rr.Division) &&
+                                   im.Dept.Equals(rr.Department) &&
+                                   im.Brand.Equals(rr.Brand));
+
+                if (!comboExists)
+                {
+                    result = false;
+                    errorMessage = string.Format(
+                        "The division / department / brand combination does not exist within the system. {0}-{1}-{2}"
+                        , rr.Division
+                        , rr.Department
+                        , rr.Brand);
+                }
+            }
+
+            return result;
         }
 
         #endregion
