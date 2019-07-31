@@ -1,0 +1,116 @@
+﻿@model  Footlocker.Logistics.Allocation.Models.RDQRestrictionModel
+@{
+    ViewBag.Title = "RDQ Restrictions";
+}
+
+<script>
+    $(function () {
+        // show appropriate grid on page load
+        var model = @Html.Raw(Json.Encode(Model));
+        showAppropriateGrid(model.DestinationType);
+
+        $('#destinationTypesList').change(function () {
+            var destinationType = $('#destinationTypesList').val();
+            showAppropriateGrid(destinationType);
+        });
+
+        function showAppropriateGrid(destinationType) {
+            switch (destinationType) {
+                case 'Store':
+                    $('#storeGrid').show();
+                    $('#regionGrid').hide();
+                    $('#leagueGrid').hide();
+                    $('#dcGrid').hide();
+                    break;
+                case 'Region':
+                    $('#storeGrid').hide();
+                    $('#regionGrid').show();
+                    $('#leagueGrid').hide();
+                    $('#dcGrid').hide();
+                    break;
+                case 'League':
+                    $('#storeGrid').hide();
+                    $('#regionGrid').hide();
+                    $('#leagueGrid').show();
+                    $('#dcGrid').hide();
+                    break;
+                case 'DC':
+                    $('#storeGrid').hide();
+                    $('#regionGrid').hide();
+                    $('#leagueGrid').hide();
+                    $('#dcGrid').show();
+                    break;
+            }
+        }
+    });
+</script>
+
+<h2>RDQ Restrictions</h2>
+
+@if (Model.CanEdit)
+{
+    <p>
+        @Html.ActionLink("Create New", "Create", null, new { @class = "t-button" })
+        @Html.ActionLink("Upload", "Upload", null, new { @class = "t-button" })
+    </p>
+}
+
+<div class="t-tabstrip-wrapper">
+    <div id="tabstrip" data-role="tabstrip" tabindex="0" class="t-widget t-header t-tabstrip" role="tablist" aria-activedescendant="tabstrip_ts_active">
+        <ul class="t-tabstrip-items t-reset">
+            <li class="t-item t-state-default" role="tab" aria-controls="tabstrip-3">
+                <span class="t-complete">
+                    <a class="t-link" href="/RDQRestriction/Index">
+                        All RDQ Restrictions
+                    </a>
+                </span>
+            </li>
+            <li class="t-item t-state-default t-first t-tab-on-top" role="tab" aria-controls="tabstrip-1" aria-selected="true">
+                <span class="t-complete">
+                    <a class="t-link" href="/RDQRestriction/IndexByProduct">
+                        By Product
+                    </a>
+                </span>
+            </li>
+            <li class="t-item t-state-default t-state-active" role="tab" aria-controls="tabstrip-2">
+                <span class="t-complete">
+                    <a class="t-link" href="/RDQRestriction/IndexByDestination">
+                        By Destination
+                    </a>
+                </span>
+            </li>
+        </ul>
+        <div class="t-content t-state-active" id="tabstrip-1" role="tabpanel" aria-expanded="true" style="display: block; opacity: 1;">
+
+            @if (ViewData["message"] != null && ViewData["message"] != "")
+            {
+                <font color="Red">
+                    @Html.Raw(Convert.ToString(ViewData["message"]))
+                </font>
+                <br />
+                <br />
+            }
+            <div class="editor-label">
+                Destination Type
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(m => m.DestinationType, Model.DestinationTypes, new { id = "destinationTypesList" })
+            </div>
+
+            <div id="storeGrid">
+                @Html.Partial(@Url.Content("~/Views/RDQRestriction/IndexByDestination_StoreGrid.cshtml"), Model, ViewData)
+            </div>
+            <div id="regionGrid">
+                @Html.Partial(@Url.Content("~/Views/RDQRestriction/IndexByDestination_RegionGrid.cshtml"), Model, ViewData)
+            </div>
+            <div id="leagueGrid">
+                @Html.Partial(@Url.Content("~/Views/RDQRestriction/IndexByDestination_LeagueGrid.cshtml"), Model, ViewData)
+            </div>
+            <div id="dcGrid">
+                @Html.Partial(@Url.Content("~/Views/RDQRestriction/IndexByDestination_DCGrid.cshtml"), Model, ViewData)
+            </div>
+
+        </div>
+        <br />
+    </div>
+</div>

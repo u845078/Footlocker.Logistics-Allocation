@@ -1,0 +1,27 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RDQRestrictionModel
+
+@{
+    ViewBag.Title = "Edit";
+}
+
+<h2> Edit RDQ Restriction</h2>
+
+@if ((ViewData["errorMessage"] != "") && (ViewData["errorMessage"] != null))
+{
+    <font color="red">
+        @Html.Raw(Convert.ToString(ViewData["errorMessage"]))
+    </font>
+}
+
+@using (Html.BeginForm("Edit", "RDQRestriction"))
+{
+    @Html.Partial(@Url.Content("~/Views/RDQRestriction/FormLayout.cshtml"), Model, ViewData)
+    <div>
+        <button class="t-button" id="saveButton" type="submit" value="Edit">Save</button>
+    </div>
+}
+
+<br />
+<div>
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+</div>

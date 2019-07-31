@@ -1,0 +1,72 @@
+﻿@using Telerik.Web.Mvc
+@{
+    ViewBag.Title = "RDQ Restrictions Upload";
+}
+
+<fieldset>
+    <legend> RDQ Restrictions Upload </legend>
+    See comments in spreadsheet header for format and other instructions. <br />
+    @Html.ActionLink("Download Template", "ExcelTemplate", new { }, new { @class = "t-button" })
+    <br />
+    <br />
+    <b>Please select spreadsheets: </b>
+    <br />
+    <br />
+    @(Html.Telerik().Upload()
+        .Name("attachments")
+        .Multiple(true)
+        .Async(async => async
+            .Save("SaveRDQRestrictions", "RDQRestriction")
+            .AutoUpload(false))
+        .ShowFileList(true)
+        .ClientEvents(events => events
+            .OnError("onError")
+            .OnSelect("onSelect")
+            .OnSuccess("onSuccess"))
+    )
+    <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width: 150px; visibility: hidden; display: none;" />
+    <br />
+    <h4>
+        <div id="message">
+            @if (ViewData["errorMessage"] != null)
+            {
+                <font color="red">
+                    @Html.Raw(Convert.ToString(ViewData["errorMessage"]))
+                </font>
+            }
+        </div>
+    </h4>
+    <div id="errors" style="display: none;">
+        @Html.ActionLink("Download Errors", "DownloadErrors", null, new { @class = "t-button" })
+    </div>
+</fieldset>
+
+<script type="text/javascript">
+
+    function onSelect(e) {
+        var files = e.files;
+        if (files[0].extension != ".xls") {
+            alert("Document must be a spreadsheet with a xls extension.");
+            e.preventDefault();
+        } else {
+            document.getElementById('spreadsheet').style.visibility = 'visible';
+        }
+        $('#message').empty();
+    }
+
+    function onError(e) {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>" + message + "</font>");
+        $('#errors').show();
+        e.preventDefault();
+    }
+
+    function onSuccess(e) {
+        var message = e.response.successMessage;
+        $('#message').empty().append("<font color='red'>" + message + "</font>");
+        $('#errors').hide();
+        e.preventDefault();
+    }
+</script>
+
+@Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
