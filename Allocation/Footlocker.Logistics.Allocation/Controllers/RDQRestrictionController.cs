@@ -574,7 +574,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                    join id in db.InstanceDivisions
                                      on v.InstanceID equals id.InstanceID
                                    where id.Division.Equals(rr.Division) &&
-                                         v.VendorName.Equals(rr.Vendor)
+                                         v.VendorCode.Equals(rr.Division + "-" + rr.Vendor)
                                    select v).Any();
 
                 if (!validVendor)
