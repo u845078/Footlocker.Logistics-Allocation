@@ -508,7 +508,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <Content Include="Content\Templates\RingFenceDeleteTemplate.xls" />
-    <Content Include="Content\Templates\RDQRestrictionUploadTemplate.xls" />
+    <Content Include="Content\Templates\RDQRestrictionUploadTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Content\Templates\SkuIdUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
