@@ -13,7 +13,7 @@ using Footlocker.Logistics.Allocation.Common;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
-    [CheckPermission(Roles = "Admin,IT,Support")]
+    [CheckPermission(Roles = "Support,Logistics")]
     public class RDQRestrictionController : AppController
     {
 
@@ -200,7 +200,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
-        public ActionResult Edit(RDQRestrictionModel model)
+        public ActionResult Edit(RDQRestrictionModel model, int id)
         {
             string message = "";
 
@@ -211,7 +211,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return View(model);
             }
 
-            db.RDQRestrictions.Attach(model.RDQRestriction);
+            model.RDQRestriction.RDQRestrictionID = id;
+            model.RDQRestriction.LastModifiedDate = DateTime.Now;
+            model.RDQRestriction.LastModifiedUser = User.Identity.Name;
             db.Entry(model.RDQRestriction).State = System.Data.EntityState.Modified;
             db.SaveChanges();
 
