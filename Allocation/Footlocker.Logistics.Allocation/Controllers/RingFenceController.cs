@@ -2026,8 +2026,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         List<RingFenceDetail> futures = GetFutureAvailable(ringFence);
                         List<RingFenceDetail> warehouse = GetWarehouseAvailable(ringFence);
 
-                        //ecomm all countries store
-                        //EcommInventory ecommInv = new EcommInventory();
+                        //ecomm all countries store                        
                         RingFenceDetail newDet = new RingFenceDetail();
 
                         Boolean addDetail;
@@ -2041,23 +2040,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             try
                             {
                                 availableQty += (from a in futures
-                                                    where ((a.PO == det.PO) && 
+                                                 where ((a.PO == det.PO) && 
                                                         (a.Size == det.Size) && 
                                                         (a.DCID == det.DCID))
-                                                    select a.AvailableQty).Sum();
+                                                 select a.AvailableQty).Sum();
                             }
                             catch { }
+
                             try
                             {
                                 availableQty += (from a in warehouse
-                                                    where ((a.Size == det.Size) && (a.DCID == det.DCID))
-                                                    select a.AvailableQty).Sum();
+                                                 where a.Size == det.Size && 
+                                                       a.DCID == det.DCID
+                                                 select a.AvailableQty).Sum();
                             }
                             catch { }
 
                             if ((det.Qty > availableQty) && (det.Qty > 0))
                             {
-                                message = message + "Max Qty for " + det.Warehouse + " " + det.PO + " is " + (det.AvailableQty);
+                                message += String.Format("Max Qty for {0} {1} is {2}", det.Warehouse, det.PO, det.AvailableQty);
                                 det.Message = message;
                             }
                             else
@@ -2065,17 +2066,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 addDetail = false;
                                 det.Size = det.Size.Trim();
                                 newDet = (from a in db.RingFenceDetails
-                                            where ((a.Size == det.Size) && 
-                                                    (a.RingFenceID == rf.ID) && 
-                                                    (a.PO == det.PO) &&
-                                                    (a.ActiveInd == "1"))                                              
+                                          where a.Size == det.Size && 
+                                                a.RingFenceID == rf.ID && 
+                                                a.PO == det.PO &&
+                                                a.ActiveInd == "1" &&
+                                                a.DCID == det.DCID
                                             select a).FirstOrDefault();
+
                                 if (newDet == null)
                                 {
                                     newDet = new RingFenceDetail();
                                     addDetail = true;
                                     newDet.Size = det.Size;
                                 }
+
                                 newDet.DCID = det.DCID;
                                 newDet.ActiveInd = "1";
                                 newDet.LastModifiedDate = DateTime.Now;
@@ -2120,16 +2124,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
-        private RingFenceUploadModel createModelFromSpreadsheet(Cells spreadsheet, int row)
+        private RingFenceUploadModel CreateModelFromSpreadsheet(Cells spreadsheet, int row)
         {
-            RingFenceUploadModel model = new RingFenceUploadModel();
-
-            model.Store = Convert.ToString(spreadsheet[row, 1].Value);
-            model.Division = Convert.ToString(spreadsheet[row, 0].Value);
-            model.Comments = Convert.ToString(spreadsheet[row, 9].Value);
-            model.EndDate = Convert.ToString(spreadsheet[row, 3].Value);
-            model.PO = Convert.ToString(spreadsheet[row, 4].Value);
-            model.Qty = Convert.ToString(spreadsheet[row, 8].Value);
+            RingFenceUploadModel model = new RingFenceUploadModel
+            {
+                Store = Convert.ToString(spreadsheet[row, 1].Value),
+                Division = Convert.ToString(spreadsheet[row, 0].Value),
+                Comments = Convert.ToString(spreadsheet[row, 9].Value),
+                EndDate = Convert.ToString(spreadsheet[row, 3].Value),
+                PO = Convert.ToString(spreadsheet[row, 4].Value),
+                Qty = Convert.ToString(spreadsheet[row, 8].Value),
+                SKU = Convert.ToString(spreadsheet[row, 2].Value),
+                Warehouse = Convert.ToString(spreadsheet[row, 5].Value).PadLeft(2, '0')
+            };
 
             if (Convert.ToString(spreadsheet[row, 6].Value) != "")
             {
@@ -2139,10 +2146,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 model.Size = Convert.ToString(spreadsheet[row, 7].Value).PadLeft(5, '0');
             }
-
-            model.SKU = Convert.ToString(spreadsheet[row, 2].Value);
-            model.Warehouse = Convert.ToString(spreadsheet[row, 5].Value).PadLeft(2, '0');
-            model.PO = Convert.ToString(spreadsheet[row, 4].Value);
 
             return model;
         }
@@ -2412,7 +2415,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     while (mySheet.Cells[row, 0].Value != null)
                     {
-                        model = createModelFromSpreadsheet(mySheet.Cells, row);
+                        model = CreateModelFromSpreadsheet(mySheet.Cells, row);
 
                         sku = Convert.ToString(mySheet.Cells[row, 2].Value);                        
 
