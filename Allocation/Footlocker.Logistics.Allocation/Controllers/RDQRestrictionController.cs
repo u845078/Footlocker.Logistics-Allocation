@@ -475,7 +475,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             rr.Vendor = string.IsNullOrEmpty(rr.Vendor) ? null : rr.Vendor;
             rr.ToLeague = string.IsNullOrEmpty(rr.ToLeague) ? null : rr.ToLeague;
             rr.ToRegion = string.IsNullOrEmpty(rr.ToRegion) ? null : rr.ToRegion;
-
+            rr.ToStore = string.IsNullOrEmpty(rr.ToStore) ? null : rr.ToStore;
         }
 
         private bool ValidateRDQRestriction(RDQRestrictionModel model, out string errorMessage)
@@ -532,7 +532,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     // err
                     result = false;
                     string message = "The Division and Department combination is not valid.";
-                    errorMessage = (errorMessage == null) ? message : lineBreak + message;
+                    errorMessage += (errorMessage == null) ? message : lineBreak + message;
                 }
             }
             else if (hasDepartmentSelected && hasCategorySelected && !hasBrandSelected)
@@ -548,7 +548,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     // err
                     result = false;
                     string message = "The Division, Department, and Category combination is not valid.";
-                    errorMessage = (errorMessage == null) ? message : lineBreak + message;
+                    errorMessage += (errorMessage == null) ? message : lineBreak + message;
                 }
             }
             else if (hasDepartmentSelected && hasCategorySelected && hasBrandSelected)
@@ -565,8 +565,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     // err
                     result = false;
                     string message = "The Division, Department, Category, and Brand combination is not valid.";
-                    errorMessage = (errorMessage == null) ? message : lineBreak + message;
+                    errorMessage += (errorMessage == null) ? message : lineBreak + message;
                 }
+            }
+
+            // validate that only one of the following four properties exist: ToLeague, ToRegion, ToStore, ToDCCode
+            
+            int existsCounter = 0;
+            existsCounter += !string.IsNullOrEmpty(rr.ToLeague) ? 1 : 0;
+            existsCounter += !string.IsNullOrEmpty(rr.ToRegion) ? 1 : 0;
+            existsCounter += !string.IsNullOrEmpty(rr.ToStore) ? 1 : 0;
+            existsCounter += !string.IsNullOrEmpty(rr.ToDCCode) ? 1 : 0;
+
+            if (existsCounter > 1)
+            {
+                // err
+                result = false;
+                string message = "Cannot have more than one of the following properties populated: To League, To Region, To Store, To DC Code.";
+                errorMessage += (errorMessage == null) ? message : lineBreak + message;
             }
 
             // validate vendor
@@ -635,6 +651,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     string message = string.Format("The division/league combination is not valid. {0}, {1}", rr.Division, rr.ToLeague);
                     errorMessage += (errorMessage == null) ? message : lineBreak + message;
                 }
+            }
+
+            // validate dates
+            if (rr.FromDate > rr.ToDate)
+            {
+                result = false;
+                string message = string.Format("The from date is greater than the to date.");
+                errorMessage += (errorMessage == null) ? message : lineBreak + message;
             }
 
             return result;
@@ -732,8 +756,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             string message = string.Empty, errorMessage = string.Empty;
             List<RDQRestriction> parsedRRs = new List<RDQRestriction>(), validRRs = new List<RDQRestriction>();
             List<Tuple<RDQRestriction, string>> errorList = new List<Tuple<RDQRestriction, string>>();
-            int successfulCount = 0;
-            List<Tuple<RDQRestriction, string>> warnings, errors;
+            int successfulCount = 0, errorCount = 0;
 
             foreach (HttpPostedFileBase file in attachments)
             {
@@ -765,13 +788,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             {
                                 Session["errorList"] = errorList;
                                 successfulCount = validRRs.Count;
-                                warnings = errorList.Where(el => el.Item2.StartsWith("Warning")).ToList();
-                                errors = errorList.Except(warnings).ToList();
+                                errorCount = errorList.Count;
                                 errorMessage = string.Format(
-                                    "{0} lines were processed successfully. {1} warnings and {2} errors were found."
-                                    , successfulCount
-                                    , warnings.Count
-                                    , errors.Count);
+                                    "{0} lines were processed successfully. {1} errors were found.", successfulCount, errorCount);
                                 return Content(errorMessage);
                             }
 
@@ -791,17 +810,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             }
 
                             successfulCount = validRRs.Count;
-                            warnings = errorList.Where(el => el.Item2.StartsWith("Warning")).ToList();
-                            errors = errorList.Except(warnings).ToList();
+                            errorCount = errorList.Count;
 
                             // if errors occured, allow user to download them
                             if (errorList.Count > 0)
                             {
                                 errorMessage = string.Format(
-                                    "{0} lines were processed successfully. {1} warnings and {2} errors were found."
-                                    , successfulCount
-                                    , warnings.Count
-                                    , errors.Count);
+                                    "{0} lines were processed successfully. {1} errors were found.", successfulCount, errorCount);
                                 Session["errorList"] = errorList;
                                 return Content(errorMessage);
                             }
@@ -930,6 +945,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
                         else
                         {
+                            workSheet.Cells[row, col].Style.Number = 14;
                             workSheet.Cells[row, col++].PutValue(error.Item1.FromDate);
                         }
                         if (error.Item1.ToDate.Equals(DateTime.MinValue) || error.Item1.ToDate == null)
@@ -938,6 +954,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
                         else
                         {
+                            workSheet.Cells[row, col].Style.Number = 14;
                             workSheet.Cells[row, col++].PutValue(error.Item1.ToDate);
                         }
                         workSheet.Cells[row, col++].PutValue(error.Item1.FromDCCode);
@@ -1155,7 +1172,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     SetErrorMessage(errorList, rr, "The To Date is required.");
                 });
-            
+
+            // from date is less than to date
+            parsedRRs
+                .Where(pr => pr.FromDate != null && pr.ToDate != null && pr.FromDate > pr.ToDate)
+                .ToList()
+                .ForEach(rr =>
+                {
+                    SetErrorMessage(errorList, rr, "The To Date is greater than the From Date.");
+                });
 
             // has valid combination ( div / department / category / brand )
             var uniqueCombos
@@ -1333,6 +1358,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     SetErrorMessage(errorList, rr, "The From DC Code is invalid.");
                 });
+
+            // only one of the following four properties exist: ToLeague, ToRegion, ToStore, ToDCCode
+            parsedRRs.ForEach(pr =>
+            {
+                int existsCounter = 0;
+                existsCounter += !string.IsNullOrEmpty(pr.ToLeague) ? 1 : 0;
+                existsCounter += !string.IsNullOrEmpty(pr.ToRegion) ? 1 : 0;
+                existsCounter += !string.IsNullOrEmpty(pr.ToStore) ? 1 : 0;
+                existsCounter += !string.IsNullOrEmpty(pr.ToDCCode) ? 1 : 0;
+
+                if (existsCounter > 1)
+                {
+                    SetErrorMessage(errorList, pr, "Cannot have more than one of the following properties populated: To League, To Region, To Store, To DC Code.");
+                }
+            });
 
             // division / to league combination exists
             var uniqueToLeagueCombos

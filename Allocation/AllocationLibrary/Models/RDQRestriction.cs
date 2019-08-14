@@ -12,24 +12,54 @@ namespace Footlocker.Logistics.Allocation.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int RDQRestrictionID { get; set; }
 
+        private string _division;
         [Required(ErrorMessage = "Division is required")]
         [StringLength(2, ErrorMessage = "Division cannot exceed more than 2 characters")]
-        public string Division { get; set; }
+        public string Division
+        {
+            get { return _division; }
+            set { _division = value?.Trim(); }
+        }
 
-        [StringLength(5, ErrorMessage = "Vendor cannot exceed more than 5 characters")]
-        public string Vendor { get; set; }
-
+        private string _department;
         [StringLength(2, ErrorMessage = "Department cannot exceed more than 2 characters")]
-        public string Department { get; set; }
+        public string Department
+        {
+            get { return _department; }
+            set { _department = value?.Trim(); }
+        }
 
+        private string _category;
         [StringLength(3, ErrorMessage = "Category cannot exceed more than 3 characters")]
-        public string Category { get; set; }
+        public string Category
+        {
+            get { return _category; }
+            set { _category = value?.Trim(); }
+        }
 
+        private string _brand;
         [StringLength(3, ErrorMessage = "Brand cannot exceed more than 3 characters")]
-        public string Brand { get; set; }
+        public string Brand
+        {
+            get { return _brand; }
+            set { _brand = value?.Trim(); }
+        }
 
+        private string _vendor;
+        [StringLength(5, ErrorMessage = "Vendor cannot exceed more than 5 characters")]
+        public string Vendor
+        {
+            get { return _vendor; }
+            set { _vendor = value?.Trim(); }
+        }
+
+        private string _rdqType;
         [Display(Name = "RDQ Type")]
-        public string RDQType { get; set; }
+        public string RDQType
+        {
+            get { return _rdqType; }
+            set { _rdqType = value?.Trim(); }
+        }
 
         [Display(Name = "From Date")]
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:MM/dd/yyyy}")]
@@ -41,25 +71,48 @@ namespace Footlocker.Logistics.Allocation.Models
         [Required]
         public DateTime ToDate { get; set; }
 
+        private string _fromDCCode;
         [Display(Name = "From DC Code")]
-        [StringLength(2, ErrorMessage = "From DC Code cannot exceed more than 2 characters")]
-        public string FromDCCode { get; set; }
+        public string FromDCCode
+        {
+            get { return _fromDCCode; }
+            set { _fromDCCode = value?.Trim(); }
+        }
 
+        private string _toLeague;
         [Display(Name = "To League")]
         [StringLength(50, ErrorMessage = "To League should not exceed more than 50 characters")]
-        public string ToLeague { get; set; }
+        public string ToLeague
+        {
+            get { return _toLeague; }
+            set { _toLeague = value?.Trim(); }
+        }
 
+        private string _toRegion;
         [Display(Name = "To Region")]
         [StringLength(50, ErrorMessage = "To Region should not exceed more than 50 characters")]
-        public string ToRegion { get; set; }
+        public string ToRegion
+        {
+            get { return _toRegion; }
+            set { _toRegion = value?.Trim(); }
+        }
 
+        private string _toStore;
         [Display(Name = "To Store")]
         [StringLength(5, ErrorMessage = "The store cannot exceed more than 5 characters")]
-        public string ToStore { get; set; }
+        public string ToStore
+        {
+            get { return _toStore; }
+            set { _toStore = value?.Trim(); }
+        }
 
+        private string _toDCCode;
         [Display(Name = "To DC Code")]
-        [StringLength(2, ErrorMessage = "To DC Code cannot exceed more than 2 characters")]
-        public string ToDCCode { get; set; }
+        public string ToDCCode
+        {
+            get { return _toDCCode; }
+            set { _toDCCode = value?.Trim(); }
+        }
 
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:MM/dd/yyyy}")]
         public DateTime LastModifiedDate { get; set; }
@@ -109,31 +162,5 @@ namespace Footlocker.Logistics.Allocation.Models
             this.ToStore = toStore;
             this.ToDCCode = toDCCode;
         }
-
-        //public override bool Equals(object obj)
-        //{
-        //    var item = obj as RDQRestriction;
-
-        //    if (obj == null)
-        //    {
-        //        return false;
-        //    }
-            
-        //    // division is required and will not be null
-        //    if (!this.Division.Equals(item.Division))
-        //    {
-        //        return false;
-        //    }
-
-        //    var equal = ((this.Department == null && item.Department == null) || this.Department == item.Department) &&
-        //                 ((this.Category == null && item.Category == null) || this.Category == item.Category) &&
-        //                 ((this.Brand == null && item.Brand == null) || this.Brand == item.Brand) &&
-        //                 ((this.))
-        //}
-
-        //public override int GetHashCode()
-        //{
-        //    return this.RDQRestrictionID.GetHashCode();
-        //}
     }
 }

@@ -5,12 +5,35 @@
 
 <fieldset>
     <legend> RDQ Restrictions Upload </legend>
-    See comments in spreadsheet header for format and other instructions. <br />
+    <b>See comments in spreadsheet header for format and other instructions that are not outlined below.</b>
+    <br />
+    <br />
     @Html.ActionLink("Download Template", "ExcelTemplate", new { }, new { @class = "t-button" })
     <br />
     <br />
-    <b>Please select spreadsheets: </b>
+    <b>The following validations must pass before uploading:</b>
     <br />
+    <ul>
+        <li>You must have permission for the specified division</li>
+        <li>
+            The following fields are required:
+            <ul style="margin-bottom: 0px;">
+                <li>Division</li>
+                <li>From Date</li>
+                <li>To Date</li>
+            </ul>
+        </li>
+        <li>
+            You can only populate one of the four following fields for one RDQ Restriction row:
+            <ul style="margin-bottom: 0px;">
+                <li>To League</li>
+                <li>To Region</li>
+                <li>To Store</li>
+                <li>To DC Code</li>
+            </ul>
+        </li>
+    </ul>
+    <b>Please select spreadsheets: </b>
     <br />
     @(Html.Telerik().Upload()
         .Name("attachments")
@@ -62,7 +85,7 @@
     }
 
     function onSuccess(e) {
-        var message = e.response.successMessage;
+        var message = e.response.message;
         $('#message').empty().append("<font color='red'>" + message + "</font>");
         $('#errors').hide();
         e.preventDefault();

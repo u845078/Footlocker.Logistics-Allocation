@@ -6,13 +6,6 @@
 
 <h2>Create RDQ Restriction</h2>
 
-@if ((ViewData["message"] != null && (ViewData["message"]) != null))
-{
-    <font color="Green">
-        @Html.Raw(Convert.ToString(ViewData["message"]))
-    </font>
-}
-
 @if ((ViewData["errorMessage"] != "") && (ViewData["errorMessage"] != null))
 {
     <font color="Red">
