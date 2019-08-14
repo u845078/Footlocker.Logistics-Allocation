@@ -18,7 +18,17 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Division
         {
             get { return _division; }
-            set { _division = value?.Trim(); }
+            set
+            {
+                if (value == null)
+                {
+                    _division = null;
+                }
+                else
+                {
+                    _division = value.Trim();
+                }
+            }
         }
 
         private string _department;
@@ -26,7 +36,18 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Department
         {
             get { return _department; }
-            set { _department = value?.Trim(); }
+            set
+            {
+                if (value == null)
+                {
+                    _department = null;
+                }
+                else
+                {
+                    _department = value.Trim();
+                }
+            }
+            //set { _department = value?.Trim(); }
         }
 
         private string _category;
