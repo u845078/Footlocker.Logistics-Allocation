@@ -32,7 +32,6 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         private string _department;
-        [StringLength(2, ErrorMessage = "Department cannot exceed more than 2 characters")]
         public string Department
         {
             get { return _department; }

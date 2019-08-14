@@ -486,7 +486,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     .Any(r => r.Division.Equals(rr.Division) &&
                               ((r.Department == null && rr.Department == null) || r.Department.Equals(rr.Department)) &&
                               ((r.Category == null && rr.Category == null) || r.Category.Equals(rr.Category)) &&
-                              ((r.Brand == null && rr.Category == null) || r.Brand.Equals(rr.Brand)) &&
+                              ((r.Brand == null && rr.Brand == null) || r.Brand.Equals(rr.Brand)) &&
                               ((r.RDQType == null && rr.RDQType == null) || r.RDQType.Equals(rr.RDQType)) &&
                               ((r.Vendor == null && rr.Vendor == null) || r.Vendor.Equals(rr.Vendor)) &&
                               ((r.FromDCCode == null && rr.FromDCCode == null) || r.FromDCCode.Equals(rr.FromDCCode)) &&
