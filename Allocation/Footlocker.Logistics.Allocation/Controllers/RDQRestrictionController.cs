@@ -366,24 +366,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<RDQRestriction> returnValue = new List<RDQRestriction>();
 
-            returnValue
-                = db.RDQRestrictions
-                    .Where(rr => rr.Division.Equals(div) &&
-                                 (string.IsNullOrEmpty(dept) || rr.Department.Equals(dept)) &&
-                                 (string.IsNullOrEmpty(cat) || rr.Category.Equals(cat)) &&
-                                 (string.IsNullOrEmpty(brand) || rr.Brand.Equals(brand))).ToList();
+            returnValue = RetrieveRDQRestrictionsForProduct(div, dept, cat, brand);
 
             return PartialView(new GridModel(returnValue));
         }
 
         public ActionResult DeleteRDQRestrictionsByProduct(string div, string dept, string cat, string brand)
         {
-            List<RDQRestriction> rdqRestrictions = (from rr in db.RDQRestrictions
-                                                   where rr.Division == div &&
-                                                         (string.IsNullOrEmpty(dept) || rr.Department == dept) &&
-                                                         (string.IsNullOrEmpty(cat) || rr.Category == cat) &&
-                                                         (string.IsNullOrEmpty(brand) || rr.Brand == brand)
-                                                  select rr).ToList();
+            List<RDQRestriction> rdqRestrictions = new List<RDQRestriction>();
+
+            rdqRestrictions = RetrieveRDQRestrictionsForProduct(div, dept, cat, brand);
 
             foreach (var rr in rdqRestrictions)
             {
@@ -723,6 +715,81 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             return model;
+        }
+
+        private List<RDQRestriction> RetrieveRDQRestrictionsForProduct(string div, string dept, string cat, string brand)
+        {
+            List<RDQRestriction> returnValue = new List<RDQRestriction>();
+
+            bool departmentExists = !string.IsNullOrEmpty(dept);
+            bool categoryExists = !string.IsNullOrEmpty(cat);
+            bool brandExists = !string.IsNullOrEmpty(brand);
+
+            if (departmentExists && !categoryExists && !brandExists)
+            {
+                returnValue
+                    = db.RDQRestrictions
+                        .Where(rr => rr.Division.Equals(div) &&
+                                     rr.Department.Equals(dept) &&
+                                     rr.Category == null &&
+                                     rr.Brand == null).ToList();
+            }
+            else if (departmentExists && categoryExists && !brandExists)
+            {
+                returnValue
+                    = db.RDQRestrictions
+                        .Where(rr => rr.Division.Equals(div) &&
+                                     rr.Department.Equals(dept) &&
+                                     rr.Category.Equals(cat) &&
+                                     rr.Brand == null).ToList();
+            }
+            else if (departmentExists && categoryExists && brandExists)
+            {
+                returnValue
+                    = db.RDQRestrictions
+                        .Where(rr => rr.Division.Equals(div) &&
+                                     rr.Department.Equals(dept) &&
+                                     rr.Category.Equals(cat) &&
+                                     rr.Brand.Equals(brand)).ToList();
+            }
+            else if (departmentExists && !categoryExists && brandExists)
+            {
+                returnValue
+                    = db.RDQRestrictions
+                        .Where(rr => rr.Division.Equals(div) &&
+                                     rr.Department.Equals(dept) &&
+                                     rr.Category == null &&
+                                     rr.Brand.Equals(brand)).ToList();
+            }
+            else if (!departmentExists && categoryExists && !brandExists)
+            {
+                returnValue
+                    = db.RDQRestrictions
+                        .Where(rr => rr.Division.Equals(div) &&
+                                     rr.Department == null &&
+                                     rr.Category.Equals(cat) &&
+                                     rr.Brand == null).ToList();
+            }
+            else if (!departmentExists && !categoryExists && brandExists)
+            {
+                returnValue
+                    = db.RDQRestrictions
+                        .Where(rr => rr.Division.Equals(div) &&
+                                     rr.Department == null &&
+                                     rr.Category == null &&
+                                     rr.Brand.Equals(brand)).ToList();
+            }
+            else if (!departmentExists && !categoryExists && !brandExists)
+            {
+                returnValue
+                    = db.RDQRestrictions
+                        .Where(rr => rr.Division.Equals(div) &&
+                                     rr.Department == null &&
+                                     rr.Category == null &&
+                                     rr.Brand == null).ToList();
+            }
+
+            return returnValue;
         }
 
         public ActionResult DeleteRDQRestriction(int id)
