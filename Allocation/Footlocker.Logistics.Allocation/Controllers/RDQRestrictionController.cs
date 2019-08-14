@@ -788,6 +788,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                      rr.Category == null &&
                                      rr.Brand == null).ToList();
             }
+            else if (!departmentExists && categoryExists && brandExists)
+            {
+                returnValue
+                    = db.RDQRestrictions
+                        .Where(rr => rr.Division.Equals(div) &&
+                                     rr.Department == null &&
+                                     rr.Category.Equals(cat) &&
+                                     rr.Brand.Equals(brand)).ToList();
+            }
 
             return returnValue;
         }
