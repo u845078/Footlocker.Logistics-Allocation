@@ -47,7 +47,6 @@ namespace Footlocker.Logistics.Allocation.Models
                     _department = value.Trim();
                 }
             }
-            //set { _department = value?.Trim(); }
         }
 
         private string _category;
@@ -55,7 +54,17 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Category
         {
             get { return _category; }
-            set { _category = value?.Trim(); }
+            set
+            {
+                if (value == null)
+                {
+                    _category = null;
+                }
+                else
+                {
+                    _category = value.Trim();
+                }
+            }
         }
 
         private string _brand;
@@ -63,7 +72,17 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Brand
         {
             get { return _brand; }
-            set { _brand = value?.Trim(); }
+            set
+            {
+                if (value == null)
+                {
+                    _brand = null;
+                }
+                else
+                {
+                    _brand = value.Trim();
+                }
+            }
         }
 
         private string _vendor;
@@ -71,7 +90,17 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Vendor
         {
             get { return _vendor; }
-            set { _vendor = value?.Trim(); }
+            set
+            {
+                if (value == null)
+                {
+                    _vendor = null;
+                }
+                else
+                {
+                    _vendor = value.Trim();
+                }
+            }
         }
 
         private string _rdqType;
@@ -79,7 +108,17 @@ namespace Footlocker.Logistics.Allocation.Models
         public string RDQType
         {
             get { return _rdqType; }
-            set { _rdqType = value?.Trim(); }
+            set
+            {
+                if (value == null)
+                {
+                    _rdqType = null;
+                }
+                else
+                {
+                    _rdqType = value.Trim();
+                }
+            }
         }
 
         [Display(Name = "From Date")]
@@ -97,7 +136,17 @@ namespace Footlocker.Logistics.Allocation.Models
         public string FromDCCode
         {
             get { return _fromDCCode; }
-            set { _fromDCCode = value?.Trim(); }
+            set
+            {
+                if (value == null)
+                {
+                    _fromDCCode = null;
+                }
+                else
+                {
+                    _fromDCCode = value.Trim();
+                }
+            }
         }
 
         private string _toLeague;
@@ -106,7 +155,17 @@ namespace Footlocker.Logistics.Allocation.Models
         public string ToLeague
         {
             get { return _toLeague; }
-            set { _toLeague = value?.Trim(); }
+            set
+            {
+                if (value == null)
+                {
+                    _toLeague = null;
+                }
+                else
+                {
+                    _toLeague = value.Trim();
+                }
+            }
         }
 
         private string _toRegion;
@@ -115,7 +174,17 @@ namespace Footlocker.Logistics.Allocation.Models
         public string ToRegion
         {
             get { return _toRegion; }
-            set { _toRegion = value?.Trim(); }
+            set
+            {
+                if (value == null)
+                {
+                    _toRegion = null;
+                }
+                else
+                {
+                    _toRegion = value.Trim();
+                }
+            }
         }
 
         private string _toStore;
@@ -124,7 +193,17 @@ namespace Footlocker.Logistics.Allocation.Models
         public string ToStore
         {
             get { return _toStore; }
-            set { _toStore = value?.Trim(); }
+            set
+            {
+                if (value == null)
+                {
+                    _toStore = null;
+                }
+                else
+                {
+                    _toStore = value.Trim();
+                }
+            }
         }
 
         private string _toDCCode;
@@ -132,7 +211,17 @@ namespace Footlocker.Logistics.Allocation.Models
         public string ToDCCode
         {
             get { return _toDCCode; }
-            set { _toDCCode = value?.Trim(); }
+            set
+            {
+                if (value == null)
+                {
+                    _toDCCode = null;
+                }
+                else
+                {
+                    _toDCCode = value.Trim();
+                }
+            }
         }
 
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:MM/dd/yyyy}")]
