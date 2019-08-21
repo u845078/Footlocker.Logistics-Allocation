@@ -88,10 +88,13 @@ namespace Footlocker.Logistics.Allocation.Models
         [StringLayoutDelimited(5)]
         public string PO { get; set; }
 
-        [NotMapped]
-        [StringLayoutDelimited(6)]
+        [NotMapped]        
         [Display(Name = "DCID")]
         public Int32 DCID { get; set; }
+
+        [NotMapped]
+        [StringLayoutDelimited(1)]
+        public string MFCode { get; set; }
 
         [NotMapped]
         [Display(Name = "Bin Qty")]
@@ -233,7 +236,7 @@ namespace Footlocker.Logistics.Allocation.Models
             this.Sku = String.Empty;
             this.Size = String.Empty;
             this.PO = String.Empty;
-            this.DCID = 0;
+            this.MFCode = String.Empty;            
             this.BinQty = 0;
             this.CaseQty = 0;
             this.Qty = 0;
@@ -264,7 +267,7 @@ namespace Footlocker.Logistics.Allocation.Models
         /// <param name="itemMaster">The initial value for the item master property.</param>
         /// <param name="ringFenceType">The initial value for the ring fence type property.</param>
         /// <param name="type">The initial value for the type property.</param>
-        public RingFence(Int64 id, string division, string store, string sku, string size, string po, Int32 dcid, Int32 binQty, Int32 caseQty, Int32 qty, DateTime startDate
+        public RingFence(Int64 id, string division, string store, string sku, string size, string po, string MFCode, Int32 binQty, Int32 caseQty, Int32 qty, DateTime startDate
                 , DateTime? endDate, string createdBy, DateTime? createDate, Int64 itemId, ItemMaster itemMaster
                 , RingFenceType ringFenceType, Int32 type)
             : this()
@@ -275,7 +278,7 @@ namespace Footlocker.Logistics.Allocation.Models
             this.Sku = sku;
             this.Size = size;
             this.PO = po;
-            this.DCID = dcid;
+            this.MFCode = MFCode;
             this.BinQty = binQty;
             this.CaseQty = caseQty;
             this.Qty = qty;
