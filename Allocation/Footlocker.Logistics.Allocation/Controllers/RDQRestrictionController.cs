@@ -204,6 +204,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             string message = "";
 
+            model.RDQRestriction.RDQRestrictionID = id;
+            model.RDQRestriction.LastModifiedDate = DateTime.Now;
+            model.RDQRestriction.LastModifiedUser = User.Identity.Name;
+
             if (!ValidateRDQRestriction(model, out message))
             {
                 model = FillModelLists(model);
@@ -211,9 +215,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return View(model);
             }
 
-            model.RDQRestriction.RDQRestrictionID = id;
-            model.RDQRestriction.LastModifiedDate = DateTime.Now;
-            model.RDQRestriction.LastModifiedUser = User.Identity.Name;
             db.Entry(model.RDQRestriction).State = System.Data.EntityState.Modified;
             db.SaveChanges();
 
