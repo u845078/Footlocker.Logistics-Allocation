@@ -2252,7 +2252,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 int row = 1;
                 if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Store")) && (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("SKU")))
-                {                    
+                {
+                    List<RingFenceUploadModel> InputData = new List<RingFenceUploadModel>();
                     List<RingFenceUploadModel> ProcessList = new List<RingFenceUploadModel>();
                     List<RingFenceUploadModel> DeleteList = new List<RingFenceUploadModel>();
                     List<RingFenceUploadModel> Errors = new List<RingFenceUploadModel>();
@@ -2271,71 +2272,128 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             SKU = sku
                         };
 
-                        if (!validateUploadSecurity(model))
-                        {
-                            Errors.Add(model);
-                        }
-                        else
-                        {
-                            bool ringFenceExists = db.RingFences.Any(rf => rf.Sku.Equals(model.SKU) &&
-                                                                           (rf.Store == model.Store ||
-                                                                           (string.IsNullOrEmpty(model.Store) && string.IsNullOrEmpty(rf.Store))));
-
-                            if (!ringFenceExists)
-                            {
-                                model.ErrorMessage = "There was no ring fence found for this store and SKU";
-                                Errors.Add(model);
-                            }
-                            
-                            if (string.IsNullOrEmpty(model.ErrorMessage))
-                                ProcessList.Add(model);
-                        }
-
+                        InputData.Add(model);
                         row++;
                     }
 
-                    var duplicates = (from p in ProcessList
-                                      group p by new { f1 = p.SKU, f2 = p.Store } into g
-                                      where g.Count() > 1
+                    var uniqueDivisions = (from ud in InputData
+                                           select ud.Division).Distinct().ToList();
+
+                    foreach (string div in uniqueDivisions)
+                    {
+                        if (!(WebSecurityService.UserHasDivision(UserName, "allocation", div)))
+                        {
+                            Errors.AddRange((from id in InputData
+                                             where id.Division == div
+                                             select new RingFenceUploadModel {
+                                                 Store = id.Store,
+                                                 Division = id.Division,
+                                                 SKU = id.SKU,
+                                                 ErrorMessage = String.Format("You are not authorized to update division {0}", div)
+                                             }).ToList());
+                        }                       
+                    }
+
+                    // tag all errored records in InputData 
+                    foreach (RingFenceUploadModel err in Errors)
+                    {
+                        InputData.Where(id => id.Store == err.Store && id.SKU == err.SKU)
+                            .Select(e =>
+                            {
+                                e.ErrorMessage = err.ErrorMessage;
+                                return e;
+                            }).ToList();
+                    }
+
+                    //see if ring fences exist
+                    var skuOnlyList = InputData.Where(id => string.IsNullOrEmpty(id.Store) && id.ErrorMessage == null).ToList();
+                    var skuStoreList = InputData.Where(id => !string.IsNullOrEmpty(id.Store) && id.ErrorMessage == null).ToList();
+                    var RingFences = (from rf in db.RingFences
+                                      where uniqueDivisions.Contains(rf.Division)
+                                      select rf).ToList();
+
+                    var skusDontExist = skuOnlyList.Where(so => !RingFences.Any(rf => rf.Sku.Equals(so.SKU))).ToList();
+
+                    foreach (RingFenceUploadModel err in skusDontExist)
+                    {
+                        InputData.Where(id => id.Store == err.Store && id.SKU == err.SKU)
+                            .Select(e =>
+                            {
+                                e.ErrorMessage = "There are no ring fences for this SKU";
+                                return e;
+                            }).ToList();
+                    }
+
+                    skusDontExist = skuStoreList.Where(ssl => !RingFences.Any(rf => (rf.Sku == ssl.SKU) &&
+                                                                                    (rf.Store == ssl.Store))).ToList();
+
+                    foreach (RingFenceUploadModel err in skusDontExist)
+                    {
+                        InputData.Where(id => id.Store == err.Store && id.SKU == err.SKU)
+                            .Select(e =>
+                            {
+                                e.ErrorMessage = "There are no ring fences for this SKU/Store combination";
+                                return e;
+                            }).ToList();
+                    }
+
+                    var duplicates = (from id in InputData
+                                      where id.ErrorMessage == null
+                                      group id by new { f1 = id.SKU, f2 = id.Store } into g
+                                      where g.Count() > 1                                            
                                       select g).ToList();
 
                     foreach (var dup in duplicates)
                     {
-                        foreach (var plDup in ProcessList.Where(x => x.SKU == dup.Key.f1 && x.Store == dup.Key.f2))
+                        foreach (var plDup in InputData.Where(x => x.SKU == dup.Key.f1 && x.Store == dup.Key.f2))
                         {
                             plDup.ErrorMessage = "Duplicate ring fence record";
                             Errors.Add(plDup);
                         }
                     }
 
-                    ProcessList = ProcessList.Where(x => string.IsNullOrEmpty(x.ErrorMessage)).ToList();
+                    Errors.AddRange(InputData.Where(id => !String.IsNullOrEmpty(id.ErrorMessage)));
+                    ProcessList.AddRange(InputData.Where(id => id.ErrorMessage == null));
+
+                    skuOnlyList = ProcessList.Where(id => string.IsNullOrEmpty(id.Store)).ToList();
+                    skuStoreList = ProcessList.Where(id => !string.IsNullOrEmpty(id.Store)).ToList();
+
+                    db.Configuration.AutoDetectChangesEnabled = false;
+                    db.Configuration.LazyLoadingEnabled = false;
+                    db.Configuration.ProxyCreationEnabled = false;
+                    db.Configuration.ValidateOnSaveEnabled = false;
 
                     if (ProcessList.Count > 0)
                     {
-                        foreach (var rfDel in ProcessList)
-                        {
-                            var rfToDelete = (from r in db.RingFences
-                                              where (r.Store == rfDel.Store ||
-                                                     (string.IsNullOrEmpty(r.Store) && string.IsNullOrEmpty(rfDel.Store))) &&
-                                                    r.Sku == rfDel.SKU &&
-                                                    r.Division == rfDel.Division
-                                              select r).ToList();
-                            if (rfToDelete.Count == 0)
-                            {
-                                rfDel.ErrorMessage = "There was no ring fence found for this store and SKU";
-                                Errors.Add(rfDel);
-                            }
-                            else
-                            {
-                                foreach (var rf in rfToDelete)
-                                {
-                                    var deleteRFD = rf.ringFenceDetails.ToList();
-                                    foreach (var rfd in deleteRFD)
-                                        db.RingFenceDetails.Remove(rfd);
+                        var rfToDelete = (from pl in skuStoreList
+                                          join r in db.RingFences
+                                          on new { sku = pl.SKU, store = pl.Store } equals new { sku = r.Sku, store = r.Store }
+                                          select r.ID).ToList();
 
-                                    db.RingFences.Remove(rf);
-                                }
-                            }
+                        if (skuOnlyList.Count() > 0)
+                        {
+                            rfToDelete.AddRange((from pl in skuOnlyList
+                                                 join r in db.RingFences
+                                                 on pl.SKU equals r.Sku
+                                                 select r.ID).Except(rfToDelete).ToList());
+                        }
+
+                        var rfdToDelete = (from rfd in db.RingFenceDetails
+                                           where rfToDelete.Contains(rfd.RingFenceID)
+                                           select rfd).ToList();
+
+                        foreach (var rfd in rfdToDelete)
+                        {
+                            db.RingFenceDetails.Remove(rfd);
+                        }
+
+                        var deleteRF = (from rf in db.RingFences
+                                        where rfToDelete.Contains(rf.ID)
+                                        select rf).ToList();
+
+                        foreach (var rf in deleteRF)
+                        {
+                            db.RingFences.Remove(rf);
                         }
 
                         // clear out session variables since something changed

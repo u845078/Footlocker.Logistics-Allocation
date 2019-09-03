@@ -117,6 +117,18 @@ namespace Footlocker.Logistics.Allocation.Services
 
             modelBuilder.Entity<RingFence>().HasRequired(o => o.RingFenceType).WithMany().HasForeignKey(c => c.Type);
 
+            modelBuilder.Entity<RingFence>()
+                .Property(x => x.Sku)
+                .HasColumnType("VARCHAR");
+
+            modelBuilder.Entity<RingFence>()
+                .Property(x => x.Division)
+                .HasColumnType("VARCHAR");
+
+            modelBuilder.Entity<RingFence>()
+                .Property(x => x.Store)
+                .HasColumnType("VARCHAR");
+
             modelBuilder.Entity<SizeAllocation>().Property(x => x.RangeFromDB).HasColumnName("Range");
 
             modelBuilder.Entity<SkuAttributeHeader>().HasMany(x => x.SkuAttributeDetails).WithRequired(y => y.header).HasForeignKey(z => z.HeaderID);
