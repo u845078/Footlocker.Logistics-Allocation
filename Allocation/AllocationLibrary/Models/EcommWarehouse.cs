@@ -24,6 +24,14 @@ namespace Footlocker.Logistics.Allocation.Models
         [Key]
         [Column(Order = 1)]
         public string Store { get; set; }
+
+        public string Name { get; set; }
+
+        public int StorageDCID { get; set; }
+
+        [ForeignKey("StorageDCID")]
+        public virtual DistributionCenter StorageDistributionCenter { get; set; }
+
         public string CreatedBy { get; set; }
         public DateTime CreateDate { get; set; }
     }

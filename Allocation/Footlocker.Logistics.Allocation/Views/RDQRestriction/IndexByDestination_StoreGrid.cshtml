@@ -1,0 +1,73 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RDQRestrictionModel
+
+<script>
+    function MassDeleteStoreGrid(division, store) {
+        if (confirm('Are you sure you want to delete this group of RDQ Restrictions?')) {
+            window.location = "/RDQRestriction/DeleteRDQRestrictionsByStore?div=" + division + "&store=" + store;
+        }
+    }
+</script>
+
+
+ @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreLookup>()
+    .Name("RDQRestrictionsStoreGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(sl => sl.Division).Visible(true);
+        columns.Bound(sl => sl.Store).Visible(true);
+        columns.Bound(sl => sl.Mall).Visible(true);
+        columns.Bound(sl => sl.City).Visible(true);
+        columns.Bound(sl => sl.State).Visible(true);
+        columns.Template(@<text>
+                            @Html.Raw("<a class=\"t-button\" href='javascript:MassDeleteStoreGrid(\"" + item.Division + "\",\"" + item.Store + "\");'>Delete</a>")
+                            </text>)
+                    .ClientTemplate("<a class=\"t-button\" href='javascript:MassDeleteStoreGrid(\"<#= Division #>\",\"<#= Store #>\");'>Delete</a>");
+    })
+    .DataBinding(dataBinding =>
+    {
+        dataBinding.Ajax().Select("_RDQRestrictionStores", "RDQRestriction");
+    })
+    .Sortable(s =>
+    {
+        s.SortMode(GridSortMode.MultipleColumn);
+    })
+    .Pageable(p => p.PageSize(10))
+    .Filterable()
+    .Footer(true)
+    .DetailView(rrDetails => rrDetails.ClientTemplate(
+        Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQRestriction>()
+            .Name("RDQRestriction" + "_<#= Store #>")
+            .Columns(columns =>
+            {
+                columns.Bound(rr => rr.Division);
+                columns.Bound(rr => rr.Department);
+                columns.Bound(rr => rr.Category);
+                columns.Bound(rr => rr.Brand);
+                columns.Bound(rr => rr.Vendor);
+                columns.Bound(rr => rr.RDQType);
+                columns.Bound(rr => rr.FromDate).Format("{0:MM/dd/yyyy}");
+                columns.Bound(rr => rr.ToDate).Format("{0:MM/dd/yyyy}");
+                columns.Bound(rr => rr.FromDCCode);
+                columns.Bound(rr => rr.ToDCCode);
+                columns.Bound(rr => rr.ToLeague);
+                columns.Bound(rr => rr.ToRegion);
+                columns.Template(@<text>
+                                    @Html.ActionLink("Edit", "Edit", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
+                                    @Html.ActionLink("Delete", "Delete", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
+                                </text>)
+                        .Width(250)
+                        .ClientTemplate(
+                            "<a class='t-button' href='" + Url.Content("~/RDQRestriction/Edit/<#= RDQRestrictionID #>") + "'>Edit</a>" +
+                            "<a class='t-button' href='" + Url.Content("~/RDQRestriction/DeleteRDQRestriction/<#= RDQRestrictionID #>") + "'>Delete</a>"
+                        );
+            })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Ajax().Select("_RDQRestrictionsForStore", "RDQRestriction", new { div = "<#= Division #>", store = "<#= Store #>" });
+            })
+            .Pageable()
+            .Sortable()
+            .Filterable()
+            .ToHtmlString()
+    ))
+)

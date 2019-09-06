@@ -41,6 +41,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 model.FulfillmentCenters.Add(new SelectListItem { Text = fcl.displayValue, Value = fcl.ID.ToString() });
             }
+
+            model.ECOMStores = GetECOMStores(model.FulfillmentCenters[0].Value);
          
             return View(model);            
         }
@@ -49,5 +51,35 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             return View();
         }
+
+
+        #region SelectListItem routines
+        public List<SelectListItem> GetECOMStores(string fulfillmentCenterID)
+        {
+            List<SelectListItem> ecomStores = new List<SelectListItem>();
+            int fcID;
+
+            if (!string.IsNullOrEmpty(fulfillmentCenterID))
+            {
+                fcID = Convert.ToInt32(fulfillmentCenterID);
+
+                var queryList = (from a in db.EcommWarehouses
+                                 where a.StorageDCID == fcID
+                                 orderby a.Store
+                                 select a).ToList();
+
+                foreach (var rec in queryList)
+                {
+                    ecomStores.Add(new SelectListItem
+                    {
+                        Text = String.Format("{0}-{1} - {2}", rec.Division, rec.Store, rec.Name),
+                        Value = String.Format("{0}-{1}", rec.Division, rec.Store)
+                    });
+                }
+            }
+
+            return ecomStores;
+        }
+        #endregion
     }
 }

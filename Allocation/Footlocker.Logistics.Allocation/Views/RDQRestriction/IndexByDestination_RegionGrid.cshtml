@@ -1,0 +1,67 @@
+﻿@model Footlocker.Logistics.Allocation.Models.RDQRestrictionModel
+
+<script>
+    function MassDeleteRegionGrid(division, region) {
+        if (confirm('Are you sure you want to delete this group of RDQ Restrictions?')) {
+            window.location = "/RDQRestriction/DeleteRDQRestrictionsByRegion?div=" + division + "&region=" + region;
+        }
+    }
+</script>
+
+@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.Region>()
+    .Name("RDQRestrictionRegionsGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(r => r.Division);
+        columns.Bound(r => r.RegionCode).Title("Region");
+        columns.Bound(r => r.Description);
+        columns.Template(@<text>
+                            @Html.Raw("<a class=\"t-button\" href='javascript:MassDeleteRegionGrid(\"" + item.Division + "\",\"" + item.RegionCode + "\");'>Delete</a>")
+                            </text>)
+                .ClientTemplate("<a class=\"t-button\" href='javascript:MassDeleteRegionGrid(\"<#= Division #>\",\"<#= RegionCode #>\");'>Delete</a>");
+    })
+    .DataBinding(dataBinding =>
+    {
+        dataBinding.Ajax().Select("_RDQRestrictionRegions", "RDQRestriction");
+    })
+    .Sortable(s =>
+    {
+        s.SortMode(GridSortMode.MultipleColumn);
+    })
+    .Pageable(p => p.PageSize(10))
+    .Filterable()
+    .Footer(true)
+    .DetailView(rrDetails => rrDetails.ClientTemplate(
+        Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQRestriction>()
+            .Name("RDQRestriction" + "_<#= RegionCode #>")
+            .Columns(columns =>
+            {
+                columns.Bound(rr => rr.Division);
+                columns.Bound(rr => rr.Department);
+                columns.Bound(rr => rr.Category);
+                columns.Bound(rr => rr.Brand);
+                columns.Bound(rr => rr.Vendor);
+                columns.Bound(rr => rr.RDQType);
+                columns.Bound(rr => rr.FromDate);
+                columns.Bound(rr => rr.ToDate);
+                columns.Bound(rr => rr.FromDCCode);
+                columns.Template(@<text>
+                                    @Html.ActionLink("Edit", "Edit", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
+                                    @Html.ActionLink("Delete", "Delete", new { id = item.RDQRestrictionID }, new { @class = "t-button" })
+                                </text>)
+                        .Width(250)
+                        .ClientTemplate(
+                            "<a class='t-button' href='" + Url.Content("~/RDQRestriction/Edit/<#= RDQRestrictionID #>") + "'>Edit</a>" +
+                            "<a class='t-button' href='" + Url.Content("~/RDQRestriction/DeleteRDQRestriction/<#= RDQRestrictionID #>") + "'>Delete</a>"
+                        );
+            })
+            .DataBinding(dataBinding =>
+            {
+                dataBinding.Ajax().Select("_RDQRestrictionsForRegion", "RDQRestriction", new { div = "<#= Division #>", region = "<#= RegionCode #>" });
+            })
+            .Pageable()
+            .Sortable()
+            .Filterable()
+            .ToHtmlString()
+    ))
+)

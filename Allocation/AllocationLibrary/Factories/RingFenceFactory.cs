@@ -36,7 +36,7 @@ namespace Footlocker.Logistics.Allocation.Factories
             string po //= Convert.ToString(reader["PO"]);
                 = Convert.IsDBNull(reader["PO"]) ? String.Empty
                     : Convert.ToString(reader["PO"]);
-            Int32 dcid = Convert.ToInt32(reader["DCID"]);
+            string MFCode = Convert.ToString(reader["MFCode"]);
             Int32 qty = Convert.ToInt32(reader["Qty"]);
             Int32 binQty = Convert.ToInt32(reader["BinQty"]);
             Int32 caseQty = Convert.ToInt32(reader["CaseQty"]);
@@ -49,7 +49,7 @@ namespace Footlocker.Logistics.Allocation.Factories
                 = Convert.IsDBNull(reader["CreateDTTM"]) ? new DateTime?()
                     : new DateTime?(Convert.ToDateTime(reader["CreateDTTM"]));
 
-            return new RingFence(id, division, store, sku, size, po, dcid, binQty, caseQty, qty, startDate, endDate, createdBy, createDate
+            return new RingFence(id, division, store, sku, size, po, MFCode, binQty, caseQty, qty, startDate, endDate, createdBy, createDate
                 , 0L, null, null, 1);
         }
     }

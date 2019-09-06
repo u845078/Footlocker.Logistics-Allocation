@@ -15,7 +15,7 @@
     <AssemblyName>Footlocker.Logistics.Allocation</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
-    <UseIISExpress>false</UseIISExpress>
+    <UseIISExpress>true</UseIISExpress>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
@@ -222,6 +222,7 @@
     <Compile Include="Controllers\NonRangedProductController.cs" />
     <Compile Include="Controllers\ProductHierarchyOverrideController.cs" />
     <Compile Include="Controllers\PurgeArchiveController.cs" />
+    <Compile Include="Controllers\RDQRestrictionController.cs" />
     <Compile Include="Controllers\StoreExtensionController.cs" />
     <Compile Include="Controllers\StoreAttributeController.cs" />
     <Compile Include="Controllers\StoreBTSController.cs" />
@@ -260,6 +261,7 @@
     <Compile Include="Models\QuantumDataDownloadModel.cs" />
     <Compile Include="Models\ProductHierarchyOverrideModel.cs" />
     <Compile Include="Models\PurgeArchiveTypeModel.cs" />
+    <Compile Include="Models\RDQRestrictionModel.cs" />
     <Compile Include="Models\RingFenceUploadModelNew.cs" />
     <Compile Include="Models\SkuSetupModel.cs" />
     <Compile Include="Models\TroubleshootRDQForSkuModel.cs" />
@@ -507,6 +509,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <Content Include="Content\Templates\RingFenceDeleteTemplate.xls" />
+    <Content Include="Content\Templates\RDQRestrictionUploadTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Content\Templates\SkuIdUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -589,6 +594,17 @@
     <Content Include="Views\PurgeArchive\Create.cshtml" />
     <Content Include="Views\SkuAttribute\Upload.cshtml" />
     <Content Include="Views\RingFence\UploadDeletes.cshtml" />
+    <Content Include="Views\RDQRestriction\Create.cshtml" />
+    <Content Include="Views\RDQRestriction\Index.cshtml" />
+    <Content Include="Views\RDQRestriction\Edit.cshtml" />
+    <Content Include="Views\RDQRestriction\FormLayout.cshtml" />
+    <Content Include="Views\RDQRestriction\Upload.cshtml" />
+    <Content Include="Views\RDQRestriction\IndexByProduct.cshtml" />
+    <Content Include="Views\RDQRestriction\IndexByDestination.cshtml" />
+    <Content Include="Views\RDQRestriction\IndexByDestination_StoreGrid.cshtml" />
+    <Content Include="Views\RDQRestriction\IndexByDestination_RegionGrid.cshtml" />
+    <Content Include="Views\RDQRestriction\IndexByDestination_LeagueGrid.cshtml" />
+    <Content Include="Views\RDQRestriction\IndexByDestination_DCGrid.cshtml" />
     <Content Include="Views\EcomCustXref\Index.cshtml" />
     <Content Include="Views\EcomCustXref\Create.cshtml" />
     <Content Include="Views\EcomCustXref\FormLayout.cshtml" />

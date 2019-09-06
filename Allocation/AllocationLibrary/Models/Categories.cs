@@ -29,5 +29,42 @@ namespace Footlocker.Logistics.Allocation.Models
                 return categoryCode + " - " + CategoryName;
             }
         }
+
+        #region override comparisons
+
+        public override bool Equals(object obj)
+        {
+            Categories c = obj as Categories;
+
+            if (c == null)
+            {
+                return false;
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(this.departmentCode))
+                {
+                    return c.divisionCode == this.divisionCode &&
+                           c.categoryCode == this.categoryCode &&
+                           c.CategoryName == this.CategoryName;
+                }
+                else
+                {
+                    return c.divisionCode == this.divisionCode &&
+                           c.departmentCode == this.departmentCode &&
+                           c.categoryCode == this.categoryCode &&
+                           c.CategoryName == this.CategoryName;
+                }
+
+            }
+        }
+
+        public override int GetHashCode()
+        {
+            string departmentCode = string.IsNullOrEmpty(this.departmentCode) ? "" : this.departmentCode;
+            return (this.divisionCode + departmentCode + this.categoryCode + this.CategoryName).GetHashCode();
+        }
+
+        #endregion
     }
 }

@@ -10,8 +10,6 @@ namespace Footlocker.Logistics.Allocation.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Key]
         public long FulfillmentXrefID { get; set; }
-
-        public string City { get; set; }
         public string PostalCode { get; set; }
 
         public string State { get; set; }
@@ -22,7 +20,16 @@ namespace Footlocker.Logistics.Allocation.Models
         [ForeignKey("FulfillmentCenterID")]
         public virtual DistributionCenter FulfillmentCenter { get; set; }
 
+        [Column("Division")]
+        public string FulfillmentDivision { get; set; }
+
+        [Column("Store")]
+        public string FulfillmentStore { get; set; }
+
+        [Display(Name = "Effective From Date")]
         public DateTime EffectiveFromDate { get; set; }
+
+        [Display(Name = "Effective To Date")]
         public DateTime? EffectiveToDate { get; set; }
 
 

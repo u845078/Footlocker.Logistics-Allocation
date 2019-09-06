@@ -76,6 +76,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Create(ProductHierarchyOverrideModel model, string submitAction)
         {
+            string errorMessage = "";
             try
             {
                 if (submitAction.Equals("lookup"))
@@ -88,6 +89,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     if (model.prodHierarchyOverride.productOverrideTypeCode == "SKU")
                         model = Lookup(model);
+
+                    model.prodHierarchyOverride = PopulateFields(model.prodHierarchyOverride);
+
+                    if (!ValidateOverride(model.prodHierarchyOverride, out errorMessage))
+                    {
+                        ViewData["message"] = errorMessage;
+                        model = FillModelLists(model);
+                        return View(model);
+                    }
 
                     ProductHierarchyOverrides newRec = PopulateFields(model.prodHierarchyOverride);
 
@@ -154,6 +164,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 ProductHierarchyOverrides editedRec = PopulateFields(model.prodHierarchyOverride);
                 editedRec.productHierarchyOverrideID = id;
+
+                if (!ValidateOverride(model.prodHierarchyOverride, out errorMessage))
+                {
+                    ViewData["message"] = errorMessage;
+                    model = FillModelLists(model);
+                    return View(model);
+                }
 
                 db.ProductHierarchyOverrides.Attach(editedRec);
                 db.Entry(editedRec).State = System.Data.EntityState.Modified;

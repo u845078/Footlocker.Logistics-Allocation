@@ -1,0 +1,134 @@
+﻿@model  Footlocker.Logistics.Allocation.Models.RDQRestrictionModel
+@{
+    ViewBag.Title = "RDQ Restrictions";
+}
+
+<script>
+    function exportSelected() {
+        var grid = $('#RDQRestrictionsGrid').data('tGrid');
+        if (grid.filterBy === "") {
+            $('#ExportGrid').attr('href', function () {
+                return "/RDQRestriction/ExportGrid"
+            });
+        } else {
+            $('#ExportGrid').attr('href', function () {
+                return "/RDQRestriction/ExportGrid?filter=" + grid.filterBy;
+            });
+        }
+    }
+</script>
+
+<h2>RDQ Restrictions</h2>
+
+@if (Model.CanEdit)
+{
+    <p>
+        @Html.ActionLink("Create New", "Create", null, new { @class = "t-button" })
+        @Html.ActionLink("Upload", "Upload", null, new { @class = "t-button" })
+    </p>
+}
+
+@Html.Raw("<font color=red>" + ViewData["errorMessage"] + "</font>")
+
+<div class="t-tabstrip-wrapper">
+    <div id="tabstrip" data-role="tabstrip" tabindex="0" class="t-widget t-header t-tabstrip" role="tablist" aria-activedescendant="tabstrip_ts_active">
+        <ul class="t-tabstrip-items t-reset">
+            <li class="t-item t-state-default t-state-active" role="tab" aria-controls="tabstrip-3">
+                <span class="t-complete">
+                    <a class="t-link" href="/RDQRestriction/Index">
+                        All RDQ Restrictions
+                    </a>
+                </span>
+            </li>
+            <li class="t-item t-state-default t-first t-tab-on-top" role="tab" aria-controls="tabstrip-1" aria-selected="true">
+                <span class="t-complete">
+                    <a class="t-link" href="/RDQRestriction/IndexByProduct">
+                        By Product
+                    </a>
+                </span>
+            </li>
+            <li class="t-item t-state-default" role="tab" aria-controls="tabstrip-2">
+                <span class="t-complete">
+                    <a class="t-link" href="/RDQRestriction/IndexByDestination">
+                        By Destination
+                    </a>
+                </span>
+            </li>
+        </ul>
+
+        <div class="t-content t-state-active" id="tabstrip-1" role="tabpanel" aria-expanded="true" style="display: block; opacity: 1;">
+            <br />
+            @Html.Raw("<font color=red" + ViewData["message"] + "</font>")
+            <br />
+
+            @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQRestriction>()
+                        .Name("RDQRestrictionsGrid")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(rr => rr.RDQRestrictionID).Visible(false);
+                            columns.Bound(rr => rr.Division);
+                            columns.Bound(rr => rr.Department);
+                            columns.Bound(rr => rr.Category);
+                            columns.Bound(rr => rr.Brand);
+                            columns.Bound(rr => rr.Vendor);
+                            columns.Bound(rr => rr.RDQType);
+                            columns.Bound(rr => rr.FromDate);
+                            columns.Bound(rr => rr.ToDate);
+                            columns.Bound(rr => rr.FromDCCode);
+                            columns.Bound(rr => rr.ToLeague);
+                            columns.Bound(rr => rr.ToRegion);
+                            columns.Bound(rr => rr.ToStore);
+                            columns.Bound(rr => rr.ToDCCode);
+                            columns.Bound(rr => rr.LastModifiedUser);
+                            columns.Bound(rr => rr.LastModifiedDate);
+                            columns.Command(commands =>
+                            {
+                                commands
+                                    .Custom("Edit")
+                                    .Text("Edit")
+                                    .DataRouteValues(route =>
+                                    {
+                                        route.Add(o => o.RDQRestrictionID).RouteKey("RDQRestrictionID");
+                                    })
+                                    .Ajax(false)
+                                    .Action("Edit", "RDQRestriction");
+
+                                commands
+                                    .Custom("Delete")
+                                    .Text("Delete")
+                                    .DataRouteValues(route =>
+                                    {
+                                        route.Add(o => o.RDQRestrictionID).RouteKey("RDQRestrictionID");
+                                    })
+                                    .Ajax(false)
+                                    .Action("DeleteRDQRestriction", "RDQRestriction").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+                            });
+                        })
+                        .ToolBar(toolbar =>
+                        {
+                            toolbar.Template(@<text>
+                                @Html.ActionLink(
+                                    "Export Grid",
+                                    "ExportGrid",
+                                    "SkuAttribute",
+                                    new {
+                                        filter = "__filterBy__"
+                                    },
+                                    new {
+                                        @class = "t-button",
+                                        @onclick = "exportSelected()",
+                                        id = "ExportGrid"
+                                    }
+                                )
+                            </text>);
+                        })
+                        .DataKeys(dataKeys => dataKeys.Add(rr => rr.RDQRestrictionID))
+                        .DataBinding(dataBinding => dataBinding.Ajax().Select("_Index", "RDQRestriction"))
+                        .Sortable()
+                        .Pageable(paging => paging.PageSize(10))
+                        .Filterable(filtering => filtering.Enabled(true))
+                        .Groupable(grouping => grouping.Enabled(false))
+            )
+        </div>
+    </div>
+</div>

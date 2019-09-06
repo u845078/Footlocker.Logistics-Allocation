@@ -9,7 +9,7 @@
 		  <siteMapNode title="Department Config" controller="Driver" action="Index" />
       <siteMapNode title="Seasonality Overrides" controller="ProductHierarchyOverride" action="Index" />
       <siteMapNode title="Purge Criteria" controller="PurgeArchive" action="Index"/>
-      <siteMapNode title="ECOM Customer Mapping" controller="EcomCustXref" action="Index"/>
+      <siteMapNode title="RDQ Restrictions" controller="RDQRestriction" action="Index" />
     </siteMapNode>
 
 	  <siteMapNode title="Location">

@@ -21,9 +21,9 @@ namespace Footlocker.Logistics.Allocation.Services
         {
             DbCommand SQLCommand;
             string SQL = "DeleteRangePlanData";
-
             SQLCommand = _database.GetStoredProcCommand(SQL);
             _database.AddInParameter(SQLCommand, "@planID", DbType.Int64, planID);
+            SQLCommand.CommandTimeout = 120;
             _database.ExecuteNonQuery(SQLCommand);
         }
     }

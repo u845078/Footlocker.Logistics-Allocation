@@ -1,0 +1,95 @@
+﻿@using Telerik.Web.Mvc
+@{
+    ViewBag.Title = "RDQ Restrictions Upload";
+}
+
+<fieldset>
+    <legend> RDQ Restrictions Upload </legend>
+    <b>See comments in spreadsheet header for format and other instructions that are not outlined below.</b>
+    <br />
+    <br />
+    @Html.ActionLink("Download Template", "ExcelTemplate", new { }, new { @class = "t-button" })
+    <br />
+    <br />
+    <b>The following validations must pass before uploading:</b>
+    <br />
+    <ul>
+        <li>You must have permission for the specified division</li>
+        <li>
+            The following fields are required:
+            <ul style="margin-bottom: 0px;">
+                <li>Division</li>
+                <li>From Date</li>
+                <li>To Date</li>
+            </ul>
+        </li>
+        <li>
+            You can only populate one of the four following fields for one RDQ Restriction row:
+            <ul style="margin-bottom: 0px;">
+                <li>To League</li>
+                <li>To Region</li>
+                <li>To Store</li>
+                <li>To DC Code</li>
+            </ul>
+        </li>
+    </ul>
+    <b>Please select spreadsheets: </b>
+    <br />
+    @(Html.Telerik().Upload()
+        .Name("attachments")
+        .Multiple(true)
+        .Async(async => async
+            .Save("SaveRDQRestrictions", "RDQRestriction")
+            .AutoUpload(false))
+        .ShowFileList(true)
+        .ClientEvents(events => events
+            .OnError("onError")
+            .OnSelect("onSelect")
+            .OnSuccess("onSuccess"))
+    )
+    <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width: 150px; visibility: hidden; display: none;" />
+    <br />
+    <h4>
+        <div id="message">
+            @if (ViewData["errorMessage"] != null)
+            {
+                <font color="red">
+                    @Html.Raw(Convert.ToString(ViewData["errorMessage"]))
+                </font>
+            }
+        </div>
+    </h4>
+    <div id="errors" style="display: none;">
+        @Html.ActionLink("Download Errors", "DownloadErrors", null, new { @class = "t-button" })
+    </div>
+</fieldset>
+
+<script type="text/javascript">
+
+    function onSelect(e) {
+        var files = e.files;
+        if (files[0].extension != ".xls") {
+            alert("Document must be a spreadsheet with a xls extension.");
+            e.preventDefault();
+        } else {
+            document.getElementById('spreadsheet').style.visibility = 'visible';
+        }
+        $('#message').empty();
+    }
+
+    function onError(e) {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>" + message + "</font>");
+        $('#errors').show();
+        e.preventDefault();
+    }
+
+    function onSuccess(e) {
+        var message = e.response.message;
+        $('#message').empty().append("<font color='red'>" + message + "</font>");
+        $('#errors').hide();
+        e.preventDefault();
+    }
+</script>
+
+@Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })

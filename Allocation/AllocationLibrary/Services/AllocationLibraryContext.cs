@@ -75,7 +75,6 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<EcomCustomerFulfillmentXref> EcomCustomerFulfillmentXrefs { get; set; }
 
         public DbSet<Vendors> Vendors { get; set; }
-
         public DbSet<InventoryReductionsByType> InventoryReductionsByType { get; set; }
 
         public AllocationLibraryContext()
@@ -119,6 +118,18 @@ namespace Footlocker.Logistics.Allocation.Services
             //modelBuilder.Entity<RDQ>().HasOptional(x => x.QuantumRecordType).WithMany().HasForeignKey(c => c.RecordType);
 
             modelBuilder.Entity<RingFence>().HasRequired(o => o.RingFenceType).WithMany().HasForeignKey(c => c.Type);
+
+            modelBuilder.Entity<RingFence>()
+                .Property(x => x.Sku)
+                .HasColumnType("VARCHAR");
+
+            modelBuilder.Entity<RingFence>()
+                .Property(x => x.Division)
+                .HasColumnType("VARCHAR");
+
+            modelBuilder.Entity<RingFence>()
+                .Property(x => x.Store)
+                .HasColumnType("VARCHAR");
 
             modelBuilder.Entity<SizeAllocation>().Property(x => x.RangeFromDB).HasColumnName("Range");
 

@@ -4,16 +4,117 @@
 <script src="~/Scripts/jquery.validate.min.js"></script>
 <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
 
+<script type="text/javascript">
+        $(function () {
+            var loading = '<option>Loading...</option>';
+            var model = @Html.Raw(Json.Encode(Model));
+
+            $('#FulfillmentCenters').change(function () {
+                // loading messages
+                $('#ECOMStores').html(loading);
+                var divisionFilter;
+                // disable submit button while list(s) are loading
+                $('#saveButton').prop("disabled", true);
+                // grab the view model from the view
+                var model = @Html.Raw(Json.Encode(Model));
+
+                $.getJSON('/EcomCustXref/GetECOMStores?fulfillmentCenterID=' + $('#FulfillmentCenters').val(), function (data) {
+                    var items = '';
+                    $.each(data, function (i, ecomStore) {
+                        items += "<option value='" + ecomStore.Value + "'>" + ecomStore.Text + "</option>";
+                    });
+                    $('#ECOMStores').html(items);
+                    $('#ECOMStores').change();
+                });
+            });
+        });
+</script>
+
+
+
 @Html.Raw("<font color='red'>" + ViewBag.Message + "</font>")
 @using (Html.BeginForm())
 {
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
 
-    <fieldset>
+    <fieldset style="width: 450px;">
         <legend>Effective Dates</legend>
-
-
+        <div style="width: 450px;">
+            <div style="display: inline-block;">
+                <div class="editor-label">
+                    @Html.LabelFor(model => model.DataRec.EffectiveFromDate)
+                </div>
+                <div class="editor-field">
+                    @Html.EditorFor(model => model.DataRec.EffectiveFromDate)
+                    @Html.ValidationMessageFor(model => model.DataRec.EffectiveFromDate)
+                </div>
+            </div>
+            <div style="display: inline-block; margin-left: 30px;">
+                <div class="editor-label">
+                    @Html.LabelFor(model => model.DataRec.EffectiveToDate) (optional)
+                </div>
+                <div class="editor-field">
+                    @Html.EditorFor(model => model.DataRec.EffectiveToDate)
+                    @Html.ValidationMessageFor(model => model.DataRec.EffectiveToDate)
+                </div>
+            </div>
+        </div>
     </fieldset>
+
+    <br />
+    <p>Fill out only the Customer Location elements that are needed to match the customer address.</p>
+
+    <fieldset style="width: 700px;">
+        <legend>Customer Location</legend>
+        <div>
+            <div style="display: inline-block;">
+                <div class="editor-label">
+                    @Html.LabelFor(model => model.DataRec.Country)
+                </div>
+                <div class="editor-field">
+                    @Html.EditorFor(model => model.DataRec.Country)
+                    @Html.ValidationMessageFor(model => model.DataRec.EffectiveFromDate)
+                </div>
+            </div>
+            <div style="display: inline-block; margin-left: 30px;">
+                <div class="editor-label">
+                    @Html.LabelFor(model => model.DataRec.State)
+                </div>
+                <div class="editor-field">
+                    @Html.EditorFor(model => model.DataRec.State)
+                    @Html.ValidationMessageFor(model => model.DataRec.State)
+                </div>
+            </div>
+            <div style="display: inline-block; margin-left: 30px;">
+                <div class="editor-label">
+                    @Html.LabelFor(model => model.DataRec.PostalCode)
+                </div>
+                <div class="editor-field">
+                    @Html.EditorFor(model => model.DataRec.PostalCode)
+                    @Html.ValidationMessageFor(model => model.DataRec.PostalCode)
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+    <br />
+    <div class="editor-label">
+        @Html.LabelFor(model => model.FulfillmentCenters)
+    </div>
+    <div class="editor-field">
+        @Html.DropDownListFor(m => m.DataRec.FulfillmentCenterID, Model.FulfillmentCenters, new { id = "FulfillmentCenters" })
+    </div>
+
+    <br />
+    <p>If there is more than one ECOM Store used for the Fulfillment Center for a division, please specify the ECOM Store as well.</p>
+
+    <div class="editor-label">
+        @Html.LabelFor(model => model.ECOMStores)
+    </div>
+    <div class="editor-field">
+        @Html.DropDownListFor(m => m.SelectedECOMStore, Model.ECOMStores, new { id = "ECOMStores" })
+    </div>
+
 }
 
