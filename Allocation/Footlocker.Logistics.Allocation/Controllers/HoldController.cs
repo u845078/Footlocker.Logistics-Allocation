@@ -675,13 +675,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    {
-                        if (!(usesRuleSet))
-                        {
-                            returnMessage = "You must specify one or more stores.";
-                        }
-                    }
+                    //else if ((hold.Store == null) || (hold.Store.Trim() == ""))
+                    //{
+                    //    if (!(usesRuleSet))
+                    //    {
+                    //        returnMessage = "You must specify one or more stores.";
+                    //    }
+                    //}
                 }
                 else if (hold.Level == "VendorDept")
                 {
@@ -730,13 +730,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    {
-                        if (!(usesRuleSet))
-                        {
-                            returnMessage = "You must specify one or more stores.";
-                        }
-                    }
+                    //else if ((hold.Store == null) || (hold.Store.Trim() == ""))
+                    //{
+                    //    if (!(usesRuleSet))
+                    //    {
+                    //        returnMessage = "You must specify one or more stores.";
+                    //    }
+                    //}
                 }
                 else if (hold.Level == "Category") //category
                 {
@@ -753,13 +753,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    {
-                        if (!(usesRuleSet))
-                        {
-                            returnMessage = "You must specify one or more stores.";
-                        }
-                    }
+                    //else if ((hold.Store == null) || (hold.Store.Trim() == ""))
+                    //{
+                    //    if (!(usesRuleSet))
+                    //    {
+                    //        returnMessage = "You must specify one or more stores.";
+                    //    }
+                    //}
 
                 }
                 else if (String.Equals(hold.Level, "DeptTeam"))
@@ -776,13 +776,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    {
-                        if (!(usesRuleSet))
-                        {
-                            returnMessage = "You must specify one or more stores.";
-                        }
-                    }
+                    //else if ((hold.Store == null) || (hold.Store.Trim() == ""))
+                    //{
+                    //    if (!(usesRuleSet))
+                    //    {
+                    //        returnMessage = "You must specify one or more stores.";
+                    //    }
+                    //}
                 }
                 else if (String.Equals(hold.Level, "DeptCatTeam"))
                 {
@@ -798,13 +798,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    {
-                        if (!(usesRuleSet))
-                        {
-                            returnMessage = "You must specify one or more stores.";
-                        }
-                    }
+                    //else if ((hold.Store == null) || (hold.Store.Trim() == ""))
+                    //{
+                    //    if (!(usesRuleSet))
+                    //    {
+                    //        returnMessage = "You must specify one or more stores.";
+                    //    }
+                    //}
                 }
                 else if (String.Equals(hold.Level, "DeptCatBrand"))
                 {
@@ -820,13 +820,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    {
-                        if (!(usesRuleSet))
-                        {
-                            returnMessage = "You must specify one or more stores.";
-                        }
-                    }
+                    //else if ((hold.Store == null) || (hold.Store.Trim() == ""))
+                    //{
+                    //    if (!(usesRuleSet))
+                    //    {
+                    //        returnMessage = "You must specify one or more stores.";
+                    //    }
+                    //}
                 }
                 else
                 {
