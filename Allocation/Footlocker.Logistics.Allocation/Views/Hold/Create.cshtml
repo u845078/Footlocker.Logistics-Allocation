@@ -61,6 +61,15 @@
         return true;
     }
 
+    function ConfirmStore() {
+        var store = $('#Hold_Store').val();
+        var ruleSetID = $('#RuleSetID').val();
+        if ((store == '' || store == null) && ruleSetID == 0)
+            return confirm("You are about to create a hold without store. Are you sure?");
+        else
+            return true;
+    }
+
     function hideStoreSelector() {
         $("#ShowStoreSelector").val("no");
         $('#RuleSetID').val($('#RuleToAdd_RuleSetID').val());
@@ -199,7 +208,7 @@
             @Html.HiddenFor(model => model.RuleSetID)
         </div>
         <p>
-            <input type="submit" value="Create" class="t-button" />
+            <input type="submit" value="Create" class="t-button" onclick="return ConfirmStore()"/>
         </p>
     </fieldset>
 }
