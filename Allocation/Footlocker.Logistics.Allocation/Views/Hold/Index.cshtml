@@ -10,6 +10,19 @@
     @Html.ActionLink("Upload", "Upload", new { }, new { @class = "t-button" })
 </p>
 <script>
+    function exportSelected() {
+        var grid = $('#HoldGrid').data('tGrid');
+        if (grid.filterBy === "") {
+            $('#ExportGrid').attr('href', function () {
+                return "/Hold/ExportGrid"
+            });
+        } else {
+            $('#ExportGrid').attr('href', function () {
+                return "/Hold/ExportGrid?filter=" + grid.filterBy;
+            });
+        }
+    }
+
     function changeDuration(ddl) {
         window.location = "/Hold/Index?duration=" + ddl.value;
     }
@@ -159,6 +172,26 @@
                 + "<# } #>"
                 ).Width(300);
 
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Template(@<text>
+                @Html.ActionLink(
+                         "Export Grid",
+                         "ExportGrid",
+                         "SkuAttribute",
+                         new
+                         {
+                             filter = "__filterBy__"
+                         },
+                         new
+                         {
+                             @class = "t-button",
+                             @onclick = "exportSelected()",
+                             id = "ExportGrid"
+                         }
+                      )
+                </text>);
         })
         .DataBinding(dataBinding =>
         {
