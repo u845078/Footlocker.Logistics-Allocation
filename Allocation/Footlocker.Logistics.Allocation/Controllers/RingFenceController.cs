@@ -107,7 +107,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RingFenceModel> model = new List<RingFenceModel>();
 
             RingFenceDAO rfDAO = new RingFenceDAO();
-            List<RingFence> list = rfDAO.GetValidRingFences(Divisions());            
+            List<RingFence> list = rfDAO.GetValidRingFences(Divisions());     
 
             ViewData["message"] = message;
             return View(list);
@@ -143,7 +143,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 Size = "",
                 DC = "",
                 PO = "",
-                Qty = g.Sum(r => r.Qty)
+                Qty = g.Sum(r => r.Qty),
+                CanPick = !(g.Any(r => !r.CanPick))
             };
 
             //List<RingFenceSummary> list2 = rfGroups.ToList();
@@ -225,41 +226,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _RingFencesForStore(string div, string store)
         {
             List<RingFence> list;
-            if ((Session["rfStore"] != null) &&
-                ((String)Session["rfStore"] == div + store))
-            {
-                list = (List<RingFence>)Session["rfStoreList"];
-            }
-            else
-            {
-                List<Division> divs = Divisions();
-                list = (from a in db.RingFences
-                        where ((a.Qty > 0) && (a.Division == div) && (a.Store == store))
-                        select a).ToList();
-                list = (from a in list
-                        join d in divs on a.Division equals d.DivCode
-                        select new RingFence
-                        {
-                            ID = a.ID,
-                            Sku = a.Sku,
-                            Size = a.Size,
-                            Division = a.Division,
-                            Store = a.Store,
-                            //ItemMaster = a.ItemMaster,
-                            Qty = a.Qty,
-                            StartDate = a.StartDate,
-                            EndDate = a.EndDate,
-                            Type = a.Type,
-                            Comments = a.Comments,
-                            CreatedBy = a.CreatedBy,
-                            CreateDate = a.CreateDate,
-                            RingFenceTypeDescription = a.RingFenceTypeDescription,
-                            ItemDescription = a.ItemDescription
-                        }).OrderByDescending(x => x.CreateDate).ToList();
-
-            }
-            Session["rfStore"] = div + store;
-            Session["rfStoreList"] = list;
+            List<Division> divs = Divisions();
+            list = (from a in db.RingFences
+                    where ((a.Qty > 0) && (a.Division == div) && (a.Store == store))
+                    select a).ToList();
+            list = (from a in list
+                    join d in divs on a.Division equals d.DivCode
+                    select new RingFence
+                    {
+                        ID = a.ID,
+                        Sku = a.Sku,
+                        Size = a.Size,
+                        Division = a.Division,
+                        Store = a.Store,
+                        //ItemMaster = a.ItemMaster,
+                        Qty = a.Qty,
+                        StartDate = a.StartDate,
+                        EndDate = a.EndDate,
+                        Type = a.Type,
+                        Comments = a.Comments,
+                        CreatedBy = a.CreatedBy,
+                        CreateDate = a.CreateDate,
+                        RingFenceTypeDescription = a.RingFenceTypeDescription,
+                        ItemDescription = a.ItemDescription
+                    }).OrderByDescending(x => x.CreateDate).ToList();
 
             //eturn new JsonResult { Data = list.ToList() };
             return PartialView(new GridModel(list));
@@ -1160,6 +1150,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult MassPickRingFence(string sku)
         {
             List<RingFence> rfList = (from a in db.RingFences where a.Sku == sku select a).ToList();
+            rfList = rfList
+                .Where(r => r.CanPick)
+                .ToList();
             string message = BulkPickRingFence(sku, rfList, true);
 
             return RedirectToAction("IndexSummary", new { message = message });
@@ -1358,6 +1351,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             store = store.Trim();
 
             List<RingFence> rfList = (from a in db.RingFences where ((a.Division==div)&&(a.Store==store)) select a).ToList();
+            rfList = rfList
+                .Where(r => r.CanPick)
+                .ToList();
             string message = BulkPickRingFence(div + "-" + store, rfList, true);
 
             return RedirectToAction("IndexByStore", new { message = message });

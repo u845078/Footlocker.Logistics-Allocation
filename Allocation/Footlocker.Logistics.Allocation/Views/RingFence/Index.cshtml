@@ -64,7 +64,10 @@
                             @Html.ActionLink("Edit", "Edit", new { id = item.ID }, new { @class = "t-button" })
                             @Html.ActionLink("Details", "SizeSummary", new { id = item.ID }, new { @class = "t-button" })
                             @Html.ActionLink("Delete", "Delete", new { id = item.ID }, new { @class = "t-button", onclick = "return confirm('Are you sure you want to delete this ring fence?  This cannot be undone.  The ring fence will be removed, and inventory released to ANY store.');" })
-                            @Html.ActionLink("Pick", "Pick", new { id = item.ID }, new { @class = "t-button", onclick = "return confirmPick('" + item.Store + "')" })
+                            @if (item.CanPick)
+                            {
+                                @Html.ActionLink("Pick", "Pick", new { id = item.ID }, new { @class = "t-button", onclick = "return confirmPick('" + item.Store + "')" })
+                            }
                         </span>
                     </text>)
                 .Width(400);
