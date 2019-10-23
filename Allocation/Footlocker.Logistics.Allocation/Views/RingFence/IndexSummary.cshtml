@@ -21,7 +21,7 @@
 
     function MassPickGrid(sku) {
         //redirecting them to show them RDQs with ability to release them
-        if (confirm('Are you sure you want to create picks for this group of ring fences?')) {
+        if (confirm('The system will only pick active, non-expired ringfences.  Are you sure you want to create picks for this group of ring fences?')) {
             window.location = "/Ringfence/MassPickRingfence?sku=" + sku;
         }
     }
@@ -121,7 +121,10 @@
                                                 @Html.ActionLink("Edit", "Edit", new { id = item.ID }, new { @class = "t-button" })
                                                 @Html.ActionLink("Details", "SizeSummary", new { id = item.ID }, new { @class = "t-button" })
                                                 @Html.ActionLink("Delete", "Delete", new { id = item.ID }, new { @class = "t-button", onclick = "return confirm('Are you sure you want to delete this ring fence?  This cannot be undone.  The ring fence will be removed, and inventory released to ANY store.');" })
-                                                @Html.ActionLink("Pick", "Pick", new { id = item.ID }, new { @class = "t-button", onclick = "return confirmPick('" + item.Store + "')" })
+                                                @if (item.CanPick)
+                                                {
+                                                    @Html.ActionLink("Pick", "Pick", new { id = item.ID }, new { @class = "t-button", onclick = "return confirmPick('" + item.Store + "')" })
+                                                }
                                             </span>
                                         </text>)
                                     .Width(350)
@@ -136,10 +139,9 @@
                                         + "<a onclick=\"return confirm('Are you sure you want to delete this ring fence?  This cannot be undone.  The ring fence will be removed, and inventory released to ANY store.');\" class='t-button' href='"
                                         + Url.Content("~/Ringfence/Delete/<#= ID #>")
                                         + "'>Delete</a>"
-
                                         + "<a onclick=\"return confirmPick('<#= ID #>')\" class='t-button' href='"
-                                        + Url.Content("~/Ringfence/Pick/<#= ID #>")
-                                        + "'>Pick</a>"
+                                        + Url.Content("~/Ringfence/Pick/<#= ID #>'")
+                                        + " style=\"display: <#= CanPick ? 'inline-block' : 'none' #>;\">Pick</a>"
                                     );
 
                                 ;
