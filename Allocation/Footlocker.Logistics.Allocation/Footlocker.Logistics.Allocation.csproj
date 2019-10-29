@@ -48,7 +48,7 @@
   <ItemGroup>
     <Reference Include="Aspose.Cells, Version=8.7.1.0, Culture=neutral, PublicKeyToken=716fcc553a201e56, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\FootLocker\Aspose.Cells.dll</HintPath>
+      <HintPath>C:\FootLocker\Aspose.Cells\v8.4.1.0\net2.0\Aspose.Cells.dll</HintPath>
     </Reference>
     <Reference Include="Aspose.Excel, Version=3.6.0.0, Culture=neutral, PublicKeyToken=716fcc553a201e56">
       <SpecificVersion>False</SpecificVersion>
