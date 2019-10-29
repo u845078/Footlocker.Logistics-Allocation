@@ -13,6 +13,7 @@ using Footlocker.Logistics.Allocation.DAO;
 using System.IO;
 using Aspose.Excel;
 using System.Globalization;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -221,6 +222,120 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(new GridModel(list));
         }
 
+        [GridAction]
+        public ActionResult ExportGrid(GridCommand settings, string duration)
+        {
+            if ((duration == null) || (duration == ""))
+            {
+                duration = "All";
+            }
+            List<Division> divs = Divisions();
+            List<Hold> list = db.Holds.ToList();
+            IQueryable<Hold> holds = (from a in list
+                                      join d in divs on a.Division equals d.DivCode
+                                      where ((a.Duration == duration) || (duration == "All"))
+                                      select a).AsQueryable();
+
+            if (settings.FilterDescriptors.Any())
+            {
+                holds = holds.ApplyFilters(settings.FilterDescriptors);
+            }
+            Workbook excelDocument = CreateHoldsExport(holds.ToList());
+
+            OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "Holds.xlsx", ContentDisposition.Attachment, save);
+            return RedirectToAction("Index");
+        }
+
+        private Workbook CreateHoldsExport(List<Hold> holds)
+        {
+            Workbook excelDocument = RetrieveHoldsExcelFile(false);
+            int row = 1;
+            Aspose.Cells.Worksheet workSheet = excelDocument.Worksheets[0];
+            foreach (var rr in holds)
+            {
+                Aspose.Cells.Style align = excelDocument.CreateStyle();
+                align.HorizontalAlignment = Aspose.Cells.TextAlignmentType.Right;
+
+                Aspose.Cells.Style date = excelDocument.CreateStyle();
+                date.Number = 14;
+
+                workSheet.Cells[row, 0].PutValue(rr.Division);
+                workSheet.Cells[row, 0].SetStyle(align);
+                workSheet.Cells[row, 1].PutValue(rr.Store);
+                workSheet.Cells[row, 1].SetStyle(align);
+                workSheet.Cells[row, 2].PutValue(rr.Level);
+                workSheet.Cells[row, 2].SetStyle(align);
+                workSheet.Cells[row, 3].PutValue(rr.Value);
+                workSheet.Cells[row, 3].SetStyle(align);
+                workSheet.Cells[row, 4].PutValue(rr.StartDate);
+                workSheet.Cells[row, 4].SetStyle(date);
+                workSheet.Cells[row, 5].PutValue(rr.EndDate);
+                workSheet.Cells[row, 5].SetStyle(date);
+                workSheet.Cells[row, 6].PutValue(rr.Duration);
+                workSheet.Cells[row, 6].SetStyle(align);
+                workSheet.Cells[row, 7].PutValue(rr.HoldType);
+                workSheet.Cells[row, 7].SetStyle(align);
+                workSheet.Cells[row, 8].PutValue(rr.Comments);
+                workSheet.Cells[row, 8].SetStyle(align);
+                row++;
+            }
+
+            for (int i = 0; i < 9; i++)
+            {
+                workSheet.AutoFitColumn(i);
+            }
+            return excelDocument;
+        }
+
+        private Workbook RetrieveHoldsExcelFile(bool errorFile)
+        {
+            int row = 0;
+            int col = 0;
+
+            Aspose.Cells.License license = new Aspose.Cells.License();
+            license.SetLicense("C:\\Aspose\\Aspose.Cells.lic");
+
+            Workbook excelDocument = new Workbook();
+            Aspose.Cells.Worksheet workSheet = excelDocument.Worksheets[0];
+
+            Aspose.Cells.Style style = excelDocument.CreateStyle();
+            style.Font.IsBold = true;
+
+            workSheet.Cells[row, col].PutValue("Division");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Store");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Level");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Value");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Start Date");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("End Date");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Duration");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Hold Type");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Comments");
+            workSheet.Cells[row, col].SetStyle(style);
+            if (errorFile)
+            {
+                col++;
+                workSheet.Cells[row, col].PutValue("Message");
+                workSheet.Cells[row, col].SetStyle(style);
+            }
+            return excelDocument;
+        }
 
         public ActionResult Create()
         {
@@ -1618,7 +1733,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             file.Close();
             MemoryStream memoryStream1 = new MemoryStream(data1);
             excelDocument.Open(memoryStream1);
-            excelDocument.Save("HoldsUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("HoldsUpload.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View("HoldsUpload");
         }
 
@@ -1735,7 +1850,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <param name="sheet"></param>
         /// <param name="row"></param>
         /// <returns></returns>
-        private bool HasDataOnRow(Worksheet sheet, int row)
+        private bool HasDataOnRow(Aspose.Excel.Worksheet sheet, int row)
         {
             return sheet.Cells[row, 0].Value != null ||
                    sheet.Cells[row, 1].Value != null ||
