@@ -694,18 +694,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                             foreach (var d in warehouseInv)
                             {
-                                int reduce = d.AvailableQty - d.Qty;
-                                if (reduce < 0)
+                                if (d.Qty > 0)
                                 {
-                                    errorMessage = string.Format(
-                                        "The ringfence cannot be reactivated.  The total available quantity ({0}) for size {1} is less than the entered quantity ({2})."
-                                        , d.AvailableQty
-                                        , d.Size
-                                        , d.Qty);
+                                    int reduce = d.AvailableQty - d.Qty;
+                                    if (reduce < 0)
+                                    {
+                                        errorMessage = string.Format(
+                                            "The ringfence cannot be reactivated.  The total available quantity ({0}) for size {1} is less than the entered quantity ({2})."
+                                            , d.AvailableQty
+                                            , d.Size
+                                            , d.Qty);
 
-                                    model.RingFence.EndDate = originalEndDate;
-                                    ViewData["message"] = errorMessage;
-                                    return View(model);
+                                        model.RingFence.EndDate = originalEndDate;
+                                        ViewData["message"] = errorMessage;
+                                        return View(model);
+                                    }
                                 }
                             }
                         }
