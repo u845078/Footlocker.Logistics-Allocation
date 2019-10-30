@@ -697,10 +697,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 if (reduce < 0)
                                 {
                                     errorMessage = string.Format(
-                                        "The ringfence cannot be reactivated.  The total available quantity for size {0} is less than the entered quantity ({1})."
+                                        "The ringfence cannot be reactivated.  The total available quantity ({0}) for size {1} is less than the entered quantity ({2})."
+                                        , d.AvailableQty
                                         , d.Size
                                         , d.Qty);
 
+                                    model.RingFence.EndDate = original.EndDate;
                                     ViewData["message"] = errorMessage;
                                     return View(model);
                                 }
