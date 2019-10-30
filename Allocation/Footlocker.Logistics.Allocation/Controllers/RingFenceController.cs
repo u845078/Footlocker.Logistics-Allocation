@@ -675,6 +675,45 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     ViewData["message"] = errorMessage;
                     return View(model);
                 }
+                else
+                {
+
+                    // get original ringfence to see if enddate is being changed
+                    DateTime? originalEndDate
+                        = db.RingFences
+                            .Where(rf => rf.ID == model.RingFence.ID)
+                            .Select(rf => rf.EndDate)
+                            .FirstOrDefault();
+
+                    if (originalEndDate != model.RingFence.EndDate)
+                    {
+                        // if date is now null or greater than current date, then check details
+                        if (model.RingFence.EndDate == null || model.RingFence.EndDate >= DateTime.Now)
+                        {
+                            List<RingFenceDetail> warehouseInv = GetWarehouseAvailable(model.RingFence);
+
+                            foreach (var d in warehouseInv)
+                            {
+                                if (d.Qty > 0)
+                                {
+                                    int reduce = d.AvailableQty - d.Qty;
+                                    if (reduce < 0)
+                                    {
+                                        errorMessage = string.Format(
+                                            "The ringfence cannot be reactivated.  The total available quantity ({0}) for size {1} is less than the entered quantity ({2})."
+                                            , d.AvailableQty
+                                            , d.Size
+                                            , d.Qty);
+
+                                        model.RingFence.EndDate = originalEndDate;
+                                        ViewData["message"] = errorMessage;
+                                        return View(model);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
                 model.RingFence.CreatedBy = User.Identity.Name;
                 model.RingFence.CreateDate = DateTime.Now;
