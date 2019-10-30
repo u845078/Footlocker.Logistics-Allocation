@@ -675,6 +675,39 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     ViewData["message"] = errorMessage;
                     return View(model);
                 }
+                else
+                {
+
+                    // get original ringfence to see if enddate is being changed
+                    RingFence original
+                        = db.RingFences
+                            .Where(rf => rf.ID == model.RingFence.ID)
+                            .FirstOrDefault();
+
+                    if (original.EndDate != model.RingFence.EndDate)
+                    {
+                        // if date is now null or greater than current date, then check details
+                        if (model.RingFence.EndDate == null || model.RingFence.EndDate >= DateTime.Now)
+                        {
+                            List<RingFenceDetail> warehouseInv = GetWarehouseAvailable(model.RingFence);
+
+                            foreach (var d in warehouseInv)
+                            {
+                                int reduce = d.AvailableQty - d.Qty;
+                                if (reduce < 0)
+                                {
+                                    errorMessage = string.Format(
+                                        "The ringfence cannot be reactivated.  The total available quantity for size {0} is less than the entered quantity ({1})."
+                                        , d.Size
+                                        , d.Qty);
+
+                                    ViewData["message"] = errorMessage;
+                                    return View(model);
+                                }
+                            }
+                        }
+                    }
+                }
 
                 model.RingFence.CreatedBy = User.Identity.Name;
                 model.RingFence.CreateDate = DateTime.Now;
