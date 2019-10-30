@@ -679,12 +679,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
 
                     // get original ringfence to see if enddate is being changed
-                    RingFence original
+                    DateTime? originalEndDate
                         = db.RingFences
                             .Where(rf => rf.ID == model.RingFence.ID)
+                            .Select(rf => rf.EndDate)
                             .FirstOrDefault();
 
-                    if (original.EndDate != model.RingFence.EndDate)
+                    if (originalEndDate != model.RingFence.EndDate)
                     {
                         // if date is now null or greater than current date, then check details
                         if (model.RingFence.EndDate == null || model.RingFence.EndDate >= DateTime.Now)
@@ -702,7 +703,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                         , d.Size
                                         , d.Qty);
 
-                                    model.RingFence.EndDate = original.EndDate;
+                                    model.RingFence.EndDate = originalEndDate;
                                     ViewData["message"] = errorMessage;
                                     return View(model);
                                 }
