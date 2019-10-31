@@ -9,21 +9,31 @@
     @Html.ActionLink("Download Template", "ExcelDeleteTemplate", new { }, new { @class = "t-button" })
     <br />
     <br />
+    <b>To mark a hold deleted, user is allowed to update only following fields</b>
+    <br />
+    <ul style="margin-bottom: 0px;">
+        <li>End Date</li>
+        <li>Duration</li>
+        <li>Hold Type</li>
+        <li>Comments</li>
+    </ul>
+    <br />
     <b>Please select spreadsheets: </b>
     <br />
     <br />
     @(Html.Telerik().Upload()
-                                .Name("attachments")
-                                .Multiple(true)
-                                .Async(async => async
-                                    .Save("MassDeleteHolds", "Hold")
-                                    .AutoUpload(false))
-                                    .ShowFileList(true)
-                                .ClientEvents(events => events
-                                    .OnError("onError")
-                                    .OnSelect("onSelect")
-                                            .OnSuccess("onSuccess")
-                                    )
+              .Name("attachments")
+              .Multiple(true)
+              .Async(async => async
+                  .Save("MassDeleteHolds", "Hold")                  
+                  .AutoUpload(false)
+                  .Remove("Remove", "Hold"))
+                  .ShowFileList(true)
+              .ClientEvents(events => events
+                  .OnError("onError")
+                  .OnSelect("onSelect")
+                  .OnSuccess("onSuccess")                  
+                  )
     )
     <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;" />
     <br />

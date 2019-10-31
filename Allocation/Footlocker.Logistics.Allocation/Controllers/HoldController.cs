@@ -1772,6 +1772,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 DataTable excelData = worksheet.Cells.ExportDataTable(0, 0, rows + 1, columns + 1, true);
 
+                if (!(excelData.Columns[0].ColumnName == "Division" && excelData.Columns[1].ColumnName == "Store" && excelData.Columns[2].ColumnName == "Level" &&
+                        excelData.Columns[3].ColumnName == "Value" && excelData.Columns[4].ColumnName == "Start Date" && excelData.Columns[5].ColumnName == "End Date" &&
+                        excelData.Columns[6].ColumnName == "Duration" && excelData.Columns[7].ColumnName == "Hold Type" && excelData.Columns[8].ColumnName == "Comments"))
+                {
+                    return Content("Incorrectly formatted or missing header row. Please correct and re-process.");
+                }
+
                 List<DataRow> errorData = excelData.AsEnumerable().Where(x => x[7].ToString().Contains("Reserve")).ToList();                    
 
                 List<HoldsUploadDeleteModel> errorList = new List<HoldsUploadDeleteModel>();
@@ -1857,6 +1864,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
+            return Content("");
+        }
+
+        public ActionResult Remove(string[] fileNames)
+        {
+            if (fileNames != null)
+            {
+                foreach (var fullName in fileNames)
+                {
+                    var fileName = Path.GetFileName(fullName);
+                    var physicalPath = Path.Combine(Server.MapPath("~/App_Data"), fileName);
+                    
+                    if (System.IO.File.Exists(physicalPath))
+                    {                        
+                        System.IO.File.Delete(physicalPath);
+                    }
+                }
+            }
+
+            // Return an empty string to signify success
             return Content("");
         }
 
