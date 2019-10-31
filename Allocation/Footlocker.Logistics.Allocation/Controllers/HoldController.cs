@@ -14,6 +14,7 @@ using System.IO;
 using Aspose.Excel;
 using System.Globalization;
 using Aspose.Cells;
+using System.Data;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -1720,6 +1721,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
+        public ActionResult UploadDeletes()
+        {
+            return View();
+        }
+
+        public ActionResult ExcelDeleteTemplate()
+        {
+            Aspose.Cells.License license = new Aspose.Cells.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Cells.lic");
+                        
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["HoldDeleteTemplate"]);
+            Workbook excelDocument = new Workbook(System.Web.HttpContext.Current.Server.MapPath(templateFilename));            
+
+            OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsDeleteUpload.xlsx", ContentDisposition.Attachment, save);            
+            return View();
+        }
+
         public ActionResult ExcelHoldsUploadTemplate()
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -1735,6 +1755,161 @@ namespace Footlocker.Logistics.Allocation.Controllers
             excelDocument.Open(memoryStream1);
             excelDocument.Save("HoldsUpload.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View("HoldsUpload");
+        }
+
+        public ActionResult MassDeleteHolds(IEnumerable<HttpPostedFileBase> attachments)
+        {
+            Aspose.Cells.License license = new Aspose.Cells.License();
+            license.SetLicense("C:\\Aspose\\Aspose.Cells.lic");
+            
+            foreach (HttpPostedFileBase file in attachments)
+            {
+                Workbook workbook = new Workbook(file.InputStream);
+                Aspose.Cells.Worksheet worksheet = workbook.Worksheets[0];
+
+                int rows = worksheet.Cells.MaxDataRow;
+                int columns = worksheet.Cells.MaxDataColumn;
+
+                DataTable excelData = worksheet.Cells.ExportDataTable(0, 0, rows + 1, columns + 1, true);
+
+                List<DataRow> errorData = excelData.AsEnumerable().Where(x => x[7].ToString().Contains("Reserve")).ToList();                    
+
+                List<HoldsUploadDeleteModel> errorList = new List<HoldsUploadDeleteModel>();
+
+                foreach (DataRow reserveData in errorData)
+                {
+                    HoldsUploadDeleteModel error = new HoldsUploadDeleteModel();
+
+                    string division = reserveData["Division"].ToString().Trim();    
+                    string store = String.IsNullOrEmpty(reserveData["Store"].ToString().Trim()) ? null : reserveData["Store"].ToString().Trim();
+                    string level = reserveData["Level"].ToString().Trim();
+                    string value = reserveData["Value"].ToString().Trim();
+                    DateTime StartDate = DateTime.Parse(reserveData["Start Date"].ToString().Trim());
+
+                    Hold hold = (from a in db.Holds
+                                 where (a.Division == division) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 1) && 
+                                        (a.StartDate == StartDate) && (a.Store == store)
+                                  select a).First();
+
+                    if (hold.ReserveInventoryBool)
+                    {
+                        RDQDAO dao = new RDQDAO();
+                        if (dao.GetUniqueRDQsForHold(hold.ID).Count > 0)
+                        {
+                            DateTime? dt = null;
+                            error.Division = division;
+                            error.Store = store;
+                            error.Level = level;
+                            error.Value = value;
+                            error.StartDate = StartDate;
+                            error.EndDate = String.IsNullOrEmpty(reserveData["End Date"].ToString().Trim()) ? dt : DateTime.Parse(reserveData["End Date"].ToString().Trim());
+                            error.Duration = reserveData["Duration"].ToString().Trim();
+                            error.HoldType = reserveData["Hold Type"].ToString().Trim();
+                            error.Comments = reserveData["Comments"].ToString().Trim();
+                            error.ErrorMessage = "You must release all RDQs before you can delete this hold.";
+
+                            errorList.Add(error);
+                            excelData.Rows.Remove(reserveData);
+                        }
+                    }                    
+                }
+                
+                foreach (DataRow validRows in excelData.Rows)
+                {
+
+                    string division = validRows["Division"].ToString().Trim();
+                    string store = String.IsNullOrEmpty(validRows["Store"].ToString().Trim()) ? null : validRows["Store"].ToString().Trim();
+                    string level = validRows["Level"].ToString().Trim();
+                    string value = validRows["Value"].ToString().Trim();
+                    DateTime StartDate = DateTime.Parse(validRows["Start Date"].ToString().Trim());
+
+                    Hold hold = (from a in db.Holds
+                                 where (a.Division == division) && (a.Level == level) && (a.Value == value) &&
+                                        (a.StartDate == StartDate) && (a.Store == store)
+                                 select a).First();
+
+                    DateTime? dt = null;
+                    hold.EndDate = String.IsNullOrEmpty(validRows["End Date"].ToString().Trim()) ? dt : DateTime.Parse(validRows["End Date"].ToString().Trim());
+                    hold.Duration = validRows["Duration"].ToString().Trim();
+                    hold.HoldType = validRows["Hold Type"].ToString().Trim();
+                    hold.Comments = validRows["Comments"].ToString().Trim();
+                    hold.CreateDate = DateTime.Now;
+                    hold.CreatedBy = User.Identity.Name;
+
+                    db.Entry(hold).State = System.Data.EntityState.Modified;                    
+                }
+                db.SaveChanges();
+
+                if (errorList.Count() > 0)
+                {
+                    Session["errorList"] = errorList;
+
+                    string msg = excelData.Rows.Count + " Successfully uploaded";
+                    // and " + errorList.Count() + " error records downloaded to excel";
+
+                    //Workbook excelDocument = CreateErrorListExcel(errorList);
+
+                    //OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
+                    //excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsErrorList.xlsx", ContentDisposition.Attachment, save);
+                    //excelDocument.Save("HoldsErrorList.xlsx", save);
+
+                    return Content(msg);
+                }
+            }
+
+            return Content("");
+        }
+
+        public ActionResult DownloadDeleteErrors()
+        {
+            List<HoldsUploadDeleteModel> errorList = (List<HoldsUploadDeleteModel>)Session["errorList"];
+
+            Aspose.Cells.License license = new Aspose.Cells.License();
+            license.SetLicense("C:\\Aspose\\Aspose.Cells.lic");
+
+            Workbook excelDocument = RetrieveHoldsExcelFile(true);
+            int row = 1;
+            Aspose.Cells.Worksheet workSheet = excelDocument.Worksheets[0];
+            foreach (HoldsUploadDeleteModel rr in errorList)
+            {
+                Aspose.Cells.Style align = excelDocument.CreateStyle();
+                align.HorizontalAlignment = Aspose.Cells.TextAlignmentType.Right;
+
+                Aspose.Cells.Style date = excelDocument.CreateStyle();
+                date.Number = 14;
+
+                workSheet.Cells[row, 0].PutValue(rr.Division);
+                workSheet.Cells[row, 0].SetStyle(align);
+                workSheet.Cells[row, 1].PutValue(rr.Store);
+                workSheet.Cells[row, 1].SetStyle(align);
+                workSheet.Cells[row, 2].PutValue(rr.Level);
+                workSheet.Cells[row, 2].SetStyle(align);
+                workSheet.Cells[row, 3].PutValue(rr.Value);
+                workSheet.Cells[row, 3].SetStyle(align);
+                workSheet.Cells[row, 4].PutValue(rr.StartDate);
+                workSheet.Cells[row, 4].SetStyle(date);
+                workSheet.Cells[row, 5].PutValue(rr.EndDate);
+                workSheet.Cells[row, 5].SetStyle(date);
+                workSheet.Cells[row, 6].PutValue(rr.Duration);
+                workSheet.Cells[row, 6].SetStyle(align);
+                workSheet.Cells[row, 7].PutValue(rr.HoldType);
+                workSheet.Cells[row, 7].SetStyle(align);
+                workSheet.Cells[row, 8].PutValue(rr.Comments);
+                workSheet.Cells[row, 8].SetStyle(align);
+                workSheet.Cells[row, 9].PutValue(rr.ErrorMessage);
+                workSheet.Cells[row, 9].SetStyle(align);
+                row++;
+            }
+
+            for (int i = 0; i < 10; i++)
+            {
+                workSheet.AutoFitColumn(i);
+            }
+
+            OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsErrorList.xlsx", ContentDisposition.Attachment, save);
+
+            return View();
         }
 
         public ActionResult UploadHolds(IEnumerable<HttpPostedFileBase> attachments)
