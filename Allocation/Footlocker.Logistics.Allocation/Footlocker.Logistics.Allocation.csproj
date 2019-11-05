@@ -610,7 +610,7 @@
     <Content Include="Views\RDQRestriction\IndexByDestination_RegionGrid.cshtml" />
     <Content Include="Views\RDQRestriction\IndexByDestination_LeagueGrid.cshtml" />
     <Content Include="Views\RDQRestriction\IndexByDestination_DCGrid.cshtml" />
-    <Content Include="Views\Hold\UploadDeletes.cshtml" />
+    <Content Include="Views\Hold\UploadDeleteUpdates.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />
