@@ -1796,9 +1796,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     Hold hold = (from a in db.Holds
                                  where (a.Division == division) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 1) && 
                                         (a.StartDate == StartDate) && (a.Store == store)
-                                  select a).First();
+                                  select a).FirstOrDefault();
 
-                    if (hold.ReserveInventoryBool)
+                    if (hold != null && hold.ReserveInventoryBool)
                     {
                         RDQDAO dao = new RDQDAO();
                         if (dao.GetUniqueRDQsForHold(hold.ID).Count > 0)
@@ -1833,7 +1833,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     Hold hold = (from a in db.Holds
                                  where (a.Division == division) && (a.Level == level) && (a.Value == value) &&
                                         (a.StartDate == StartDate) && (a.Store == store)
-                                 select a).First();
+                                 select a).FirstOrDefault();
 
                     DateTime? dt = null;
                     hold.EndDate = String.IsNullOrEmpty(validRows["End Date"].ToString().Trim()) ? dt : DateTime.Parse(validRows["End Date"].ToString().Trim());
