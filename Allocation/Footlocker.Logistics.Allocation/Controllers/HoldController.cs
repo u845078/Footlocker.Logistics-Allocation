@@ -1721,7 +1721,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
-        public ActionResult UploadDeletes()
+        public ActionResult UploadDeleteUpdates()
         {
             return View();
         }
