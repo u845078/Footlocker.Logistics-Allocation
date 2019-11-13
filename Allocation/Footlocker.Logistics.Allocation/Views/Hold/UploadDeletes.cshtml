@@ -6,6 +6,7 @@
 <fieldset>
     <legend>Upload Holds Deletes</legend>
     This will mass-delete Holds<br />
+    <br />
     @Html.ActionLink("Download Template", "ExcelDeleteTemplate", new { }, new { @class = "t-button" })
     <br />
     <br />
@@ -26,8 +27,7 @@
               .Multiple(true)
               .Async(async => async
                   .Save("MassDeleteHolds", "Hold")                  
-                  .AutoUpload(false)
-                  .Remove("Remove", "Hold"))
+                  .AutoUpload(false))
                   .ShowFileList(true)
               .ClientEvents(events => events
                   .OnError("onError")
