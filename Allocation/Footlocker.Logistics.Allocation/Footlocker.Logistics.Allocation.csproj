@@ -509,7 +509,7 @@
     <Content Include="Content\Templates\HoldsUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Templates\HoldsDeleteTemplate.xlsx" />
+    <Content Include="Content\Templates\HoldsUpdatesTemplate.xlsx" />
     <None Include="Content\Templates\ProductTypeTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -610,7 +610,7 @@
     <Content Include="Views\RDQRestriction\IndexByDestination_RegionGrid.cshtml" />
     <Content Include="Views\RDQRestriction\IndexByDestination_LeagueGrid.cshtml" />
     <Content Include="Views\RDQRestriction\IndexByDestination_DCGrid.cshtml" />
-    <Content Include="Views\Hold\UploadDeleteUpdates.cshtml" />
+    <Content Include="Views\Hold\UploadHoldsUpdates.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />

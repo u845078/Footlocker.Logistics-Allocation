@@ -1,6 +1,6 @@
 ﻿@using Telerik.Web.Mvc;
 @{
-    ViewBag.Title = "HoldsUploadDeletes";
+    ViewBag.Title = "UploadHoldsUpdates";
 }
 
 <fieldset>
@@ -10,7 +10,7 @@
     @Html.ActionLink("Download Template", "ExcelDeleteTemplate", new { }, new { @class = "t-button" })
     <br />
     <br />
-    <b>To mark a hold deleted, user is allowed to update only following fields</b>
+    <b>To mark a hold as deleted, set the End Date to a past day. Users are allowed to update the following fields:</b>
     <br />
     <ul style="margin-bottom: 0px;">
         <li>End Date</li>
@@ -19,7 +19,7 @@
         <li>Comments</li>
     </ul>
     <br />
-    <b>Please select spreadsheets: </b>
+    <b>Please select spreadsheets with Hold update to upload: </b>
     <br />
     <br />
     @(Html.Telerik().Upload()
