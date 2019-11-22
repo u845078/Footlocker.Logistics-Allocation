@@ -1721,7 +1721,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
-        public ActionResult UploadDeleteUpdates()
+        public ActionResult UploadHoldsUpdates()
         {
             return View();
         }
@@ -1732,11 +1732,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //Set the license 
             license.SetLicense("C:\\Aspose\\Aspose.Cells.lic");
                         
-            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["HoldDeleteTemplate"]);
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["HoldsUpdates"]);
             Workbook excelDocument = new Workbook(System.Web.HttpContext.Current.Server.MapPath(templateFilename));            
 
             OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
-            excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsDeleteUpload.xlsx", ContentDisposition.Attachment, save);            
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsUpdates.xlsx", ContentDisposition.Attachment, save);            
             return View();
         }
 
