@@ -7,7 +7,9 @@ using Footlocker.Logistics.Allocation.Models;
 using Telerik.Web.Mvc;
 using Footlocker.Logistics.Allocation.Services;
 using Aspose.Excel;
+using Aspose.Cells;
 using System.IO;
+using System.Data;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -40,7 +42,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            Worksheet mySheet = excelDocument.Worksheets[0];
+            Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
 
             List<Route> list = (from a in db.Routes where a.InstanceID == instanceID select a).ToList();
 
@@ -71,7 +73,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
-            excelDocument.Save("Routes.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("Routes.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
 
         }
@@ -417,7 +419,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            Worksheet mySheet = excelDocument.Worksheets[0];
+            Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
             int instanceID = (from a in db.InstanceDivisions where a.Division == div select a.InstanceID).FirstOrDefault();
 
             List<NetworkZone> list = (from a in db.NetworkZones join b in db.NetworkZoneStores on a.ID equals b.ZoneID join c in db.InstanceDivisions on b.Division equals c.Division where c.InstanceID == instanceID select a).Distinct().ToList();
@@ -472,7 +474,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
-            excelDocument.Save("StoreLeadTimes.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("StoreLeadTimes.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
 
         }
@@ -914,10 +916,118 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         #region Rank Upload
+        public ActionResult UploadChanges()
+        {
+            return View();
+        }
+
+        public ActionResult ExcelRoutingChangeTemplate()
+        {
+            Aspose.Cells.License license = new Aspose.Cells.License();
+            //Set the license 
+            license.SetLicense(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["AsposeCellsLicense"]));
+
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["RerankStoresTemplate"]);
+            Workbook excelDocument = new Workbook(System.Web.HttpContext.Current.Server.MapPath(templateFilename));
+
+            OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "NetworkScheduleUpdateTemplate.xlsx", ContentDisposition.Attachment, save);
+            return View();
+        }
+
+        public ActionResult MassUpdateNSS(IEnumerable<HttpPostedFileBase> attachments)
+        {
+            Aspose.Cells.License license = new Aspose.Cells.License();
+            license.SetLicense(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["AsposeCellsLicense"]));
+            List<DataRow> errorData;
+            List<NSSUpload> inputData = new List<NSSUpload>();
+            List<DistributionCenter> DCs;
+            AllocationLibraryContext allocationLibraryDB = new AllocationLibraryContext();
+
+            foreach (HttpPostedFileBase file in attachments)
+            {
+                Workbook workbook = new Workbook(file.InputStream);
+                Aspose.Cells.Worksheet worksheet = workbook.Worksheets[0];
+
+                int rows = worksheet.Cells.MaxDataRow;
+                int columns = worksheet.Cells.MaxDataColumn;
+
+                ExportTableOptions tableOptions = new ExportTableOptions
+                {
+                    SkipErrorValue = true,
+                    ExportColumnName = true
+                };
+                
+                DataTable excelData = worksheet.Cells.ExportDataTable(0, 0, rows + 1, columns + 1, tableOptions);
+
+                if (!(excelData.Columns[0].ColumnName == "Division" && excelData.Columns[1].ColumnName == "Store" && excelData.Columns[2].ColumnName == "Rank 1" &&
+                        excelData.Columns[3].ColumnName == "Rank 2" && excelData.Columns[4].ColumnName == "Rank 3" && excelData.Columns[5].ColumnName == "Rank 4" &&
+                        excelData.Columns[6].ColumnName == "Rank 5" && excelData.Columns[7].ColumnName == "Rank 6" && excelData.Columns[8].ColumnName == "Leadtime 1" &&
+                        excelData.Columns[9].ColumnName == "Leadtime 2" && excelData.Columns[10].ColumnName == "Leadtime 3" && excelData.Columns[11].ColumnName == "Leadtime 4" &&
+                        excelData.Columns[12].ColumnName == "Leadtime 5" && excelData.Columns[13].ColumnName == "Leadtime 6"))
+                {
+                    return Content("Incorrectly formatted or missing header row. Please correct and re-process.");
+                }
+
+                DCs = (from d in db.DistributionCenters
+                       select d).ToList();
+
+                foreach (DataRow row in excelData.Rows)
+                {
+                    inputData.Add(new NSSUpload(allocationLibraryDB, DCs)
+                    {
+                        SubmittedDivision = row["Division"].ToString(),
+                        SubmittedStore = row["Store"].ToString(),
+                        SubmittedRank1 = row["Rank 1"].ToString(),
+                        SubmittedRank2 = row["Rank 2"].ToString(),
+                        SubmittedRank3 = row["Rank 3"].ToString(),
+                        SubmittedRank4 = row["Rank 4"].ToString(),
+                        SubmittedRank5 = row["Rank 5"].ToString(),
+                        SubmittedRank6 = row["Rank 6"].ToString(),
+                        SubmittedLeadtime1 = row["Leadtime 1"].ToString(),
+                        SubmittedLeadtime2 = row["Leadtime 2"].ToString(),
+                        SubmittedLeadtime3 = row["Leadtime 3"].ToString(),
+                        SubmittedLeadtime4 = row["Leadtime 4"].ToString(),
+                        SubmittedLeadtime5 = row["Leadtime 5"].ToString(),
+                        SubmittedLeadtime6 = row["Leadtime 6"].ToString()
+                    }); 
+                }
+
+                foreach (NSSUpload inputRec in inputData)
+                {
+                    inputRec.Validate();
+                }
+
+
+                //db.SaveChanges();
+
+                //if (errorList.Count() > 0)
+                //{
+                //    Session["errorList"] = errorList;
+
+                //    string msg = excelData.Rows.Count + " Successfully uploaded";
+                //    // and " + errorList.Count() + " error records downloaded to excel";
+
+                //    //Workbook excelDocument = CreateErrorListExcel(errorList);
+
+                //    //OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
+                //    //excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsErrorList.xlsx", ContentDisposition.Attachment, save);
+                //    //excelDocument.Save("HoldsErrorList.xlsx", save);
+
+                //    return Content(msg);
+                //}
+            }
+
+            return Content("");
+        }
+
+
         public ActionResult UploadRanks()
         {
             return View();
         }
+
+
 
         /// <summary>
         /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
