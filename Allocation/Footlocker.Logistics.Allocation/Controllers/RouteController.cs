@@ -10,6 +10,7 @@ using Aspose.Excel;
 using Aspose.Cells;
 using System.IO;
 using System.Data;
+using Footlocker.Common;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -347,7 +348,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 Divisions = Divisions()
             };
-            
+
+            var permissions = WebSecurityService.ListUserRoles(UserName, "Allocation");
+            model.CanUploadData = permissions.Contains("IT");
+
             if ((div == null) && (model.Divisions.Count > 0))
             {
                 div = model.Divisions[0].DivCode;

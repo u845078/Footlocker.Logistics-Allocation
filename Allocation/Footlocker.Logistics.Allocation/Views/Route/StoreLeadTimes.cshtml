@@ -10,9 +10,12 @@
         window.location = '/Route/StoreLeadTimes?div=' + dropdown.value;
     }
 </script>
-<p>
-    @Html.ActionLink("Upload Changes", "UploadChanges", null, new { @class = "t-button" })
-</p>
+@if (Model.CanUploadData)
+{
+    <p>
+        @Html.ActionLink("Upload Changes", "UploadChanges", null, new { @class = "t-button" })
+    </p>
+}
 @Html.DropDownListFor(m => Model.Division, new SelectList(Model.Divisions, "DivCode", "DivisionName"), new { onchange = "autopostback(this);" })
 @{
     int unassigned = (from a in Model.StoreZones where a.ZoneName == "<unassigned>" select a).Count();
