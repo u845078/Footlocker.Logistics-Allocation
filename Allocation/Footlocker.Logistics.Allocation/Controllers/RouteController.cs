@@ -818,7 +818,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 div = model.LeadTimes[0].Division;
                 store = model.LeadTimes[0].Store;
                 //delete stores current zone assignment
-                var deleteQuery = (from a in db.NetworkZoneStores where ((a.Division == div) && (a.Store == store)) select a);
+                var deleteQuery = (from a in db.NetworkZoneStores 
+                                   where a.Division == div && 
+                                         a.Store == store 
+                                   select a);
 
                 if (deleteQuery.Count() > 0)
                 {
@@ -828,11 +831,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     db.NetworkZoneStores.Remove(nzs);
                     db.SaveChanges();
 
-                    var deleteQuery2 = (from a in db.NetworkZoneStores where a.ZoneID == tz select a);
+                    var deleteQuery2 = (from a in db.NetworkZoneStores 
+                                        where a.ZoneID == tz 
+                                        select a);
+
                     if (deleteQuery2.Count() == 0)
                     {
                         //delete the zone if it's empty now
-                        NetworkZone delNZ = (from a in db.NetworkZones where a.ID == tz select a).First();
+                        NetworkZone delNZ = (from a in db.NetworkZones 
+                                             where a.ID == tz 
+                                             select a).First();
                         db.NetworkZones.Remove(delNZ);
                         db.SaveChanges();
                     }
@@ -939,7 +947,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             Aspose.Cells.License license = new Aspose.Cells.License();
             license.SetLicense(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["AsposeCellsLicense"]));
-            List<DataRow> errorData;
+            List<NSSUpload> errorData = new List<NSSUpload>();
             List<NSSUpload> inputData = new List<NSSUpload>();
             List<DistributionCenter> DCs;
             AllocationLibraryContext allocationLibraryDB = new AllocationLibraryContext();
@@ -998,29 +1006,281 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     inputRec.Validate();
                 }
 
+                errorData = inputData.Where(id => !id.Valid).ToList();
+                ProcessNSSUploads(inputData.Where(id => id.Valid).ToList());
 
                 //db.SaveChanges();
 
-                //if (errorList.Count() > 0)
-                //{
-                //    Session["errorList"] = errorList;
-
-                //    string msg = excelData.Rows.Count + " Successfully uploaded";
-                //    // and " + errorList.Count() + " error records downloaded to excel";
-
-                //    //Workbook excelDocument = CreateErrorListExcel(errorList);
-
-                //    //OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
-                //    //excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsErrorList.xlsx", ContentDisposition.Attachment, save);
-                //    //excelDocument.Save("HoldsErrorList.xlsx", save);
-
-                //    return Content(msg);
-                //}
+                if (errorData.Count() > 0)
+                {
+                    Session["NSSDataErrors"] = errorData;
+                    return Content(String.Format("There were {0} errors", errorData.Count()));
+                }
             }
 
             return Content("");
         }
 
+        public ActionResult DownloadUpdateErrors()
+        {
+            List<NSSUpload> errorList = (List<NSSUpload>)Session["NSSDataErrors"];
+            Aspose.Cells.License license = new Aspose.Cells.License();
+            license.SetLicense(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["AsposeCellsLicense"]));
+
+            Workbook excelDocument = new Workbook();
+            Aspose.Cells.Worksheet workSheet = excelDocument.Worksheets[0];
+
+            Aspose.Cells.Style style = excelDocument.CreateStyle();
+            style.Font.IsBold = true;
+            int row, col;
+
+            row = 0;
+            col = 0;
+
+            workSheet.Cells[row, col].PutValue("Division");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Store");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Rank 1");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Rank 2");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Rank 3");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Rank 4");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Rank 5");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Rank 6");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Leadtime 1");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Leadtime 2");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Leadtime 3");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Leadtime 4");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Leadtime 5");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Leadtime 6");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Error Message");
+            workSheet.Cells[row, col].SetStyle(style);
+            
+            foreach (NSSUpload errorRec in errorList)
+            {
+                row++;
+                col = 0;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedDivision);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedStore);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank1);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank2);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank3);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank4);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank5);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank6);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime1);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime2);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime3);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime4);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime5);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime6);
+                col++;
+                workSheet.Cells[row, col].PutValue(String.Join("; ", errorRec.ErrorList));
+            }
+
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "NSSUploadErrors.xlsx", ContentDisposition.Attachment, 
+                new OoxmlSaveOptions(SaveFormat.Xlsx));
+
+            return View();
+        }
+
+        private void RemoveStoreLeadTimes(string division, string store)
+        {
+            //delete stores current zone assignment
+            var deleteQuery = (from a in db.NetworkZoneStores
+                               where a.Division == division &&
+                                     a.Store == store
+                               select a);
+
+            if (deleteQuery.Count() > 0)
+            {
+                NetworkZoneStore nzs = deleteQuery.First();
+                int tz = nzs.ZoneID;
+
+                db.NetworkZoneStores.Remove(nzs);
+
+                var deleteQuery2 = (from a in db.NetworkZoneStores
+                                    where a.ZoneID == tz
+                                    select a);
+
+                if (deleteQuery2.Count() == 0)
+                {
+                    //delete the zone if it's empty now
+                    NetworkZone delNZ = (from a in db.NetworkZones
+                                         where a.ID == tz
+                                         select a).First();
+                    db.NetworkZones.Remove(delNZ);
+                }
+            }
+
+            List<StoreLeadTime> storeLeadTimes = (from slt in db.StoreLeadTimes
+                                                  where slt.Division == division &&
+                                                        slt.Store == store
+                                                  select slt).ToList();
+            foreach (StoreLeadTime slt in storeLeadTimes)
+            {
+                db.StoreLeadTimes.Remove(slt);
+            }
+        }
+
+        private List<StoreLeadTime> BuildStoreLeadTimeRecords(NSSUpload uploadRec)
+        {
+            List<StoreLeadTime> newLeadtimes = new List<StoreLeadTime>();
+
+            for (int i = 0; i < uploadRec.MaxValues; i++)
+            {
+                StoreLeadTime slt = new StoreLeadTime
+                {
+                    Division = uploadRec.Division,
+                    Store = uploadRec.Store
+                };
+
+                if (uploadRec.DCIDList[i] != -1)
+                {
+                    slt.DCID = uploadRec.DCIDList[i];
+                    slt.LeadTime = uploadRec.LeadtimeList[i];
+                    slt.Rank = i + 1;
+                    slt.Active = true;
+                    slt.CreateDate = DateTime.Now;
+                    slt.CreatedBy = User.Identity.Name;
+
+                    newLeadtimes.Add(slt);
+                }
+            }
+
+            return newLeadtimes;                
+        }
+
+        private void SetUploadZones(string division, string store)
+        {
+            NetworkZoneStoreDAO dao = new NetworkZoneStoreDAO();
+
+            int zoneid = dao.GetZoneForStore(division, store);
+
+            NetworkZoneStore zonestore;
+            if (zoneid > 0)
+            {
+                //save it
+                zonestore = new NetworkZoneStore
+                {
+                    Division = division,
+                    Store = store,
+                    ZoneID = zoneid
+                };
+            }
+            else
+            {
+                //create new zone
+                NetworkZone zone = new NetworkZone
+                {
+                    Name = "Zone " + store,
+                    LeadTimeID = (from a in db.InstanceDivisions 
+                                  join b in db.NetworkLeadTimes 
+                                  on a.InstanceID equals b.InstanceID 
+                                  where (a.Division == division) 
+                                  select b.ID).First(),
+                    CreateDate = DateTime.Now,
+                    CreatedBy = User.Identity.Name
+                };
+
+                // see if there are any zones already out there that have the name of the new zone
+                List<NetworkZone> oldZones = (from nz in db.NetworkZones
+                                              where nz.Name == "Zone " + store
+                                              select nz).ToList();
+
+                foreach (NetworkZone netZone in oldZones)
+                {
+                    string newZoneStore = (from nzs in db.NetworkZoneStores
+                                           where nzs.ZoneID == netZone.ID
+                                           orderby nzs.Store
+                                           select nzs.Store).FirstOrDefault();
+
+                    netZone.Name = "Zone " + newZoneStore;
+                    netZone.CreatedBy = User.Identity.Name;
+                    netZone.CreateDate = DateTime.Now;
+                    db.Entry(netZone).State = EntityState.Modified;
+                }
+
+
+                db.NetworkZones.Add(zone);
+                db.SaveChanges();
+
+                zonestore = new NetworkZoneStore
+                {
+                    Division = division,
+                    Store = store,
+                    ZoneID = zone.ID
+                };
+            }
+
+            db.NetworkZoneStores.Add(zonestore);
+            db.SaveChanges();
+        }
+
+        private void ProcessNSSUploads(List<NSSUpload> inputData)
+        {
+            foreach (NSSUpload inputRec in inputData)
+            {
+                RemoveStoreLeadTimes(inputRec.Division, inputRec.Store);
+
+                foreach (StoreLeadTime slt in BuildStoreLeadTimeRecords(inputRec))
+                {
+                    db.StoreLeadTimes.Add(slt);
+                }
+            }
+
+            db.SaveChanges();
+
+            foreach (NSSUpload inputRec in inputData)
+            {
+                ReassignStartDates(new StoreLeadTime
+                {
+                    Division = inputRec.Division,
+                    Store = inputRec.Store                     
+                });
+
+                SetUploadZones(inputRec.Division, inputRec.Store);
+            }            
+        }
 
         public ActionResult UploadRanks()
         {

@@ -10,6 +10,7 @@ namespace Footlocker.Logistics.Allocation.Models
 {
     public class NSSUpload
     {
+        readonly public int MaxValues;
         readonly AllocationLibraryContext database;
         readonly List<DistributionCenter> DCs;
         public bool Valid 
@@ -43,23 +44,15 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Division { get; set; }
         public string Store { get; set; }
 
-        public int DCID1 { get; set; }
-        public int DCID2 { get; set; }
-        public int DCID3 { get; set; }
-        public int DCID4 { get; set; }
-        public int DCID5 { get; set; }
-        public int DCID6 { get; set; }
-
-        public int Leadtime1 { get; set; }
-        public int Leadtime2 { get; set; }
-        public int Leadtime3 { get; set; }
-        public int Leadtime4 { get; set; }
-        public int Leadtime5 { get; set; }
-        public int Leadtime6 { get; set; }
+        public List<int> DCIDList { get; set; }
+        public List<int> LeadtimeList { get; set; }
 
         public NSSUpload(AllocationLibraryContext db, List<DistributionCenter> dcList)
         {
             ErrorList = new List<string>();
+            DCIDList = new List<int>();
+            LeadtimeList = new List<int>();
+            MaxValues = 6;
             database = db;
             DCs = dcList;
         }
@@ -117,24 +110,27 @@ namespace Footlocker.Logistics.Allocation.Models
             else
                 ErrorList.Add("Error - Division does not look valid");
 
+            if (SubmittedStore.Length < 5)
+                SubmittedStore = SubmittedStore.PadLeft(5, '0');
+
             if (FiveDigitRegex.IsMatch(SubmittedStore))
                 Store = SubmittedStore;
             else
                 ErrorList.Add("Error - Store does not look valid");
 
-            DCID1 = ValidateDC(SubmittedRank1, "Rank 1");
-            DCID2 = ValidateDC(SubmittedRank2, "Rank 2");
-            DCID3 = ValidateDC(SubmittedRank3, "Rank 3");
-            DCID4 = ValidateDC(SubmittedRank4, "Rank 4");
-            DCID5 = ValidateDC(SubmittedRank5, "Rank 5");
-            DCID6 = ValidateDC(SubmittedRank6, "Rank 6");
+            DCIDList.Add(ValidateDC(SubmittedRank1, "Rank 1"));
+            DCIDList.Add(ValidateDC(SubmittedRank2, "Rank 2"));
+            DCIDList.Add(ValidateDC(SubmittedRank3, "Rank 3"));
+            DCIDList.Add(ValidateDC(SubmittedRank4, "Rank 4"));
+            DCIDList.Add(ValidateDC(SubmittedRank5, "Rank 5"));
+            DCIDList.Add(ValidateDC(SubmittedRank6, "Rank 6"));
 
-            Leadtime1 = ValidateLeadTime(SubmittedLeadtime1, "Leadtime 1");
-            Leadtime2 = ValidateLeadTime(SubmittedLeadtime2, "Leadtime 2");
-            Leadtime3 = ValidateLeadTime(SubmittedLeadtime3, "Leadtime 3");
-            Leadtime4 = ValidateLeadTime(SubmittedLeadtime4, "Leadtime 4");
-            Leadtime5 = ValidateLeadTime(SubmittedLeadtime5, "Leadtime 5");
-            Leadtime6 = ValidateLeadTime(SubmittedLeadtime6, "Leadtime 6");
+            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime1, "Leadtime 1"));
+            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime2, "Leadtime 2"));
+            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime3, "Leadtime 3"));
+            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime4, "Leadtime 4"));
+            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime5, "Leadtime 5"));
+            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime6, "Leadtime 6"));
 
             if (Valid)
             {
@@ -144,6 +140,18 @@ namespace Footlocker.Logistics.Allocation.Models
                                   select slt).Count();
                 if (StoreCount == 0)
                     ErrorList.Add("The division and store is not already a part of NSS. You can only update via spreadsheet");
+            }
+
+            if (Valid)
+            {
+                for (int i = 0; i < MaxValues; i++)
+                {
+                    if (LeadtimeList[i] == -1 && DCIDList[i] != -1)
+                        ErrorList.Add(String.Format("The lead time is empty for the DC ranked {0}", i));
+
+                    if (LeadtimeList[i] != -1 && DCIDList[i] == -1)
+                        ErrorList.Add(String.Format("The DC is empty for the lead time ranked {0}", i));
+                }
             }
         }
     }

@@ -332,6 +332,7 @@
     <Compile Include="Models\TroubleshootInventory.cs" />
     <Compile Include="Models\TroubleshootModel.cs" />
     <Compile Include="Models\TroubleshootStoreModel.cs" />
+    <Compile Include="Models\UploadDataModel.cs" />
     <Compile Include="Models\VendorGroupDetailsModel.cs" />
     <Compile Include="Models\WarehouseBlackoutModel.cs" />
     <Compile Include="Models\WebPickModel.cs" />
