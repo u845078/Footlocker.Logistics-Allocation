@@ -33,6 +33,10 @@ namespace Footlocker.Logistics.Allocation.Models
         public string SubmittedRank4 { get; set; }
         public string SubmittedRank5 { get; set; }
         public string SubmittedRank6 { get; set; }
+        public string SubmittedRank7 { get; set; }
+        public string SubmittedRank8 { get; set; }
+        public string SubmittedRank9 { get; set; }
+        public string SubmittedRank10 { get; set; }
 
         public string SubmittedLeadtime1 { get; set; }
         public string SubmittedLeadtime2 { get; set; }
@@ -40,6 +44,10 @@ namespace Footlocker.Logistics.Allocation.Models
         public string SubmittedLeadtime4 { get; set; }
         public string SubmittedLeadtime5 { get; set; }
         public string SubmittedLeadtime6 { get; set; }
+        public string SubmittedLeadtime7 { get; set; }
+        public string SubmittedLeadtime8 { get; set; }
+        public string SubmittedLeadtime9 { get; set; }
+        public string SubmittedLeadtime10 { get; set; }
 
         public string Division { get; set; }
         public string Store { get; set; }
@@ -52,7 +60,7 @@ namespace Footlocker.Logistics.Allocation.Models
             ErrorList = new List<string>();
             DCIDList = new List<int>();
             LeadtimeList = new List<int>();
-            MaxValues = 6;
+            MaxValues = 10;
             database = db;
             DCs = dcList;
         }
@@ -124,6 +132,10 @@ namespace Footlocker.Logistics.Allocation.Models
             DCIDList.Add(ValidateDC(SubmittedRank4, "Rank 4"));
             DCIDList.Add(ValidateDC(SubmittedRank5, "Rank 5"));
             DCIDList.Add(ValidateDC(SubmittedRank6, "Rank 6"));
+            DCIDList.Add(ValidateDC(SubmittedRank7, "Rank 7"));
+            DCIDList.Add(ValidateDC(SubmittedRank8, "Rank 8"));
+            DCIDList.Add(ValidateDC(SubmittedRank9, "Rank 9"));
+            DCIDList.Add(ValidateDC(SubmittedRank10, "Rank 10"));
 
             LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime1, "Leadtime 1"));
             LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime2, "Leadtime 2"));
@@ -131,6 +143,10 @@ namespace Footlocker.Logistics.Allocation.Models
             LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime4, "Leadtime 4"));
             LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime5, "Leadtime 5"));
             LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime6, "Leadtime 6"));
+            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime7, "Leadtime 7"));
+            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime8, "Leadtime 8"));
+            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime9, "Leadtime 9"));
+            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime10, "Leadtime 10"));
 
             if (Valid)
             {
@@ -147,10 +163,10 @@ namespace Footlocker.Logistics.Allocation.Models
                 for (int i = 0; i < MaxValues; i++)
                 {
                     if (LeadtimeList[i] == -1 && DCIDList[i] != -1)
-                        ErrorList.Add(String.Format("The lead time is empty for the DC ranked {0}", i));
+                        ErrorList.Add(String.Format("The lead time is empty for the DC ranked {0}", i + 1));
 
                     if (LeadtimeList[i] != -1 && DCIDList[i] == -1)
-                        ErrorList.Add(String.Format("The DC is empty for the lead time ranked {0}", i));
+                        ErrorList.Add(String.Format("The DC is empty for the lead time ranked {0}", i + 1));
                 }
             }
         }

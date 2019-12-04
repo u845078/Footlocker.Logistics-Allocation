@@ -970,9 +970,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if (!(excelData.Columns[0].ColumnName == "Division" && excelData.Columns[1].ColumnName == "Store" && excelData.Columns[2].ColumnName == "Rank 1" &&
                         excelData.Columns[3].ColumnName == "Rank 2" && excelData.Columns[4].ColumnName == "Rank 3" && excelData.Columns[5].ColumnName == "Rank 4" &&
-                        excelData.Columns[6].ColumnName == "Rank 5" && excelData.Columns[7].ColumnName == "Rank 6" && excelData.Columns[8].ColumnName == "Leadtime 1" &&
-                        excelData.Columns[9].ColumnName == "Leadtime 2" && excelData.Columns[10].ColumnName == "Leadtime 3" && excelData.Columns[11].ColumnName == "Leadtime 4" &&
-                        excelData.Columns[12].ColumnName == "Leadtime 5" && excelData.Columns[13].ColumnName == "Leadtime 6"))
+                        excelData.Columns[6].ColumnName == "Rank 5" && excelData.Columns[7].ColumnName == "Rank 6" && excelData.Columns[8].ColumnName == "Rank 7" &&
+                        excelData.Columns[9].ColumnName == "Rank 8" && excelData.Columns[10].ColumnName == "Rank 9" && excelData.Columns[11].ColumnName == "Rank 10" &&
+                        excelData.Columns[12].ColumnName == "Leadtime 1" && excelData.Columns[13].ColumnName == "Leadtime 2" && excelData.Columns[14].ColumnName == "Leadtime 3" && 
+                        excelData.Columns[15].ColumnName == "Leadtime 4" && excelData.Columns[16].ColumnName == "Leadtime 5" && excelData.Columns[17].ColumnName == "Leadtime 6" &&
+                        excelData.Columns[18].ColumnName == "Leadtime 7" && excelData.Columns[19].ColumnName == "Leadtime 8" && excelData.Columns[20].ColumnName == "Leadtime 9" &&
+                        excelData.Columns[21].ColumnName == "Leadtime 10"))
                 {
                     return Content("Incorrectly formatted or missing header row. Please correct and re-process.");
                 }
@@ -992,12 +995,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         SubmittedRank4 = row["Rank 4"].ToString(),
                         SubmittedRank5 = row["Rank 5"].ToString(),
                         SubmittedRank6 = row["Rank 6"].ToString(),
+                        SubmittedRank7 = row["Rank 7"].ToString(),
+                        SubmittedRank8 = row["Rank 8"].ToString(),
+                        SubmittedRank9 = row["Rank 9"].ToString(),
+                        SubmittedRank10 = row["Rank 10"].ToString(),
                         SubmittedLeadtime1 = row["Leadtime 1"].ToString(),
                         SubmittedLeadtime2 = row["Leadtime 2"].ToString(),
                         SubmittedLeadtime3 = row["Leadtime 3"].ToString(),
                         SubmittedLeadtime4 = row["Leadtime 4"].ToString(),
                         SubmittedLeadtime5 = row["Leadtime 5"].ToString(),
-                        SubmittedLeadtime6 = row["Leadtime 6"].ToString()
+                        SubmittedLeadtime6 = row["Leadtime 6"].ToString(),
+                        SubmittedLeadtime7 = row["Leadtime 7"].ToString(),
+                        SubmittedLeadtime8 = row["Leadtime 8"].ToString(),
+                        SubmittedLeadtime9 = row["Leadtime 9"].ToString(),
+                        SubmittedLeadtime10 = row["Leadtime 10"].ToString()
                     }); 
                 }
 
@@ -1061,6 +1072,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
             workSheet.Cells[row, col].PutValue("Rank 6");
             workSheet.Cells[row, col].SetStyle(style);
             col++;
+            workSheet.Cells[row, col].PutValue("Rank 7");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Rank 8");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Rank 9");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Rank 10");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
             workSheet.Cells[row, col].PutValue("Leadtime 1");
             workSheet.Cells[row, col].SetStyle(style);
             col++;
@@ -1077,6 +1100,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
             workSheet.Cells[row, col].SetStyle(style);
             col++;
             workSheet.Cells[row, col].PutValue("Leadtime 6");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Leadtime 7");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Leadtime 8");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Leadtime 9");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Leadtime 10");
             workSheet.Cells[row, col].SetStyle(style);
             col++;
             workSheet.Cells[row, col].PutValue("Error Message");
@@ -1102,6 +1137,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 col++;
                 workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank6);
                 col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank7);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank8);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank9);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank10);
+                col++;
                 workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime1);
                 col++;
                 workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime2);
@@ -1114,6 +1157,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 col++;
                 workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime6);
                 col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime7);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime8);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime9);
+                col++;
+                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime10);
+                col++;
+
                 workSheet.Cells[row, col].PutValue(String.Join("; ", errorRec.ErrorList));
             }
 
