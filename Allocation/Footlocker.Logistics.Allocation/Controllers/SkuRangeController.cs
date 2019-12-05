@@ -1724,13 +1724,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             where b.Id == planID
                             select a).FirstOrDefault();
             if (i != null)
-            {
+            {                
                 ViewData["LifeCycle"] = i.LifeCycleDays;
             }
             SkuSetupModel model = new SkuSetupModel();
             model.RangePlan = (from a in db.RangePlans
                           where a.Id == planID
-                          select a).First();
+                          select a).First();            
+
+            if (model.RangePlan != null)
+            {
+                if (model.RangePlan.UpdatedBy.Contains("CORP"))
+                    model.RangePlan.UpdatedBy = getFullUserNameFromDatabase(model.RangePlan.UpdatedBy.Replace('\\', '/'));
+            }
 
             //update the store count
             model.RangePlan.StoreCount = (from a in db.RangePlanDetails
