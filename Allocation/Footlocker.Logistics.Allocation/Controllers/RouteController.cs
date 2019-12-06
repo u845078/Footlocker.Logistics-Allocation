@@ -967,7 +967,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ExportTableOptions tableOptions = new ExportTableOptions
                 {
                     SkipErrorValue = true,
-                    ExportColumnName = true
+                    ExportColumnName = true,
+                    ExportAsString = true
                 };
                 
                 DataTable excelData = worksheet.Cells.ExportDataTable(0, 0, rows + 1, columns + 1, tableOptions);
@@ -989,31 +990,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 foreach (DataRow row in excelData.Rows)
                 {
-                    inputData.Add(new NSSUpload(allocationLibraryDB, DCs)
+                    NSSUpload newDataRow = new NSSUpload(allocationLibraryDB, DCs)
                     {
                         SubmittedDivision = row["Division"].ToString(),
-                        SubmittedStore = row["Store"].ToString(),
-                        SubmittedRank1 = row["Rank 1"].ToString(),
-                        SubmittedRank2 = row["Rank 2"].ToString(),
-                        SubmittedRank3 = row["Rank 3"].ToString(),
-                        SubmittedRank4 = row["Rank 4"].ToString(),
-                        SubmittedRank5 = row["Rank 5"].ToString(),
-                        SubmittedRank6 = row["Rank 6"].ToString(),
-                        SubmittedRank7 = row["Rank 7"].ToString(),
-                        SubmittedRank8 = row["Rank 8"].ToString(),
-                        SubmittedRank9 = row["Rank 9"].ToString(),
-                        SubmittedRank10 = row["Rank 10"].ToString(),
-                        SubmittedLeadtime1 = row["Leadtime 1"].ToString(),
-                        SubmittedLeadtime2 = row["Leadtime 2"].ToString(),
-                        SubmittedLeadtime3 = row["Leadtime 3"].ToString(),
-                        SubmittedLeadtime4 = row["Leadtime 4"].ToString(),
-                        SubmittedLeadtime5 = row["Leadtime 5"].ToString(),
-                        SubmittedLeadtime6 = row["Leadtime 6"].ToString(),
-                        SubmittedLeadtime7 = row["Leadtime 7"].ToString(),
-                        SubmittedLeadtime8 = row["Leadtime 8"].ToString(),
-                        SubmittedLeadtime9 = row["Leadtime 9"].ToString(),
-                        SubmittedLeadtime10 = row["Leadtime 10"].ToString()
-                    }); 
+                        SubmittedStore = row["Store"].ToString()
+                    };
+                    
+                    for (int i = 0; i < newDataRow.MaxValues; i++)
+                    {
+                        newDataRow.SubmittedRank.Add(row[String.Format("Rank {0}", i + 1)].ToString());
+                        newDataRow.SubmittedLeadtime.Add(row[String.Format("Leadtime {0}", i + 1)].ToString());
+                    }
+
+                    inputData.Add(newDataRow);
                 }
 
                 foreach (NSSUpload inputRec in inputData)
@@ -1058,66 +1047,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
             workSheet.Cells[row, col].PutValue("Store");
             workSheet.Cells[row, col].SetStyle(style);
             col++;
-            workSheet.Cells[row, col].PutValue("Rank 1");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Rank 2");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Rank 3");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Rank 4");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Rank 5");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Rank 6");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Rank 7");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Rank 8");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Rank 9");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Rank 10");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Leadtime 1");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Leadtime 2");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Leadtime 3");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Leadtime 4");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Leadtime 5");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Leadtime 6");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Leadtime 7");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Leadtime 8");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Leadtime 9");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
-            workSheet.Cells[row, col].PutValue("Leadtime 10");
-            workSheet.Cells[row, col].SetStyle(style);
-            col++;
+
+            for (int i = 0; i < errorList[0].MaxValues; i++)
+            {
+                workSheet.Cells[row, col].PutValue(String.Format("Rank {0}", i + 1));
+                workSheet.Cells[row, col].SetStyle(style);
+                col++;
+            }
+
+            for (int i = 0; i < errorList[0].MaxValues; i++)
+            {
+                workSheet.Cells[row, col].PutValue(String.Format("Leadtime {0}", i + 1));
+                workSheet.Cells[row, col].SetStyle(style);
+                col++;
+            }
+
             workSheet.Cells[row, col].PutValue("Error Message");
             workSheet.Cells[row, col].SetStyle(style);
             
@@ -1129,46 +1073,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 col++;
                 workSheet.Cells[row, col].PutValue(errorRec.SubmittedStore);
                 col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank1);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank2);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank3);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank4);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank5);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank6);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank7);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank8);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank9);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank10);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime1);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime2);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime3);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime4);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime5);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime6);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime7);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime8);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime9);
-                col++;
-                workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime10);
-                col++;
+
+                for (int i = 0; i < errorRec.MaxValues; i++)
+                {
+                    workSheet.Cells[row, col].PutValue(errorRec.SubmittedRank[i]);
+                    col++;
+                }
+
+                for (int i = 0; i < errorRec.MaxValues; i++)
+                {
+                    workSheet.Cells[row, col].PutValue(errorRec.SubmittedLeadtime[i]);
+                    col++;
+                }
 
                 workSheet.Cells[row, col].PutValue(String.Join("; ", errorRec.ErrorList));
             }
@@ -1295,7 +1211,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     netZone.CreateDate = DateTime.Now;
                     db.Entry(netZone).State = EntityState.Modified;
                 }
-
 
                 db.NetworkZones.Add(zone);
                 db.SaveChanges();

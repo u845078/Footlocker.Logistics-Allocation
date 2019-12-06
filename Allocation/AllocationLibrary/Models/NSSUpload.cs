@@ -25,29 +25,32 @@ namespace Footlocker.Logistics.Allocation.Models
         }
         public List<string> ErrorList;
 
+        public List<string> SubmittedRank { get; set; }
+        public List<string> SubmittedLeadtime { get; set; }
+
         public string SubmittedDivision { get; set; }
         public string SubmittedStore { get; set; }
-        public string SubmittedRank1 { get; set; }
-        public string SubmittedRank2 { get; set; }
-        public string SubmittedRank3 { get; set; }
-        public string SubmittedRank4 { get; set; }
-        public string SubmittedRank5 { get; set; }
-        public string SubmittedRank6 { get; set; }
-        public string SubmittedRank7 { get; set; }
-        public string SubmittedRank8 { get; set; }
-        public string SubmittedRank9 { get; set; }
-        public string SubmittedRank10 { get; set; }
+        //public string SubmittedRank1 { get; set; }
+        //public string SubmittedRank2 { get; set; }
+        //public string SubmittedRank3 { get; set; }
+        //public string SubmittedRank4 { get; set; }
+        //public string SubmittedRank5 { get; set; }
+        //public string SubmittedRank6 { get; set; }
+        //public string SubmittedRank7 { get; set; }
+        //public string SubmittedRank8 { get; set; }
+        //public string SubmittedRank9 { get; set; }
+        //public string SubmittedRank10 { get; set; }
 
-        public string SubmittedLeadtime1 { get; set; }
-        public string SubmittedLeadtime2 { get; set; }
-        public string SubmittedLeadtime3 { get; set; }
-        public string SubmittedLeadtime4 { get; set; }
-        public string SubmittedLeadtime5 { get; set; }
-        public string SubmittedLeadtime6 { get; set; }
-        public string SubmittedLeadtime7 { get; set; }
-        public string SubmittedLeadtime8 { get; set; }
-        public string SubmittedLeadtime9 { get; set; }
-        public string SubmittedLeadtime10 { get; set; }
+        //public string SubmittedLeadtime1 { get; set; }
+        //public string SubmittedLeadtime2 { get; set; }
+        //public string SubmittedLeadtime3 { get; set; }
+        //public string SubmittedLeadtime4 { get; set; }
+        //public string SubmittedLeadtime5 { get; set; }
+        //public string SubmittedLeadtime6 { get; set; }
+        //public string SubmittedLeadtime7 { get; set; }
+        //public string SubmittedLeadtime8 { get; set; }
+        //public string SubmittedLeadtime9 { get; set; }
+        //public string SubmittedLeadtime10 { get; set; }
 
         public string Division { get; set; }
         public string Store { get; set; }
@@ -60,6 +63,8 @@ namespace Footlocker.Logistics.Allocation.Models
             ErrorList = new List<string>();
             DCIDList = new List<int>();
             LeadtimeList = new List<int>();
+            SubmittedRank = new List<string>();
+            SubmittedLeadtime = new List<string>();
             MaxValues = 10;
             database = db;
             DCs = dcList;
@@ -126,27 +131,11 @@ namespace Footlocker.Logistics.Allocation.Models
             else
                 ErrorList.Add("Error - Store does not look valid");
 
-            DCIDList.Add(ValidateDC(SubmittedRank1, "Rank 1"));
-            DCIDList.Add(ValidateDC(SubmittedRank2, "Rank 2"));
-            DCIDList.Add(ValidateDC(SubmittedRank3, "Rank 3"));
-            DCIDList.Add(ValidateDC(SubmittedRank4, "Rank 4"));
-            DCIDList.Add(ValidateDC(SubmittedRank5, "Rank 5"));
-            DCIDList.Add(ValidateDC(SubmittedRank6, "Rank 6"));
-            DCIDList.Add(ValidateDC(SubmittedRank7, "Rank 7"));
-            DCIDList.Add(ValidateDC(SubmittedRank8, "Rank 8"));
-            DCIDList.Add(ValidateDC(SubmittedRank9, "Rank 9"));
-            DCIDList.Add(ValidateDC(SubmittedRank10, "Rank 10"));
-
-            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime1, "Leadtime 1"));
-            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime2, "Leadtime 2"));
-            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime3, "Leadtime 3"));
-            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime4, "Leadtime 4"));
-            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime5, "Leadtime 5"));
-            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime6, "Leadtime 6"));
-            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime7, "Leadtime 7"));
-            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime8, "Leadtime 8"));
-            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime9, "Leadtime 9"));
-            LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime10, "Leadtime 10"));
+            for (int i = 0; i < MaxValues; i++)
+            {
+                DCIDList.Add(ValidateDC(SubmittedRank[i], String.Format("Rank {0}", i + 1)));
+                LeadtimeList.Add(ValidateLeadTime(SubmittedLeadtime[i], String.Format("Leadtime {0}", i + 1)));
+            }
 
             if (Valid)
             {
