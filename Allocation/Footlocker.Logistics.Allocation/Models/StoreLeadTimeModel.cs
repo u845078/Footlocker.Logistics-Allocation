@@ -11,5 +11,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public List<Division> Divisions { get; set; }
         public string Division { get; set; }
         public List<StoreZoneModel> StoreZones { get; set; }
+
+        public bool CanUploadData { get; set; }
     }
 }
