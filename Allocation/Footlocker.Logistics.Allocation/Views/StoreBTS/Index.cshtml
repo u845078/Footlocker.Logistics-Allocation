@@ -4,6 +4,19 @@
     ViewBag.Title = "Store BTS";
 }
 <script>
+    function exportSelected() {
+        var grid = $('#StoreBTS').data('tGrid');
+        if (grid.filterBy === "") {
+            $('#ExportGrid').attr('href', function () {
+                return "/StoreBTS/ExportGrid?div=" + $('#CurrentDivision').val() + "&year=" + $('#CurrentYear').val();
+            });
+        } else {
+            $('#ExportGrid').attr('href', function () {
+                return "/StoreBTS/ExportGrid?filter=" + grid.filterBy + "&div=" + $('#CurrentDivision').val() + "&year=" + $('#CurrentYear').val();
+            });
+        }
+    }
+
     function autopostback(dropdown) {
         window.location = '/StoreBTS/Index?div=' + $('#CurrentDivision').val() + "&year=" + $('#CurrentYear').val();
     }
@@ -37,7 +50,8 @@
             columns.Bound(o => o.ClusterID).Title("Cluster ID").Width(75);
             columns.Bound(o => o.Year).Width(100);
             columns.Bound(o => o.Name).Width(150);
-            columns.Bound(o => o.Count);
+            columns.Bound(o => o.Count).Aggregate(aggreages => aggreages.Sum()).Width(10)
+                            .ClientFooterTemplate("<$= Sum #").FooterTemplate(@<text>@Html.Raw(item.Sum)</text>);
             columns.Bound(o => o.CreatedBy);
             columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(120);
             columns.Command(commands =>
@@ -61,6 +75,26 @@
                 .Ajax(false)
                 .Action("Delete", "StoreBTS").HtmlAttributes(new { onclick="return confirm('Are you sure?');"});
             }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Template(@<text>
+                @Html.ActionLink(
+                         "Export All",
+                         "ExportGrid",
+                         "StoreBTS",
+                         new
+                         {
+                             filter = "__filterBy__"
+                         },
+                         new
+                         {
+                             @class = "t-button",
+                             @onclick = "exportSelected()",
+                             id = "ExportGrid"
+                         }
+                      )
+                </text>);
         })
             .DataBinding(dataBinding =>
             {
