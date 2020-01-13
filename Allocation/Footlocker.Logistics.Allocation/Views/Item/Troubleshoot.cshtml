@@ -88,7 +88,7 @@
                 <td><strong>@Html.LabelFor(m => Model.AllocationDriver.AllocateDate)</strong></td>
                 <td>@Html.DisplayFor(m => Model.AllocationDriver.AllocateDate)</td>
             </tr>
-        }
+                        }
         <tr>
             <td><strong>@Html.LabelFor(m => Model.ItemMaster.ID)</strong></td>
             <td>@Html.DisplayFor(m => Model.ItemMaster.ID)</td>
@@ -133,11 +133,16 @@
         </tr>
         <tr>
             <td><strong>LifeCycle</strong></td>
-            <td colspan="3">@Html.DisplayFor(m => Model.LifeCycleDisplay)</td>
+            <td>@Html.DisplayFor(m => Model.LifeCycleDisplay)</td>
+            <td><strong>LaunchDate</strong></td>
+            <td>@Model.RangePlans.Select(c => c.LaunchDate).FirstOrDefault()</td>
         </tr>
-        <tr>
-            <td><strong>@Html.LabelFor(m => Model.Sizes)</strong></td>
-            <td colspan=4>
+    
+            <tr>
+    
+                <td><strong>@Html.LabelFor(m => Model.Sizes)</strong></td>
+    
+                <td colspan=4>
                 @{
                     bool first = true;
                     string sizeText = "";

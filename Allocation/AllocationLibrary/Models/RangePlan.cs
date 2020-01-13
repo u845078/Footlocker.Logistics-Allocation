@@ -152,6 +152,7 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public Boolean LaunchMinihubInd { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime? LaunchDate { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
