@@ -3497,13 +3497,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Store")) &&
                         (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Sku")) &&
                         (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Size"))
-                        && (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Range Start Date")) &&
+                        && (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Delivery Group Start Date")) &&
                         (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Delivery Group Name"))
                         && (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Min")) &&
                         (Convert.ToString(mySheet.Cells[0, 9].Value).Contains("Max"))
                         && (Convert.ToString(mySheet.Cells[0, 10].Value).Contains("Base Demand")) &&
-                        (Convert.ToString(mySheet.Cells[0, 11].Value).Contains("Min End Days")) &&
-                        (Convert.ToString(mySheet.Cells[0, 12].Value).Contains("End Date"))
+                        (Convert.ToString(mySheet.Cells[0, 11].Value).Contains("Min End Days Override")) &&
+                        (Convert.ToString(mySheet.Cells[0, 12].Value).Contains("Store End Date Override"))
                         )
                     {
                         division = Convert.ToString(mySheet.Cells[row, 0].Value).Trim().PadLeft(2, '0');
