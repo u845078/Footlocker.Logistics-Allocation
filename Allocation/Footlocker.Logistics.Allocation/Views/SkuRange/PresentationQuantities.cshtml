@@ -15,41 +15,62 @@
     <table cellpadding=0 cellspacing=0><tr><td>
         <img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.RangePlan.Sku)"/>
     </td><td valign="middle">
-        <span class="editor-label">
-            <b>@Html.LabelFor(model => model.RangePlan.Sku):</b>
-        </span>
-        <span class="editor-field">
-            @Html.Raw(Model.RangePlan.Sku)
-        </span>
-        &nbsp;&nbsp;
-        <span class="editor-label">
-            <b>@Html.LabelFor(model => model.RangePlan.Description, "Comment"):</b>
-        </span>
-        <span class="editor-field">
-            @Html.Raw(Model.RangePlan.Description)
-        </span>
-        &nbsp;&nbsp;
-        <span class="editor-field">
-            @Html.Raw("<b># Stores:</b>  " + Model.RangePlan.StoreCount)
-        </span>
-        <br />
-             <br />
-        <span class="editor-label">
-            <b>@Html.LabelFor(model => model.RangePlan.CreatedBy):</b>
-        </span>
-        <span class="editor-field">
-            @Html.Raw(Model.RangePlan.CreatedBy)
-        </span>
-             &nbsp;&nbsp;
-        <span class="editor-label">
-            <b>@Html.LabelFor(model => model.RangePlan.CreateDate):</b>
-        </span>
-        <span class="editor-field">
-            @Html.Raw(Model.RangePlan.CreateDate)
-        </span>
-        <br />
-
-    </td></tr>
+    <span class="editor-label">
+        <b>@Html.LabelFor(model => model.RangePlan.Sku):</b>
+    </span>
+    <span class="editor-field">
+        @Html.Raw(Model.RangePlan.Sku)
+    </span>
+    &nbsp;&nbsp;
+    <span class="editor-label">
+        <b>@Html.LabelFor(model => model.RangePlan.Description, "Comment"):</b>
+    </span>
+    <span class="editor-field">
+        @Html.Raw(Model.RangePlan.Description)
+    </span>
+    &nbsp;&nbsp;
+    <span class="editor-field">
+        @Html.Raw("<b># Stores:</b>  " + Model.RangePlan.StoreCount)
+    </span>
+    <br />
+    <br />
+    <span class="editor-label">
+        <b>@Html.LabelFor(model => model.RangePlan.ItemMaster.Description):</b>
+    </span>
+    <span class="editor-field">
+        @Html.Raw(Model.RangePlan.ItemMaster.Description)
+    </span>
+    <br />
+    <br />
+    <span class="editor-label">
+        <b>@Html.LabelFor(model => model.RangePlan.CreatedBy):</b>
+    </span>
+    <span class="editor-field">
+        @Html.Raw(Model.RangePlan.CreatedBy)
+    </span>
+    &nbsp;&nbsp;
+    <span class="editor-label">
+        <b>@Html.LabelFor(model => model.RangePlan.CreateDate):</b>
+    </span>
+    <span class="editor-field">
+        @Html.Raw(Model.RangePlan.CreateDate)
+    </span>
+    <br />
+    <br />
+    <span class="editor-label">
+        <b>@Html.LabelFor(model => model.RangePlan.UpdateDate):</b>
+    </span>
+    <span class="editor-field">
+        @Html.Raw(Model.RangePlan.UpdateDate)
+    </span>
+    &nbsp;&nbsp;
+    <span class="editor-label">
+        <b>@Html.LabelFor(model => model.RangePlan.UpdatedBy):</b>
+    </span>
+    <span class="editor-field">
+        @Html.Raw(Model.RangePlan.UpdatedBy)
+    </span>
+</td></tr>
     @if (Model.RangePlan.Launch)
     { 
         <tr>
