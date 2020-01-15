@@ -1540,8 +1540,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                              rf.Division.Equals(urf.Division) &&
                                              rf.Store.Equals(urf.Store) &&
                                              rfd.Size.Equals(urf.Size) &&
-                                             rfd.ActiveInd.Equals("1") &&
-                                             
+                                             rfd.ActiveInd.Equals("1") &&                                             
                                              rfd.ringFenceStatusCode.Equals("4") &&
                                              (rf.EndDate == null ||
                                               rf.EndDate >= DateTime.Now)
@@ -1549,7 +1548,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if (ringFenceDetail != null)
                 {
+                    var ringFenceHeader = (from rf in db.RingFences
+                                           where rf.ID == ringFenceDetail.RingFenceID
+                                           select rf).FirstOrDefault();
+                    
+                    // this may not be the correct answer if the size is a caselot, but that's fine because it will be recalculated in the SaveChanges().
+                    // this is primarily done to get the ring fence record in the update cache.
+                    ringFenceHeader.Qty -= urf.Quantity;
                     ringFenceDetail.Qty -= urf.Quantity;
+                    
                     if (ringFenceDetail.Qty.Equals(0))
                     {
                         db.RingFenceDetails.Remove(ringFenceDetail);

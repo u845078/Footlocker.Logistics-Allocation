@@ -86,10 +86,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult BatchUpdate(long ruleSetID = -1, bool isRestrictingToUnassignedCustomer = false)
         {
             // Create rule set for new batch update session
-            if (ruleSetID < 1) { ruleSetID = CreateRuleSet().RuleSetID; }
+            if (ruleSetID < 1) 
+            { 
+                ruleSetID = CreateRuleSet().RuleSetID; 
+            }
 
             // Create view model to support UI
-            var viewModel = new StoreBatchModel() { RuleSetID = ruleSetID, IsRestrictingToUnassignedCustomer = isRestrictingToUnassignedCustomer };
+            var viewModel = new StoreBatchModel() 
+            { 
+                RuleSetID = ruleSetID, 
+                IsRestrictingToUnassignedCustomer = isRestrictingToUnassignedCustomer 
+            };
+
             LoadLookups(viewModel);
 
             return View(viewModel);
@@ -146,8 +154,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             db.SaveChanges();
 
-            List<StoreLookup> Stores = (from a in db.StoreLookups.Include("StoreExtension") select a).ToList();
-            Stores = (from a in Stores join b in Divisions() on a.Division equals b.DivCode select a).ToList();
+            List<StoreLookup> Stores = (from a in db.StoreLookups.Include("StoreExtension") 
+                                        select a).ToList();
+            Stores = (from a in Stores 
+                      join b in Divisions() 
+                      on a.Division equals b.DivCode 
+                      select a).ToList();
 
             return View(new GridModel(Stores));
 
@@ -175,12 +187,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             // Perform update on entities
-            if (model.SelectedConceptTypeID > 0 
-                || model.SelectedCustomerTypeID > 0 
-                || model.SelectedPriorityTypeID > 0 
-                || model.SelectedStrategyTypeID > 0
-                || model.SelectedExcludeStore > 0
-                || model.SelectedMinihubStrategyInd > 0)
+            if (model.SelectedConceptTypeID > 0 || 
+                model.SelectedCustomerTypeID > 0 || 
+                model.SelectedPriorityTypeID > 0 || 
+                model.SelectedStrategyTypeID > 0 || 
+                model.SelectedExcludeStore > 0 || 
+                model.SelectedMinihubStrategyInd >= 0)
             {
                 var currentDate = DateTime.Now;
 
@@ -200,14 +212,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                         // Update extension data fields
                         if (model.SelectedConceptTypeID > 0 && sl.StoreExtension.ConceptTypeID != model.SelectedConceptTypeID)
-                            { sl.StoreExtension.ConceptTypeID = model.SelectedConceptTypeID; }
+                        { 
+                            sl.StoreExtension.ConceptTypeID = model.SelectedConceptTypeID; 
+                        }
                         if (model.SelectedCustomerTypeID > 0 && sl.StoreExtension.CustomerTypeID != model.SelectedCustomerTypeID) 
-                            { sl.StoreExtension.CustomerTypeID = model.SelectedCustomerTypeID; }
+                        { 
+                            sl.StoreExtension.CustomerTypeID = model.SelectedCustomerTypeID; 
+                        }
                         if (model.SelectedPriorityTypeID > 0 && sl.StoreExtension.PriorityTypeID != model.SelectedPriorityTypeID) 
-                            { sl.StoreExtension.PriorityTypeID = model.SelectedPriorityTypeID; }
+                        { 
+                            sl.StoreExtension.PriorityTypeID = model.SelectedPriorityTypeID; 
+                        }
                         if (model.SelectedStrategyTypeID > 0 && sl.StoreExtension.StrategyTypeID != model.SelectedStrategyTypeID)
-                            { sl.StoreExtension.StrategyTypeID = model.SelectedStrategyTypeID; }
-                        if (model.SelectedMinihubStrategyInd > 0 && (sl.StoreExtension.MinihubStrategyInd ? 1 : 0) != model.SelectedMinihubStrategyInd)
+                        { 
+                            sl.StoreExtension.StrategyTypeID = model.SelectedStrategyTypeID; 
+                        }
+                        if (model.SelectedMinihubStrategyInd >= 0 && (sl.StoreExtension.MinihubStrategyInd ? 1 : 0) != model.SelectedMinihubStrategyInd)
                         {
                             sl.StoreExtension.MinihubStrategyInd = (model.SelectedMinihubStrategyInd == 1);
                         }
