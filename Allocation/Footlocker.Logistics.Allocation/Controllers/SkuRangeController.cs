@@ -3454,7 +3454,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<PreSaleModel> model = (from preSale in db.PreSaleSKUs
                                         join item in db.ItemMasters on preSale.ItemID equals item.ID
                                         select new PreSaleModel
-                                        {                                            
+                                        {
                                             SKU = item.MerchantSku,
                                             SKUDescription = item.Description,
                                             preSaleSKU = preSale
@@ -3472,11 +3472,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult CreatePreSale(PreSaleModel model)
         {
             PreSaleSKU preSale = new PreSaleSKU();
+            string userName = User.Identity.Name;
+
+            if (User.Identity.Name.Contains("CORP"))
+            {
+                userName = getFullUserNameFromDatabase(User.Identity.Name.Replace('\\', '/'));
+            }
 
             preSale.CreateDate = DateTime.Now;
-            preSale.CreateUser = User.Identity.Name;
+            preSale.CreateUser = userName;
             preSale.LastModifiedDate = DateTime.Now;
-            preSale.LastModifiedUser = User.Identity.Name;
+            preSale.LastModifiedUser = userName;
 
             string validationMessage = ValidateSKU(model.SKU);
 
@@ -3487,8 +3493,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             preSale.ItemID = (from a in db.ItemMasters
-                                       where a.MerchantSku == model.SKU
-                                       select a.ID).FirstOrDefault();
+                              where a.MerchantSku == model.SKU
+                              select a.ID).FirstOrDefault();
 
             db.PreSaleSKUs.Add(preSale);
             db.SaveChanges();
