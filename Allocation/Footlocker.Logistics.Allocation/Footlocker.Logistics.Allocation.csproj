@@ -262,6 +262,7 @@
     <Compile Include="Models\CheckBoxModel.cs" />
     <Compile Include="Models\HoldsUploadDeleteModel.cs" />
     <Compile Include="Models\InstanceModel.cs" />
+    <Compile Include="Models\PreSaleModel.cs" />
     <Compile Include="Models\QuantumDataDownloadModel.cs" />
     <Compile Include="Models\ProductHierarchyOverrideModel.cs" />
     <Compile Include="Models\PurgeArchiveTypeModel.cs" />
@@ -754,6 +755,7 @@
     <Content Include="Views\Upload\ARSkusUpload.cshtml" />
     <Content Include="Views\Hold\Upload.cshtml" />
     <Content Include="Views\SkuRange\SkuRPDGUpload.cshtml" />
+    <Content Include="Views\SkuRange\PreSale.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

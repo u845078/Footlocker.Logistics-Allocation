@@ -175,6 +175,7 @@
     <Compile Include="Models\OrderPlanningRequest.cs" />
     <Compile Include="Models\POStatus.cs" />
     <Compile Include="Models\POStockStatus.cs" />
+    <Compile Include="Models\PreSaleSKU.cs" />
     <Compile Include="Models\Price.cs" />
     <Compile Include="Models\ProductHierarchyOverrides.cs" />
     <Compile Include="Models\ProductOverrideTypes.cs" />

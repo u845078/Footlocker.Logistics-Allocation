@@ -106,6 +106,7 @@ namespace Footlocker.Logistics.Allocation.DAO
         public DbSet<RDQType> RDQTypes { get; set; }
         public DbSet<Region> Regions { get; set; }
         public DbSet<League> Leagues { get; set; }
+        public DbSet<PreSaleSKU> PreSaleSKUs { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
