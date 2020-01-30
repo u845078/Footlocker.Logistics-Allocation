@@ -3484,22 +3484,35 @@ namespace Footlocker.Logistics.Allocation.Controllers
             preSale.LastModifiedDate = DateTime.Now;
             preSale.LastModifiedUser = userName;
 
-            string validationMessage = ValidateSKU(model.SKU);
+            preSale.ItemID = ValidatePreSaleSKU(model.SKU);
 
-            if (!string.IsNullOrEmpty(validationMessage))
+            if (preSale.ItemID == 0)
             {
-                ViewData["message"] = validationMessage;
+                ViewData["message"] = "SKU does not exists";
                 return View(model);
             }
 
-            preSale.ItemID = (from a in db.ItemMasters
-                              where a.MerchantSku == model.SKU
-                              select a.ID).FirstOrDefault();
+            long preSaleItemID = (from a in db.PreSaleSKUs
+                                  where a.ItemID == preSale.ItemID
+                                  select a.ItemID).FirstOrDefault();
+
+            if (preSaleItemID > 0)
+            {
+                ViewData["message"] = "Presale already exists for the SKU";
+                return View(model);
+            }
 
             db.PreSaleSKUs.Add(preSale);
             db.SaveChanges();
 
             return RedirectToAction("PreSale");
+        }
+
+        private long ValidatePreSaleSKU(string SKU)
+        {
+            return (from a in db.ItemMasters
+                    where a.MerchantSku == SKU
+                    select a.ID).FirstOrDefault();
         }
 
         public ActionResult DeletePreSale(long ItemID)
