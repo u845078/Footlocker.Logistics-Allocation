@@ -615,6 +615,7 @@
     <Content Include="Views\RDQRestriction\IndexByDestination_DCGrid.cshtml" />
     <Content Include="Views\Hold\UploadHoldsUpdates.cshtml" />
     <Content Include="Views\Route\UploadChanges.cshtml" />
+    <Content Include="Views\SkuRange\CreatePreSale.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />

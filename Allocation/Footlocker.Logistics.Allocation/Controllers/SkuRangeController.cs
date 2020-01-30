@@ -3462,6 +3462,47 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
+        public ActionResult CreatePreSale()
+        {
+            PreSaleModel model = new PreSaleModel();
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult CreatePreSale(PreSaleModel model)
+        {
+            PreSaleSKU preSale = new PreSaleSKU();
+
+            preSale.CreateDate = DateTime.Now;
+            preSale.CreateUser = User.Identity.Name;
+            preSale.LastModifiedDate = DateTime.Now;
+            preSale.LastModifiedUser = User.Identity.Name;
+
+            string validationMessage = ValidateSKU(model.SKU);
+
+            if (!string.IsNullOrEmpty(validationMessage))
+            {
+                ViewData["message"] = validationMessage;
+                return View(model);
+            }
+
+            preSale.ItemID = (from a in db.ItemMasters
+                                       where a.MerchantSku == model.SKU
+                                       select a.ID).FirstOrDefault();
+
+            db.PreSaleSKUs.Add(preSale);
+            db.SaveChanges();
+
+            return RedirectToAction("PreSale");
+        }
+
+        public ActionResult DeletePreSale(long ItemID)
+        {
+            PreSaleSKU preSale = (from a in db.PreSaleSKUs where a.ItemID == ItemID select a).FirstOrDefault();
+            db.PreSaleSKUs.Remove(preSale);
+            db.SaveChanges();
+            return RedirectToAction("PreSale");
+        }
 
         /// <summary>
         /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
