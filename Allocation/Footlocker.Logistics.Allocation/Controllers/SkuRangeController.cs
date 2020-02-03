@@ -3479,8 +3479,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 userName = getFullUserNameFromDatabase(User.Identity.Name.Replace('\\', '/'));
             }
 
-            preSale.CreateDate = DateTime.Now;
-            preSale.CreateUser = userName;
             preSale.LastModifiedDate = DateTime.Now;
             preSale.LastModifiedUser = userName;
 
@@ -3488,7 +3486,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (preSale.ItemID == 0)
             {
-                ViewData["message"] = "SKU does not exists";
+                ViewData["message"] = "SKU does not exists.";
                 return View(model);
             }
 
@@ -3498,7 +3496,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (preSaleItemID > 0)
             {
-                ViewData["message"] = "Presale already exists for the SKU";
+                ViewData["message"] = "Presale already exists for the SKU.";
                 return View(model);
             }
 

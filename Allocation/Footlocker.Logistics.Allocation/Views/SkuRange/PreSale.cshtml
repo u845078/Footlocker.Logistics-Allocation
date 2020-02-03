@@ -16,8 +16,6 @@
     {
         columns.Bound(o => o.SKU);
         columns.Bound(o => o.SKUDescription).Title("SKU Description");
-        columns.Bound(o => o.preSaleSKU.CreateDate).Title("Created Date");
-        columns.Bound(o => o.preSaleSKU.CreateUser).Title("Created By");
         columns.Bound(o => o.preSaleSKU.LastModifiedDate).Title("Updated Date");
         columns.Bound(o => o.preSaleSKU.LastModifiedUser).Title("Updated By");
         columns.Command(commands =>
