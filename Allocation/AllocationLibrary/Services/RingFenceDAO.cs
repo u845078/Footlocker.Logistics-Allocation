@@ -111,7 +111,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             List<WarehouseInventory> returnValue = new List<WarehouseInventory>();
             var futureSizes = uniqueCombos.Where(uc => uc.Item2.Length.Equals(3)).ToList();
             var futureCaselots = uniqueCombos.Where(uc => uc.Item2.Length.Equals(5)).ToList();
-            int batchSize = 30;
+            int batchSize = 20;
 
             if (futureSizes.Count > 0)
             {
@@ -128,7 +128,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 
             }
 
-            batchSize = 30;
+            batchSize = 20;
 
             if (futureCaselots.Count > 0)
             {
