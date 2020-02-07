@@ -3459,6 +3459,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                             SKUDescription = item.Description,
                                             preSaleSKU = preSale
                                         }).ToList();
+
+            foreach(PreSaleModel m in model)
+            {
+                if (m.preSaleSKU.LastModifiedUser.Contains("CORP"))
+                m.preSaleSKU.LastModifiedUser = getFullUserNameFromDatabase(m.preSaleSKU.LastModifiedUser.Replace('\\', '/'));
+            }
+
             return View(model);
         }
 
@@ -3471,16 +3478,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult CreatePreSale(PreSaleModel model)
         {
-            PreSaleSKU preSale = new PreSaleSKU();
-            string userName = User.Identity.Name;
-
-            if (User.Identity.Name.Contains("CORP"))
-            {
-                userName = getFullUserNameFromDatabase(User.Identity.Name.Replace('\\', '/'));
-            }
+            PreSaleSKU preSale = new PreSaleSKU();            
 
             preSale.LastModifiedDate = DateTime.Now;
-            preSale.LastModifiedUser = userName;
+            preSale.LastModifiedUser = User.Identity.Name;
 
             preSale.ItemID = ValidatePreSaleSKU(model.SKU);
 
