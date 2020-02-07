@@ -1,9 +1,9 @@
 ﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.PreSaleModel>
 @{
-    ViewBag.Title = "Holds";
+    ViewBag.Title = "PreSale";
 }
 
-<h2>PreSale SKU's</h2>
+<h2>PreSale SKUs</h2>
 <p>
     @Html.ActionLink("Create New", "CreatePreSale", new { }, new { @class = "t-button" })
 </p>
@@ -14,6 +14,11 @@
     .Name("PreSaleGrid")
     .Columns(columns =>
     {
+        columns.Template(
+            @<text>
+                    <img src="@Url.Content("~/Image/ShowImage/?sku=" + item.SKU)"/>
+            </text>
+            ).Title("Image").Width(25);
         columns.Bound(o => o.SKU);
         columns.Bound(o => o.SKUDescription).Title("SKU Description");
         columns.Bound(o => o.preSaleSKU.LastModifiedDate).Title("Updated Date");
