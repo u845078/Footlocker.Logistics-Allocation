@@ -3578,32 +3578,32 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             row++;
                         }
 
-                        List<string> skus = (from a in updateList select a.Sku).Distinct().ToList();
-                        if (purgeFirst)
-                        {
-                            if (skus.Count > 1)
-                            {
-                                return Content("You can only update a single sku when you choose to purge first.");
-                            }
-                            else if (skus.Count == 1)
-                            {
-                                try
-                                {
-                                    long planid;
-                                    string sku = skus[0];
-                                    List<RangePlan> plans = (from a in db.RangePlans where a.Sku == sku select a).ToList();
-                                    planid = plans[0].Id;
-                                    ClearStoreFromPlan(plans[0].Id);
-                                }
-                                catch (Exception ex)
-                                {
-                                    return Content(ex.Message);
-                                }
-                            }
-                        }
+                        //List<string> skus = (from a in updateList select a.Sku).Distinct().ToList();
+                        //if (purgeFirst)
+                        //{
+                        //    if (skus.Count > 1)
+                        //    {
+                        //        return Content("You can only update a single sku when you choose to purge first.");
+                        //    }
+                        //    else if (skus.Count == 1)
+                        //    {
+                        //        try
+                        //        {
+                        //            long planid;
+                        //            string sku = skus[0];
+                        //            List<RangePlan> plans = (from a in db.RangePlans where a.Sku == sku select a).ToList();
+                        //            planid = plans[0].Id;
+                        //            ClearStoreFromPlan(plans[0].Id);
+                        //        }
+                        //        catch (Exception ex)
+                        //        {
+                        //            return Content(ex.Message);
+                        //        }
+                        //    }
+                        //}
 
                         RangePlanDetailDAO dao = new RangePlanDetailDAO();
-                        errorList = dao.BulkUpdateRange(updateList, User.Identity.Name);
+                        errorList = dao.BulkUpdateRange(updateList, User.Identity.Name, purgeFirst);
 
                         if (errorList.Count > 0)
                         {
