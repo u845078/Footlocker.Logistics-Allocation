@@ -58,18 +58,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             var query = (from rp in db.RangePlans
-                         join im in db.ItemMasters
-                           on rp.ItemID equals im.ID
-                         join di in divs
-                           on im.Div equals di
+                         join im in db.ItemMasters on rp.ItemID equals im.ID
+                         join di in divs on im.Div equals di
                          select new { RangePlan = rp, Division = im.Div, Department = im.Dept }).ToList();
 
             List<RangePlan> model = query.Where(q => temp.Contains(q.Division + "-" + q.Department))
                                           .Select(q => q.RangePlan)
                                           .OrderBy(q => q.Sku)
                                           .ToList();
-
-
+            
             return model;
         }
 
@@ -3460,10 +3457,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                             preSaleSKU = preSale
                                         }).ToList();
 
-            foreach(PreSaleModel m in model)
+            foreach (PreSaleModel m in model)
             {
                 if (m.preSaleSKU.LastModifiedUser.Contains("CORP"))
-                m.preSaleSKU.LastModifiedUser = getFullUserNameFromDatabase(m.preSaleSKU.LastModifiedUser.Replace('\\', '/'));
+                    m.preSaleSKU.LastModifiedUser = getFullUserNameFromDatabase(m.preSaleSKU.LastModifiedUser.Replace('\\', '/'));
             }
 
             return View(model);
@@ -3478,12 +3475,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult CreatePreSale(PreSaleModel model)
         {
-            PreSaleSKU preSale = new PreSaleSKU();            
+            PreSaleSKU preSale = new PreSaleSKU();
 
             preSale.LastModifiedDate = DateTime.Now;
             preSale.LastModifiedUser = User.Identity.Name;
 
             preSale.ItemID = ValidatePreSaleSKU(model.SKU);
+            preSale.InventoryArrivalDate = model.preSaleSKU.InventoryArrivalDate;
 
             if (preSale.ItemID == 0)
             {

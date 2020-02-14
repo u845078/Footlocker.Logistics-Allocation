@@ -26,13 +26,13 @@
                 @Html.ValidationMessageFor(model => model.SKU)
             </div>
 
-            @*<div class="editor-label">
-                @Html.LabelFor(model => model.SKUDescription, "SKU Description")
+            <div class="editor-label">
+                @Html.LabelFor(model => model.preSaleSKU.InventoryArrivalDate, "Inventory Arrival Date")
             </div>
             <div class="editor-field">
-                @Html.EditorFor(model => model.SKUDescription)
-                @Html.ValidationMessageFor(model => model.SKUDescription)
-            </div>*@
+                @Html.EditorFor(model => model.preSaleSKU.InventoryArrivalDate)
+                @Html.ValidationMessageFor(model => model.preSaleSKU.InventoryArrivalDate)
+            </div>
 
             <p>
                 <input type="submit" value="Create" class="t-button" />
