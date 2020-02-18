@@ -64,6 +64,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             (from q in query
              join pre in db.PreSaleSKUs on q.RangePlan.ItemID equals pre.ItemID
+             where pre.Active == true
              select q).ToList().ForEach(x => x.RangePlan.PreSaleSKU = "Yes");
 
             List<RangePlan> model = query.Where(q => temp.Contains(q.Division + "-" + q.Department))
