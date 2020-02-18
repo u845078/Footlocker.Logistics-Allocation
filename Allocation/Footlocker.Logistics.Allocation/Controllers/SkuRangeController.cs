@@ -18,7 +18,7 @@ using System.Text.RegularExpressions;
 namespace Footlocker.Logistics.Allocation.Controllers
 {
 
-    [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,Admin,Support")]
+    [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,Admin,Support,Ecomm PreSale")]
     public class SkuRangeController : AppController
     {
         public const int _DEFAULT_MAX_LEADTIME = 5;
@@ -3450,6 +3450,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
+        [CheckPermission(Roles = "Ecomm PreSale")]
         public ActionResult PreSale()
         {
             List<PreSaleModel> model = (from preSale in db.PreSaleSKUs
@@ -3494,11 +3495,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ViewData["message"] = "SKU does not exists.";
                 return View(model);
             }
-            else if (preSale.InventoryArrivalDate == null)
-            {
-                ViewData["message"] = "Inventory Arrival Date is Mandatory";
-                return View(model);
-            }
+            //else if (preSale.InventoryArrivalDate == null)
+            //{
+            //    ViewData["message"] = "Inventory Arrival Date is Mandatory";
+            //    return View(model);
+            //}
 
             long preSaleItemID = (from a in db.PreSaleSKUs
                                   where a.ItemID == preSale.ItemID
