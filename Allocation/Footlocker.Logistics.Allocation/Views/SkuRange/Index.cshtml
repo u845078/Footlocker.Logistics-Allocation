@@ -47,17 +47,18 @@
                       }
                 </text>
             ).Title("Image").Width(25);
-            columns.Bound(o => o.Sku).Width(100);
-            columns.Bound(o => o.ItemMaster.Description).Width(150).Title("Sku Description");
-            columns.Bound(o => o.StoreCount).Width(10);
-            columns.Bound(o => o.Description).Width(150).Title("Comment");
-            columns.Bound(o => o.ActiveAR).Width(10);
-            columns.Bound(o => o.StartDate).Format("{0:MM/dd/yyyy}").Width(100);
-            columns.Bound(o => o.EndDate).Format("{0:MM/dd/yyyy}").Width(100);
-            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy h:mm:ss tt}").Width(100);
-            columns.Bound(o => o.UpdateDate).Format("{0:MM/dd/yyyy h:mm:ss tt}").Width(100);
-            columns.Bound(o => o.UpdatedBy).Width(100);
-            columns.Template(
+        columns.Bound(o => o.Sku).Width(100);
+        columns.Bound(o => o.ItemMaster.Description).Width(150).Title("Sku Description");
+        columns.Bound(o => o.StoreCount).Width(10);
+        columns.Bound(o => o.Description).Width(150).Title("Comment");
+        columns.Bound(o => o.ActiveAR).Width(10);
+        columns.Bound(o => o.StartDate).Format("{0:MM/dd/yyyy}").Width(100);
+        columns.Bound(o => o.EndDate).Format("{0:MM/dd/yyyy}").Width(100);
+        columns.Bound(o => o.PreSaleSKU).Width(10);
+        columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy h:mm:ss tt}").Width(100);
+        columns.Bound(o => o.UpdateDate).Format("{0:MM/dd/yyyy h:mm:ss tt}").Width(100);
+        columns.Bound(o => o.UpdatedBy).Width(100);
+        columns.Template(
                 @<text>
                     @Html.ActionLink("Stores", "EditStores", new { planID = item.Id }, new { @class = "t-button", @style = "width:50px" })
                     <br/>

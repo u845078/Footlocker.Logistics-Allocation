@@ -62,11 +62,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          join di in divs on im.Div equals di
                          select new { RangePlan = rp, Division = im.Div, Department = im.Dept }).ToList();
 
+            (from q in query
+             join pre in db.PreSaleSKUs on q.RangePlan.ItemID equals pre.ItemID
+             select q).ToList().ForEach(x => x.RangePlan.PreSaleSKU = "Yes");
+
             List<RangePlan> model = query.Where(q => temp.Contains(q.Division + "-" + q.Department))
                                           .Select(q => q.RangePlan)
                                           .OrderBy(q => q.Sku)
                                           .ToList();
-            
+
             return model;
         }
 

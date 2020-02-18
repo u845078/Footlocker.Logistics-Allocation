@@ -21,7 +21,7 @@
             ).Title("Image").Width(25);
         columns.Bound(o => o.SKU);
         columns.Bound(o => o.SKUDescription).Title("SKU Description");
-        columns.Bound(o => o.preSaleSKU.InventoryArrivalDate).Title("Inventory Arrival Date");
+        columns.Bound(o => o.preSaleSKU.InventoryArrivalDate).Format("{0:MM/dd/yyyy}").Title("Inventory Arrival Date");
         columns.Bound(o => o.preSaleSKU.LastModifiedDate).Title("Updated Date");
         columns.Bound(o => o.preSaleSKU.LastModifiedUser).Title("Updated By");
         columns.Command(commands =>
