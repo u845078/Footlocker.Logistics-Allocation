@@ -3502,12 +3502,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //}
 
             long preSaleItemID = (from a in db.PreSaleSKUs
-                                  where a.ItemID == preSale.ItemID
+                                  where a.ItemID == preSale.ItemID && a.Active == true
                                   select a.ItemID).FirstOrDefault();
 
             if (preSaleItemID > 0)
             {
-                ViewData["message"] = "Presale already exists for the SKU.";
+                ViewData["message"] = "Active Presale already exists for the SKU.";
                 return View(model);
             }
 
@@ -3522,6 +3522,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return (from a in db.ItemMasters
                     where a.MerchantSku == SKU
                     select a.ID).FirstOrDefault();
+        }
+
+        public ActionResult EditPreSale(long ItemID, DateTime InventoryArrivalDate)
+        {
+            var record = (from a in db.PreSaleSKUs where a.ItemID == ItemID select a).FirstOrDefault();
+
+            record.LastModifiedUser = User.Identity.Name;
+            record.LastModifiedDate = DateTime.Now;
+            record.Active = true;
+            record.InventoryArrivalDate = InventoryArrivalDate;
+
+            db.SaveChanges();
+            return RedirectToAction("PreSale");
         }
 
         public ActionResult DeletePreSale(long ItemID)

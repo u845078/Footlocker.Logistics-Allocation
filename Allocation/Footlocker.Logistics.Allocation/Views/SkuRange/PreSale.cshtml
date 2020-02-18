@@ -32,12 +32,20 @@
             .DataRouteValues(route => { route.Add(o => o.preSaleSKU.ItemID).RouteKey("ItemID"); })
             .Ajax(false)
             .Action("DeletePreSale", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+            commands.
+            Custom("Edit")
+            .Text("Edit")
+            .DataRouteValues(route => { route.Add(o => o.preSaleSKU.ItemID).RouteKey("ItemID");
+                                        route.Add(o => o.preSaleSKU.InventoryArrivalDate).RouteKey("InventoryArrivalDate"); })
+            .Ajax(false)
+            .Action("EditPreSale", "SkuRange");
         }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
     })
     .DataBinding(dataBinding =>
     {
         dataBinding.Server();
     })
+    .Editable(editable => editable.Mode(GridEditMode.InLine))
     .Sortable(sorting => sorting.Enabled(true))
     .Pageable(paging => paging.Enabled(true))
     .Filterable(filtering => filtering.Enabled(true))
