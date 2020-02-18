@@ -3526,8 +3526,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult DeletePreSale(long ItemID)
         {
-            (from a in db.PreSaleSKUs where a.ItemID == ItemID select a).FirstOrDefault().Active = false;
-                        
+            var record = (from a in db.PreSaleSKUs where a.ItemID == ItemID select a).FirstOrDefault();
+
+            record.LastModifiedUser = User.Identity.Name;
+            record.LastModifiedDate = DateTime.Now;
+            record.Active = false;
+
             db.SaveChanges();
             return RedirectToAction("PreSale");
         }
