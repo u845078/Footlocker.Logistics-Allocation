@@ -15,6 +15,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public int PreSaleSkuID { get; set; }
         public long ItemID { get; set; }
         public DateTime InventoryArrivalDate { get; set; }
+        public bool Active { get; set; }
         public DateTime LastModifiedDate { get; set; }
         public string LastModifiedUser { get; set; }
     }

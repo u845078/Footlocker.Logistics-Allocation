@@ -3454,6 +3454,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<PreSaleModel> model = (from preSale in db.PreSaleSKUs
                                         join item in db.ItemMasters on preSale.ItemID equals item.ID
+                                        where preSale.Active == true
                                         select new PreSaleModel
                                         {
                                             SKU = item.MerchantSku,
@@ -3486,10 +3487,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             preSale.ItemID = ValidatePreSaleSKU(model.SKU);
             preSale.InventoryArrivalDate = model.preSaleSKU.InventoryArrivalDate;
+            preSale.Active = true;
 
             if (preSale.ItemID == 0)
             {
                 ViewData["message"] = "SKU does not exists.";
+                return View(model);
+            }
+            else if (preSale.InventoryArrivalDate == null)
+            {
+                ViewData["message"] = "Inventory Arrival Date is Mandatory";
                 return View(model);
             }
 
@@ -3518,8 +3525,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult DeletePreSale(long ItemID)
         {
-            PreSaleSKU preSale = (from a in db.PreSaleSKUs where a.ItemID == ItemID select a).FirstOrDefault();
-            db.PreSaleSKUs.Remove(preSale);
+            (from a in db.PreSaleSKUs where a.ItemID == ItemID select a).FirstOrDefault().Active = false;
+                        
             db.SaveChanges();
             return RedirectToAction("PreSale");
         }
