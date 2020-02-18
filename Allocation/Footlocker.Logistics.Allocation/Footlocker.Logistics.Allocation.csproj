@@ -262,6 +262,7 @@
     <Compile Include="Models\CheckBoxModel.cs" />
     <Compile Include="Models\HoldsUploadDeleteModel.cs" />
     <Compile Include="Models\InstanceModel.cs" />
+    <Compile Include="Models\PreSaleModel.cs" />
     <Compile Include="Models\QuantumDataDownloadModel.cs" />
     <Compile Include="Models\ProductHierarchyOverrideModel.cs" />
     <Compile Include="Models\PurgeArchiveTypeModel.cs" />
@@ -614,6 +615,7 @@
     <Content Include="Views\RDQRestriction\IndexByDestination_DCGrid.cshtml" />
     <Content Include="Views\Hold\UploadHoldsUpdates.cshtml" />
     <Content Include="Views\Route\UploadChanges.cshtml" />
+    <Content Include="Views\SkuRange\CreatePreSale.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />
@@ -754,6 +756,7 @@
     <Content Include="Views\Upload\ARSkusUpload.cshtml" />
     <Content Include="Views\Hold\Upload.cshtml" />
     <Content Include="Views\SkuRange\SkuRPDGUpload.cshtml" />
+    <Content Include="Views\SkuRange\PreSale.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
