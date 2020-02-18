@@ -160,6 +160,7 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public String ActiveAR { get; set; }
 
+        [NotMapped]
         public String PreSaleSKU { get; set; }
 
         public virtual ItemMaster ItemMaster { get; set; }
