@@ -3523,8 +3523,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     where a.MerchantSku == SKU
                     select a.ID).FirstOrDefault();
         }
-
-        [HttpPost]
+                
         public ActionResult EditPreSale(string SKU, DateTime InventoryArrivalDate)
         {
             var record = (from a in db.PreSaleSKUs
@@ -3540,13 +3539,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.SaveChanges();
             return RedirectToAction("PreSale");
         }
-
-        [GridAction]
-        public ActionResult DeletePreSale(string SKU)
+                
+        public ActionResult DeletePreSale(long ItemID)
         {
-            var record = (from a in db.PreSaleSKUs
-                          join im in db.ItemMasters on a.ItemID equals im.ID
-                          where im.MerchantSku == SKU select a).FirstOrDefault();
+            var record = (from a in db.PreSaleSKUs where a.ItemID == ItemID select a).FirstOrDefault();
 
             record.LastModifiedUser = User.Identity.Name;
             record.LastModifiedDate = DateTime.Now;

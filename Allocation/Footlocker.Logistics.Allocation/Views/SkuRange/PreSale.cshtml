@@ -8,7 +8,11 @@
     @Html.ActionLink("Create New", "CreatePreSale", new { }, new { @class = "t-button" })
 </p>
 
-<script></script>
+<script>
+    function callAction() {
+        return "/SkuRange/EditPreSale?SKU=" + $('#SKU').val() + "&InventoryArrivalDate=" + $('#InventoryArrivalDate').val();
+    }
+</script>
 
 @(Html.Telerik().Grid(Model)
         .Name("PreSaleGrid")
@@ -30,15 +34,22 @@
             columns.Bound(o => o.preSaleSKU.LastModifiedUser).Title("Updated By").ReadOnly();
             columns.Command(commands =>
             {
-                commands.Delete();
-                commands.Edit();
+                commands
+                .Custom("Delete")
+                .Text("Delete")
+                .DataRouteValues(route => { route.Add(o => o.preSaleSKU.ItemID).RouteKey("ItemID"); })
+                .Ajax(false)
+                .Action("DeletePreSale", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+                commands.
+                Custom("Edit")
+                .Text("Edit")
+                .Ajax(false)
+                .Action("EditPreSale", "SkuRange").HtmlAttributes(new { onclick = "callAction()"});
             }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
         })
         .DataBinding(dataBinding =>
         {
-            dataBinding.Ajax()
-            .Update("EditPreSale", "SkuRange", new { ItemID = ViewData["SKU"], InventoryArrivalDate = ViewData["InventoryArrivalDate"] })
-            .Delete("DeletePreSale", "SkuRange", new { ItemID = ViewData["SKU"] });
+            dataBinding.Server();
         })
         .Editable(editable => editable.Mode(GridEditMode.InLine))
         .Sortable(sorting => sorting.Enabled(true))
