@@ -12,6 +12,7 @@
 
 @(Html.Telerik().Grid(Model)
     .Name("PreSaleGrid")
+    .DataKeys(keys => keys.Add(p=>p.preSaleSKU.ItemID))
     .Columns(columns =>
     {
         columns.Template(
@@ -32,18 +33,12 @@
             .DataRouteValues(route => { route.Add(o => o.preSaleSKU.ItemID).RouteKey("ItemID"); })
             .Ajax(false)
             .Action("DeletePreSale", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
-            commands.
-            Custom("Edit")
-            .Text("Edit")
-            .DataRouteValues(route => { route.Add(o => o.preSaleSKU.ItemID).RouteKey("ItemID");
-                                        route.Add(o => o.preSaleSKU.InventoryArrivalDate).RouteKey("InventoryArrivalDate"); })
-            .Ajax(false)
-            .Action("EditPreSale", "SkuRange");
+            commands.Edit();
         }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
     })
     .DataBinding(dataBinding =>
     {
-        dataBinding.Server();
+        dataBinding.Ajax().Update("EditPreSale", "SkuRange", new { ItemID = ViewData["ItemID"]});
     })
     .Editable(editable => editable.Mode(GridEditMode.InLine))
     .Sortable(sorting => sorting.Enabled(true))
