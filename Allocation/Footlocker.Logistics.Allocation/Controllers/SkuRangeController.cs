@@ -3526,28 +3526,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         [AcceptVerbs(HttpVerbs.Post)]
         [GridAction]
-        public ActionResult EditPreSale([Bind(Prefix = "updated")]IEnumerable<PreSaleModel> updated)
+        public ActionResult EditPreSale(long ItemID, DateTime InventoryArrivalDate)
         {
-            if (updated != null)
-            {
-                foreach (PreSaleModel update in updated)
-                {
-                    var record = (from a in db.PreSaleSKUs
-                                  join im in db.ItemMasters on a.ItemID equals im.ID
-                                  where im.MerchantSku == update.SKU
-                                  select a).FirstOrDefault();
 
-                    record.LastModifiedUser = User.Identity.Name;
-                    record.LastModifiedDate = DateTime.Now;
-                    record.Active = true;
-                    record.InventoryArrivalDate = update.preSaleSKU.InventoryArrivalDate;
-                }
-                db.SaveChanges();
-            }
-            
+            var record = (from a in db.PreSaleSKUs
+                          //join im in db.ItemMasters on a.ItemID equals im.ID
+                          where a.ItemID == ItemID
+                          select a).FirstOrDefault();
+
+            record.LastModifiedUser = User.Identity.Name;
+            record.LastModifiedDate = DateTime.Now;
+            record.Active = true;
+            record.InventoryArrivalDate = InventoryArrivalDate;
+
+            db.SaveChanges();
+
             return RedirectToAction("PreSale");
         }
-                
+
         public ActionResult DeletePreSale(long ItemID)
         {
             var record = (from a in db.PreSaleSKUs where a.ItemID == ItemID select a).FirstOrDefault();

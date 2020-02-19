@@ -18,11 +18,12 @@
         .Name("PreSaleGrid")
         .DataKeys(keys =>
         {
-            keys.Add(p => p.SKU);
+            keys.Add(p => p.preSaleSKU.ItemID).RouteKey("ItemID");
+            keys.Add(p => p.preSaleSKU.InventoryArrivalDate).RouteKey("InventoryArrivalDate");
         })
         .Columns(columns =>
-            {
-                columns.Template(
+        {
+        columns.Template(
                  @<text>
                     <img src="@Url.Content("~/Image/ShowImage/?sku=" + item.SKU)" />
                  </text>
@@ -42,12 +43,13 @@
                 .Text("Delete")
                 .DataRouteValues(route => { route.Add(o => o.preSaleSKU.ItemID).RouteKey("ItemID"); })
                 .Ajax(false)
-                .Action("DeletePreSale", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });        
+                .Action("DeletePreSale", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+                commands.Edit();
             }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
         })
         .DataBinding(dataBinding =>
         {
-            dataBinding.Ajax().Update("EditPreSale", "SkuRange");
+            dataBinding.Ajax().Update("EditPreSale", "SkuRange", new { ItemID = ViewData["ItemID"], InventoryArrivalDate = ViewData["InventoryArrivalDate"] });
         })
         .Editable(editable => editable.Mode(GridEditMode.InLine))
         .Sortable(sorting => sorting.Enabled(true))
