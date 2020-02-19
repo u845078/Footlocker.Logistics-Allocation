@@ -3524,7 +3524,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     select a.ID).FirstOrDefault();
         }
                 
-        public ActionResult EditPreSale(string SKU, DateTime InventoryArrivalDate)
+        public ActionResult EditPreSale(string SKU)
         {
             var record = (from a in db.PreSaleSKUs
                           join im in db.ItemMasters on a.ItemID equals im.ID
@@ -3534,7 +3534,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             record.LastModifiedUser = User.Identity.Name;
             record.LastModifiedDate = DateTime.Now;
             record.Active = true;
-            record.InventoryArrivalDate = InventoryArrivalDate;
+            record.InventoryArrivalDate = DateTime.Now;
 
             db.SaveChanges();
             return RedirectToAction("PreSale");

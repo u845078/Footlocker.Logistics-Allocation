@@ -40,16 +40,12 @@
                 .DataRouteValues(route => { route.Add(o => o.preSaleSKU.ItemID).RouteKey("ItemID"); })
                 .Ajax(false)
                 .Action("DeletePreSale", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
-                commands.
-                Custom("Edit")
-                .Text("Edit")
-                .Ajax(false)
-                .Action("EditPreSale", "SkuRange").HtmlAttributes(new { onclick = "callAction()"});
+                commands.Edit();
             }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
         })
         .DataBinding(dataBinding =>
         {
-            dataBinding.Server();
+            dataBinding.Ajax().Update("EditPreSale", "SkuRange", new { SKU = ViewData["SKU"]});
         })
         .Editable(editable => editable.Mode(GridEditMode.InLine))
         .Sortable(sorting => sorting.Enabled(true))
