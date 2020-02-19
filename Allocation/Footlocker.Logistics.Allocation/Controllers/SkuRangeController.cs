@@ -3453,6 +3453,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Ecomm PreSale")]
         public ActionResult PreSale()
         {
+            //List<PreSaleModel> model = (from preSale in db.PreSaleSKUs
+            //                            join item in db.ItemMasters on preSale.ItemID equals item.ID
+            //                            where preSale.Active == true
+            //                            select new PreSaleModel
+            //                            {
+            //                                SKU = item.MerchantSku,
+            //                                SKUDescription = item.Description,
+            //                                preSaleSKU = preSale
+            //                            }).ToList();
+
+            //foreach (PreSaleModel m in model)
+            //{
+            //    if (m.preSaleSKU.LastModifiedUser.Contains("CORP"))
+            //        m.preSaleSKU.LastModifiedUser = getFullUserNameFromDatabase(m.preSaleSKU.LastModifiedUser.Replace('\\', '/'));
+            //}
+
+            return View();
+        }
+
+        [GridAction]
+        [CheckPermission(Roles = "Ecomm PreSale")]
+        public ActionResult _PreSale()
+        {
             List<PreSaleModel> model = (from preSale in db.PreSaleSKUs
                                         join item in db.ItemMasters on preSale.ItemID equals item.ID
                                         where preSale.Active == true
@@ -3469,7 +3492,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     m.preSaleSKU.LastModifiedUser = getFullUserNameFromDatabase(m.preSaleSKU.LastModifiedUser.Replace('\\', '/'));
             }
 
-            return View(model);
+            return View(new GridModel(model));
         }
 
         public ActionResult CreatePreSale()

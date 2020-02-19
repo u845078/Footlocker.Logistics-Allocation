@@ -38,7 +38,9 @@
     })
     .DataBinding(dataBinding =>
     {
-        dataBinding.Ajax().Update("EditPreSale", "SkuRange", new { ItemID = ViewData["ItemID"]});
+        dataBinding.Ajax()
+        .Select("_PreSale", "SkuRange")
+        .Update("EditPreSale", "SkuRange", new { ItemID = ViewData["ItemID"] });
     })
     .Editable(editable => editable.Mode(GridEditMode.InLine))
     .Sortable(sorting => sorting.Enabled(true))
