@@ -3469,7 +3469,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     m.preSaleSKU.LastModifiedUser = getFullUserNameFromDatabase(m.preSaleSKU.LastModifiedUser.Replace('\\', '/'));
             }
 
-            return View();
+            return View(model);
         }
 
         public ActionResult CreatePreSale()
