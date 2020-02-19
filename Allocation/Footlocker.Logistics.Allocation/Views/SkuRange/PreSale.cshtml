@@ -9,8 +9,8 @@
 </p>
 
 <script>
-    function callAction() {
-        return "/SkuRange/EditPreSale?SKU=" + $('#SKU').val() + "&InventoryArrivalDate=" + $('#InventoryArrivalDate').val();
+    function saveChanges() {
+        $('#PreSaleGrid').data('tGrid').submitChanges();
     }
 </script>
 
@@ -21,12 +21,15 @@
             keys.Add(p => p.SKU);
         })
         .Columns(columns =>
-        {
-            columns.Template(
-        @<text>
-            <img src="@Url.Content("~/Image/ShowImage/?sku=" + item.SKU)" />
-        </text>
-        ).Title("Image").Width(25);
+            {
+                columns.Template(
+                 @<text>
+                    <img src="@Url.Content("~/Image/ShowImage/?sku=" + item.SKU)" />
+                 </text>
+            ).Title("Image").Width(25).FooterTemplate(
+                                @<text>
+                                    <input type="button" name="name" value="Save" class="t-button" onclick='saveChanges()' />
+                                </text>);
             columns.Bound(o => o.SKU).ReadOnly();
             columns.Bound(o => o.SKUDescription).Title("SKU Description").ReadOnly();
             columns.Bound(o => o.preSaleSKU.InventoryArrivalDate).Format("{0:MM/dd/yyyy}").Title("Inventory Arrival Date");
@@ -39,13 +42,12 @@
                 .Text("Delete")
                 .DataRouteValues(route => { route.Add(o => o.preSaleSKU.ItemID).RouteKey("ItemID"); })
                 .Ajax(false)
-                .Action("DeletePreSale", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
-                commands.Edit();
+                .Action("DeletePreSale", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });        
             }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
         })
         .DataBinding(dataBinding =>
         {
-            dataBinding.Ajax().Update("EditPreSale", "SkuRange", new { SKU = ViewData["SKU"]});
+            dataBinding.Ajax().Update("EditPreSale", "SkuRange");
         })
         .Editable(editable => editable.Mode(GridEditMode.InLine))
         .Sortable(sorting => sorting.Enabled(true))

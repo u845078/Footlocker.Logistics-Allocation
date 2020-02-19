@@ -3523,20 +3523,28 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     where a.MerchantSku == SKU
                     select a.ID).FirstOrDefault();
         }
-                
-        public ActionResult EditPreSale(string SKU)
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        [GridAction]
+        public ActionResult EditPreSale([Bind(Prefix = "updated")]IEnumerable<PreSaleModel> updated)
         {
-            var record = (from a in db.PreSaleSKUs
-                          join im in db.ItemMasters on a.ItemID equals im.ID
-                          where im.MerchantSku == SKU
-                          select a).FirstOrDefault();
+            if (updated != null)
+            {
+                foreach (PreSaleModel update in updated)
+                {
+                    var record = (from a in db.PreSaleSKUs
+                                  join im in db.ItemMasters on a.ItemID equals im.ID
+                                  where im.MerchantSku == update.SKU
+                                  select a).FirstOrDefault();
 
-            record.LastModifiedUser = User.Identity.Name;
-            record.LastModifiedDate = DateTime.Now;
-            record.Active = true;
-            record.InventoryArrivalDate = DateTime.Now;
-
-            db.SaveChanges();
+                    record.LastModifiedUser = User.Identity.Name;
+                    record.LastModifiedDate = DateTime.Now;
+                    record.Active = true;
+                    record.InventoryArrivalDate = update.preSaleSKU.InventoryArrivalDate;
+                }
+                db.SaveChanges();
+            }
+            
             return RedirectToAction("PreSale");
         }
                 
