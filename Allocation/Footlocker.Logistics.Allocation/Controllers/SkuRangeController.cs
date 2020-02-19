@@ -3453,29 +3453,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Ecomm PreSale")]
         public ActionResult PreSale()
         {
-            //List<PreSaleModel> model = (from preSale in db.PreSaleSKUs
-            //                            join item in db.ItemMasters on preSale.ItemID equals item.ID
-            //                            where preSale.Active == true
-            //                            select new PreSaleModel
-            //                            {
-            //                                SKU = item.MerchantSku,
-            //                                SKUDescription = item.Description,
-            //                                preSaleSKU = preSale
-            //                            }).ToList();
-
-            //foreach (PreSaleModel m in model)
-            //{
-            //    if (m.preSaleSKU.LastModifiedUser.Contains("CORP"))
-            //        m.preSaleSKU.LastModifiedUser = getFullUserNameFromDatabase(m.preSaleSKU.LastModifiedUser.Replace('\\', '/'));
-            //}
-
-            return View();
-        }
-
-        [GridAction]
-        [CheckPermission(Roles = "Ecomm PreSale")]
-        public ActionResult _PreSale()
-        {
             List<PreSaleModel> model = (from preSale in db.PreSaleSKUs
                                         join item in db.ItemMasters on preSale.ItemID equals item.ID
                                         where preSale.Active == true
@@ -3492,7 +3469,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     m.preSaleSKU.LastModifiedUser = getFullUserNameFromDatabase(m.preSaleSKU.LastModifiedUser.Replace('\\', '/'));
             }
 
-            return View(new GridModel(model));
+            return View();
         }
 
         public ActionResult CreatePreSale()
@@ -3547,16 +3524,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     select a.ID).FirstOrDefault();
         }
 
-        [AcceptVerbs(HttpVerbs.Post)]
-        [GridAction]
-        public ActionResult EditPreSale([Bind(Prefix = "updated")]PreSaleModel updated, long ItemID)
+        [HttpPost]
+        public ActionResult EditPreSale(long ItemID, DateTime InventoryArrivalDate)
         {
             var record = (from a in db.PreSaleSKUs where a.ItemID == ItemID select a).FirstOrDefault();
 
             record.LastModifiedUser = User.Identity.Name;
             record.LastModifiedDate = DateTime.Now;
             record.Active = true;
-            record.InventoryArrivalDate = updated.preSaleSKU.InventoryArrivalDate;
+            record.InventoryArrivalDate = InventoryArrivalDate;
 
             db.SaveChanges();
             return RedirectToAction("PreSale");
