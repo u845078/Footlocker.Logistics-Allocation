@@ -11,50 +11,37 @@
 <script></script>
 
 @(Html.Telerik().Grid(Model)
-    .Name("PreSaleGrid")
-    .DataKeys(keys =>
-    {
-        keys.Add(p => p.preSaleSKU.ItemID);
-        keys.Add(p => p.preSaleSKU.InventoryArrivalDate);
-    })
-    .Columns(columns =>
-    {
-    columns.Template(
-            @<text>
-                    <img src="@Url.Content("~/Image/ShowImage/?sku=" + item.SKU)"/>
-            </text>
-            ).Title("Image").Width(25);
-        columns.Bound(o => o.SKU);
-        columns.Bound(o => o.SKUDescription).Title("SKU Description");
-        columns.Bound(o => o.preSaleSKU.InventoryArrivalDate).Format("{0:MM/dd/yyyy}").Title("Inventory Arrival Date");
-        columns.Bound(o => o.preSaleSKU.LastModifiedDate).Title("Updated Date");
-        columns.Bound(o => o.preSaleSKU.LastModifiedUser).Title("Updated By");
-        columns.Command(commands =>
+        .Name("PreSaleGrid")
+        .DataKeys(keys =>
         {
-            commands
-            .Custom("Delete")
-            .Text("Delete")
-            .DataRouteValues(route => { route.Add(o => o.preSaleSKU.ItemID).RouteKey("ItemID"); })
-            .Ajax(false)
-            .Action("DeletePreSale", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
-            commands.
-            Custom("Edit")
-            .Text("Edit")
-            .DataRouteValues(route =>
+            keys.Add(p => p.SKU);
+        })
+        .Columns(columns =>
+        {
+            columns.Template(
+        @<text>
+            <img src="@Url.Content("~/Image/ShowImage/?sku=" + item.SKU)" />
+        </text>
+        ).Title("Image").Width(25);
+            columns.Bound(o => o.SKU).ReadOnly();
+            columns.Bound(o => o.SKUDescription).Title("SKU Description").ReadOnly();
+            columns.Bound(o => o.preSaleSKU.InventoryArrivalDate).Format("{0:MM/dd/yyyy}").Title("Inventory Arrival Date");
+            columns.Bound(o => o.preSaleSKU.LastModifiedDate).Title("Updated Date").ReadOnly();
+            columns.Bound(o => o.preSaleSKU.LastModifiedUser).Title("Updated By").ReadOnly();
+            columns.Command(commands =>
             {
-                route.Add(o => o.preSaleSKU.ItemID).RouteKey("ItemID");
-                route.Add(o => o.preSaleSKU.InventoryArrivalDate).RouteKey("InventoryArrivalDate");
-            })
-            .Ajax(false)
-            .Action("EditPreSale", "SkuRange");
-        }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
-    })
-    .DataBinding(dataBinding =>
-    {
-        dataBinding.Server();        
-    })
-    .Editable(editable => editable.Mode(GridEditMode.InLine))
-    .Sortable(sorting => sorting.Enabled(true))
-    .Pageable(paging => paging.Enabled(true))
-    .Filterable(filtering => filtering.Enabled(true))
-    )
+                commands.Delete();
+                commands.Edit();
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax()
+            .Update("EditPreSale", "SkuRange", new { ItemID = ViewData["SKU"], InventoryArrivalDate = ViewData["InventoryArrivalDate"] })
+            .Delete("DeletePreSale", "SkuRange", new { ItemID = ViewData["SKU"] });
+        })
+        .Editable(editable => editable.Mode(GridEditMode.InLine))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+)
