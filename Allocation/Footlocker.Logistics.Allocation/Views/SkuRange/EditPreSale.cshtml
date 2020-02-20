@@ -18,8 +18,9 @@
     <fieldset>
         <legend>Edit PreSale</legend>
 
+        @Html.HiddenFor(model => model.preSaleSKU.ItemID)
         <div class="editor-label">
-            @Html.LabelFor(model => model.SKU, "SKU") (##-##-#####-##)
+            @Html.LabelFor(model => model.SKU, "SKU")
         </div>
         <div class="editor-field">
             @Html.HiddenFor(model => model.SKU)
