@@ -757,6 +757,7 @@
     <Content Include="Views\Hold\Upload.cshtml" />
     <Content Include="Views\SkuRange\SkuRPDGUpload.cshtml" />
     <Content Include="Views\SkuRange\PreSale.cshtml" />
+    <Content Include="Views\SkuRange\EditPreSale.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

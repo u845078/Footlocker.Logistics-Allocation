@@ -9,28 +9,17 @@
 </p>
 
 <script>
-    function saveChanges() {
-        $('#PreSaleGrid').data('tGrid').submitChanges();
-    }
 </script>
 
 @(Html.Telerik().Grid(Model)
         .Name("PreSaleGrid")
-        .DataKeys(keys =>
-        {
-            keys.Add(p => p.preSaleSKU.ItemID).RouteKey("ItemID");
-            keys.Add(p => p.preSaleSKU.InventoryArrivalDate).RouteKey("InventoryArrivalDate");
-        })
         .Columns(columns =>
         {
         columns.Template(
                  @<text>
                     <img src="@Url.Content("~/Image/ShowImage/?sku=" + item.SKU)" />
                  </text>
-            ).Title("Image").Width(25).FooterTemplate(
-                                @<text>
-                                    <input type="button" name="name" value="Save" class="t-button" onclick='saveChanges()' />
-                                </text>);
+            ).Title("Image").Width(25);
             columns.Bound(o => o.SKU).ReadOnly();
             columns.Bound(o => o.SKUDescription).Title("SKU Description").ReadOnly();
             columns.Bound(o => o.preSaleSKU.InventoryArrivalDate).Format("{0:MM/dd/yyyy}").Title("Inventory Arrival Date");
@@ -44,14 +33,18 @@
                 .DataRouteValues(route => { route.Add(o => o.preSaleSKU.ItemID).RouteKey("ItemID"); })
                 .Ajax(false)
                 .Action("DeletePreSale", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
-                commands.Edit();
+                commands
+                .Custom("Edit")
+                .Text("Edit")
+                .DataRouteValues(route => { route.Add(o => o.preSaleSKU.ItemID).RouteKey("ItemID"); })
+                .Ajax(false)
+                .Action("EditPreSale", "SkuRange");
             }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
         })
         .DataBinding(dataBinding =>
         {
-            dataBinding.Ajax().Update("EditPreSale", "SkuRange", new { ItemID = ViewData["ItemID"], InventoryArrivalDate = ViewData["InventoryArrivalDate"] });
+            dataBinding.Server();
         })
-        .Editable(editable => editable.Mode(GridEditMode.InLine))
         .Sortable(sorting => sorting.Enabled(true))
         .Pageable(paging => paging.Enabled(true))
         .Filterable(filtering => filtering.Enabled(true))
