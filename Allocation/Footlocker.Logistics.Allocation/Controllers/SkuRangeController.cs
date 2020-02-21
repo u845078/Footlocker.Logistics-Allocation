@@ -3496,11 +3496,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ViewData["message"] = "SKU does not exists.";
                 return View(model);
             }
-            //else if (preSale.InventoryArrivalDate == null)
-            //{
-            //    ViewData["message"] = "Inventory Arrival Date is Mandatory";
-            //    return View(model);
-            //}
+            else if (preSale.InventoryArrivalDate >= DateTime.Now.AddDays(30))
+            {
+                ViewData["message"] = "Inventory Arrival Date cannot be farther than 30 days.";
+                return View(model);
+            }
 
             long preSaleItemID = (from a in db.PreSaleSKUs
                                   where a.ItemID == preSale.ItemID && a.Active == true
@@ -3548,6 +3548,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             record.LastModifiedUser = User.Identity.Name;
             record.LastModifiedDate = DateTime.Now;
             record.InventoryArrivalDate = model.preSaleSKU.InventoryArrivalDate;
+
+            if (record.InventoryArrivalDate >= DateTime.Now.AddDays(30))
+            {
+                ViewData["message"] = "Inventory Arrival Date cannot be farther than 30 days.";
+                return View(model);
+            }
 
             db.SaveChanges();
             return RedirectToAction("PreSale");
