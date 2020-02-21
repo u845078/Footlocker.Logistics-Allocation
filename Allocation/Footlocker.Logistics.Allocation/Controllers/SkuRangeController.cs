@@ -3503,12 +3503,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //}
 
             long preSaleItemID = (from a in db.PreSaleSKUs
-                                  where a.ItemID == preSale.ItemID
+                                  where a.ItemID == preSale.ItemID && a.Active == true
                                   select a.ItemID).FirstOrDefault();
 
             if (preSaleItemID > 0)
             {
-                ViewData["message"] = "Presale already exists for the SKU.";
+                ViewData["message"] = "Active Presale already exists for the SKU.";
                 return View(model);
             }
 
@@ -3523,6 +3523,34 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return (from a in db.ItemMasters
                     where a.MerchantSku == SKU
                     select a.ID).FirstOrDefault();
+        }
+
+        public ActionResult EditPreSale(long ItemID)
+        {
+            PreSaleModel model = (from preSale in db.PreSaleSKUs
+                                  join item in db.ItemMasters on preSale.ItemID equals item.ID
+                                  where preSale.Active == true && preSale.ItemID == ItemID
+                                  select new PreSaleModel
+                                  {
+                                      SKU = item.MerchantSku,
+                                      SKUDescription = item.Description,
+                                      preSaleSKU = preSale
+                                  }).FirstOrDefault();
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult EditPreSale(PreSaleModel model)
+        {
+            var record = (from a in db.PreSaleSKUs where a.ItemID == model.preSaleSKU.ItemID select a).FirstOrDefault();
+
+            record.LastModifiedUser = User.Identity.Name;
+            record.LastModifiedDate = DateTime.Now;
+            record.InventoryArrivalDate = model.preSaleSKU.InventoryArrivalDate;
+
+            db.SaveChanges();
+            return RedirectToAction("PreSale");
         }
 
         public ActionResult DeletePreSale(long ItemID)
