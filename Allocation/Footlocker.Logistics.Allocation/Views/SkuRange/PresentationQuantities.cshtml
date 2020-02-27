@@ -43,6 +43,21 @@
     <br />
     <br />
     <span class="editor-label">
+        <b>Evergreen SKU:</b>
+    </span>
+    <span class="editor-field">
+        @Html.Raw(Model.RangePlan.EvergreenSKU)
+    </span>
+    &nbsp;&nbsp;
+    <span class="editor-label">
+        <b>PreSale SKU:</b>
+    </span>
+    <span class="editor-field">
+        @Html.Raw(Model.RangePlan.PreSaleSKU)
+    </span>
+    <br />
+    <br />
+    <span class="editor-label">
         <b>@Html.LabelFor(model => model.RangePlan.CreatedBy):</b>
     </span>
     <span class="editor-field">

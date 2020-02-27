@@ -62,9 +62,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          join di in divs on im.Div equals di
                          select new { RangePlan = rp, Division = im.Div, Department = im.Dept }).ToList();
 
-            (from q in query
-             join pre in db.PreSaleSKUs on q.RangePlan.ItemID equals pre.ItemID
-             select q).ToList().ForEach(x => x.RangePlan.PreSaleSKU = "Yes");
+            //(from q in query
+            // join pre in db.PreSaleSKUs on q.RangePlan.ItemID equals pre.ItemID
+            // select q).ToList().ForEach(x => x.RangePlan.PreSaleSKU = "Yes");
 
             List<RangePlan> model = query.Where(q => temp.Contains(q.Division + "-" + q.Department))
                                           .Select(q => q.RangePlan)
@@ -1733,6 +1733,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.RangePlan = (from a in db.RangePlans
                                where a.Id == planID
                                select a).First();
+
+            model.RangePlan.PreSaleSKU = (from a in db.PreSaleSKUs
+                                          where a.ItemID == model.RangePlan.ItemID && a.Active == true
+                                          select a).Count() > 0 ? "True" : "False";
 
             if (model.RangePlan != null)
             {
