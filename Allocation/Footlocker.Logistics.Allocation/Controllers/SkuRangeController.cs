@@ -1738,6 +1738,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                           where a.ItemID == model.RangePlan.ItemID && a.Active == true
                                           select a).Count() > 0 ? "True" : "False";
 
+            var reInitStatus = (from a in db.ReInitializeSKUs
+                                      where a.ItemID == model.RangePlan.ItemID
+                                      orderby a.CreateDate descending
+                                      select a).FirstOrDefault();
+
+            if (reInitStatus != null)
+            {
+                model.RangePlan.ReInitializeStatus = (reInitStatus.SkuExtracted) ? "SKU Extracted on " + reInitStatus.LastModifiedDate.ToShortDateString() : "Pending to be Extracted";
+            }
+
             if (model.RangePlan != null)
             {
                 if (model.RangePlan.UpdatedBy.Contains("CORP"))
@@ -2236,12 +2246,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RangePlan p = (from a in db.RangePlans
                            where a.Id == planID
                            select a).First();
+
+            p.ReInitializeSKU = (from a in db.ReInitializeSKUs where a.ItemID == p.ItemID && a.SkuExtracted == false select true).FirstOrDefault();
+
             return View(p);
         }
 
         [HttpPost]
         public ActionResult Edit(RangePlan model)
         {
+            ReInitializeSKU(model.ReInitializeSKU, model.ItemID);
+
             db.Entry(model).State = System.Data.EntityState.Modified;
             model.UpdateDate = DateTime.Now;
             model.UpdatedBy = User.Identity.Name;
@@ -2254,6 +2269,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 UpdateDeliveryGroupDates(dg);
             }
             return RedirectToAction("Index", new { message = "Saved Changes" });
+        }
+
+        private void ReInitializeSKU(bool isReInitialize, long? itemID)
+        {
+            var dbRecord = (from a in db.ReInitializeSKUs where a.ItemID == itemID && a.SkuExtracted == false select a).FirstOrDefault();
+
+            if (dbRecord != null)
+            {
+                if (isReInitialize == false)
+                db.ReInitializeSKUs.Remove(dbRecord);
+            }
+            else if (isReInitialize)
+            {
+                ReInitializeSKU reInitializeSKU = new ReInitializeSKU();
+
+                reInitializeSKU.ItemID = Int64.Parse(itemID.ToString());
+                reInitializeSKU.SkuExtracted = false;
+                reInitializeSKU.CreateUser = User.Identity.Name;
+                reInitializeSKU.CreateDate = DateTime.Now;
+                reInitializeSKU.LastModifiedUser = User.Identity.Name;
+                reInitializeSKU.LastModifiedDate = DateTime.Now;
+
+                db.ReInitializeSKUs.Add(reInitializeSKU);
+            }
         }
 
         public ActionResult EditStores(Int64 planID, string message)

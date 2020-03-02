@@ -166,6 +166,11 @@ namespace Footlocker.Logistics.Allocation.Models
         [DefaultValue("No")]
         public String PreSaleSKU { get; set; }
 
+        [NotMapped]
+        public string ReInitializeStatus { get; set; }
+        [NotMapped]
+        public Boolean ReInitializeSKU { get; set; }
+
         public virtual ItemMaster ItemMaster { get; set; }
 
         //public virtual DirectToStoreSku DirectToStoreSku { get; set; }
