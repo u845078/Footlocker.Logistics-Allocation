@@ -168,8 +168,6 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [NotMapped]
         public string ReInitializeStatus { get; set; }
-        [NotMapped]
-        public Boolean ReInitializeSKU { get; set; }
 
         public virtual ItemMaster ItemMaster { get; set; }
 
