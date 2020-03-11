@@ -8,7 +8,7 @@
 <p>
     @Html.ActionLink("Create New", "CreateReInitializeSKU", new { }, new { @class = "t-button" })
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input type="checkbox" onclick="toggleUpload(this);" />Show InActive</input>
+    <input type="checkbox" onclick="toggleUpload(this);" />Show All SKUs</input>
 </p>
 
 <script>
@@ -34,72 +34,44 @@
         {
             columns.Bound(i => i.SKU);
             columns.Bound(i => i.SKUDescription);
+            columns.Bound(i => i.reInitializeSKU.SkuStatus);
+            columns.Bound(i => i.reInitializeSKU.LastModifiedDate).Format("{0:MM/dd/yyyy}").Title("Extraction Date");
+            columns.Bound(i => i.reInitializeSKU.CreateDate);
+            columns.Bound(i => i.reInitializeSKU.CreateUser);
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("Delete")
+                .Text("Delete")
+                .DataRouteValues(route => { route.Add(o => o.reInitializeSKU.ReInitializeSkuID).RouteKey("id"); })
+                .Ajax(false)
+                .Action("DeleteSKUDetails", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
         })
-        .Editable(edit => edit.Mode(GridEditMode.InCell))
-        .DataKeys(dt => dt.Add(d => d.ItemID))
-        .DataBinding(dataBinding => dataBinding.Ajax().Select("_ReInitializeSKU", "SkuRange", new { allSKU = false}))
+        .DataBinding(dataBinding => dataBinding.Ajax().Select("_ReInitializeSKU", "SkuRange", new { allSKU = false }))
         .Sortable(sorting => sorting.Enabled(true))
         .Pageable(paging => paging.Enabled(true))
         .Filterable(filtering => filtering.Enabled(true))
         .Groupable(grouping => grouping.Enabled(false))
-        .Footer(true)
-        .DetailView(reInitDetailView => reInitDetailView.ClientTemplate(
-            Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.ReInitializeSKU>()
-            .Name("reInitializeSKUGrid_" + "<#= ItemID #>")
-            .Columns(columns =>
-            {
-                columns.Bound(a => a.SkuExtracted);
-                columns.Bound(a => a.CreateDate);
-                columns.Bound(a => a.CreateUser);
-                columns.Bound(a => a.LastModifiedDate).Title("Extraction Date");
-                columns.Command(a => a.Delete());
-            })
-            .DataKeys(dataKeys => dataKeys.Add(dt => dt.ReInitializeSkuID))
-            .DataBinding(dataBinding => dataBinding.Ajax().Select("ReInitializeSKUDetails", "SkuRange", new { itemID = "<#= ItemID #>", allSKU = false })
-                                                            .Delete("DeleteSKUDetails", "SkuRange", new {id = (string)ViewData["ReInitializeSkuID"] }))
-            .Sortable(sorting => sorting.Enabled(true))
-            .Pageable(paging => paging.PageSize(10))
-            .Filterable(filtering => filtering.Enabled(true))
-            .Groupable(grouping => grouping.Enabled(false))
-            .ToHtmlString()
-            ))
     )
     </div>
 <div id="AllSKUGrid">
-    @(Html.Telerik().Grid(Model)
+@(Html.Telerik().Grid(Model)
         .Name("AllSKUGrid")
         .Columns(columns =>
         {
             columns.Bound(i => i.SKU);
             columns.Bound(i => i.SKUDescription);
+            columns.Bound(i => i.reInitializeSKU.SkuStatus);
+            columns.Bound(i => i.reInitializeSKU.LastModifiedDate).Format("{0:MM/dd/yyyy}").Title("Extraction Date");
+            columns.Bound(i => i.reInitializeSKU.CreateDate);
+            columns.Bound(i => i.reInitializeSKU.CreateUser);            
         })
-        .Editable(edit => edit.Mode(GridEditMode.InCell))
-        .DataKeys(dt => dt.Add(d => d.ItemID))
+        .DataKeys(dt => dt.Add(d => d.reInitializeSKU.ReInitializeSkuID))
         .DataBinding(dataBinding => dataBinding.Ajax().Select("_ReInitializeSKU", "SkuRange", new { allSKU = true}))
         .Sortable(sorting => sorting.Enabled(true))
         .Pageable(paging => paging.Enabled(true))
         .Filterable(filtering => filtering.Enabled(true))
         .Groupable(grouping => grouping.Enabled(false))
-        .Footer(true)
-        .DetailView(reInitDetailView => reInitDetailView.ClientTemplate(
-            Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.ReInitializeSKU>()
-            .Name("reInitializeAllSKUGrid_" + "<#= ItemID #>")
-            .Columns(columns =>
-            {
-                columns.Bound(a => a.SkuExtracted);
-                columns.Bound(a => a.CreateDate);
-                columns.Bound(a => a.CreateUser);
-                columns.Bound(a => a.LastModifiedDate).Title("Extraction Date");
-                columns.Command(a => a.Delete());
-            })
-            .DataKeys(dataKeys => dataKeys.Add(dt => dt.ReInitializeSkuID))
-            .DataBinding(dataBinding => dataBinding.Ajax().Select("ReInitializeSKUDetails", "SkuRange", new { itemID = "<#= ItemID #>", allSKU = true })
-                                                            .Delete("DeleteSKUDetails", "SkuRange", new {id = (string)ViewData["ReInitializeSkuID"] }))
-            .Sortable(sorting => sorting.Enabled(true))
-            .Pageable(paging => paging.PageSize(10))
-            .Filterable(filtering => filtering.Enabled(true))
-            .Groupable(grouping => grouping.Enabled(false))
-            .ToHtmlString()
-            ))
     )
 </div>

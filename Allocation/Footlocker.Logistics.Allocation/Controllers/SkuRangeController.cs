@@ -3600,11 +3600,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 reInitializeSKU = (from a in db.ReInitializeSKUs
                                    join b in db.ItemMasters on a.ItemID equals b.ID
+                                   orderby b.MerchantSku, a.LastModifiedDate descending
                                    select new ReInitializeSKUModel
                                    {
                                        SKU = b.MerchantSku,
                                        SKUDescription = b.Description,
-                                       ItemID = b.ID
+                                       reInitializeSKU = a
                                    }).Distinct().ToList();
             }
             else
@@ -3612,39 +3613,38 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 reInitializeSKU = (from a in db.ReInitializeSKUs
                                    join b in db.ItemMasters on a.ItemID equals b.ID
                                    where a.SkuExtracted == false
+                                   orderby b.MerchantSku, a.LastModifiedDate descending
                                    select new ReInitializeSKUModel
                                    {
                                        SKU = b.MerchantSku,
                                        SKUDescription = b.Description,
-                                       ItemID = b.ID
+                                       reInitializeSKU = a
                                    }).Distinct().ToList();
             }
             return View(new GridModel(reInitializeSKU));
         }
 
-        [GridAction]
-        public ActionResult ReInitializeSKUDetails(string itemID, bool allSKU)
-        {
-            long cItemID = Int64.Parse(itemID);
-            List<ReInitializeSKU> details = new List<ReInitializeSKU>();
+        //[GridAction]
+        //public ActionResult ReInitializeSKUDetails(string itemID, bool allSKU)
+        //{
+        //    long cItemID = Int64.Parse(itemID);
+        //    List<ReInitializeSKU> details = new List<ReInitializeSKU>();
 
-            if (allSKU)
-            {
-                details = (from a in db.ReInitializeSKUs
-                           where a.ItemID == cItemID
-                           select a).ToList();
-            }
-            else
-            {
-                details = (from a in db.ReInitializeSKUs
-                           where a.ItemID == cItemID && a.SkuExtracted == false
-                           select a).ToList();
-            }
-            return View(new GridModel(details));
-        }
+        //    if (allSKU)
+        //    {
+        //        details = (from a in db.ReInitializeSKUs
+        //                   where a.ItemID == cItemID
+        //                   select a).ToList();
+        //    }
+        //    else
+        //    {
+        //        details = (from a in db.ReInitializeSKUs
+        //                   where a.ItemID == cItemID && a.SkuExtracted == false
+        //                   select a).ToList();
+        //    }
+        //    return View(new GridModel(details));
+        //}
 
-        [HttpPost]
-        [GridAction]
         public ActionResult DeleteSKUDetails(string id)
         {
             int cID = Int32.Parse(id);
@@ -3657,11 +3657,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.ReInitializeSKUs.Remove(skuDetail);
             db.SaveChanges();
 
-            List<ReInitializeSKU> details = (from a in db.ReInitializeSKUs
-                                             where a.ItemID == itemID
-                                             select a).ToList();
-
-            return View(new GridModel(details));
+            return RedirectToAction("ReInitializeSKU");
         }
 
         public ActionResult CreateReInitializeSKU()
@@ -3670,7 +3666,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        [HttpPost]        
+        [HttpPost]
         public ActionResult CreateReInitializeSKU(ReInitializeSKUModel model)
         {
             ReInitializeSKU reInitialize = new ReInitializeSKU();
@@ -3693,7 +3689,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 where a.ItemID == reInitialize.ItemID && a.SkuExtracted == false
                                 select a.ItemID).FirstOrDefault();
 
-            if(reInitSkuID > 0)
+            if (reInitSkuID > 0)
             {
                 ViewData["message"] = "SKU is already pending to be extracted";
                 return View(model);
