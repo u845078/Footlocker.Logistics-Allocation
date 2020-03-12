@@ -15,6 +15,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public int ReInitializeSkuID { get; set; }
         public long ItemID { get; set; }
         public bool SkuExtracted { get; set; }
+
         [NotMapped]
         public string SkuStatus
         {
@@ -26,6 +27,17 @@ namespace Footlocker.Logistics.Allocation.Models
                 { return "Pending"; }
             }
             set { SkuStatus = value; }
+        }
+
+        [NotMapped]
+        public string ExtractionDate
+        {
+            get
+            {
+                if (SkuExtracted) return LastModifiedDate.ToShortDateString();
+                else return string.Empty;
+            }
+            set { ExtractionDate = value; }
         }
         public DateTime CreateDate { get; set; }
         public string CreateUser { get; set; }

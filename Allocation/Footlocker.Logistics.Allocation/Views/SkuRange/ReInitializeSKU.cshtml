@@ -35,7 +35,7 @@
             columns.Bound(i => i.SKU);
             columns.Bound(i => i.SKUDescription);
             columns.Bound(i => i.reInitializeSKU.SkuStatus);
-            columns.Bound(i => i.reInitializeSKU.LastModifiedDate).Format("{0:MM/dd/yyyy}").Title("Extraction Date");
+            columns.Bound(i => i.reInitializeSKU.ExtractionDate).Title("Extraction Date");
             columns.Bound(i => i.reInitializeSKU.CreateDate);
             columns.Bound(i => i.reInitializeSKU.CreateUser);
             columns.Command(commands =>
@@ -46,7 +46,7 @@
                 .DataRouteValues(route => { route.Add(o => o.reInitializeSKU.ReInitializeSkuID).RouteKey("id"); })
                 .Ajax(false)
                 .Action("DeleteSKUDetails", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
-            }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
+            }).HtmlAttributes(new { style = "text-align: left" });
         })
         .DataBinding(dataBinding => dataBinding.Ajax().Select("_ReInitializeSKU", "SkuRange", new { allSKU = false }))
         .Sortable(sorting => sorting.Enabled(true))
@@ -63,7 +63,7 @@
             columns.Bound(i => i.SKU);
             columns.Bound(i => i.SKUDescription);
             columns.Bound(i => i.reInitializeSKU.SkuStatus);
-            columns.Bound(i => i.reInitializeSKU.LastModifiedDate).Format("{0:MM/dd/yyyy}").Title("Extraction Date");
+            columns.Bound(i => i.reInitializeSKU.ExtractionDate).Title("Extraction Date");
             columns.Bound(i => i.reInitializeSKU.CreateDate);
             columns.Bound(i => i.reInitializeSKU.CreateUser);            
         })

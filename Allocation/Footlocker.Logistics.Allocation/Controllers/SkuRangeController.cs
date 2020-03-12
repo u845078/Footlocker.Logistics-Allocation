@@ -3621,6 +3621,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                        reInitializeSKU = a
                                    }).Distinct().ToList();
             }
+
+            foreach (ReInitializeSKUModel m in reInitializeSKU)
+            {
+                if (m.reInitializeSKU.CreateUser.Contains("CORP"))
+                    m.reInitializeSKU.CreateUser = getFullUserNameFromDatabase(m.reInitializeSKU.LastModifiedUser.Replace('\\', '/'));                
+            }
+
             return View(new GridModel(reInitializeSKU));
         }
 
