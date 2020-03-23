@@ -73,82 +73,101 @@
 
     <fieldset>
         <legend>StoreAttribute</legend>
-<table>
-<tr>
-    <td>
-        @Html.LabelFor(model => model.StoreAttribute.Division)
-    </td>
-    <td>
-        @Html.DropDownListFor(model => model.StoreAttribute.Division, new SelectList(Model.Divisions, "DivCode", "DivisionName"))
-    </td>
-    <td>
-        @Html.LabelFor(model => model.StoreAttribute.Store)
-    </td>
-    <td>
-        @Html.EditorFor(model => model.StoreAttribute.Store)
-        @Html.ValidationMessageFor(model => model.StoreAttribute.Store)
-    </td>
-</tr>
-<tr>
-    <td>
-        @*@Html.LabelFor(model => model.StoreAttribute.LikeDivision)*@
-    </td>
-    <td>
-        @*@Html.DropDownListFor(model => model.StoreAttribute.LikeDivision, new SelectList(Model.Divisions, "DivCode", "DivisionName"))*@
-    </td>
-    <td>
-        @Html.LabelFor(model => model.StoreAttribute.LikeStore)
-    </td>
-    <td>
-        @Html.EditorFor(model => model.StoreAttribute.LikeStore)
-        @Html.ValidationMessageFor(model => model.StoreAttribute.LikeStore)
-    </td>
-</tr>
-<tr>
-<td>
-            @Html.LabelFor(model => model.StoreAttribute.Level)
-</td><td>            
-    @Html.DropDownListFor(model => model.StoreAttribute.Level, new List<SelectListItem> { new SelectListItem { Text = "All", Value = "All" }, new SelectListItem { Text = "FOB", Value = "FOB" }, new SelectListItem { Text = "Department (##)", Value = "Dept" } })
-</td>
-<td>
-            @Html.LabelFor(model => model.StoreAttribute.Value)
-</td><td>            @Html.EditorFor(model => model.StoreAttribute.Value)
-    @foreach (Footlocker.Common.Division div in Model.Divisions)
-    {
-        @Html.DropDownListFor(model => model.StoreAttribute.Value, new SelectList((from a in Model.FOBs where a.Division==div.DivCode select a), "Code", "Description"), new { id = div.DivCode + "fob_dropdown" })
-    }
-
-            @Html.ValidationMessageFor(model => model.StoreAttribute.Value)
-</td>
-</tr>
-<tr>
-<td>
-
-            @Html.LabelFor(model => model.StoreAttribute.Weight)
-</td><td>            @Html.EditorFor(model => model.StoreAttribute.Weight)
-            @Html.ValidationMessageFor(model => model.StoreAttribute.Weight)
-</td>
-<td></td>
-</tr>
-<tr>
-<td>
-            @Html.LabelFor(model => model.StoreAttribute.StartDate)
-</td><td>            @Html.EditorFor(model => model.StoreAttribute.StartDate)
-            @Html.ValidationMessageFor(model => model.StoreAttribute.StartDate)
-</td>
-<td>
-            @Html.LabelFor(model => model.StoreAttribute.EndDate)&nbsp;
-</td><td>            @Html.EditorFor(model => model.StoreAttribute.EndDate)
-            @Html.ValidationMessageFor(model => model.StoreAttribute.EndDate)
-</td>
-</tr>
-<tr>
-<td></td><td></td><td></td><td>
-            <input type="submit" value="Create" />
-</td>
-<td></td></tr>
-</table>
-
+        <table>
+            <tr>
+                <td>
+                    @Html.LabelFor(model => model.StoreAttribute.Division)
+                </td>
+                <td>
+                    @Html.DropDownListFor(model => model.StoreAttribute.Division, new SelectList(Model.Divisions, "DivCode", "DivisionName"))
+                </td>
+                <td>
+                    @Html.LabelFor(model => model.StoreAttribute.Store)
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.StoreAttribute.Store)
+                    @Html.ValidationMessageFor(model => model.StoreAttribute.Store)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @*@Html.LabelFor(model => model.StoreAttribute.LikeDivision)*@
+                </td>
+                <td>
+                    @*@Html.DropDownListFor(model => model.StoreAttribute.LikeDivision, new SelectList(Model.Divisions, "DivCode", "DivisionName"))*@
+                </td>
+                <td>
+                    @Html.LabelFor(model => model.StoreAttribute.LikeStore)
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.StoreAttribute.LikeStore)
+                    @Html.ValidationMessageFor(model => model.StoreAttribute.LikeStore)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(model => model.StoreAttribute.Level)
+                </td>
+                <td>            
+                    @Html.DropDownListFor(model => model.StoreAttribute.Level, new List<SelectListItem> { new SelectListItem { Text = "All", Value = "All" }, new SelectListItem { Text = "FOB", Value = "FOB" }, new SelectListItem { Text = "Department (##)", Value = "Dept" } })
+                </td>
+                <td>
+                    @Html.LabelFor(model => model.StoreAttribute.Value)
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.StoreAttribute.Value)
+                    @foreach (Footlocker.Common.Division div in Model.Divisions)
+                    {
+                        @Html.DropDownListFor(model => model.StoreAttribute.Value, new SelectList((from a in Model.FOBs where a.Division==div.DivCode select a), "Code", "Description"), new { id = div.DivCode + "fob_dropdown" })
+                    }
+                    @Html.ValidationMessageFor(model => model.StoreAttribute.Value)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                @Html.LabelFor(model => model.StoreAttribute.Weight)
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.StoreAttribute.Weight)
+                    @Html.ValidationMessageFor(model => model.StoreAttribute.Weight)
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(model => model.StoreAttribute.LikeStoreDemandScalingFactor)
+                </td>
+                <td>
+                    @Html.TextBoxFor(model => model.StoreAttribute.LikeStoreDemandScalingFactor, new { type = "number", min = "0", step = "0.10", style = "width:133px;" })
+                    @Html.ValidationMessageFor(model => model.StoreAttribute.LikeStoreDemandScalingFactor)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(model => model.StoreAttribute.StartDate)
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.StoreAttribute.StartDate)
+                    @Html.ValidationMessageFor(model => model.StoreAttribute.StartDate)
+                </td>
+                <td>
+                    @Html.LabelFor(model => model.StoreAttribute.EndDate)&nbsp;
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.StoreAttribute.EndDate)
+                    @Html.ValidationMessageFor(model => model.StoreAttribute.EndDate)
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    <input type="submit" value="Create" />
+                </td>
+                <td></td>
+            </tr>
+        </table>
     </fieldset>
 }
 

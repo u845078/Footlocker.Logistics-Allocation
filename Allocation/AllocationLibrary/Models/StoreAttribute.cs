@@ -23,6 +23,9 @@ namespace Footlocker.Logistics.Allocation.Models
         [Range(1,100)]
         [Display(Name="Like Store Weight")]
         public Int32 Weight { get; set; }
+
+        [Display(Name = "Like Store Demand Scaling Factor")]
+        public decimal LikeStoreDemandScalingFactor { get; set; }
         
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)] 
