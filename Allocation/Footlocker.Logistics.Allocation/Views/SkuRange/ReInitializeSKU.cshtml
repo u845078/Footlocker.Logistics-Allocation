@@ -1,0 +1,77 @@
+﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.ReInitializeSKUModel>
+@{
+    ViewBag.Title = "ReInitializeSKU";
+}
+
+<h2>Re-Initialize SKU</h2>
+
+<p>
+    @Html.ActionLink("Create New", "CreateReInitializeSKU", new { }, new { @class = "t-button" })
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <input type="checkbox" onclick="toggleUpload(this);" />Show All SKUs</input>
+</p>
+
+<script>
+    $(document).ready(function () {
+        $('#AllSKUGrid').hide();
+    });
+
+    function toggleUpload(checkbox) {
+        if (checkbox.checked) {
+            $('#AllSKUGrid').show();
+            $('#ActiveGrid').hide();
+        } else {
+            $('#AllSKUGrid').hide();
+            $('#ActiveGrid').show();
+        }
+
+    }
+</script>
+<div id="ActiveGrid">
+@(Html.Telerik().Grid(Model)
+        .Name("SKUActiveGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(i => i.SKU);
+            columns.Bound(i => i.SKUDescription);
+            columns.Bound(i => i.reInitializeSKU.SkuStatus);
+            columns.Bound(i => i.reInitializeSKU.ExtractionDate).Title("Extraction Date");
+            columns.Bound(i => i.reInitializeSKU.CreateDate);
+            columns.Bound(i => i.reInitializeSKU.CreateUser);
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("Delete")
+                .Text("Delete")
+                .DataRouteValues(route => { route.Add(o => o.reInitializeSKU.ReInitializeSkuID).RouteKey("id"); })
+                .Ajax(false)
+                .Action("DeleteSKUDetails", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+            }).HtmlAttributes(new { style = "text-align: left" });
+        })
+        .DataBinding(dataBinding => dataBinding.Ajax().Select("_ReInitializeSKU", "SkuRange", new { allSKU = false }))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+    )
+    </div>
+<div id="AllSKUGrid">
+@(Html.Telerik().Grid(Model)
+        .Name("AllSKUGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(i => i.SKU);
+            columns.Bound(i => i.SKUDescription);
+            columns.Bound(i => i.reInitializeSKU.SkuStatus);
+            columns.Bound(i => i.reInitializeSKU.ExtractionDate).Title("Extraction Date");
+            columns.Bound(i => i.reInitializeSKU.CreateDate);
+            columns.Bound(i => i.reInitializeSKU.CreateUser);            
+        })
+        .DataKeys(dt => dt.Add(d => d.reInitializeSKU.ReInitializeSkuID))
+        .DataBinding(dataBinding => dataBinding.Ajax().Select("_ReInitializeSKU", "SkuRange", new { allSKU = true}))
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+        .Groupable(grouping => grouping.Enabled(false))
+    )
+</div>

@@ -129,6 +129,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         if (rp.UpdatedBy.Contains("CORP"))
                             rp.UpdatedBy = getFullUserNameFromDatabase(rp.UpdatedBy.Replace('\\', '/'));
+
+                        var reInitStatus = (from a in db.ReInitializeSKUs
+                                            where a.ItemID == rp.ItemID
+                                            orderby a.CreateDate descending
+                                            select a).FirstOrDefault();
+
+                        if (reInitStatus != null)
+                        {
+                            rp.ReInitializeStatus = (reInitStatus.SkuExtracted) ? "SKU Extracted on " + reInitStatus.LastModifiedDate.ToShortDateString() : "Pending to be Extracted";
+                        }
                     });
                 }
             }

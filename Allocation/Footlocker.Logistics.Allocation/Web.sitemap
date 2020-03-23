@@ -48,6 +48,7 @@
 		  <siteMapNode title="SKU Setup" controller="SkuRange" action="Index" />
       <siteMapNode title="Web Pick" controller="WebPick" action="Index" />
       <siteMapNode title="PreSale" controller="SkuRange" action="PreSale" />
+      <siteMapNode title="Re-Initialize SKU" controller="SkuRange" action="ReInitializeSKU" />
     </siteMapNode>
 
     <siteMapNode title="Troubleshooting">

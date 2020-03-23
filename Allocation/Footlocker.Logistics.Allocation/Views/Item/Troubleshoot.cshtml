@@ -190,6 +190,12 @@
                 </table>
             </td>
         </tr>
+        <tr>
+            <td><strong>Evergreen SKU</strong></td>
+            <td>@Model.RangePlans.Select(c=>c.EvergreenSKU).FirstOrDefault()</td>
+            <td><strong>Re-Initialize Status:</strong></td>
+            <td>@Model.RangePlans.Select(c=>c.ReInitializeStatus).FirstOrDefault()</td>
+        </tr>
 
 
         @if (!(Model.ValidItem))

@@ -62,10 +62,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          join di in divs on im.Div equals di
                          select new { RangePlan = rp, Division = im.Div, Department = im.Dept }).ToList();
 
-            (from q in query
-             join pre in db.PreSaleSKUs on q.RangePlan.ItemID equals pre.ItemID
-             where pre.Active == true
-             select q).ToList().ForEach(x => x.RangePlan.PreSaleSKU = "Yes");
+            //(from q in query
+            // join pre in db.PreSaleSKUs on q.RangePlan.ItemID equals pre.ItemID
+            // select q).ToList().ForEach(x => x.RangePlan.PreSaleSKU = "Yes");
 
             List<RangePlan> model = query.Where(q => temp.Contains(q.Division + "-" + q.Department))
                                           .Select(q => q.RangePlan)
@@ -1735,6 +1734,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                where a.Id == planID
                                select a).First();
 
+            model.RangePlan.PreSaleSKU = (from a in db.PreSaleSKUs
+                                          where a.ItemID == model.RangePlan.ItemID && a.Active == true
+                                          select a).Count() > 0 ? "True" : "False";
+
+            var reInitStatus = (from a in db.ReInitializeSKUs
+                                where a.ItemID == model.RangePlan.ItemID
+                                orderby a.CreateDate descending
+                                select a).FirstOrDefault();
+
+            if (reInitStatus != null)
+            {
+                model.RangePlan.ReInitializeStatus = (reInitStatus.SkuExtracted) ? "SKU Extracted on " + reInitStatus.LastModifiedDate.ToShortDateString() : "Pending to be Extracted";
+            }
+
             if (model.RangePlan != null)
             {
                 if (model.RangePlan.UpdatedBy.Contains("CORP"))
@@ -2233,6 +2246,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RangePlan p = (from a in db.RangePlans
                            where a.Id == planID
                            select a).First();
+
             return View(p);
         }
 
@@ -2252,6 +2266,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             return RedirectToAction("Index", new { message = "Saved Changes" });
         }
+
 
         public ActionResult EditStores(Int64 planID, string message)
         {
@@ -3569,6 +3584,128 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             db.SaveChanges();
             return RedirectToAction("PreSale");
+        }
+
+        public ActionResult ReInitializeSKU()
+        {
+            List<ReInitializeSKUModel> model = new List<ReInitializeSKUModel>();
+            return View(model);
+        }
+
+        [GridAction]
+        public ActionResult _ReInitializeSKU(bool allSKU)
+        {
+            List<ReInitializeSKUModel> reInitializeSKU = new List<ReInitializeSKUModel>();
+            if (allSKU)
+            {
+                reInitializeSKU = (from a in db.ReInitializeSKUs
+                                   join b in db.ItemMasters on a.ItemID equals b.ID
+                                   orderby b.MerchantSku, a.LastModifiedDate descending
+                                   select new ReInitializeSKUModel
+                                   {
+                                       SKU = b.MerchantSku,
+                                       SKUDescription = b.Description,
+                                       reInitializeSKU = a
+                                   }).Distinct().ToList();
+            }
+            else
+            {
+                reInitializeSKU = (from a in db.ReInitializeSKUs
+                                   join b in db.ItemMasters on a.ItemID equals b.ID
+                                   where a.SkuExtracted == false
+                                   orderby b.MerchantSku, a.LastModifiedDate descending
+                                   select new ReInitializeSKUModel
+                                   {
+                                       SKU = b.MerchantSku,
+                                       SKUDescription = b.Description,
+                                       reInitializeSKU = a
+                                   }).Distinct().ToList();
+            }
+
+            foreach (ReInitializeSKUModel m in reInitializeSKU)
+            {
+                if (m.reInitializeSKU.CreateUser.Contains("CORP"))
+                    m.reInitializeSKU.CreateUser = getFullUserNameFromDatabase(m.reInitializeSKU.LastModifiedUser.Replace('\\', '/'));                
+            }
+
+            return View(new GridModel(reInitializeSKU));
+        }
+
+        //[GridAction]
+        //public ActionResult ReInitializeSKUDetails(string itemID, bool allSKU)
+        //{
+        //    long cItemID = Int64.Parse(itemID);
+        //    List<ReInitializeSKU> details = new List<ReInitializeSKU>();
+
+        //    if (allSKU)
+        //    {
+        //        details = (from a in db.ReInitializeSKUs
+        //                   where a.ItemID == cItemID
+        //                   select a).ToList();
+        //    }
+        //    else
+        //    {
+        //        details = (from a in db.ReInitializeSKUs
+        //                   where a.ItemID == cItemID && a.SkuExtracted == false
+        //                   select a).ToList();
+        //    }
+        //    return View(new GridModel(details));
+        //}
+
+        public ActionResult DeleteSKUDetails(string id)
+        {
+            int cID = Int32.Parse(id);
+            var skuDetail = (from a in db.ReInitializeSKUs
+                             where a.ReInitializeSkuID == cID
+                             select a).FirstOrDefault();
+
+            long itemID = skuDetail.ItemID;
+
+            db.ReInitializeSKUs.Remove(skuDetail);
+            db.SaveChanges();
+
+            return RedirectToAction("ReInitializeSKU");
+        }
+
+        public ActionResult CreateReInitializeSKU()
+        {
+            ReInitializeSKUModel model = new ReInitializeSKUModel();
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult CreateReInitializeSKU(ReInitializeSKUModel model)
+        {
+            ReInitializeSKU reInitialize = new ReInitializeSKU();
+
+            reInitialize.LastModifiedDate = DateTime.Now;
+            reInitialize.LastModifiedUser = User.Identity.Name;
+            reInitialize.CreateDate = DateTime.Now;
+            reInitialize.CreateUser = User.Identity.Name;
+
+            reInitialize.ItemID = ValidatePreSaleSKU(model.SKU);
+            reInitialize.SkuExtracted = false;
+
+            if (reInitialize.ItemID == 0)
+            {
+                ViewData["message"] = "SKU does not exists.";
+                return View(model);
+            }
+
+            long reInitSkuID = (from a in db.ReInitializeSKUs
+                                where a.ItemID == reInitialize.ItemID && a.SkuExtracted == false
+                                select a.ItemID).FirstOrDefault();
+
+            if (reInitSkuID > 0)
+            {
+                ViewData["message"] = "SKU is already pending to be extracted";
+                return View(model);
+            }
+
+            db.ReInitializeSKUs.Add(reInitialize);
+            db.SaveChanges();
+
+            return RedirectToAction("ReInitializeSKU");
         }
 
         /// <summary>
