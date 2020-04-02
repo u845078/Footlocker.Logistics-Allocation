@@ -33,6 +33,9 @@
         <div class="editor-field">
             @Html.CheckBoxFor(model => model.Launch, new { id = "launchChk" })
             @Html.LabelFor(model => model.Launch)
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            @Html.CheckBoxFor(model => model.EvergreenSKU, new { id = "evergreenSKU" })
+            <label>Evergreen SKU</label>
         </div>
 
         <div class="editor-field" style="padding-left: 15px;">
