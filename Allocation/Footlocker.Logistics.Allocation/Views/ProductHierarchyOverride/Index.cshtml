@@ -27,7 +27,7 @@
         columns.Bound(o => o.effectiveFromDt).Title("Start Date").Format("{0:MM/dd/yyyy}");
         columns.Bound(o => o.effectiveToDt).Title("End Date").Format("{0:MM/dd/yyyy}");
         columns.Bound(o => o.displayOverrideValue).Title("Override Level Data");
-        columns.Bound(o => o.displayNewValue).Title("To Category/Brand ID");
+        columns.Bound(o => o.displayNewValue).Title("Override To Data");
         columns.Bound(o => o.lastModifiedUserName).Title("Last Modified User");
         columns.Bound(o => o.lastModifiedDate).Title("Last Modified Date").Format("{0:MM/dd/yyyy h:mm:ss tt}");
         columns.Template(@<text>

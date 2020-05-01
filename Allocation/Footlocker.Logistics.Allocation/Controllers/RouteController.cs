@@ -684,8 +684,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             EditStoreLeadTimeModel model;
 
-            List<StoreLookup> stores = (from a in db.StoreLookups where ((a.Division == "31") && a.Region != "45") select a).ToList();
-            List<StoreLeadTime> alreadyDone = (from a in db.StoreLeadTimes where ((a.Division == "31") && (a.LeadTime == 4)) select a).ToList();
+            List<StoreLookup> stores = (from a in db.StoreLookups 
+                                        where ((a.Division == "31") && 
+                                               a.Region != "45") 
+                                        select a).ToList();
+            List<StoreLeadTime> alreadyDone = (from a in db.StoreLeadTimes 
+                                               where ((a.Division == "31") && 
+                                                      (a.LeadTime == 4)) 
+                                               select a).ToList();
             int count = 0;
             foreach (StoreLookup s in stores)
             {
