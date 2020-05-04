@@ -56,12 +56,14 @@
 </script>
 
 <h2>Store @Html.Raw(Model.newStoreAttribute.Store)</h2>
+<label>*** NOTE: Having a value of 1.00 for the Like Store Demand Scaling Factor will keep the original demand for the defined like store.</label>
 @if (ViewData["message"] != null)
 { 
     @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
 }
 @using (Html.BeginForm("Edit", "StoreAttribute", FormMethod.Post))
 {
+
     <fieldset>
         <legend>Add Additional Like Store</legend>
 
