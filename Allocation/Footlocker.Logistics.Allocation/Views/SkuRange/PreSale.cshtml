@@ -30,13 +30,13 @@
                 commands
                 .Custom("Delete")
                 .Text("Delete")
-                .DataRouteValues(route => { route.Add(o => o.preSaleSKU.ItemID).RouteKey("ItemID"); })
+                .DataRouteValues(route => { route.Add(o => o.preSaleSKU.PreSaleSkuID).RouteKey("PreSaleSkuID"); })
                 .Ajax(false)
                 .Action("DeletePreSale", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
                 commands
                 .Custom("Edit")
                 .Text("Edit")
-                .DataRouteValues(route => { route.Add(o => o.preSaleSKU.ItemID).RouteKey("ItemID"); })
+                .DataRouteValues(route => { route.Add(o => o.preSaleSKU.PreSaleSkuID).RouteKey("PreSaleSkuID"); })
                 .Ajax(false)
                 .Action("EditPreSale", "SkuRange");
             }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
