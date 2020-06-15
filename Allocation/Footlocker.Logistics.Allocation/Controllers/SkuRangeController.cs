@@ -3540,11 +3540,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     select a.ID).FirstOrDefault();
         }
 
-        public ActionResult EditPreSale(long ItemID)
+        public ActionResult EditPreSale(int PreSaleSkuID)
         {
             PreSaleModel model = (from preSale in db.PreSaleSKUs
                                   join item in db.ItemMasters on preSale.ItemID equals item.ID
-                                  where preSale.Active == true && preSale.ItemID == ItemID
+                                  where preSale.PreSaleSkuID == PreSaleSkuID
                                   select new PreSaleModel
                                   {
                                       SKU = item.MerchantSku,
@@ -3558,7 +3558,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult EditPreSale(PreSaleModel model)
         {
-            var record = (from a in db.PreSaleSKUs where a.ItemID == model.preSaleSKU.ItemID select a).FirstOrDefault();
+            var record = (from a in db.PreSaleSKUs where a.PreSaleSkuID == model.preSaleSKU.PreSaleSkuID select a).FirstOrDefault();
 
             record.LastModifiedUser = User.Identity.Name;
             record.LastModifiedDate = DateTime.Now;
@@ -3574,9 +3574,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("PreSale");
         }
 
-        public ActionResult DeletePreSale(long ItemID)
+        public ActionResult DeletePreSale(int PreSaleSkuID)
         {
-            var record = (from a in db.PreSaleSKUs where a.ItemID == ItemID select a).FirstOrDefault();
+            var record = (from a in db.PreSaleSKUs
+                          where a.PreSaleSkuID == PreSaleSkuID
+                          select a).FirstOrDefault();
 
             record.LastModifiedUser = User.Identity.Name;
             record.LastModifiedDate = DateTime.Now;
