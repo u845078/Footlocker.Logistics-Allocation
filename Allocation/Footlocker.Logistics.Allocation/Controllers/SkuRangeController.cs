@@ -3497,6 +3497,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult CreatePreSale(PreSaleModel model)
         {
+            if (!WebSecurityService.UserHasDivisionRole(UserName, "allocation", model.SKU.Substring(0, 2), "Ecomm Presale"))
+            {
+                ViewData["message"] = "You do not have security to create PreSale records for this division.";
+                return View(model);
+            }
+
             PreSaleSKU preSale = new PreSaleSKU();
 
             preSale.LastModifiedDate = DateTime.Now;
