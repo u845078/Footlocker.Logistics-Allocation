@@ -12,7 +12,7 @@ using Footlocker.Common;
 using Footlocker.Common.Utilities.File;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
-//using Footlocker.Common.Services; 
+using Footlocker.Common.Services; 
 using System.Data.Common;
 using System.Data.Entity;
 using System.Xml.Serialization;
