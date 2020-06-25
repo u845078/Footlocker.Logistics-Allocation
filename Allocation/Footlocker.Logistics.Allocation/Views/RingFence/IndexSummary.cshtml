@@ -49,23 +49,24 @@
 </p>
 
 <div class="t-tabstrip-wrapper">
-<div id="tabstrip" data-role="tabstrip" tabindex="0" class="t-widget t-header t-tabstrip" role="tablist" aria-activedescendant="tabstrip_ts_active">
-                    <ul class="t-tabstrip-items t-reset">
-                        <li class="t-item t-state-default" role="tab" aria-controls="tabstrip-3"><span class="t-loading t-complete"></span><a class="t-link" href="/RingFence/Index">
-                            All Ringfences
-                        </a></li>                
-                        <li class="t-item t-state-default t-first t-tab-on-top t-state-active" role="tab" aria-controls="tabstrip-1" aria-selected="true"><span class="t-loading t-complete"></span><a class="t-link" href="/RingFence/IndexSummary">
-                            By Product
-                        </a></li><li class="t-item t-state-default" role="tab" aria-controls="tabstrip-2"><span class="t-loading t-complete"></span><a class="t-link" href="/RingFence/IndexByStore">
-                            By Destination
-                        </a></li>
-                    </ul>
+<div id="tabstrip" data-role="tabstrip" tabindex="0" class="t-widget t-header t-tabstrip" role="tablist" aria-activedescendant="tabstrip_ts_active" style="width: 1200px">
+    <ul class="t-tabstrip-items t-reset">
+        <li class="t-item t-state-default" role="tab" aria-controls="tabstrip-3"><span class="t-loading t-complete"></span><a class="t-link" href="/RingFence/Index">
+            All Ringfences
+        </a></li>                
+        <li class="t-item t-state-default t-first t-tab-on-top t-state-active" role="tab" aria-controls="tabstrip-1" aria-selected="true"><span class="t-loading t-complete"></span><a class="t-link" href="/RingFence/IndexSummary">
+            By Product
+        </a></li><li class="t-item t-state-default" role="tab" aria-controls="tabstrip-2"><span class="t-loading t-complete"></span><a class="t-link" href="/RingFence/IndexByStore">
+            By Destination
+        </a></li>
+    </ul>
 <div class="t-content t-state-active" id="tabstrip-1" role="tabpanel" aria-expanded="true" style="display: block; opacity: 1;">
 <br />
 
 @Html.Raw("<font color=red>" + ViewData["message"] + "</font>")
     @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFenceSummary>()
         .Name("RingFenceSummaryGrid")
+        .HtmlAttributes(new { @style = "width : 100%" })
         .HtmlAttributes(new { @class = "summary-grid" })
         .Columns(columns =>
         {
@@ -114,8 +115,8 @@
                                 columns.Bound(rf => rf.EndDate).Format("{0:MM/dd/yyyy}").Title("End Date").Width(30).Visible(true);
                                 columns.Bound(rf => rf.RingFenceTypeDescription).Width(10).Visible(true).Title("Type");
                                 columns.Bound(rf => rf.Comments);
-                                columns.Bound(rf => rf.CreatedBy).Title("Updated By").Visible(true);
-                                columns.Bound(rf => rf.CreateDate).Format("{0:MM/dd/yyyy}").Title("Update Date").Width(30).Visible(true);
+                                columns.Bound(rf => rf.LastModifiedUserName).Title("Updated By").Visible(true).Width(150);
+                                columns.Bound(rf => rf.LastModifiedDate).Format("{0:MM/dd/yyyy h:mm tt}").Title("Update Date").Width(150).Visible(true);
                                 columns.Template(@<text>
                                             <span style="">
                                                 @Html.ActionLink("Edit", "Edit", new { id = item.ID }, new { @class = "t-button" })

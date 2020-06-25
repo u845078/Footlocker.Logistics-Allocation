@@ -107,7 +107,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RingFenceModel> model = new List<RingFenceModel>();
 
             RingFenceDAO rfDAO = new RingFenceDAO();
-            List<RingFence> list = rfDAO.GetValidRingFences(Divisions());     
+            List<RingFence> list = rfDAO.GetValidRingFences(Divisions());
+
+            Dictionary<string, string> names = new Dictionary<string, string>();
+            var users = (from a in list
+                         select a.LastModifiedUser).Distinct();
+            foreach (string userID in users)
+            {
+                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+            }
+            foreach (var item in list)
+            {
+                item.LastModifiedUserName = names[item.LastModifiedUser];
+            }
 
             ViewData["message"] = message;
             return View(list);
@@ -213,10 +225,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         CreatedBy = a.CreatedBy,
                         CreateDate = a.CreateDate,
                         RingFenceTypeDescription = a.RingFenceTypeDescription,
-                        ItemDescription = a.ItemDescription
+                        ItemDescription = a.ItemDescription,
+                        LastModifiedDate = a.LastModifiedDate,
+                        LastModifiedUser = a.LastModifiedUser
                     }).OrderByDescending(x => x.CreateDate).ToList();
 
-
+            Dictionary<string, string> names = new Dictionary<string, string>();
+            var users = (from a in list
+                         select a.LastModifiedUser).Distinct();
+            foreach (string userID in users)
+            {
+                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+            }
+            foreach (var item in list)
+            {
+                item.LastModifiedUserName = names[item.LastModifiedUser];
+            }
 
             //eturn new JsonResult { Data = list.ToList() };
             return PartialView(new GridModel(list));
@@ -247,9 +271,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         Comments = a.Comments,
                         CreatedBy = a.CreatedBy,
                         CreateDate = a.CreateDate,
+                        LastModifiedDate = a.LastModifiedDate,
+                        LastModifiedUser = a.LastModifiedUser,
                         RingFenceTypeDescription = a.RingFenceTypeDescription,
                         ItemDescription = a.ItemDescription
                     }).OrderByDescending(x => x.CreateDate).ToList();
+
+            Dictionary<string, string> names = new Dictionary<string, string>();
+            var users = (from a in list
+                         select a.LastModifiedUser).Distinct();
+            foreach (string userID in users)
+            {
+                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+            }
+            foreach (var item in list)
+            {
+                item.LastModifiedUserName = names[item.LastModifiedUser];
+            }
 
             //eturn new JsonResult { Data = list.ToList() };
             return PartialView(new GridModel(list));

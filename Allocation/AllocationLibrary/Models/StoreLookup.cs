@@ -150,27 +150,27 @@ namespace Footlocker.Logistics.Allocation.Models
             }
         }
 
-        private string _concept;
-        [NotMapped]
-        public string Concept { 
-            get {
-                try
-                {
-                    if (_concept == null)
-                    {
-                        _concept = StoreExtension.ConceptType.Name;
-                    }
-                    return _concept;
-                }
-                catch
-                {
-                    return "";
-                }
-            }
-            set {
-                _concept = value;
-            }
-        }
+        //private string _concept;
+        //[NotMapped]
+        //public string Concept { 
+        //    get {
+        //        try
+        //        {
+        //            if (_concept == null)
+        //            {
+        //                _concept = StoreExtension.ConceptType.Name;
+        //            }
+        //            return _concept;
+        //        }
+        //        catch
+        //        {
+        //            return "";
+        //        }
+        //    }
+        //    set {
+        //        _concept = value;
+        //    }
+        //}
 
         private Boolean? _excludeStore;
 

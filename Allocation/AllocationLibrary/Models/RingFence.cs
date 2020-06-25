@@ -135,6 +135,9 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public string LastModifiedUser { get; set; }
 
+        [NotMapped]
+        public string LastModifiedUserName { get; set; }
+
         public DateTime LastModifiedDate { get; set; }
 
         public string Comments { get; set; }
