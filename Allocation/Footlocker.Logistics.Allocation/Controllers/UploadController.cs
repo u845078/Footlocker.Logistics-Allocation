@@ -26,6 +26,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private string _currentFormattedDateTimeString = null;
         private string _userName = null;
         private string _fileLineFiller = null;
+        private string[] _authorizedSkuIDDivCodes = new string[] { "24", "28", "31", "47", "76", "77" };
+        private AllocationLibraryContext db;
 
         #endregion
 
@@ -73,6 +75,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         #endregion
+
+        public UploadController()
+        {
+            db = new AllocationLibraryContext();
+        }
 
         //
         // GET: /Upload/
@@ -1551,6 +1558,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         // Get the sku's division
                         divCodeOfCurrentSpreadsheet = Convert.ToString(mySheet.Cells[1, 0].Value).PadLeft(14, '0').Substring(0, 2);
 
+                        if (!_authorizedSkuIDDivCodes.Contains(divCodeOfCurrentSpreadsheet))
+                        {
+                            return Content(
+                                string.Format(
+                                    "Unauthorized division specified in spreadsheet, Division {0}.  Please read instructions above for the authorized divisions."
+                                    , divCodeOfCurrentSpreadsheet));
+                        }
+
                         // Validate that the current user has access to the division that the sku is referencing... (else error out)
                         if (!(Footlocker.Common.WebSecurityService.UserHasDivision(User.Identity.Name.Split('\\')[1], "Allocation", divCodeOfCurrentSpreadsheet)))
                             { return Content("You do not have permission to update this division."); }
@@ -1819,8 +1834,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
+        [CheckDivisionsPermission(DivCodes = "24,28,31,47,76,77")]
         public ActionResult SkuIdUpload()
         {
+            ViewBag.ValidDivisions
+                = db.AllocationDivisions
+                    .Where(ad => _authorizedSkuIDDivCodes.Contains(ad.DivisionCode))
+                    .OrderBy(ad => ad.DivisionCode)
+                    .ToList();
+
             return View();
         }
 

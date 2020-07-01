@@ -15,7 +15,7 @@
     <AssemblyName>Footlocker.Logistics.Allocation</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
-    <UseIISExpress>true</UseIISExpress>
+    <UseIISExpress>false</UseIISExpress>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
@@ -218,6 +218,7 @@
     <Compile Include="Controllers\ConfigController.cs" />
     <Compile Include="Controllers\CrossDockExclusionController.cs" />
     <Compile Include="Controllers\DTSController.cs" />
+    <Compile Include="Controllers\Filters\CheckDivisionsPermission.cs" />
     <Compile Include="Controllers\FOBController.cs" />
     <Compile Include="Controllers\FOBPackController.cs" />
     <Compile Include="Controllers\FOBPackOverrideController.cs" />
@@ -618,6 +619,7 @@
     <Content Include="Views\Route\UploadChanges.cshtml" />
     <Content Include="Views\SkuRange\CreatePreSale.cshtml" />
     <Content Include="Views\SkuRange\CreateReInitializeSKU.cshtml" />
+    <Content Include="Views\Error\GenericallyDenied.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />
