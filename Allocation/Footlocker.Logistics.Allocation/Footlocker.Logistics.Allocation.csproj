@@ -218,7 +218,6 @@
     <Compile Include="Controllers\ConfigController.cs" />
     <Compile Include="Controllers\CrossDockExclusionController.cs" />
     <Compile Include="Controllers\DTSController.cs" />
-    <Compile Include="Controllers\Filters\CheckDivisionsPermission.cs" />
     <Compile Include="Controllers\FOBController.cs" />
     <Compile Include="Controllers\FOBPackController.cs" />
     <Compile Include="Controllers\FOBPackOverrideController.cs" />

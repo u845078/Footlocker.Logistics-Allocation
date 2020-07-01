@@ -26,7 +26,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private string _currentFormattedDateTimeString = null;
         private string _userName = null;
         private string _fileLineFiller = null;
-        private string[] _authorizedSkuIDDivCodes = new string[] { "24", "28", "31", "47", "76", "77" };
         private AllocationLibraryContext db;
 
         #endregion
@@ -1517,6 +1516,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult SaveSkuId(IEnumerable<HttpPostedFileBase> attachments)
         {
             string divCodeOfCurrentSpreadsheet = String.Empty;
+            string configParamName = "SKUID_UPLOAD_AUTHORIZED_DIVS";
 
             //Set the license 
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -1556,9 +1556,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         if (!hasValidHeaderRow) { return Content("Incorrect header, please use template."); }
 
                         // Get the sku's division
-                        divCodeOfCurrentSpreadsheet = Convert.ToString(mySheet.Cells[1, 0].Value).PadLeft(14, '0').Substring(0, 2);
+                        divCodeOfCurrentSpreadsheet = Convert.ToString(mySheet.Cells[1, 0].Value).PadLeft(14, '0').Substring(0, 2);                       
 
-                        if (!_authorizedSkuIDDivCodes.Contains(divCodeOfCurrentSpreadsheet))
+                        Config config = (from cp in db.ConfigParams
+                                         join c in db.Configs
+                                           on cp.ParamID equals c.ParamID
+                                         where cp.Name == configParamName
+                                         select c).FirstOrDefault();
+
+                        if (config == null)
+                        {
+                            string message = string.Format(
+                                "The config parameter '{0}' has not been setup correctly.  Please create this parameter with a value of the authorized divisions and try again."
+                                , configParamName);
+                            return Content(message);
+                        }
+
+                        if (!config.Value.Split(',').Contains(divCodeOfCurrentSpreadsheet))
                         {
                             return Content(
                                 string.Format(
@@ -1834,16 +1848,52 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
-        [CheckDivisionsPermission(DivCodes = "24,28,31,47,76,77")]
         public ActionResult SkuIdUpload()
         {
-            ViewBag.ValidDivisions
-                = db.AllocationDivisions
-                    .Where(ad => _authorizedSkuIDDivCodes.Contains(ad.DivisionCode))
-                    .OrderBy(ad => ad.DivisionCode)
-                    .ToList();
+            string configParamName = "SKUID_UPLOAD_AUTHORIZED_DIVS";
 
-            return View();
+            Config config = (from cp in db.ConfigParams
+                             join c in db.Configs
+                               on cp.ParamID equals c.ParamID
+                             where cp.Name == configParamName
+                             select c).FirstOrDefault();
+
+            if (config == null)
+            {
+                string message = string.Format(
+                    "The config parameter '{0}' has not been setup correctly.  Please create this parameter with a value of the authorized divisions and try again."
+                    , configParamName);
+                return Redirect("~/Error/GenericallyDenied?message=" + message);
+            }
+            else
+            {
+                string[] divisions = config.Value.Split(',');
+                bool canLoad = false;
+                string username = System.Web.HttpContext.Current.User.Identity.Name.ToLower().Replace("corp\\", "");
+
+                foreach (string div in divisions)
+                {
+                    if (Footlocker.Common.WebSecurityService.UserHasDivision(username, "Allocation", div))
+                    {
+                        canLoad = true;
+                        break;
+                    }
+                }
+
+                if (!canLoad)
+                {
+                    string message = "You need access to one of the following divisions to access this page: " + config.Value;
+                    return Redirect("~/Error/GenericallyDenied?message=" + message);
+                }
+
+                ViewBag.ValidDivisions
+                    = db.AllocationDivisions
+                        .Where(ad => divisions.Contains(ad.DivisionCode))
+                        .OrderBy(ad => ad.DivisionCode)
+                        .ToList();
+
+                return View();
+            }
         }
 
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
