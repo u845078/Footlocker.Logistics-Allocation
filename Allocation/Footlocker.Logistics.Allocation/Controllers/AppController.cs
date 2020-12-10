@@ -78,7 +78,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             get
             {
-                return System.Web.HttpContext.Current.User.Identity.Name.ToLower().Replace("corp\\", "");
+                return FullUserName.Replace("CORP\\", "");
+            }
+        }
+
+        public string FullUserName
+        {
+            get
+            {
+                return System.Web.HttpContext.Current.User.Identity.Name;
             }
         }
 

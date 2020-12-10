@@ -841,13 +841,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                    mySheet.Cells[row, 6].Value != null;
         }
 
-        private void ValidateParsedRDQs(List<RDQ> parsedRDQs, List<RDQ> validRDQs, List<Tuple<RDQ, string>> errorList)
+        private void ValidateParsedRDQs(List<RDQ> parsedRDQs, List<RDQ> validRDQs, List<Tuple<RDQ, string>> errorList, 
+                                        int instanceID, List<string> uniqueSkus, List<ItemMaster> uniqueItems)
         {
             // 1) division/store combination is valid
             var uniqueDivStoreList = parsedRDQs 
                 .Where(pr => pr.Store.Length == 5)
                 .Select(pr => new { pr.Division, pr.Store }).Distinct().ToList();
-            var invalidDivStoreList = uniqueDivStoreList.Where(ds => !db.vValidStores.Any(vs => vs.Store.Equals(ds.Store) && vs.Division.Equals(ds.Division))).ToList();
+
+            var invalidDivStoreList = uniqueDivStoreList.Where(ds => !db.vValidStores.Any(vs => vs.Store.Equals(ds.Store) && 
+                                                                                                vs.Division.Equals(ds.Division))).ToList();     
 
             var uniqueDestWarehouseList = parsedRDQs
                 .Where(pr => pr.Store.Length == 2)
@@ -875,8 +878,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                       });
 
             // 3) sku provided is valid
-            List<string> uniqueSkus = parsedRDQs.Select(pr => pr.Sku).Distinct().ToList();
-            var invalidSkusList = uniqueSkus.Where(sku => !db.ItemMasters.Any(im => im.MerchantSku.Equals(sku))).ToList();
+            var invalidSkusList = uniqueSkus.Where(sku => !uniqueItems.Any(im => im.MerchantSku.Equals(sku) &&
+                                                                                 im.InstanceID == instanceID)).ToList();
             parsedRDQs.Where(pr => invalidSkusList.Contains(pr.Sku))
                       .ToList()
                       .ForEach(r => SetErrorMessageNew(errorList, r, string.Format("Sku {0} is invalid.", r.Sku)));
@@ -891,7 +894,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     , r.Sku.Split('-')[0]);
                 SetErrorMessageNew(errorList, r, invalidSkuStoreDivErrorMessage);
             }
-
 
             // 5) size is the correct length (3 for size, 5 for caselot)
             var uniqueSizeList = parsedRDQs.Select(pr => pr.Size).Distinct().ToList();
@@ -908,7 +910,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             var uniqueBinSkuSizeList = parsedRDQs.Where(pr => pr.Size.Length.Equals(3)).Select(pr => new { Sku = pr.Sku, Size = pr.Size }).Distinct().ToList();
             var uniqueCaselotSizeList = parsedRDQs.Where(pr => pr.Size.Length.Equals(5)).Select(pr => new { Sku = pr.Sku, Size = pr.Size }).Distinct().ToList();
             // check for bin sizes
-            var invalidBinSizes = uniqueBinSkuSizeList.Where(sl => !db.Sizes.Any(s => s.Sku.Equals(sl.Sku) && s.Size.Equals(sl.Size))).ToList();
+            var invalidBinSizes = uniqueBinSkuSizeList.Where(sl => !db.Sizes.Any(s => s.Sku.Equals(sl.Sku) && 
+                                                                                      s.Size.Equals(sl.Size) &&
+                                                                                      s.InstanceID == instanceID)).ToList();
 
             parsedRDQs.Where(pr => invalidBinSizes.Contains(new { Sku = pr.Sku, Size = pr.Size }))
                       .ToList()
@@ -917,12 +921,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                           SetErrorMessageNew(errorList, r, string.Format("The bin size {0} could not be found in our system.", r.Size));
                           parsedRDQs.Remove(r);
                       });
-
+            
             // check for caselot schedules (need to rework)
+            var uniqueItemIDs = uniqueItems.Select(ui => ui.ID).ToList();
+
+            var itemCaseLots = (from ip in db.ItemPacks
+                                where uniqueItemIDs.Contains(ip.ItemID)
+                                select ip).ToList();
+
             foreach (var ucs in uniqueCaselotSizeList)
             {
-                var isValid = (from ip in db.ItemPacks
-                               join im in db.ItemMasters
+                var isValid = (from ip in itemCaseLots
+                               join im in uniqueItems
                                  on ip.ItemID equals im.ID
                                where ip.Name.Equals(ucs.Size) &&
                                      im.MerchantSku.Equals(ucs.Sku)
@@ -939,15 +949,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             // 5) check to see if there was a supplied DC or RingFence
             // none supplied
-            var invalidRDQNoneSuppliedList = parsedRDQs.Where(pr => (pr.DC.Equals(string.Empty) || pr.DC == null) && (pr.RingFencePickStore.Equals(string.Empty) || pr.RingFencePickStore == null)).ToList();
+            var invalidRDQNoneSuppliedList = parsedRDQs.Where(pr => (pr.DC.Length == 0 || pr.DC == null) && 
+                                                                    (pr.RingFencePickStore.Length == 0 || pr.RingFencePickStore == null)).ToList();
+
             invalidRDQNoneSuppliedList.ForEach(r => SetErrorMessageNew(errorList, r, "You must supply either a DC or a Ring Fence Store to pick from."));
 
             // both supplied
-            var invalidRDQBothSuppliedList = parsedRDQs.Where(pr => !(pr.DC.Equals(string.Empty) || pr.DC == null) && !(pr.RingFencePickStore.Equals(string.Empty) || pr.RingFencePickStore == null)).ToList();
-            invalidRDQBothSuppliedList.ForEach(r => SetErrorMessageNew(errorList, r, "You can't supply both a DC and a RingFence Store to pick from.  It must be one or the other."));
+            var invalidRDQBothSuppliedList = parsedRDQs.Where(pr => !(pr.DC.Length == 0 || pr.DC == null) && 
+                                                                    !(pr.RingFencePickStore.Length == 0 || pr.RingFencePickStore == null)).ToList();
+
+            invalidRDQBothSuppliedList.ForEach(r => SetErrorMessageNew(errorList, r, 
+                "You can't supply both a DC and a RingFence Store to pick from.  It must be one or the other."));
 
             // retreive parsed rdqs that are not in any of the lists above
-            var validSuppliedRDQs = parsedRDQs.Where(pr => !invalidRDQBothSuppliedList.Any(ir => ir.Equals(pr)) && !invalidRDQNoneSuppliedList.Any(ir => ir.Equals(pr))).ToList();
+            var validSuppliedRDQs = parsedRDQs.Where(pr => !invalidRDQBothSuppliedList.Any(ir => ir.Equals(pr)) && 
+                                                                                                 !invalidRDQNoneSuppliedList.Any(ir => ir.Equals(pr))).ToList();
 
             // validate distribution center id
             List<string> uniqueDCList = validSuppliedRDQs.Select(pr => pr.DC).Where(dc => !string.IsNullOrEmpty(dc)).Distinct().ToList();
@@ -999,9 +1015,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                              where urf.Division.Equals(rf.Division) &&
                                    urf.Sku.Equals(rf.Sku) &&
                                    urf.Store.Equals(rf.Store) &&
+                                   (rf.EndDate == null || rf.EndDate >= DateTime.Now) &&
                                    urf.Size.Equals(rfd.Size) &&
                                    rfd.ringFenceStatusCode.Equals("4")  &&
-                                   rfd.PO.Equals(string.Empty)
+                                   rfd.PO.Equals(string.Empty) 
                              select new { RingFence = rf, RingFenceDetail = rfd }).FirstOrDefault();
                     if (ringfenceAndDetail != null)
                     {
@@ -1274,7 +1291,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 return Content(message);
                             }
 
-                            ValidateParsedRDQs(parsedRDQs, validRDQs, errorList);
+                            var divCode = parsedRDQs.First().Sku.Substring(0, 2);
+
+                            var instanceID = (from id in db.InstanceDivisions
+                                              where id.Division.Equals(divCode)
+                                              select id.InstanceID).FirstOrDefault();
+
+                            List<string> uniqueSkus = parsedRDQs.Select(pr => pr.Sku).Distinct().ToList();
+                            List<ItemMaster> uniqueItems = (from im in db.ItemMasters
+                                                            where im.InstanceID == instanceID &&
+                                                                  uniqueSkus.Contains(im.MerchantSku)
+                                                            select im).ToList();
+
+                            ValidateParsedRDQs(parsedRDQs, validRDQs, errorList, instanceID, uniqueSkus, uniqueItems);
 
                             // reduce ring fence quantities for the ring fence rdqs
                             ringFenceRDQs = validRDQs.Where(vr => !string.IsNullOrEmpty(vr.RingFencePickStore)).ToList();
@@ -1282,11 +1311,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                             // populate necessary properties of RDQs to save to db
                             this.PopulateRDQProps(validRDQs);
-                            validRDQs.ForEach(r => db.RDQs.Add(r));
+                            //validRDQs.ForEach(r => db.RDQs.Add(r));
+                            RDQDAO rdqDAO = new RDQDAO();
+                            rdqDAO.InsertRDQs(validRDQs, FullUserName);
+
                             db.SaveChanges("");
 
                             // once the rdqs are saved to the db, apply holds and cancel holds
-                            this.ApplyHoldAndCancelHolds(validRDQs, errorList);
+                            this.ApplyHoldAndCancelHolds(validRDQs, errorList, instanceID, divCode, uniqueItems, uniqueSkus);
 
                             // if errors occured, allow user to download them
                             if (errorList.Count > 0)
@@ -1302,7 +1334,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                     catch (Exception ex)
                     {
-                        message = String.Format("Upload failed: One or more columns has unexpected missing or invalid data. <br /> System error message: {0}", ex.Message);
+                        message = String.Format("Upload failed: One or more columns has unexpected missing or invalid data. <br /> System error message: {0}", ex.GetBaseException().Message);
                         FLLogger logger = new FLLogger("C:\\Log\\allocation");
                         logger.Log(ex.Message + ": " + ex.StackTrace, FLLogger.eLogMessageType.eError);
                         // clear out error list
@@ -1391,40 +1423,32 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-        private void ApplyHoldAndCancelHolds(List<RDQ> validRDQs, List<Tuple<RDQ, string>> errorList)
+        private void ApplyHoldAndCancelHolds(List<RDQ> validRDQs, List<Tuple<RDQ, string>> errorList, int instanceID, string division, 
+                                             List<ItemMaster> uniqueItems, List<string> uniqueSkus)
         {
             RDQDAO rdqDAO;
             // grab first division of rdq since we already validated that only one division is being used
             if (validRDQs.Count > 0)
             {
-                string division = validRDQs.Select(r => r.Division).FirstOrDefault();
-                if (division != null)
-                {
-                    rdqDAO = new RDQDAO();
-                    var instance = db.InstanceDivisions.Where(id => id.Division.Equals(division)).FirstOrDefault();
-                    if (instance != null)
-                    {
+                rdqDAO = new RDQDAO();
                         
-                        int holdCount = rdqDAO.ApplyHolds(validRDQs, instance.InstanceID);
-                        if (holdCount > 0)
-                        {
-                            // insert blank rdq and error message
-                            RDQ rdq = new RDQ();
-                            errorList.Insert(0, Tuple.Create(rdq, string.Format("{0} on hold.  Please go to Release Held RDQs to view held RDQs.", holdCount)));
-                        }
-                    }
-
-                    List<RDQ> rejectedRDQs = rdqDAO.ApplyCancelHoldsNew(validRDQs);
-                    if (rejectedRDQs.Count > 0)
-                    {
-                        rejectedRDQs.ForEach(r =>
-                        {
-                            SetErrorMessageNew(errorList, r, "Rejected by cancel inventory hold.");
-                            validRDQs.Remove(r);
-                        });
-
-                    }
+                int holdCount = rdqDAO.ApplyHolds(validRDQs, instanceID);
+                if (holdCount > 0)
+                {
+                    // insert blank rdq and error message
+                    RDQ rdq = new RDQ();
+                    errorList.Insert(0, Tuple.Create(rdq, string.Format("{0} on hold.  Please go to Release Held RDQs to view held RDQs.", holdCount)));
                 }
+
+                List<RDQ> rejectedRDQs = rdqDAO.ApplyCancelHoldsNew(validRDQs, division, uniqueItems, uniqueSkus, FullUserName);
+                if (rejectedRDQs.Count > 0)
+                {
+                    rejectedRDQs.ForEach(r =>
+                    {
+                        SetErrorMessageNew(errorList, r, "Rejected by cancel inventory hold.");
+                        validRDQs.Remove(r);
+                    });
+                }                
             }         
         }
 
@@ -1590,12 +1614,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             // retrieve the unique combinations to be sent to mf call
             uniqueCombos = dcRDQs.Select(dr => Tuple.Create(dr.Sku, dr.Size, dr.DC)).Distinct().ToList();
-            
+
             if (uniqueCombos.Count > 0)
             {
-                // retrieve all available quantity for the specified combinations in one mf call
+                WarehouseInventoryDAO warehouseInventoryDAO = new WarehouseInventoryDAO(null, null);
+                List<WarehouseInventoryDAO.WarehouseInventoryLookup> warehouseInventoryLookups = new List<WarehouseInventoryDAO.WarehouseInventoryLookup>();
+                foreach (var uc in uniqueCombos)
+                {
+                    warehouseInventoryLookups.Add(new WarehouseInventoryDAO.WarehouseInventoryLookup
+                    {
+                        SKU = uc.Item1,
+                        Size = uc.Item2,
+                        DCCode = uc.Item3,
+                        OnHandQuantity = 0
+                    });
+                }
+                List<WarehouseInventory> details = warehouseInventoryDAO.GetSQLWarehouseInventory(warehouseInventoryLookups);
+            //    // retrieve all available quantity for the specified combinations in one mf call
                 RingFenceDAO rfDAO = new RingFenceDAO();
-                List<WarehouseInventory> details = rfDAO.GetWarehouseAvailableNew(uniqueCombos);
+            //    List<WarehouseInventory> details = rfDAO.GetWarehouseAvailableNew(uniqueCombos);
                 details = rfDAO.ReduceAvailableInventory(details);
 
                 // rdqs that cannot be satisfied by current whse avail quantity
@@ -1603,12 +1640,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                   .GroupBy(r => new { Division = r.Division, Sku = r.Sku, Size = r.Size, DC = r.DC }).ToList()
                   .Select(r => new { Division = r.Key.Division, Sku = r.Key.Sku, Size = r.Key.Size, DC = r.Key.DC, Quantity = r.Sum(s => s.Qty) }).ToList();
 
-
-                var invalidRDQsAndAvailableQty = (  from  r in dcRDQsGroupedBySize
-                                                    join  d in details on new { Sku = r.Sku, Size = r.Size, DC = r.DC }
-                                                                   equals new { Sku = d.Sku, Size = d.size, DC = d.DistributionCenterID }
-                                                    where r.Quantity > d.quantity
-                                                   select Tuple.Create(r, d.quantity)).ToList(); 
+                var invalidRDQsAndAvailableQty = (from r in dcRDQsGroupedBySize
+                                                  join d in details on new { Sku = r.Sku, Size = r.Size, DC = r.DC }
+                                                                 equals new { Sku = d.Sku, Size = d.size, DC = d.DistributionCenterID }
+                                                  where r.Quantity > d.quantity
+                                                  select Tuple.Create(r, d.quantity)).ToList();
 
                 foreach (var r in invalidRDQsAndAvailableQty)
                 {

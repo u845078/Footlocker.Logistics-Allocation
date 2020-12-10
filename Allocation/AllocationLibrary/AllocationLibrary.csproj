@@ -125,6 +125,7 @@
     <Compile Include="Factories\WarehouseInventoryFactory.cs" />
     <Compile Include="Factories\WSMFactory.cs" />
     <Compile Include="Models\AccessControl.cs" />
+    <Compile Include="Models\ActiveHolds.cs" />
     <Compile Include="Models\AllocationDivision.cs" />
     <Compile Include="Models\AllocationDriver.cs" />
     <Compile Include="Models\ApplicationUser.cs" />
@@ -285,7 +286,6 @@
     <Compile Include="Services\DirectToStoreDAO.cs" />
     <Compile Include="Services\ExistingPODAO.cs" />
     <Compile Include="Services\FamilyOfBusinessDAO.cs" />
-    <Compile Include="Services\InterfaceLogDAO.cs" />
     <Compile Include="Services\NetworkZoneStoreDAO.cs" />
     <Compile Include="Services\PickService.cs" />
     <Compile Include="Services\PurgeArchiveDAO.cs" />

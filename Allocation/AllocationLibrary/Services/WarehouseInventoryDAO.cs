@@ -27,6 +27,14 @@ namespace Footlocker.Logistics.Allocation.Services
         List<WarehouseInventory> warehouseInventory;
         private InventoryListType _inventoryListType;
 
+        public struct WarehouseInventoryLookup
+        {
+            public string SKU;
+            public string Size;
+            public string DCCode;
+            public string DCID;
+            public int OnHandQuantity;
+        }
 
         public struct SKUStruct
         {
@@ -55,9 +63,14 @@ namespace Footlocker.Logistics.Allocation.Services
         {
             _database = DatabaseFactory.CreateDatabase("DB2PROD");
             _databaseEurope = DatabaseFactory.CreateDatabase("DB2EURP");
-            _SKU = new SKUStruct(sku);
+
+            if (!string.IsNullOrEmpty(sku))
+            {
+                _SKU = new SKUStruct(sku);
+                SetCurrentDB2Database();
+            }
+                
             _WarehouseID = warehouseID;
-            SetCurrentDB2Database();
         }
 
         private void SetCurrentDB2Database()
@@ -130,6 +143,42 @@ namespace Footlocker.Logistics.Allocation.Services
             }
 
             return warehouseInventoryList;
+        }
+
+        public List<WarehouseInventory> GetSQLWarehouseInventory(List<WarehouseInventoryLookup> inventoryLookup)
+        {
+            List<WarehouseInventory> returnValue = new List<WarehouseInventory>();
+
+            var legacyWarehouseInv = (from li in db.LegacyInventories
+                                      where li.LocationTypeCode == "W"
+                                      select li).ToList();
+
+            var DCList = (from dc in db.DistributionCenters
+                          select dc).ToList();
+
+            var resultLookup = legacyWarehouseInv.Where(li => inventoryLookup.Any(il => il.SKU.Equals(li.Sku) &&
+                                                                                        il.Size.Equals(li.Size) &&
+                                                                                        il.DCCode.Equals(li.Store))).ToList();
+            for (int i = 0; i < inventoryLookup.Count; i++)
+            {
+                string DCID = (from dcl in DCList
+                               where dcl.MFCode == inventoryLookup[i].DCCode
+                               select dcl.ID).FirstOrDefault().ToString();
+
+                WarehouseInventory wil = new WarehouseInventory(inventoryLookup[i].SKU,
+                                                                inventoryLookup[i].Size,
+                                                                DCID,
+                                                                0);
+
+                var newValue = resultLookup.Where(rl => rl.Sku == wil.Sku &&
+                                                        rl.Size == wil.size &&
+                                                        rl.Store == inventoryLookup[i].DCCode).FirstOrDefault();
+                if (newValue != null)
+                    wil.quantity = Convert.ToInt32(newValue.OnHandQuantityInt);
+
+                returnValue.Add(wil);
+            }
+            return returnValue;
         }
 
         public List<WarehouseInventory> GetWarehouseInventory(InventoryListType inventoryList)

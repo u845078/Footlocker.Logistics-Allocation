@@ -71,7 +71,8 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<CancelInventoryHoldsNextBatch> CancelInventoryHolds { get; set; }
         public DbSet<QuantumRecordTypeCode> QuantumRecordTypes { get; set; }
         public DbSet<AllocationDivision> AllocationDivisions { get; set; }
-
+        public DbSet<LegacyInventory> LegacyInventories { get; set; }
+        public DbSet<ActiveHolds> CurrentActiveHolds { get; set; }
         public DbSet<Vendors> Vendors { get; set; }
         public DbSet<InventoryReductionsByType> InventoryReductionsByType { get; set; }
 

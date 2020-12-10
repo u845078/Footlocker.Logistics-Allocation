@@ -710,7 +710,7 @@ namespace Footlocker.Logistics.Allocation.DAO
 
                 return returnVal;
             }
-            catch
+            catch (Exception ex)
             {
                 throw;
             }

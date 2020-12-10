@@ -28,20 +28,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        public ActionResult TestInterfaceLog()
-        {
-            QuantumInstance i = new QuantumInstance(3);
-            InterfaceLogDAO dao = new InterfaceLogDAO(i);
+        //public ActionResult TestInterfaceLog()
+        //{
+        //    QuantumInstance i = new QuantumInstance(3);
+        //    InterfaceLogDAO dao = new InterfaceLogDAO(i);
             
-            //dao.Insert("RC3977", "TEST", "REQUESTED DISTRIBUTION QUANTITIES", 0);
+        //    //dao.Insert("RC3977", "TEST", "REQUESTED DISTRIBUTION QUANTITIES", 0);
 
-            InterfaceFile file = new InterfaceFile(InterfaceFile.Type.RequestedDistributionQuantity);
-            dao = new InterfaceLogDAO(i);
-            dao.Insert(file, "QFileterRDQ", 0);
+        //    InterfaceFile file = new InterfaceFile(InterfaceFile.Type.RequestedDistributionQuantity);
+        //    dao = new InterfaceLogDAO(i);
+        //    dao.Insert(file, "QFileterRDQ", 0);
 
-            return View();
+        //    return View();
 
-        }
+        //}
 
         public ActionResult Create(string div)
         {
