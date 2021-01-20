@@ -667,7 +667,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             string value = hold.Value + "";
 
             AllocationContext db = new AllocationContext();
-            DateTime controlDate = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == hold.Division select a.RunDate).First();
+            DateTime controlDate = (from a in db.ControlDates 
+                                    join b in db.InstanceDivisions 
+                                    on a.InstanceID equals b.InstanceID 
+                                    where b.Division == hold.Division 
+                                    select a.RunDate).First();
 
             returnMessage = CheckHoldPermission(hold);
 
@@ -683,7 +687,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 if (hold.Level == "All")
                 {
-                    if ((from a in db.Holds where ((a.Division == hold.Division) && (a.Store == hold.Store) && (a.Level == hold.Level) && (a.ID != hold.ID)) select a).Count() > 0)
+                    if ((from a in db.Holds 
+                         where ((a.Division == hold.Division) && 
+                                (a.Store == hold.Store) && 
+                                (a.Level == hold.Level) && 
+                                (a.ID != hold.ID)) 
+                         select a).Count() > 0)
                     {
                         returnMessage = "There is already a hold for " + hold.Store;
                     }
@@ -697,20 +706,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
                     }
                 }
-                //else if ((from a in db.Holds
-                //          where ((a.ID != hold.ID) &&
-                //          (a.Level == hold.Level) && (a.Value == hold.Value)
-                //         && ((a.Store == hold.Store) || ((a.Store == null) && (hold.Store == null))))
-                //          select a).Count() > 0)
-                //{
-                //    returnMessage = "There is already a hold for " + hold.Store + " " + hold.Level + " " + hold.Value;
-                //}
                 else
                 {
-                    var holds = (from a in db.Holds where (a.ID != hold.ID) && (a.Level == hold.Level) && (a.Value == hold.Value) select a).ToList();
+                    var holds = (from a in db.Holds 
+                                 where (a.ID != hold.ID) && 
+                                       (a.Level == hold.Level) && 
+                                       (a.Value == hold.Value) 
+                                 select a).ToList();
 
-                    if (holds.Any(a => (!fromUpload && ((a.Store == hold.Store) || (a.Store == null) && (hold.Store == null))) ||
-                                       (fromUpload && (a.Store == hold.Store && ((a.EndDate == null) || (a.EndDate > hold.StartDate))))))
+                    if (holds.Any(a => (!fromUpload && 
+                                        a.Division == hold.Division &&
+                                         ((a.Store == hold.Store) || (a.Store == null) && 
+                                          (hold.Store == null))) ||
+                                       (fromUpload && 
+                                       a.Division == hold.Division &&
+                                       a.Store == hold.Store && 
+                                         ((a.EndDate == null) || (a.EndDate > hold.StartDate)))))
                     {
                         returnMessage = "There is already a hold for " + hold.Store + " " + hold.Level + " " + hold.Value;
                     }
@@ -791,13 +802,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    //else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    //{
-                    //    if (!(usesRuleSet))
-                    //    {
-                    //        returnMessage = "You must specify one or more stores.";
-                    //    }
-                    //}
                 }
                 else if (hold.Level == "VendorDept")
                 {
@@ -846,13 +850,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    //else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    //{
-                    //    if (!(usesRuleSet))
-                    //    {
-                    //        returnMessage = "You must specify one or more stores.";
-                    //    }
-                    //}
                 }
                 else if (hold.Level == "Category") //category
                 {
@@ -869,13 +866,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    //else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    //{
-                    //    if (!(usesRuleSet))
-                    //    {
-                    //        returnMessage = "You must specify one or more stores.";
-                    //    }
-                    //}
 
                 }
                 else if (String.Equals(hold.Level, "DeptTeam"))
@@ -892,13 +882,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    //else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    //{
-                    //    if (!(usesRuleSet))
-                    //    {
-                    //        returnMessage = "You must specify one or more stores.";
-                    //    }
-                    //}
                 }
                 else if (String.Equals(hold.Level, "DeptCatTeam"))
                 {
@@ -914,13 +897,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    //else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    //{
-                    //    if (!(usesRuleSet))
-                    //    {
-                    //        returnMessage = "You must specify one or more stores.";
-                    //    }
-                    //}
                 }
                 else if (String.Equals(hold.Level, "DeptCatBrand"))
                 {
@@ -936,13 +912,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    //else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    //{
-                    //    if (!(usesRuleSet))
-                    //    {
-                    //        returnMessage = "You must specify one or more stores.";
-                    //    }
-                    //}
                 }
                 else
                 {
@@ -1404,58 +1373,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             };
         }
 
-
-        // ------------------------------------------------------------------------------------------------------------------
-        // OLD: These actions were used to release RDQs at the RDQ level (item/size), not at the RDQGroup level (item) which is the current UI design...
-        // NOTE: Leaving this code commented out as an artifact and point to come back to in case the user's change their mind on the UI design...
-        // ------------------------------------------------------------------------------------------------------------------
-        //[GridAction]
-        //public ActionResult ReleaseRDQToWarehouse(int ID, int holdID)
-        //{
-        //    //to release back to the warehouse all we need to do is delete it
-        //    //the result will be that we no longer decrease the inventory we send to Q, 
-        //    //so it will see more available to allocate to whoever it would like
-
-        //    RDQ rdq = (from a in db.RDQs where a.ID == ID select a).First();
-
-        //    db.RDQs.Remove(rdq);
-        //    db.SaveChanges();
-        //    RDQDAO dao = new RDQDAO();
-        //    return PartialView(new GridModel(dao.GetRDQsForHold(holdID)));
-        //    //return RedirectToAction("Delete", new { id = holdID });
-        //}
-
-        //[GridAction]
-        //public ActionResult ReleaseRDQ(int ID, int holdID)
-        //{
-        //    //they are releasing the RDQ, so we'll make it a user RDQ so that the hold won't apply and it will be picked the next pick day
-
-        //    //first, find the RDQ being held.
-        //    RDQ rdq = (from a in db.RDQs where a.ID == ID select a).First();
-
-        //    //now update it to a user RDQ, so that it will go down with the next batch
-        //    rdq.Type = "user";
-        //    //set to WEB PICK so that it will pick on the stores next pick day
-        //    rdq.Status = "WEB PICK";
-        //    rdq.CreateDate = DateTime.Now;
-        //    rdq.CreatedBy = User.Identity.Name;
-
-        //    if ((rdq.PO != null) && (rdq.PO != "") && (rdq.PO != "N/A") && (rdq.Size.Length == 5))
-        //    {
-        //        rdq.DestinationType = "CROSSDOCK";
-        //    }
-        //    else
-        //    {
-        //        rdq.DestinationType = "WAREHOUSE";
-        //    }
-
-        //    db.SaveChanges();
-
-        //    RDQDAO dao = new RDQDAO();
-        //    return PartialView(new GridModel(dao.GetRDQsForHold(holdID)));
-        //}
-        // ---------------------------------------------------------------------------------------------------------------------------------------------------
-
         private List<RDQ> GetRDQsInSession()
         {
             if (Session["rdqgrouplist"] != null)
@@ -1510,8 +1427,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                 }
 
-                //model = list.Select(x => new RDQ(x)).ToList();
-
                 Session["holdgrouprdq"] = div + "|" + level + "|" + value;
                 Session["rdqgrouplist"] = model;
             }
@@ -1560,8 +1475,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         //    //don't know per qty, so we'll just leave blank
                     }
                 }
-
-                //model = list.Select(x => new RDQ(x)).ToList();
 
                 Session["holdgrouprdq"] = div + "|" + store;
                 Session["rdqgrouplist"] = model;
@@ -1612,8 +1525,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         //    //don't know per qty, so we'll just leave blank
                     }
                 }
-
-                //model = list.Select(x => new RDQ(x)).ToList();
 
                 Session["holdrdq"] = holdID;
                 Session["holdrdqlist"] = model;
