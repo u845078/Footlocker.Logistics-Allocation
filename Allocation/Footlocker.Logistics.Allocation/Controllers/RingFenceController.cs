@@ -3802,10 +3802,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             RingFenceUploadModelNew returnValue = new RingFenceUploadModelNew();
 
-            returnValue.Division = Convert.ToString(mySheet.Cells[row, 0].Value);
+            returnValue.Division = Convert.ToString(mySheet.Cells[row, 0].Value).Trim();
             var store = Convert.ToString(mySheet.Cells[row, 1].Value);
             returnValue.Store = (string.IsNullOrEmpty(store)) ? "" : store.PadLeft(5, '0');
-            returnValue.Sku = Convert.ToString(mySheet.Cells[row, 2].Value);
+            returnValue.Sku = Convert.ToString(mySheet.Cells[row, 2].Value).Trim();
             var endDate = Convert.ToString(mySheet.Cells[row, 3].Value);
             if (!string.IsNullOrEmpty(endDate))
             {
