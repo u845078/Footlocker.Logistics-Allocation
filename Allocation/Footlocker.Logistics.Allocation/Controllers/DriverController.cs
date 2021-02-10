@@ -28,21 +28,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        //public ActionResult TestInterfaceLog()
-        //{
-        //    QuantumInstance i = new QuantumInstance(3);
-        //    InterfaceLogDAO dao = new InterfaceLogDAO(i);
-            
-        //    //dao.Insert("RC3977", "TEST", "REQUESTED DISTRIBUTION QUANTITIES", 0);
-
-        //    InterfaceFile file = new InterfaceFile(InterfaceFile.Type.RequestedDistributionQuantity);
-        //    dao = new InterfaceLogDAO(i);
-        //    dao.Insert(file, "QFileterRDQ", 0);
-
-        //    return View();
-
-        //}
-
         public ActionResult Create(string div)
         {
             DriverModel model = new DriverModel();
@@ -92,7 +77,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Support")]
         public ActionResult Control()
         {
-            List<ControlDate> model = (from a in db.ControlDates select a).ToList();
+            List<ControlDate> model = (from a in db.ControlDates 
+                                       select a).ToList();
             return View(model);
         }
 
@@ -112,6 +98,5 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return RedirectToAction("Control");
         }
-
     }
 }

@@ -79,7 +79,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         }
 
-
         public ActionResult Create(int instanceID)
         {
             Route r = new Route();
@@ -185,11 +184,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 model.InstanceID = 1;
             }
+
             model.DCs = (from a in db.DistributionCenters
                          join b in db.InstanceDistributionCenters 
                            on a.ID equals b.DCID
                          where b.InstanceID == model.InstanceID
                          select a).ToList();
+
+            Dictionary<string, string> names = new Dictionary<string, string>();
+            var users = (from a in model.DCs
+                         select a.LastModifiedUser).Distinct();
+            foreach (string userID in users)
+            {
+                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+            }
+            foreach (var item in model.DCs)
+            {
+                item.LastModifiedUserName = names[item.LastModifiedUser];
+            }
 
             return View(model);
         }
@@ -204,6 +216,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             model.WarehouseAllocationTypes = (from w in db.WarehouseAllocationTypes
                                               select w).ToList();
+
+            model.DistributionCenterRestrictions = (from dcr in db.DistributionCenterRestrictions
+                                                    select dcr).ToList();
+
 
             model.AvailableInstances = (from i in db.Instances
                                         select i).ToList();

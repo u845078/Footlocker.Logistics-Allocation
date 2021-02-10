@@ -109,6 +109,9 @@ namespace Footlocker.Logistics.Allocation.DAO
         public DbSet<PreSaleSKU> PreSaleSKUs { get; set; }
         public DbSet<ReInitializeSKU> ReInitializeSKUs { get; set; }
 
+        public DbSet<DistributionCenterRestrictions> DistributionCenterRestrictions { get; set; }
+
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             //modelBuilder.Entity<ItemMaster>().HasMany(o => o.RangePlans).WithOptional().HasForeignKey(c => c.ItemID);

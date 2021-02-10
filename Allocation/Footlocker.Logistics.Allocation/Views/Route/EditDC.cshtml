@@ -40,7 +40,7 @@
     </div>
 
     <div class="editor-label">
-        @Html.LabelFor(model => model.DC.WarehouseAllocationType)
+        @Html.LabelFor(model => model.DC.WarehouseAllocationTypeCode)
     </div>
     <div class="editor-field">
         @Html.DropDownListFor(model => model.DC.WarehouseAllocationTypeCode, new SelectList(Model.WarehouseAllocationTypes, "Code", "Description"))
@@ -53,6 +53,22 @@
     <div class="editor-field">
         @Html.CheckBoxFor(model => model.DC.IsMinihub)
         @Html.ValidationMessageFor(model => model.DC.IsMinihub)
+    </div>
+
+    <div class="editor-label">
+        @Html.LabelFor(model => model.DC.DistrictionCenterRestrictionCode)
+    </div>
+    <div class="editor-field">
+        @Html.DropDownListFor(model => model.DC.DistrictionCenterRestrictionCode, new SelectList(Model.DistributionCenterRestrictions, "Code", "Description"))
+        @Html.ValidationMessageFor(model => model.DC.DistributionCenterRestriction)
+    </div>
+
+    <div class="editor-label">
+        @Html.LabelFor(model => model.DC.TransmitRDQsToKafka)
+    </div>
+    <div class="editor-field">
+        @Html.CheckBoxFor(model => model.DC.TransmitRDQsToKafka)
+        @Html.ValidationMessageFor(model => model.DC.TransmitRDQsToKafka)
     </div>
 
     <br />
