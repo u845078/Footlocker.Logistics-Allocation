@@ -13,7 +13,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public RDQ()
         {}
 
-        public RDQ(Int64 id, String division, String store, String sku, String size, int qty, string warehouseName, string pick, string status, string createdBy, DateTime? createdate, int? dcid)
+        public RDQ(Int64 id, String division, String store, String sku, String size, int qty, string warehouseName, string status, string createdBy, DateTime? createdate, int? dcid)
         {
             this.ID = id;
             this.Division = division;
@@ -22,7 +22,6 @@ namespace Footlocker.Logistics.Allocation.Models
             this.Size = size;
             this.Qty = qty;
             this.WarehouseName = warehouseName;
-            //this.Pick = pick;
             this.Status = status;
             this.CreateDate = createdate;
             this.CreatedBy = createdBy;
@@ -41,7 +40,6 @@ namespace Footlocker.Logistics.Allocation.Models
             {
                 this.WarehouseName = copyFrom.DistributionCenter.Name;
             }
-            //this.Pick = pick;
             this.Status = copyFrom.Status;
             this.CreateDate = copyFrom.CreateDate;
             this.CreatedBy = copyFrom.CreatedBy;
@@ -122,6 +120,8 @@ namespace Footlocker.Logistics.Allocation.Models
         
         }
         public String CreatedBy { get; set; }
+
+        public string LastModifiedUser { get; set; }
         public DateTime? CreateDate { get; set; }
         public String DestinationType { get; set; }
         public String Status { get; set; }
@@ -137,8 +137,8 @@ namespace Footlocker.Logistics.Allocation.Models
                         return "Store's next pick day";
                     case "HOLD-REL":
                         return "Store's next pick day";
-                    case "FORCE PICK":
-                        return "Pick tomorrow";
+                    case "E-PICK":
+                        return "Pick right away";
                 }
                 return "unknown";
             }
@@ -189,6 +189,8 @@ namespace Footlocker.Logistics.Allocation.Models
         public Int32? RDQRejectedReasonCode { get; set; }
 
         public virtual RDQRejectReasonCode RDQRejectedReason { get; set; }
+
+        public DateTime? TransmitControlDate { get; set; }
 
         [NotMapped]
         public Boolean CanPick

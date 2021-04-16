@@ -139,6 +139,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return result;
             }
 
+            if (db.Renumbers.Any(a => a.OldSKU.Substring(0, 12) == SKU.Substring(0, 12)))
+            {
+                result = "This SKU has been renumbered and should not be used.";
+                return result;
+            }
+
             if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", SKU.Substring(0, 2), SKU.Substring(3, 2))))
             {
                 result = "You do not have permission for this division/department.";

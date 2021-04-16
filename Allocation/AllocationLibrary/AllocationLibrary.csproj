@@ -157,7 +157,6 @@
     <Compile Include="Models\FOBDept.cs" />
     <Compile Include="Models\FOBPack.cs" />
     <Compile Include="Models\FOBPackOverride.cs" />
-    <Compile Include="Models\InterfaceFile.cs" />
     <Compile Include="Models\InvalidTransaction.cs" />
     <Compile Include="Models\InventoryReductions.cs" />
     <Compile Include="Models\InventoryReductionsByType.cs" />
@@ -195,6 +194,7 @@
     <Compile Include="Models\RDQType.cs" />
     <Compile Include="Models\Region.cs" />
     <Compile Include="Models\ReInitializeSKU.cs" />
+    <Compile Include="Models\Renumber.cs" />
     <Compile Include="Models\RingFenceBIExtract.cs" />
     <Compile Include="Models\RingFenceSizeSummary.cs" />
     <Compile Include="Models\RingFenceStatusCodes.cs" />

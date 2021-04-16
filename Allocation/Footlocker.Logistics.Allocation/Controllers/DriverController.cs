@@ -66,6 +66,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("Index", new { div = model.NewDriver.Division });
         }
 
+        [CheckPermission(Roles = "IT")]
+        public ActionResult Maintenance()
+        {
+            MaintenanceModel model = new MaintenanceModel();
+            return View(model);
+        }
+
+        [CheckPermission(Roles = "IT")]
+        [HttpPost]
+        public ActionResult Maintenance(MaintenanceModel model)
+        {
+            int recordsAffected = db.Database.ExecuteSqlCommand(model.SQLCommand);
+            db.SaveChanges();
+
+            model.ReturnMessage = string.Format("There were {0} records affected", recordsAffected);
+
+            return View(model);
+        }
+
         public ActionResult Delete(string div, string dept)
         {
             AllocationDriverDAO dao = new AllocationDriverDAO();

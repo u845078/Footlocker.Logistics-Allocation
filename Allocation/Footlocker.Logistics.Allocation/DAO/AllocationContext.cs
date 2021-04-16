@@ -108,6 +108,7 @@ namespace Footlocker.Logistics.Allocation.DAO
         public DbSet<League> Leagues { get; set; }
         public DbSet<PreSaleSKU> PreSaleSKUs { get; set; }
         public DbSet<ReInitializeSKU> ReInitializeSKUs { get; set; }
+        public DbSet<Renumber> Renumbers { get; set; }
 
         public DbSet<DistributionCenterRestrictions> DistributionCenterRestrictions { get; set; }
 

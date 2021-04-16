@@ -15,7 +15,7 @@
     <AssemblyName>Footlocker.Logistics.Allocation</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
-    <UseIISExpress>false</UseIISExpress>
+    <UseIISExpress>true</UseIISExpress>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
@@ -262,6 +262,7 @@
     <Compile Include="Models\CheckBoxModel.cs" />
     <Compile Include="Models\HoldsUploadDeleteModel.cs" />
     <Compile Include="Models\InstanceModel.cs" />
+    <Compile Include="Models\MaintenanceModel.cs" />
     <Compile Include="Models\PreSaleModel.cs" />
     <Compile Include="Models\QuantumDataDownloadModel.cs" />
     <Compile Include="Models\ProductHierarchyOverrideModel.cs" />
@@ -619,6 +620,7 @@
     <Content Include="Views\SkuRange\CreatePreSale.cshtml" />
     <Content Include="Views\SkuRange\CreateReInitializeSKU.cshtml" />
     <Content Include="Views\Error\GenericallyDenied.cshtml" />
+    <Content Include="Views\Driver\Maintenance.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />
