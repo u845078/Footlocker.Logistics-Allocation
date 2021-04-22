@@ -1172,7 +1172,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                               where a.MerchantSku == rf.Sku
                               select a).FirstOrDefault().ID,
                     CreatedBy = User.Identity.Name,
-                    CreateDate = DateTime.Now
+                    CreateDate = DateTime.Now,
+                    LastModifiedUser = User.Identity.Name
                 };
                 SetRDQDefaults(det, rdq);
                 if ((rdq.PO != null) && (rdq.PO != "") && optionalPick)
@@ -1329,7 +1330,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                           where a.MerchantSku == rf.Sku
                                           select a).FirstOrDefault().ID,
                                 CreatedBy = User.Identity.Name,
-                                CreateDate = DateTime.Now
+                                CreateDate = DateTime.Now,
+                                LastModifiedUser = User.Identity.Name
                             };
                             SetRDQDefaults(det, rdq);
                             if ((rdq.PO != null) && (rdq.PO != "") && optionalPick)
