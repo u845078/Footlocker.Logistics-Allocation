@@ -98,25 +98,6 @@ namespace Footlocker.Logistics.Allocation.Services
                 writer.Close();
                 log.Log(String.Format("Processed {0} items for {1}.", count, request.Request.ToString()));
             }
-
-            /*------------------------------FTP SERVICE------------------------------*/
-
-            //if (System.Configuration.ConfigurationManager.AppSettings["BIExtracts_FTPToProd"].Equals("False"))
-            //{
-            //    FTPService ftpDev = new FTPService(System.Configuration.ConfigurationManager.AppSettings["BIExtracts_FTPTargetServer"], System.Configuration.ConfigurationManager.AppSettings["BIExtracts_FTPDevUserName"], System.Configuration.ConfigurationManager.AppSettings["BIExtracts_FTPDevPassword"]);
-            //    ftpDev.Connect(0, 0);
-            //    ftpDev.ChangeDirectory(System.Configuration.ConfigurationManager.AppSettings["BIExtracts_FTPDevRemotePath"]);
-            //    ftpDev.SendFile(extractPath, Path.GetFileName(extractPath));
-            //    ftpDev.Quit();
-            //}
-            //else
-            //{
-            //    FTPService ftpProd = new FTPService(System.Configuration.ConfigurationManager.AppSettings["BIExtracts_FTPTargetServer"], System.Configuration.ConfigurationManager.AppSettings["BIExtracts_FTPProdUserName"], System.Configuration.ConfigurationManager.AppSettings["BIExtracts_FTPProdPassword"]);
-            //    ftpProd.Connect(0, 0);
-            //    ftpProd.ChangeDirectory(System.Configuration.ConfigurationManager.AppSettings["BIExtracts_FTPProdRemotePath"]);
-            //    ftpProd.SendFile(extractPath, Path.GetFileName(extractPath));
-            //    ftpProd.Quit();
-            //}
         }
 
         /// <summary>

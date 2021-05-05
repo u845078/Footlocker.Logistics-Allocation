@@ -1,8 +1,5 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="ControlDate.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
@@ -21,5 +18,8 @@ namespace Footlocker.Logistics.Allocation.Models
         public Int32 InstanceID { get; set; }
 
         public DateTime RunDate { get; set; }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public DateTime PickDate { get; set; }
     }
 }

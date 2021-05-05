@@ -72,7 +72,7 @@ namespace Footlocker.Logistics.Allocation.Models
         [StringLayoutDelimited(5)]
         public string PlanType
         {
-            get 
+            get
             {
                 if (ALRStartDate != null)
                 {
@@ -121,7 +121,7 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         [NotMapped]
-        public string Division 
+        public string Division
         {
             get { return _sku.Substring(0, 2); }
             set { }
@@ -150,14 +150,24 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public Boolean Launch { get; set; }
 
+        public Boolean EvergreenSKU { get; set; }
+
         public Boolean LaunchMinihubInd { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime? LaunchDate { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime? ALRStartDate { get; set; }
 
         public String ActiveAR { get; set; }
+
+        [NotMapped]
+        [DefaultValue("No")]
+        public String PreSaleSKU { get; set; }
+
+        [NotMapped]
+        public string ReInitializeStatus { get; set; }
 
         public virtual ItemMaster ItemMaster { get; set; }
 
@@ -193,7 +203,7 @@ namespace Footlocker.Logistics.Allocation.Models
             this.Department = String.Empty;
             this.ItemID = new Int64?();
             this.StoreCount = 0;
-            this.ItemMaster = null;
+            this.ItemMaster = null;            
         }
 
         /// <summary>

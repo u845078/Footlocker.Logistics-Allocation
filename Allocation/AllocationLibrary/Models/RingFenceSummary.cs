@@ -15,6 +15,8 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public RingFenceStatusCodes RingFenceStatus { get; set; }
 
+        public bool CanPick { get; set; }
+
         public int PickQuantity { get; set; }
 
         public DateTime StartDate { get; set; }

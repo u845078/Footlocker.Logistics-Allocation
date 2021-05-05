@@ -25,7 +25,11 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [Display(Name="Last Modified User")]
         public string LastModifiedUser { get; set; }
-        [Display(Name = "Last Modified Date")]
+
+        [NotMapped]
+        public string LastModifiedUserName { get; set; }
+
+        [Display(Name="Last Modified Date")]
         public DateTime LastModifiedDate { get; set; }
 
         [Column("MinihubInd")]
@@ -36,11 +40,23 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [Column("WarehouseAllocationType")]        
         [ForeignKey("WarehouseAllocationType")]
+        [Display(Name = "Warehouse Allocation Type")]
         public int WarehouseAllocationTypeCode { get; set; }
 
         public virtual WarehouseAllocationType WarehouseAllocationType { get; set; }
         public virtual ICollection<EcomCustomerFulfillmentXref> ECOMCustomerXrefs { get; set; }
 
+
+        [Column("DistributionCenterRestriction")]
+        [ForeignKey("DistributionCenterRestriction")]
+        [Display(Name="Distribution Center Restriction")]
+        public int DistrictionCenterRestrictionCode { get; set; }
+
+        public virtual DistributionCenterRestrictions DistributionCenterRestriction { get; set; }
+
+        [Column("TransmitRDQsToKafkaInd")]
+        [Display(Name="Transmit RDQs To Kafka")]
+        public bool TransmitRDQsToKafka { get; set; }
 
         public string displayValue
         {

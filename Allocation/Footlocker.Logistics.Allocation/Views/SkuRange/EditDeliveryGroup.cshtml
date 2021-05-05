@@ -100,7 +100,7 @@ else
         var date = new Date($('[name="' + start + '"]').val());
         if ((date != 'NaN') && (date != 'Invalid Date')) {
             if (dg_days == 365) {
-                date = new Date("12-31-2099");
+                date = new Date("2099-12-31");
             } else
             {
                 date = date.addDays(dg_days);

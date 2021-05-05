@@ -56,6 +56,15 @@ namespace Footlocker.Logistics.Allocation.Models
             }
         }
 
+        [NotMapped]
+        public bool CanPick
+        {
+            get
+            {
+                return (this.EndDate == null || this.EndDate >= DateTime.Now);
+            }
+        }
+
         [StringLayoutDelimited(3)]
         [Required(ErrorMessage ="SKU is required")]
         [RegularExpression(@"^\d{2}-\d{2}-\d{5}-\d{2}$", ErrorMessage = "Invalid Sku, format should be ##-##-#####-##")]
@@ -125,6 +134,9 @@ namespace Footlocker.Logistics.Allocation.Models
         public DateTime? CreateDate { get; set; }
 
         public string LastModifiedUser { get; set; }
+
+        [NotMapped]
+        public string LastModifiedUserName { get; set; }
 
         public DateTime LastModifiedDate { get; set; }
 

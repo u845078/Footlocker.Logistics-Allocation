@@ -14,6 +14,9 @@
         <th>
             @Html.DisplayNameFor(model => model.RunDate)
         </th>
+        <th>
+            @Html.DisplayNameFor(model => model.PickDate)
+        </th>
         <th></th>
     </tr>
 
@@ -39,6 +42,9 @@
         </td>
         <td>
             @Html.DisplayFor(modelItem => item.RunDate)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.PickDate)
         </td>
         <td>
             @Html.ActionLink("Edit", "EditControlDate", new { instanceID = item.InstanceID }, new { @class = "t-button" })

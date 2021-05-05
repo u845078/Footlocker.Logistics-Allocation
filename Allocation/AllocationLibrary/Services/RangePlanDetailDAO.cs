@@ -94,7 +94,7 @@ namespace Footlocker.Logistics.Allocation.Services
             return _que;
         }
 
-        public List<BulkRange> BulkUpdateRange(List<BulkRange> list, string user)
+        public List<BulkRange> BulkUpdateRange(List<BulkRange> list, string user, bool purgeFirst)
         {
             List<BulkRange> _que;
             _que = new List<BulkRange>();
@@ -110,6 +110,7 @@ namespace Footlocker.Logistics.Allocation.Services
             xs.Serialize(sw, list);
             String xout = sw.ToString();
             _database.AddInParameter(SQLCommand, "@xmlDetails", DbType.Xml, xout);
+            _database.AddInParameter(SQLCommand, "@purgeFirst", DbType.Boolean, purgeFirst);
 
             SQLCommand.CommandTimeout = 300;
 

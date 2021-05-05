@@ -22,5 +22,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             return View();
         }
+
+        public ActionResult GenericallyDenied(string message)
+        {
+            ViewBag.Message = message;
+            return View();
+        }
     }
 }

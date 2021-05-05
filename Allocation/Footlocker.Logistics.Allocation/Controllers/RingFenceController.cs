@@ -107,7 +107,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RingFenceModel> model = new List<RingFenceModel>();
 
             RingFenceDAO rfDAO = new RingFenceDAO();
-            List<RingFence> list = rfDAO.GetValidRingFences(Divisions());            
+            List<RingFence> list = rfDAO.GetValidRingFences(Divisions());
+
+            Dictionary<string, string> names = new Dictionary<string, string>();
+            var users = (from a in list
+                         select a.LastModifiedUser).Distinct();
+            foreach (string userID in users)
+            {
+                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+            }
+            foreach (var item in list)
+            {
+                item.LastModifiedUserName = names[item.LastModifiedUser];
+            }
 
             ViewData["message"] = message;
             return View(list);
@@ -143,7 +155,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 Size = "",
                 DC = "",
                 PO = "",
-                Qty = g.Sum(r => r.Qty)
+                Qty = g.Sum(r => r.Qty),
+                CanPick = !(g.Any(r => !r.CanPick))
             };
 
             //List<RingFenceSummary> list2 = rfGroups.ToList();
@@ -212,10 +225,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         CreatedBy = a.CreatedBy,
                         CreateDate = a.CreateDate,
                         RingFenceTypeDescription = a.RingFenceTypeDescription,
-                        ItemDescription = a.ItemDescription
+                        ItemDescription = a.ItemDescription,
+                        LastModifiedDate = a.LastModifiedDate,
+                        LastModifiedUser = a.LastModifiedUser
                     }).OrderByDescending(x => x.CreateDate).ToList();
 
-
+            Dictionary<string, string> names = new Dictionary<string, string>();
+            var users = (from a in list
+                         select a.LastModifiedUser).Distinct();
+            foreach (string userID in users)
+            {
+                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+            }
+            foreach (var item in list)
+            {
+                item.LastModifiedUserName = names[item.LastModifiedUser];
+            }
 
             //eturn new JsonResult { Data = list.ToList() };
             return PartialView(new GridModel(list));
@@ -225,41 +250,44 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _RingFencesForStore(string div, string store)
         {
             List<RingFence> list;
-            if ((Session["rfStore"] != null) &&
-                ((String)Session["rfStore"] == div + store))
-            {
-                list = (List<RingFence>)Session["rfStoreList"];
-            }
-            else
-            {
-                List<Division> divs = Divisions();
-                list = (from a in db.RingFences
-                        where ((a.Qty > 0) && (a.Division == div) && (a.Store == store))
-                        select a).ToList();
-                list = (from a in list
-                        join d in divs on a.Division equals d.DivCode
-                        select new RingFence
-                        {
-                            ID = a.ID,
-                            Sku = a.Sku,
-                            Size = a.Size,
-                            Division = a.Division,
-                            Store = a.Store,
-                            //ItemMaster = a.ItemMaster,
-                            Qty = a.Qty,
-                            StartDate = a.StartDate,
-                            EndDate = a.EndDate,
-                            Type = a.Type,
-                            Comments = a.Comments,
-                            CreatedBy = a.CreatedBy,
-                            CreateDate = a.CreateDate,
-                            RingFenceTypeDescription = a.RingFenceTypeDescription,
-                            ItemDescription = a.ItemDescription
-                        }).OrderByDescending(x => x.CreateDate).ToList();
+            List<Division> divs = Divisions();
+            list = (from a in db.RingFences
+                    where ((a.Qty > 0) && (a.Division == div) && (a.Store == store))
+                    select a).ToList();
+            list = (from a in list
+                    join d in divs on a.Division equals d.DivCode
+                    select new RingFence
+                    {
+                        ID = a.ID,
+                        Sku = a.Sku,
+                        Size = a.Size,
+                        Division = a.Division,
+                        Store = a.Store,
+                        //ItemMaster = a.ItemMaster,
+                        Qty = a.Qty,
+                        StartDate = a.StartDate,
+                        EndDate = a.EndDate,
+                        Type = a.Type,
+                        Comments = a.Comments,
+                        CreatedBy = a.CreatedBy,
+                        CreateDate = a.CreateDate,
+                        LastModifiedDate = a.LastModifiedDate,
+                        LastModifiedUser = a.LastModifiedUser,
+                        RingFenceTypeDescription = a.RingFenceTypeDescription,
+                        ItemDescription = a.ItemDescription
+                    }).OrderByDescending(x => x.CreateDate).ToList();
 
+            Dictionary<string, string> names = new Dictionary<string, string>();
+            var users = (from a in list
+                         select a.LastModifiedUser).Distinct();
+            foreach (string userID in users)
+            {
+                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
             }
-            Session["rfStore"] = div + store;
-            Session["rfStoreList"] = list;
+            foreach (var item in list)
+            {
+                item.LastModifiedUserName = names[item.LastModifiedUser];
+            }
 
             //eturn new JsonResult { Data = list.ToList() };
             return PartialView(new GridModel(list));
@@ -685,6 +713,45 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     ViewData["message"] = errorMessage;
                     return View(model);
                 }
+                else
+                {
+
+                    // get original ringfence to see if enddate is being changed
+                    DateTime? originalEndDate
+                        = db.RingFences
+                            .Where(rf => rf.ID == model.RingFence.ID)
+                            .Select(rf => rf.EndDate)
+                            .FirstOrDefault();
+
+                    if (originalEndDate != model.RingFence.EndDate)
+                    {
+                        // if date is now null or greater than current date, then check details
+                        if (model.RingFence.EndDate == null || model.RingFence.EndDate >= DateTime.Now)
+                        {
+                            List<RingFenceDetail> warehouseInv = GetWarehouseAvailable(model.RingFence);
+
+                            foreach (var d in warehouseInv)
+                            {
+                                if (d.Qty > 0)
+                                {
+                                    int reduce = d.AvailableQty - d.Qty;
+                                    if (reduce < 0)
+                                    {
+                                        errorMessage = string.Format(
+                                            "The ringfence cannot be reactivated.  The total available quantity ({0}) for size {1} is less than the entered quantity ({2})."
+                                            , d.AvailableQty
+                                            , d.Size
+                                            , d.Qty);
+
+                                        model.RingFence.EndDate = originalEndDate;
+                                        ViewData["message"] = errorMessage;
+                                        return View(model);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
                 model.RingFence.CreatedBy = User.Identity.Name;
                 model.RingFence.CreateDate = DateTime.Now;
@@ -1105,7 +1172,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                               where a.MerchantSku == rf.Sku
                               select a).FirstOrDefault().ID,
                     CreatedBy = User.Identity.Name,
-                    CreateDate = DateTime.Now
+                    CreateDate = DateTime.Now,
+                    LastModifiedUser = User.Identity.Name
                 };
                 SetRDQDefaults(det, rdq);
                 if ((rdq.PO != null) && (rdq.PO != "") && optionalPick)
@@ -1160,6 +1228,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult MassPickRingFence(string sku)
         {
             List<RingFence> rfList = (from a in db.RingFences where a.Sku == sku select a).ToList();
+            rfList = rfList
+                .Where(r => r.CanPick)
+                .ToList();
             string message = BulkPickRingFence(sku, rfList, true);
 
             return RedirectToAction("IndexSummary", new { message = message });
@@ -1259,7 +1330,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                           where a.MerchantSku == rf.Sku
                                           select a).FirstOrDefault().ID,
                                 CreatedBy = User.Identity.Name,
-                                CreateDate = DateTime.Now
+                                CreateDate = DateTime.Now,
+                                LastModifiedUser = User.Identity.Name
                             };
                             SetRDQDefaults(det, rdq);
                             if ((rdq.PO != null) && (rdq.PO != "") && optionalPick)
@@ -1358,6 +1430,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             store = store.Trim();
 
             List<RingFence> rfList = (from a in db.RingFences where ((a.Division==div)&&(a.Store==store)) select a).ToList();
+            rfList = rfList
+                .Where(r => r.CanPick)
+                .ToList();
             string message = BulkPickRingFence(div + "-" + store, rfList, true);
 
             return RedirectToAction("IndexByStore", new { message = message });
@@ -3729,10 +3804,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             RingFenceUploadModelNew returnValue = new RingFenceUploadModelNew();
 
-            returnValue.Division = Convert.ToString(mySheet.Cells[row, 0].Value);
+            returnValue.Division = Convert.ToString(mySheet.Cells[row, 0].Value).Trim();
             var store = Convert.ToString(mySheet.Cells[row, 1].Value);
             returnValue.Store = (string.IsNullOrEmpty(store)) ? "" : store.PadLeft(5, '0');
-            returnValue.Sku = Convert.ToString(mySheet.Cells[row, 2].Value);
+            returnValue.Sku = Convert.ToString(mySheet.Cells[row, 2].Value).Trim();
             var endDate = Convert.ToString(mySheet.Cells[row, 3].Value);
             if (!string.IsNullOrEmpty(endDate))
             {

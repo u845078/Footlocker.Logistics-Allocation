@@ -106,6 +106,12 @@ namespace Footlocker.Logistics.Allocation.DAO
         public DbSet<RDQType> RDQTypes { get; set; }
         public DbSet<Region> Regions { get; set; }
         public DbSet<League> Leagues { get; set; }
+        public DbSet<PreSaleSKU> PreSaleSKUs { get; set; }
+        public DbSet<ReInitializeSKU> ReInitializeSKUs { get; set; }
+        public DbSet<Renumber> Renumbers { get; set; }
+
+        public DbSet<DistributionCenterRestrictions> DistributionCenterRestrictions { get; set; }
+
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -708,7 +714,7 @@ namespace Footlocker.Logistics.Allocation.DAO
 
                 return returnVal;
             }
-            catch
+            catch (Exception ex)
             {
                 throw;
             }

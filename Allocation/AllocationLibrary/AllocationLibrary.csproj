@@ -125,6 +125,7 @@
     <Compile Include="Factories\WarehouseInventoryFactory.cs" />
     <Compile Include="Factories\WSMFactory.cs" />
     <Compile Include="Models\AccessControl.cs" />
+    <Compile Include="Models\ActiveHolds.cs" />
     <Compile Include="Models\AllocationDivision.cs" />
     <Compile Include="Models\AllocationDriver.cs" />
     <Compile Include="Models\ApplicationUser.cs" />
@@ -141,6 +142,7 @@
     <Compile Include="Models\ConfigParam.cs" />
     <Compile Include="Models\ControlDate.cs" />
     <Compile Include="Models\Departments.cs" />
+    <Compile Include="Models\DistributionCenterRestrictions.cs" />
     <Compile Include="Models\EcomCustomerFulfillmentXref.cs" />
     <Compile Include="Models\InstanceDistributionCenter.cs" />
     <Compile Include="Models\CrossDockExclusion.cs" />
@@ -156,7 +158,6 @@
     <Compile Include="Models\FOBDept.cs" />
     <Compile Include="Models\FOBPack.cs" />
     <Compile Include="Models\FOBPackOverride.cs" />
-    <Compile Include="Models\InterfaceFile.cs" />
     <Compile Include="Models\InvalidTransaction.cs" />
     <Compile Include="Models\InventoryReductions.cs" />
     <Compile Include="Models\InventoryReductionsByType.cs" />
@@ -172,9 +173,11 @@
     <Compile Include="Models\MandatoryCrossdockDefault.cs" />
     <Compile Include="Models\MaxLeadTime.cs" />
     <Compile Include="Models\MinihubStore.cs" />
+    <Compile Include="Models\NSSUpload.cs" />
     <Compile Include="Models\OrderPlanningRequest.cs" />
     <Compile Include="Models\POStatus.cs" />
     <Compile Include="Models\POStockStatus.cs" />
+    <Compile Include="Models\PreSaleSKU.cs" />
     <Compile Include="Models\Price.cs" />
     <Compile Include="Models\ProductHierarchyOverrides.cs" />
     <Compile Include="Models\ProductOverrideTypes.cs" />
@@ -191,6 +194,8 @@
     <Compile Include="Models\RDQRestriction.cs" />
     <Compile Include="Models\RDQType.cs" />
     <Compile Include="Models\Region.cs" />
+    <Compile Include="Models\ReInitializeSKU.cs" />
+    <Compile Include="Models\Renumber.cs" />
     <Compile Include="Models\RingFenceBIExtract.cs" />
     <Compile Include="Models\RingFenceSizeSummary.cs" />
     <Compile Include="Models\RingFenceStatusCodes.cs" />
@@ -201,6 +206,7 @@
     <Compile Include="Models\StoreAttribute.cs" />
     <Compile Include="Models\StoreBase.cs" />
     <Compile Include="Models\StoreBTSExtract.cs" />
+    <Compile Include="Models\StoreBTSGridExtract.cs" />
     <Compile Include="Models\StoreCluster.cs" />
     <Compile Include="Models\StoreInventory.cs" />
     <Compile Include="Models\StoreRange.cs" />
@@ -283,7 +289,6 @@
     <Compile Include="Services\DirectToStoreDAO.cs" />
     <Compile Include="Services\ExistingPODAO.cs" />
     <Compile Include="Services\FamilyOfBusinessDAO.cs" />
-    <Compile Include="Services\InterfaceLogDAO.cs" />
     <Compile Include="Services\NetworkZoneStoreDAO.cs" />
     <Compile Include="Services\PickService.cs" />
     <Compile Include="Services\PurgeArchiveDAO.cs" />

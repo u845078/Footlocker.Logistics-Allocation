@@ -22,7 +22,7 @@
 
     function MassPickGrid(div, store) {
         //redirecting them to show them RDQs with ability to release them
-        if (confirm('Are you sure you want to create picks for this group of ring fences?')) {
+        if (confirm('The system will only pick active, non-expired ringfences.  Are you sure you want to create picks for this group of ring fences?')) {
             window.location = "/Ringfence/MassPickRingfenceStore?div=" + div + "&store=" + store;
         }
     }
@@ -59,17 +59,17 @@
 </p>
 
 <div class="t-tabstrip-wrapper">
-<div id="tabstrip" data-role="tabstrip" tabindex="0" class="t-widget t-header t-tabstrip" role="tablist" aria-activedescendant="tabstrip_ts_active">
-                    <ul class="t-tabstrip-items t-reset">
-                        <li class="t-item t-state-default" role="tab" aria-controls="tabstrip-3"><span class="t-loading t-complete"></span><a class="t-link" href="/RingFence/Index">
-                            All Ringfences
-                        </a></li>                
-                        <li class="t-item t-state-default t-first t-tab-on-top" role="tab" aria-controls="tabstrip-1" aria-selected="true"><span class="t-loading t-complete"></span><a class="t-link" href="/RingFence/IndexSummary">
-                            By Product
-                        </a></li><li class="t-item t-state-default t-state-active" role="tab" aria-controls="tabstrip-2"><span class="t-loading t-complete"></span><a class="t-link" href="/RingFence/IndexByStore">
-                            By Destination
-                        </a></li>
-                    </ul>
+<div id="tabstrip" data-role="tabstrip" tabindex="0" class="t-widget t-header t-tabstrip" role="tablist" aria-activedescendant="tabstrip_ts_active" style="width: 1200px">
+    <ul class="t-tabstrip-items t-reset">
+        <li class="t-item t-state-default" role="tab" aria-controls="tabstrip-3"><span class="t-loading t-complete"></span><a class="t-link" href="/RingFence/Index">
+            All Ringfences
+        </a></li>                
+        <li class="t-item t-state-default t-first t-tab-on-top" role="tab" aria-controls="tabstrip-1" aria-selected="true"><span class="t-loading t-complete"></span><a class="t-link" href="/RingFence/IndexSummary">
+            By Product
+        </a></li><li class="t-item t-state-default t-state-active" role="tab" aria-controls="tabstrip-2"><span class="t-loading t-complete"></span><a class="t-link" href="/RingFence/IndexByStore">
+            By Destination
+        </a></li>
+    </ul>
 <div class="t-content t-state-active" id="tabstrip-1" role="tabpanel" aria-expanded="true" style="display: block; opacity: 1;">
 <br />
 
@@ -77,6 +77,7 @@
     @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreLookup>()
         .Name("RingFenceSummaryGrid")
         .HtmlAttributes(new { @class = "summary-grid" })
+        .HtmlAttributes(new { @style = "width : 100%" })
         .Columns(columns =>
         {
             columns.Bound(rf => rf.Division).Visible(true);
@@ -126,14 +127,17 @@
                                 columns.Bound(rf => rf.EndDate).Format("{0:MM/dd/yyyy}").Title("End Date").Width(30).Visible(true);
                                 columns.Bound(rf => rf.RingFenceTypeDescription).Width(10).Visible(true).Title("Type");
                                 columns.Bound(rf => rf.Comments);
-                                columns.Bound(rf => rf.CreatedBy).Title("Updated By").Visible(true);
-                                columns.Bound(rf => rf.CreateDate).Format("{0:MM/dd/yyyy}").Title("Update Date").Width(30).Visible(true);
+                                columns.Bound(rf => rf.LastModifiedUserName).Title("Updated By").Visible(true).Width(150);
+                                columns.Bound(rf => rf.LastModifiedDate).Format("{0:MM/dd/yyyy h:mm tt}").Title("Update Date").Width(150).Visible(true);
                                 columns.Template(@<text>
                                             <span style="">
                                                 @Html.ActionLink("Edit", "Edit", new { id = item.ID }, new {@class="t-button"})
                                                 @Html.ActionLink("Details", "SizeSummary", new { id = item.ID }, new { @class = "t-button" })
                                                 @Html.ActionLink("Delete", "Delete", new { id = item.ID }, new { @class="t-button", onclick = "return confirm('Are you sure you want to delete this ring fence?  This cannot be undone.  The ring fence will be removed, and inventory released to ANY store.');" })
-                                                @Html.ActionLink("Pick", "Pick", new { id = item.ID }, new { @class="t-button", onclick = "return confirmPick('" + item.Store + "')" })
+                                                @if (item.CanPick)
+                                                {
+                                                    @Html.ActionLink("Pick", "Pick", new { id = item.ID }, new { @class="t-button", onclick = "return confirmPick('" + item.Store + "')" })
+                                                }
                                             </span>
                                         </text>)
                                     .Width(400)
@@ -150,11 +154,9 @@
                                         + "'>Delete</a>"
 
                                         + "<a onclick=\"return confirmPick('<#= ID #>')\" class='t-button' href='"
-                                        + Url.Content("~/Ringfence/Pick/<#= ID #>")
-                                        + "'>Pick</a>"
+                                        + Url.Content("~/Ringfence/Pick/<#= ID #>'")
+                                        + " style=\"display: <#= CanPick ? 'inline-block': 'none' #>;\">Pick</a>"
                                     );
-
-                                    ;
                             })
                         .DataBinding(dataBinding => dataBinding.Ajax()
                         .Select("_RingFencesForStore", "RingFence", new { div = "<#= Division #>", store = "<#= Store #>" }))

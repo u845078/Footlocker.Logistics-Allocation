@@ -82,13 +82,13 @@
                     <td colspan=4><font color="red">This item is still on Mainframe Allocation</font></td>
                 }
             </tr>
-            <tr>
+            @*<tr>
                 <td><strong>@Html.LabelFor(m => Model.AllocationDriver.ConvertDate)</strong></td>
                 <td>@Html.DisplayFor(m => Model.AllocationDriver.ConvertDate)</td>
                 <td><strong>@Html.LabelFor(m => Model.AllocationDriver.AllocateDate)</strong></td>
                 <td>@Html.DisplayFor(m => Model.AllocationDriver.AllocateDate)</td>
-            </tr>
-        }
+            </tr>*@
+                        }
         <tr>
             <td><strong>@Html.LabelFor(m => Model.ItemMaster.ID)</strong></td>
             <td>@Html.DisplayFor(m => Model.ItemMaster.ID)</td>
@@ -133,11 +133,16 @@
         </tr>
         <tr>
             <td><strong>LifeCycle</strong></td>
-            <td colspan="3">@Html.DisplayFor(m => Model.LifeCycleDisplay)</td>
+            <td>@Html.DisplayFor(m => Model.LifeCycleDisplay)</td>
+            <td><strong>Launch Date</strong></td>
+            <td>@Model.RangePlans.Select(c => c.LaunchDate).FirstOrDefault()</td>
         </tr>
-        <tr>
-            <td><strong>@Html.LabelFor(m => Model.Sizes)</strong></td>
-            <td colspan=4>
+    
+            <tr>
+    
+                <td><strong>@Html.LabelFor(m => Model.Sizes)</strong></td>
+    
+                <td colspan=4>
                 @{
                     bool first = true;
                     string sizeText = "";
@@ -184,6 +189,12 @@
                     </tr>
                 </table>
             </td>
+        </tr>
+        <tr>
+            <td><strong>Evergreen SKU</strong></td>
+            <td>@Model.RangePlans.Select(c=>c.EvergreenSKU).FirstOrDefault()</td>
+            <td><strong>Re-Initialize Status:</strong></td>
+            <td>@Model.RangePlans.Select(c=>c.ReInitializeStatus).FirstOrDefault()</td>
         </tr>
 
 

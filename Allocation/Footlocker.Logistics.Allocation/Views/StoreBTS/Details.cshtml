@@ -40,8 +40,26 @@
                 .Ajax(false)
                 .Action("DeleteDetail", "StoreBTS").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
             }).HtmlAttributes(new { style = "text-align: left" }).Width(200);
-
-
+        })
+        .ToolBar(toolbar =>
+        {
+            toolbar.Template(@<text>
+                @Html.ActionLink(
+                         "Export Grid",
+                         "ExportDetailsGrid",
+                         "StoreBTS",
+                         new
+                         {
+                             filter = "__filterBy__"
+                         },
+                         new
+                         {
+                             @class = "t-button",
+                             @onclick = "exportSelected()",
+                             id = "ExportDetailsGrid"
+                         }
+                      )
+                </text>);
         })
             .DataBinding(dataBinding =>
             {
@@ -99,6 +117,18 @@
         <h4> <div id="message"></div> </h4>
 </fieldset>
      <script type="text/javascript">
+         function exportSelected() {
+             var grid = $('#StoreBTSDetail').data('tGrid');
+             if (grid.filterBy === "") {
+                 $('#ExportDetailsGrid').attr('href', function () {
+                     return "/StoreBTS/ExportDetailsGrid?ID=" + $('#ID').val();
+                 });
+             } else {
+                 $('#ExportDetailsGrid').attr('href', function () {
+                     return "/StoreBTS/ExportDetailsGrid?filter=" + grid.filterBy + "&ID=" + $('#ID').val();
+                 });
+             }
+         }
 
          function onSelect(e) {
              var files = e.files;

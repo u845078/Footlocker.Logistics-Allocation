@@ -35,6 +35,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.newStoreAttribute.Store = store;
             model.newStoreAttribute.LikeDivision = div;
             model.newStoreAttribute.Weight = 100;
+            model.newStoreAttribute.LikeStoreDemandScalingFactor = 1;
             model.newStoreAttribute.StartDate = DateTime.Now;
             model.Divisions = this.Divisions();
             ViewData["message"] = message;
@@ -111,6 +112,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.StoreAttribute = new StoreAttribute();
             model.StoreAttribute.StartDate = DateTime.Now;
             model.StoreAttribute.Weight = 100;
+            model.StoreAttribute.LikeStoreDemandScalingFactor = 1;
             FamilyOfBusinessDAO dao = new FamilyOfBusinessDAO();
             model.FOBs = dao.GetFOBs("");
 

@@ -26,6 +26,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private string _currentFormattedDateTimeString = null;
         private string _userName = null;
         private string _fileLineFiller = null;
+        private AllocationLibraryContext db;
 
         #endregion
 
@@ -73,6 +74,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         #endregion
+
+        public UploadController()
+        {
+            db = new AllocationLibraryContext();
+        }
 
         //
         // GET: /Upload/
@@ -714,176 +720,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         db.SaveChanges();
                         rank++;
                     }
-                    //if (prevZone != zone)
-                    //{
-                    //    //create zone
-                    //    prevZone = zone;
-                    //    var zonequery = (from a in db.NetworkZones where a.Name == zone select a);
-                    //    if (zonequery.Count() == 0)
-                    //    {
-                    //        z = new NetworkZone();
-                    //        z.LeadTimeID = 1;
-                    //        z.Name = zone;
-                    //        z.CreatedBy = User.Identity.Name;
-                    //        z.CreateDate = DateTime.Now;
-                    //        db.NetworkZones.Add(z);
-                    //        db.SaveChanges();
-                    //    }
-                    //    else
-                    //    {
-                    //        z = zonequery.First();
-                    //    }
-                    //}
-                    //var stores = (from a in db.NetworkZoneStores where ((a.Store == store) && (a.Division == div)) select a);
-
-                    //if (stores.Count() == 0)
-                    //{
-                    //    nzstore = new NetworkZoneStore();
-                    //    nzstore.Division = div;
-                    //    nzstore.Store = store;
-                    //    nzstore.ZoneID = z.ID;
-                    //    db.NetworkZoneStores.Add(nzstore);
-                    //}
-                    //else
-                    //{
-                    //    nzstore = stores.First();
-                    //    nzstore.ZoneID = z.ID;
-                    //}
-
-                    //db.SaveChanges();
-                    ////create route(s)
-
-                    ////jc route (for everyone)
-                    //var jcquery = (from a in db.RouteDetails where ((a.RouteID == 5) && (a.DCID == 1) && (a.ZoneID == z.ID)) select a);
-                    //if (jcquery.Count() == 0)
-                    //{
-                    //    det = new RouteDetail();
-                    //    det.RouteID = 5;
-                    //    det.DCID = 1;
-                    //    det.Days = jc;
-                    //    det.ZoneID = z.ID;
-
-                    //    SaveRouteDetail(det, db);
-                    //}
-
-                    //if ((ch - wc) > 1)
-                    //{
-                    //    //ch.jc if eastcoast
-                    //    var chquery = (from a in db.RouteDetails where ((a.RouteID == 14) && (a.DCID == 2) && (a.ZoneID == z.ID)) select a);
-                    //    if (chquery.Count() == 0)
-                    //    {
-                    //        det = new RouteDetail();
-                    //        det.RouteID = 14;
-                    //        det.DCID = 2;
-                    //        det.Days = ch;
-                    //        det.ZoneID = z.ID;
-
-                    //        SaveRouteDetail(det, db);
-
-                    //        det = new RouteDetail();
-                    //        det.RouteID = 27;
-                    //        det.DCID = 1;
-                    //        det.Days = jc;
-                    //        det.ZoneID = z.ID;
-
-                    //        SaveRouteDetail(det, db);
-
-                    //    }
-                    //}
-                    //else if ((wc - ch) > 1)
-                    //{
-                    //    //wc.jc if westcoast
-                    //    var wcquery = (from a in db.RouteDetails where ((a.RouteID == 16) && (a.DCID == 4) && (a.ZoneID == z.ID)) select a);
-                    //    if (wcquery.Count() == 0)
-                    //    {
-                    //        det = new RouteDetail();
-                    //        det.RouteID = 16;
-                    //        det.DCID = 4;
-                    //        det.Days = ch;
-                    //        det.ZoneID = z.ID;
-
-                    //        SaveRouteDetail(det, db);
-
-                    //        det = new RouteDetail();
-                    //        det.RouteID = 29;
-                    //        det.DCID = 1;
-                    //        det.Days = jc;
-                    //        det.ZoneID = z.ID;
-
-                    //        SaveRouteDetail(det, db);
-
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    //wc.jc.ch if middle
-                    //    if (ch <= wc)
-                    //    {
-                    //        //put primary CH, secondary JC/WC
-                    //        var chquery2 = (from a in db.RouteDetails where ((a.RouteID == 18) && (a.DCID == 2) && (a.ZoneID == z.ID)) select a);
-                    //        if (chquery2.Count() == 0)
-                    //        {
-                    //            det = new RouteDetail();
-                    //            det.RouteID = 18;
-                    //            det.DCID = 2;
-                    //            det.Days = ch;
-                    //            det.ZoneID = z.ID;
-
-                    //            SaveRouteDetail(det, db);
-
-                    //            det = new RouteDetail();
-                    //            det.RouteID = 31;
-                    //            det.DCID = 1;
-                    //            det.Days = jc;
-                    //            det.ZoneID = z.ID;
-
-                    //            SaveRouteDetail(det, db);
-
-                    //            det = new RouteDetail();
-                    //            det.RouteID = 31;
-                    //            det.DCID = 4;
-                    //            det.Days = wc;
-                    //            det.ZoneID = z.ID;
-
-                    //            SaveRouteDetail(det, db);
-
-                    //        }
-                    //    }
-                    //    else
-                    //    {
-                    //        //put primary WC, secondary JC/CH
-                    //        //put primary CH, secondary JC/WC
-                    //        var chquery2 = (from a in db.RouteDetails where ((a.RouteID == 18) && (a.DCID == 2) && (a.ZoneID == z.ID)) select a);
-                    //        if (chquery2.Count() == 0)
-                    //        {
-                    //            det = new RouteDetail();
-                    //            det.RouteID = 18;
-                    //            det.DCID = 4;
-                    //            det.Days = wc;
-                    //            det.ZoneID = z.ID;
-
-                    //            SaveRouteDetail(det, db);
-
-                    //            det = new RouteDetail();
-                    //            det.RouteID = 31;
-                    //            det.DCID = 1;
-                    //            det.Days = jc;
-                    //            det.ZoneID = z.ID;
-
-                    //            SaveRouteDetail(det, db);
-
-                    //            det = new RouteDetail();
-                    //            det.RouteID = 31;
-                    //            det.DCID = 2;
-                    //            det.Days = ch;
-                    //            det.ZoneID = z.ID;
-
-                    //            SaveRouteDetail(det, db);
-
-                    //        }
-                    //    }
-
-                    //}
 
                     row++;
                 }
@@ -1680,6 +1516,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult SaveSkuId(IEnumerable<HttpPostedFileBase> attachments)
         {
             string divCodeOfCurrentSpreadsheet = String.Empty;
+            string configParamName = "SKUID_UPLOAD_AUTHORIZED_DIVS";
 
             //Set the license 
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -1719,7 +1556,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         if (!hasValidHeaderRow) { return Content("Incorrect header, please use template."); }
 
                         // Get the sku's division
-                        divCodeOfCurrentSpreadsheet = Convert.ToString(mySheet.Cells[1, 0].Value).PadLeft(14, '0').Substring(0, 2);
+                        divCodeOfCurrentSpreadsheet = Convert.ToString(mySheet.Cells[1, 0].Value).PadLeft(14, '0').Substring(0, 2);                       
+
+                        Config config = (from cp in db.ConfigParams
+                                         join c in db.Configs
+                                           on cp.ParamID equals c.ParamID
+                                         where cp.Name == configParamName
+                                         select c).FirstOrDefault();
+
+                        if (config == null)
+                        {
+                            string message = string.Format(
+                                "The config parameter '{0}' has not been setup correctly.  Please create this parameter with a value of the authorized divisions and try again."
+                                , configParamName);
+                            return Content(message);
+                        }
+
+                        if (!config.Value.Split(',').Contains(divCodeOfCurrentSpreadsheet))
+                        {
+                            return Content(
+                                string.Format(
+                                    "Unauthorized division specified in spreadsheet, Division {0}.  Please read instructions above for the authorized divisions."
+                                    , divCodeOfCurrentSpreadsheet));
+                        }
 
                         // Validate that the current user has access to the division that the sku is referencing... (else error out)
                         if (!(Footlocker.Common.WebSecurityService.UserHasDivision(User.Identity.Name.Split('\\')[1], "Allocation", divCodeOfCurrentSpreadsheet)))
@@ -1991,7 +1850,50 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult SkuIdUpload()
         {
-            return View();
+            string configParamName = "SKUID_UPLOAD_AUTHORIZED_DIVS";
+
+            Config config = (from cp in db.ConfigParams
+                             join c in db.Configs
+                               on cp.ParamID equals c.ParamID
+                             where cp.Name == configParamName
+                             select c).FirstOrDefault();
+
+            if (config == null)
+            {
+                string message = string.Format(
+                    "The config parameter '{0}' has not been setup correctly.  Please create this parameter with a value of the authorized divisions and try again."
+                    , configParamName);
+                return Redirect("~/Error/GenericallyDenied?message=" + message);
+            }
+            else
+            {
+                string[] divisions = config.Value.Split(',');
+                bool canLoad = false;
+                string username = System.Web.HttpContext.Current.User.Identity.Name.ToLower().Replace("corp\\", "");
+
+                foreach (string div in divisions)
+                {
+                    if (Footlocker.Common.WebSecurityService.UserHasDivision(username, "Allocation", div))
+                    {
+                        canLoad = true;
+                        break;
+                    }
+                }
+
+                if (!canLoad)
+                {
+                    string message = "You need access to one of the following divisions to access this page: " + config.Value;
+                    return Redirect("~/Error/GenericallyDenied?message=" + message);
+                }
+
+                ViewBag.ValidDivisions
+                    = db.AllocationDivisions
+                        .Where(ad => divisions.Contains(ad.DivisionCode))
+                        .OrderBy(ad => ad.DivisionCode)
+                        .ToList();
+
+                return View();
+            }
         }
 
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]

@@ -172,15 +172,6 @@ namespace Footlocker.Logistics.Allocation.Services
             return _que;
         }
 
-        //public Int32 GetWarehouseAvailable(string sku, string size, string warehouse)
-        //{
-        //    RingFenceDAO dao = new RingFenceDAO();
-
-        //    List<RingFenceDetail> list = dao.GetWarehouseAvailableCommon(sku, size, warehouse, null);
-
-        //    return (from a in list where a.Size == size select a.AvailableQty).Sum();
-        //}
-
         /// <summary>
         /// Gets RDQs that are for this hold only, not including ones that are also on hold for another reason
         /// </summary>
@@ -349,51 +340,54 @@ namespace Footlocker.Logistics.Allocation.Services
             return holds;
         }
 
-        public List<RDQ> ApplyCancelHoldsNew(List<RDQ> rdqs)
+        public List<RDQ> ApplyCancelHoldsNew(List<RDQ> rdqs, string division, List<ItemMaster> uniqueItems, List<string> uniqueSkus, string userID)
         {
             List<RDQ> returnValue = new List<RDQ>();
             if (rdqs.Count > 0)
             {
-                // unique skus
-                var uniqueSkus = rdqs.Select(r => r.Sku).Distinct().ToList();
-                var uniqueItemIDs = db.ItemMasters.Where(im => uniqueSkus.Contains(im.MerchantSku))
-                                                  .Select(im => new { InstanceID = im.InstanceID, Division = im.Div, ItemID = im.ID, Sku = im.MerchantSku })
-                                                  .ToList();
+                var cancelHolds = (from ch in db.CurrentActiveHolds
+                                   where ch.Division == division &&
+                                         ch.ReserveInventory == 0
+                                   select ch).ToList();
 
-                var uniqueStores = rdqs.Select(r => r.Store).Distinct().ToList();
-
-                foreach (var uniqueItem in uniqueItemIDs)
+                foreach (RDQ rdq in rdqs)
                 {
-                    var query = db.CancelInventoryHolds.Where(cih => cih.Division.Equals(uniqueItem.Division) &&
-                                                                          cih.InstanceID.Equals(uniqueItem.InstanceID) &&
-                                                                          cih.ItemID.Equals(uniqueItem.ItemID) &&
-                                                                          uniqueStores.Contains(cih.Store)).Distinct().ToList();
-                    
+                    var item = uniqueItems.Where(i => i.MerchantSku == rdq.Sku).FirstOrDefault();
+                    bool holdExists = cancelHolds.Exists(ch => (ch.Department == item.Dept || string.IsNullOrEmpty(ch.Department)) &&
+                                                               (ch.Category == item.Category || string.IsNullOrEmpty(ch.Category)) &&
+                                                               (ch.Vendor == item.Vendor || string.IsNullOrEmpty(ch.Vendor)) &&
+                                                               (ch.Brand == item.Brand || string.IsNullOrEmpty(ch.Brand)) &&
+                                                               (ch.Team == item.TeamCode || string.IsNullOrEmpty(ch.Team)) &&
+                                                               (ch.SKU == item.MerchantSku || string.IsNullOrEmpty(ch.SKU)) &&
+                                                               (ch.Store == rdq.Store || string.IsNullOrEmpty(ch.Store)));
 
-                    foreach (var cih in query)
+                    if (holdExists)
                     {
-                        
-                        List<RDQ> updateRDQs = (from r in db.RDQs
-                                                join im in db.ItemMasters
-                                                  on r.Sku equals im.MerchantSku
-                                                join d in db.DistributionCenters
-                                                  on r.DCID equals d.ID
-                                                where r.Division.Equals(cih.Division) &&
-                                                      r.Store.Equals(cih.Store) &&
-                                                      im.ID.Equals(cih.ItemID)
-                                                select r).ToList();
-
-                        foreach (var r in updateRDQs)
-                        {
-                            r.Status = "REJECTED";
-                            db.Entry(r).State = System.Data.EntityState.Modified;
-                            returnValue.Add(r);
-                        }
-                    }
+                        returnValue.Add(rdq);
+                    }                    
                 }
-            }
 
-            db.SaveChanges("");
+                var proxyCreated = db.Configuration.ProxyCreationEnabled;
+                db.Configuration.ProxyCreationEnabled = false;
+                List<RDQ> skuRDQs = (from r in db.RDQs
+                                     where uniqueSkus.Contains(r.Sku)
+                                     select r).ToList();
+                db.Configuration.ProxyCreationEnabled = proxyCreated;
+
+                List<RDQ> rdqUpdates = (from sr in skuRDQs
+                                        join rv in returnValue
+                                          on new { sr.Sku, sr.Store, sr.DCID, sr.Size, sr.Qty } equals new { rv.Sku, rv.Store, rv.DCID, rv.Size, rv.Qty }
+                                        where sr.CreatedBy.ToUpper().Equals(userID.ToUpper())
+                                        select sr).ToList();
+
+                foreach (var ru in rdqUpdates)
+                {
+                    ru.Status = "REJECTED";
+                    ru.RDQRejectedReasonCode = 13;
+                }
+
+                UpdateRDQs(rdqUpdates, userID);
+            }
 
             return returnValue;
         }
@@ -427,5 +421,40 @@ namespace Footlocker.Logistics.Allocation.Services
             return holds;
         }
 
+        public void InsertRDQs(List<RDQ> list, string user)
+        {
+            DbCommand SQLCommand;
+            string SQL;
+            SQL = "dbo.InsertWebRDQs";
+
+            SQLCommand = _database.GetStoredProcCommand(SQL);
+            StringWriter sw = new StringWriter();
+            XmlSerializer xs = new XmlSerializer(list.GetType());
+            xs.Serialize(sw, list);
+            String xout = sw.ToString();
+
+            _database.AddInParameter(SQLCommand, "@xmlData", DbType.Xml, xout);
+            _database.AddInParameter(SQLCommand, "@user", DbType.String, user);
+
+            _database.ExecuteNonQuery(SQLCommand);
+        }
+
+        public void UpdateRDQs(List<RDQ> list, string user)
+        {
+            DbCommand SQLCommand;
+            string SQL;
+            SQL = "dbo.UpdateWebRDQs";
+
+            SQLCommand = _database.GetStoredProcCommand(SQL);
+            StringWriter sw = new StringWriter();
+            XmlSerializer xs = new XmlSerializer(list.GetType());
+            xs.Serialize(sw, list);
+            String xout = sw.ToString();
+
+            _database.AddInParameter(SQLCommand, "@xmlData", DbType.Xml, xout);
+            _database.AddInParameter(SQLCommand, "@user", DbType.String, user);
+
+            _database.ExecuteNonQuery(SQLCommand);
+        }
     }
 }

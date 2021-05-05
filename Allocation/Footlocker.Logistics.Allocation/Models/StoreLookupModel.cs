@@ -43,7 +43,7 @@ namespace Footlocker.Logistics.Allocation.Models
             this.AdHoc12 = s.AdHoc12;
             this.City = s.City;
             this.Climate = s.Climate;
-            this.Concept = s.Concept;
+            //this.Concept = s.Concept;
             this.DBA = s.DBA;
             this.Division = s.Division;
             this.ExcludeStore = s.ExcludeStore;

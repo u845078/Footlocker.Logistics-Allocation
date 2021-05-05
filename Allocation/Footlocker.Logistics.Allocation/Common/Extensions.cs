@@ -48,6 +48,22 @@ namespace Footlocker.Logistics.Allocation.Common
 
                 method = null;
 
+                if (filter.Operator == FilterOperator.IsEqualTo || filter.Operator == FilterOperator.IsNotEqualTo || filter.Operator == FilterOperator.IsLessThan ||
+                    filter.Operator == FilterOperator.IsLessThanOrEqualTo || filter.Operator == FilterOperator.IsGreaterThan || filter.Operator == FilterOperator.IsGreaterThanOrEqualTo)
+                {
+                    if (propertyType.Name.ToLower() == "string")
+                    {
+                        MethodInfo trimMethod = typeof(string).GetMethod("Trim", new Type[0]);
+                        MethodInfo toLowerMethod = typeof(string).GetMethod("ToLower", new Type[0]);
+
+                        var trimMemberCall = Expression.Call(left, trimMethod);
+                        left = Expression.Call(trimMemberCall, toLowerMethod);
+
+                        var trimConstantCall = Expression.Call(right, trimMethod);
+                        right = Expression.Call(trimConstantCall, toLowerMethod);
+                    }
+                }
+
                 switch (filter.Operator)
                 {
                     case FilterOperator.Contains:
@@ -81,6 +97,19 @@ namespace Footlocker.Logistics.Allocation.Common
                 if (method != null)
                 {
                     data = RemoveNulls(sParam, left, data);
+
+                    if (propertyType.Name.ToLower() == "string")
+                    {
+                        MethodInfo trimMethod = typeof(string).GetMethod("Trim", new Type[0]);
+                        MethodInfo toLowerMethod = typeof(string).GetMethod("ToLower", new Type[0]);
+
+                        var trimMemberCall = Expression.Call(left, trimMethod);
+                        left = Expression.Call(trimMemberCall, toLowerMethod);
+
+                        var trimConstantCall = Expression.Call(right, trimMethod);
+                        right = Expression.Call(trimConstantCall, toLowerMethod);
+                    }
+
                     MethodCallExpression callExp = Expression.Call(left, method, right);
                     whereCallExpression = Expression.Call
                         (

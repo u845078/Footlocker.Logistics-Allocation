@@ -87,12 +87,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 else
                 {
+                    List<SelectListItem> seasonalityLevels = GetSeasonalityLevels();
+                    string level = seasonalityLevels.Where(sl => sl.Value == model.selectedInstance).FirstOrDefault().Text;
+                    if (level == "Category")
+                    {
+                        model.prodHierarchyOverride.newBrandID = null;
+                    }
+
                     if (model.prodHierarchyOverride.productOverrideTypeCode == "SKU")
                         model = Lookup(model);
 
                     model.prodHierarchyOverride = PopulateFields(model.prodHierarchyOverride);
 
-                    if (!ValidateOverride(model.prodHierarchyOverride, out errorMessage))
+                    if (!ValidateOverride(model.prodHierarchyOverride, level, out errorMessage))
                     {
                         ViewData["message"] = errorMessage;
                         model = FillModelLists(model);
@@ -119,7 +126,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ProductHierarchyOverrideModel model = new ProductHierarchyOverrideModel();
             model.prodHierarchyOverride = LoadTransaction(id);
+            model.selectedInstance = (from eid in db.InstanceDivisions
+                                      where eid.Division == model.prodHierarchyOverride.newDivision
+                                      select eid.InstanceID).FirstOrDefault().ToString();
             string errorMessage = "";
+
+            List<SelectListItem> seasonalityLevels = GetSeasonalityLevels();
+            string level = seasonalityLevels.Where(sl => sl.Value == model.selectedInstance).FirstOrDefault().Text;
+            {
+                model.prodHierarchyOverride.newBrandID = null;
+            }
 
             if (!ValidateExistingOverride(model, out errorMessage))
             {
@@ -147,11 +163,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Edit(ProductHierarchyOverrideModel model, int id, string submitAction)
         {
             string errorMessage = "";
+            List<SelectListItem> seasonalityLevels = GetSeasonalityLevels();
+            model.selectedInstance = (from eid in db.InstanceDivisions
+                                      where eid.Division == model.prodHierarchyOverride.overrideDivision
+                                      select eid.InstanceID).FirstOrDefault().ToString();
+            string level = seasonalityLevels.Where(sl => sl.Value == model.selectedInstance).FirstOrDefault().Text;
+
+            if (level == "Category")
+            {
+                model.prodHierarchyOverride.newBrandID = null;
+            }
+
             if (submitAction.Equals("lookup"))
             {
                 model = Lookup(model);
                 model = FillModelLists(model);
-                if (!ValidateOverride(model.prodHierarchyOverride, out errorMessage))
+                
+                if (!ValidateOverride(model.prodHierarchyOverride, level, out errorMessage))
                 {
                     ViewData["message"] = errorMessage;  
                 }
@@ -165,7 +193,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ProductHierarchyOverrides editedRec = PopulateFields(model.prodHierarchyOverride);
                 editedRec.productHierarchyOverrideID = id;
 
-                if (!ValidateOverride(model.prodHierarchyOverride, out errorMessage))
+                if (!ValidateOverride(model.prodHierarchyOverride, level, out errorMessage))
                 {
                     ViewData["message"] = errorMessage;
                     model = FillModelLists(model);
@@ -212,19 +240,37 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return overrideTypeList;
         }
 
-        public List<SelectListItem> GetDivisionList()
+        public List<SelectListItem> GetDivisionList(string instanceIDFilter)
         {
             List<SelectListItem> divisionList = new List<SelectListItem>();
+            List<string> instanceDivisions = new List<string>();
+
+            if (!string.IsNullOrEmpty(instanceIDFilter))
+            {
+                int instanceID = Convert.ToInt32(instanceIDFilter);
+                instanceDivisions = (from id in db.InstanceDivisions
+                                     where id.InstanceID == instanceID
+                                     select id.Division).ToList();
+            }
 
             List<Division> userDivList = WebSecurityService.ListUserDivisions(UserName, "Allocation");
-            var divsWithDepts = (from a in db.Departments select a.divisionCode).Distinct();
+            var divsWithDepts = (from a in db.Departments 
+                                 select a.divisionCode).Distinct();
 
             if (userDivList.Count() > 0)
             {
                 foreach (var rec in userDivList)
                 {
-                    if (divsWithDepts.Contains(rec.DivCode))
-                        divisionList.Add(new SelectListItem { Text = rec.DisplayName, Value = rec.DivCode });
+                    if (string.IsNullOrEmpty(instanceIDFilter))
+                    {
+                        if (divsWithDepts.Contains(rec.DivCode))
+                            divisionList.Add(new SelectListItem { Text = rec.DisplayName, Value = rec.DivCode });
+                    }
+                    else
+                    {
+                        if (divsWithDepts.Contains(rec.DivCode) && instanceDivisions.Contains(rec.DivCode))
+                            divisionList.Add(new SelectListItem { Text = rec.DisplayName, Value = rec.DivCode });
+                    }
                 }
             }
 
@@ -287,9 +333,56 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return brandIDList;
         }
 
+        public List<SelectListItem> GetInstances(List<Division> divisionFilter)
+        {
+            List<SelectListItem> instances = new List<SelectListItem>();
+            var instanceList = (from i in db.Instances
+                                join id in db.InstanceDivisions
+                                 on i.ID equals id.InstanceID
+                                select new { i.ID, i.Name, id.Division}).ToList();
+
+            var joinedList = (from id1 in instanceList
+                              join df in divisionFilter
+                               on id1.Division equals df.DivCode
+                              select new { id1.ID, id1.Name }).ToList().Distinct();
+
+            foreach (var instance in joinedList)
+            {
+                instances.Add(new SelectListItem
+                {
+                    Text = instance.Name,
+                    Value = instance.ID.ToString()
+                });
+            }
+
+            return instances;
+        }
+
+        public List<SelectListItem> GetSeasonalityLevels()
+        {
+            List<SelectListItem> seasonalityLevels = new List<SelectListItem>();
+
+            var results = (from cp in db.ConfigParams
+                           join c in db.Configs
+                             on cp.ParamID equals c.ParamID
+                           where cp.Name == "SEASONALITY_OVERRIDE_LEVEL"
+                           select c).ToList();
+            
+            foreach (var result in results)
+            {
+                seasonalityLevels.Add(new SelectListItem { Text = result.Value, Value = result.InstanceID.ToString() });
+            }
+
+            return seasonalityLevels;
+        }
         #endregion
 
         #region JSON Result routines
+        public JsonResult GetNewDivsJson(string Id)
+        {
+            List<SelectListItem> newDivList = GetDivisionList(Id);
+            return Json(new SelectList(newDivList.ToArray(), "Value", "Text"), JsonRequestBehavior.AllowGet);
+        }
 
         public JsonResult GetNewDeptsJson(string Id)
         {
@@ -370,19 +463,36 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private ProductHierarchyOverrideModel FillModelLists(ProductHierarchyOverrideModel model)
         {
             ProductHierarchyOverrides pho = model.prodHierarchyOverride;
+            List<Division> userDivisions = WebSecurityService.ListUserDivisions(UserName, "Allocation");
+
+            model.Instances = GetInstances(userDivisions);
+            if (string.IsNullOrEmpty(model.selectedInstance))
+            {
+                model.selectedInstance = model.Instances[0].Value;
+            }
+
+            model.overrideDivisionList = GetDivisionList(model.selectedInstance);
+            var existentOverrideDivision = model.overrideDivisionList.Where(div => div.Value == pho.overrideDivision).Count();
+            if (existentOverrideDivision == 0 && model.overrideDivisionList.Count() > 0)
+            {
+                pho.overrideDivision = model.overrideDivisionList[0].Value;
+            }
+            
+
+
+
+            model.seasonalityLevels = GetSeasonalityLevels();
+            if (string.IsNullOrEmpty(model.selectedSeasonalityLevel))
+            {
+                model.selectedSeasonalityLevel = model.seasonalityLevels
+                    .Where(sl => sl.Value == model.selectedInstance).FirstOrDefault().Text;
+            }
 
             model.overrideTypes = GetOverrideTypes();
             var existentOverrideTypes = model.overrideTypes.Where(o => o.Value == pho.productOverrideTypeCode).Count();
             if (existentOverrideTypes == 0 && model.overrideTypes.Count() > 0)
             {
                 pho.productOverrideTypeCode = model.overrideTypes[0].Value;
-            }
-
-            model.overrideDivisionList = GetDivisionList();
-            var existentOverrideDivision = model.overrideDivisionList.Where(div => div.Value == pho.overrideDivision).Count();
-            if (existentOverrideDivision == 0 && model.overrideDivisionList.Count() > 0)
-            {
-                pho.overrideDivision = model.overrideDivisionList[0].Value;
             }
 
             //else
@@ -441,8 +551,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             // set the new division equal to the override division
             record.newDivision = record.overrideDivision;
-            record.displayNewValue = record.newDivision + ":" + record.newDepartment + ":" + record.newCategory +
-                ":" + record.newBrandID;
+            record.displayNewValue = record.newDivision + ":" + record.newDepartment + ":" + record.newCategory;
+            
+            if (!string.IsNullOrEmpty(record.newBrandID))
+                record.displayNewValue += ":" + record.newBrandID;
+
             switch (record.productOverrideTypeCode)
             {
                 case "DEPT":
@@ -501,7 +614,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <param name="pho">ProductHierarchyOverride</param>
         /// <param name="errorMessage">Specific error message</param>
         /// <returns>boolean dependent on if the producthierarchyoverride is valid</returns>
-        private bool ValidateOverride(ProductHierarchyOverrides pho, out string errorMessage)
+        private bool ValidateOverride(ProductHierarchyOverrides pho, string categoryLevel, out string errorMessage)
         {
             bool result = true;
             // line break for formatting
@@ -620,15 +733,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     break;
             }
 
-            // validate new division, department, category, and brand list
-            if (pho.newDivision == null ||
-                pho.newDepartment == null ||
-                pho.newCategory == null ||
-                pho.newBrandID == null)
+            if (categoryLevel == "BrandID")
             {
-                result = false;
-                message = "The new division, department, category and brand must all have values";
-                errorMessage += (errorMessage == null) ? message : lineBreak + message;
+                // validate new division, department, category, and brand list
+                if (pho.newDivision == null ||
+                    pho.newDepartment == null ||
+                    pho.newCategory == null ||
+                    pho.newBrandID == null)
+                {
+                    result = false;
+                    message = "The new division, department, category and brand must all have values";
+                    errorMessage += (errorMessage == null) ? message : lineBreak + message;
+                }
+            }
+            else  // we'll assume it's Category
+            {
+                // validate new division, department, category, and brand list
+                if (pho.newDivision == null ||
+                    pho.newDepartment == null ||
+                    pho.newCategory == null)
+                {
+                    result = false;
+                    message = "The new division, department, and category must all have values";
+                    errorMessage += (errorMessage == null) ? message : lineBreak + message;
+                }
             }
 
             return result;
@@ -651,6 +779,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             string oErrMessage = "The override division, department, category, and brand combination '" + pho.displayOverrideValue +"' no longer exists.";
             // new combination error message
             string nErrMessage = "The new division, department, category, and brand combination '" + pho.displayNewValue + "' no longer exists.";
+            string n2ErrMessage = "The new division, department, and category combination '" + pho.displayNewValue + "' no longer exists.";
+
             // common appending statement for invalid combinations
             string commonMessage = "  Please choose a valid combination from the lists below.";
             errorMessage = null;
@@ -697,14 +827,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // validate new list
             var nDepartmentExists = GetValidDepartments(pho.newDivision).Select(dept => dept.departmentCode).Contains(pho.newDepartment);
             var nCategoryExists = GetValidCategories(pho.newDivision, pho.newDepartment).Select(cat => cat.categoryCode).Contains(pho.newCategory);
-            var nBrandExists = GetValidBrands(pho.newDivision, pho.newDepartment, pho.newCategory).Select(b => b.brandIDCode).Contains(pho.newBrandID);
 
-            if (!nDepartmentExists || !nCategoryExists || !nBrandExists)
+            if (!string.IsNullOrEmpty(pho.newBrandID))
             {
-                errorMessage += (errorMessage == null) ? nErrMessage + commonMessage : lineBreak + nErrMessage + commonMessage;
-                result = false;
+                var nBrandExists = GetValidBrands(pho.newDivision, pho.newDepartment, pho.newCategory).Select(b => b.brandIDCode).Contains(pho.newBrandID);
+                if (!nDepartmentExists || !nCategoryExists || !nBrandExists)
+                {
+                    errorMessage += (errorMessage == null) ? nErrMessage + commonMessage : lineBreak + nErrMessage + commonMessage;
+                    result = false;
+                }
             }
-
+            else
+            {
+                if (!nDepartmentExists || !nCategoryExists)
+                {
+                    errorMessage += (errorMessage == null) ? n2ErrMessage + commonMessage : lineBreak + n2ErrMessage + commonMessage;
+                    result = false;
+                }
+            }
+              
             return result;
         }
 

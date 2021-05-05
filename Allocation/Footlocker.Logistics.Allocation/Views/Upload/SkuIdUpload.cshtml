@@ -5,7 +5,22 @@
 
 <fieldset>
     <legend> Sku Id Upload </legend>
-    Spreadsheet columns should be Sku, Sku Id Code 1-5 (optional).  <br />
+    <b>This upload is only available for the following divisions: </b>
+    <br />
+    <ul>
+        @foreach(var division in ViewBag.ValidDivisions)
+        {
+            <li>@Html.Raw(division.DivisionCode + " - " + division.DivisionName)</li>
+        }
+        @*<li>24 - Foot Locker Australia</li>
+        <li>28 - Foot Locker New Zealand</li>
+        <li>31 - Foot Locker Europe</li>
+        <li>47 - Runners Point Group</li>
+        <li>76 - Foot Locker Canada</li>
+        <li>77 - Champs Canada</li>*@
+    </ul>
+
+    Spreadsheet columns should be Sku, Sku Id Code 1-5 (optional).  <br /><br />
     @Html.ActionLink("Download Template","ExcelSkuIdUploadTemplate",new {}, new {@class = "t-button"})
     <br />
     <br />

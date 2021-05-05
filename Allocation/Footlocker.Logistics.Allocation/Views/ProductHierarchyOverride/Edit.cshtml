@@ -14,6 +14,7 @@
     <script type="text/javascript">
         $(function () {
             $('#overrideLevelList').prop("disabled", true);
+            $('#instanceList').prop("disabled", true);
         }).trigger('change')        
       </script>
       @Html.HiddenFor(m => m.prodHierarchyOverride.productOverrideTypeCode)

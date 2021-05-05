@@ -8,6 +8,8 @@ using System.IO;
 using Aspose.Excel;
 using Telerik.Web.Mvc;
 using Footlocker.Logistics.Allocation.Services;
+using Footlocker.Logistics.Allocation.Common;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -80,6 +82,221 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.CurrentYear = System.DateTime.Now.Year;
             }
             return View(model);
+        }
+
+        [GridAction]
+        public ActionResult ExportGrid(GridCommand settings, string div, int? year)
+        {
+            List<StoreBTSGridExtract> storeBTS = (from a in db.StoreBTS
+                                                  where a.Division == div && a.Year == year
+                                                  select new StoreBTSGridExtract
+                                                  {
+                                                      Year = a.Year,
+                                                      Name = a.Name,
+                                                      ID = a.ID,
+                                                      Division = a.Division,
+                                                      CreateDate = a.CreateDate,
+                                                      CreatedBy = a.CreatedBy
+                                                  }
+                                                  ).ToList();
+
+            foreach (var storeBTSRec in storeBTS)
+            {
+                storeBTSRec.ClusterID = (from a in db.StoreClusters
+                                         where a.Division == storeBTSRec.Division &&
+                                               a.Name == storeBTSRec.Name
+                                         select a.ID).FirstOrDefault();
+            }
+
+            IQueryable<StoreBTSGridExtract> list = storeBTS.AsQueryable();
+
+            if (settings.FilterDescriptors.Any())
+            {
+                list = list.ApplyFilters(settings.FilterDescriptors);
+            }
+
+            foreach (var bts in list.ToList())
+            {
+                bts.StoreLookups = (from a in db.StoreBTSDetails join b in db.StoreLookups on new { a.Division, a.Store } equals new { b.Division, b.Store } where a.GroupID == bts.ID select b).ToList();
+            }
+
+            Workbook excelDocument = CreateSchoolBTSExport(list.ToList());
+
+            OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "BackToSchool.xlsx", ContentDisposition.Attachment, save);
+            return RedirectToAction("Index");
+        }
+
+        [GridAction]
+        public ActionResult ExportDetailsGrid(GridCommand settings, int ID)
+        {
+            List<StoreBTSGridExtract> storeBTS = (from a in db.StoreBTS
+                                                  where a.ID == ID
+                                                  select new StoreBTSGridExtract
+                                                  {
+                                                      Year = a.Year,
+                                                      Name = a.Name,
+                                                      ID = a.ID,
+                                                      Division = a.Division,
+                                                      CreateDate = a.CreateDate,
+                                                      CreatedBy = a.CreatedBy
+                                                  }).ToList();
+
+            foreach (var storeBTSRec in storeBTS)
+            {
+                storeBTSRec.ClusterID = (from a in db.StoreClusters
+                                         where a.Division == storeBTSRec.Division &&
+                                               a.Name == storeBTSRec.Name
+                                         select a.ID).FirstOrDefault();
+
+                IQueryable<StoreLookup> listToFilter = (from a in db.StoreBTSDetails
+                                                        join b in db.StoreLookups on new { a.Division, a.Store } equals new { b.Division, b.Store }
+                                                        where a.GroupID == ID
+                                                        select b).ToList().AsQueryable();
+
+                if (settings.FilterDescriptors.Any())
+                {
+                    listToFilter = listToFilter.ApplyFilters(settings.FilterDescriptors);
+                }
+
+                storeBTSRec.StoreLookups = listToFilter.ToList();
+            }
+
+            Workbook excelDocument = CreateSchoolBTSExport(storeBTS);
+
+            OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "BackToSchoolDetails.xlsx", ContentDisposition.Attachment, save);
+
+            return RedirectToAction("Details", new { ID = ID });
+        }
+
+        private Workbook CreateSchoolBTSExport(List<StoreBTSGridExtract> storeBTS)
+        {
+            Workbook excelDocument = RetrieveStoreBTSExcelFile(false);
+            int row = 1;
+            Aspose.Cells.Worksheet workSheet = excelDocument.Worksheets[0];
+
+            foreach (var rr in storeBTS)
+            {
+                Aspose.Cells.Style align = excelDocument.CreateStyle();
+                align.HorizontalAlignment = Aspose.Cells.TextAlignmentType.Right;
+
+                Aspose.Cells.Style date = excelDocument.CreateStyle();
+                date.Number = 14;
+
+                if (rr.StoreLookups.Count() == 0)
+                {
+                    workSheet.Cells[row, 0].PutValue(rr.ClusterID);
+                    workSheet.Cells[row, 0].SetStyle(align);
+                    workSheet.Cells[row, 1].PutValue(rr.Year);
+                    workSheet.Cells[row, 1].SetStyle(align);
+                    workSheet.Cells[row, 2].PutValue(rr.Name);
+                    workSheet.Cells[row, 2].SetStyle(align);
+                    workSheet.Cells[row, 3].PutValue(rr.Division);
+                    workSheet.Cells[row, 3].SetStyle(align);
+                    workSheet.Cells[row, 10].PutValue(rr.CreatedBy);
+                    workSheet.Cells[row, 10].SetStyle(align);
+                    workSheet.Cells[row, 11].PutValue(rr.CreateDate);
+                    workSheet.Cells[row, 11].SetStyle(date);
+                    row++;
+                }
+                else
+                {
+                    foreach (var detail in rr.StoreLookups)
+                    {
+                        workSheet.Cells[row, 0].PutValue(rr.ClusterID);
+                        workSheet.Cells[row, 0].SetStyle(align);
+                        workSheet.Cells[row, 1].PutValue(rr.Year);
+                        workSheet.Cells[row, 1].SetStyle(align);
+                        workSheet.Cells[row, 2].PutValue(rr.Name);
+                        workSheet.Cells[row, 2].SetStyle(align);
+                        workSheet.Cells[row, 3].PutValue(rr.Division);
+                        workSheet.Cells[row, 3].SetStyle(align);
+                        workSheet.Cells[row, 4].PutValue(detail.League);
+                        workSheet.Cells[row, 4].SetStyle(align);
+                        workSheet.Cells[row, 5].PutValue(detail.Store);
+                        workSheet.Cells[row, 5].SetStyle(align);
+                        workSheet.Cells[row, 6].PutValue(detail.DBA);
+                        workSheet.Cells[row, 6].SetStyle(align);
+                        workSheet.Cells[row, 7].PutValue(detail.Mall);
+                        workSheet.Cells[row, 7].SetStyle(align);
+                        workSheet.Cells[row, 8].PutValue(detail.City);
+                        workSheet.Cells[row, 8].SetStyle(align);
+                        workSheet.Cells[row, 9].PutValue(detail.State);
+                        workSheet.Cells[row, 9].SetStyle(align);
+                        workSheet.Cells[row, 10].PutValue(rr.CreatedBy);
+                        workSheet.Cells[row, 10].SetStyle(align);
+                        workSheet.Cells[row, 11].PutValue(rr.CreateDate);
+                        workSheet.Cells[row, 11].SetStyle(date);
+                        row++;
+                    }
+                }
+            }
+
+            for (int i = 0; i < 12; i++)
+            {
+                workSheet.AutoFitColumn(i);
+            }
+
+            return excelDocument;
+        }
+
+        private Workbook RetrieveStoreBTSExcelFile(bool errorFile)
+        {
+            int row = 0;
+            int col = 0;
+
+            Aspose.Cells.License license = new Aspose.Cells.License();
+            license.SetLicense("C:\\Aspose\\Aspose.Cells.lic");
+
+            Workbook excelDocument = new Workbook();
+            Aspose.Cells.Worksheet workSheet = excelDocument.Worksheets[0];
+
+            Aspose.Cells.Style style = excelDocument.CreateStyle();
+            style.Font.IsBold = true;
+
+            workSheet.Cells[row, col].PutValue("Cluster ID");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Year");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Name");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Division");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("League");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Store");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("DBA");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Mall");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("City");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("State");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Created By");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Create Date");
+            workSheet.Cells[row, col].SetStyle(style);
+            if (errorFile)
+            {
+                col++;
+                workSheet.Cells[row, col].PutValue("Message");
+                workSheet.Cells[row, col].SetStyle(style);
+            }
+            return excelDocument;
         }
 
         public ActionResult Create(string div, string name, int year)
@@ -262,7 +479,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             Excel excelDocument = new Excel();
 
-            Worksheet workSheet = excelDocument.Worksheets[0];
+            Aspose.Excel.Worksheet workSheet = excelDocument.Worksheets[0];
 
             int row = 0;
             workSheet.Cells[0, 0].PutValue("Division");
@@ -333,7 +550,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
-            excelDocument.Save("BTS_Unassigned.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("BTS_Unassigned.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
 
@@ -631,7 +848,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //file.Close();
             //MemoryStream memoryStream1 = new MemoryStream(data1);
             //excelDocument.Open(memoryStream1);
-            Worksheet mySheet = excelDocument.Worksheets[0];
+            Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
             int row = 1;
             mySheet.Cells[0, 0].PutValue("Div");
             mySheet.Cells[0, 1].PutValue("Store");
@@ -644,7 +861,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 row++;
             }
 
-            excelDocument.Save("BTSUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("BTSUploadErrors.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
 
         }
@@ -663,7 +880,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             file.Close();
             MemoryStream memoryStream1 = new MemoryStream(data1);
             excelDocument.Open(memoryStream1);
-            excelDocument.Save("StoreBTSDetails.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("StoreBTSDetails.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
     }

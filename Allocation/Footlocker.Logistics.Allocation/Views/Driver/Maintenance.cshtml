@@ -1,0 +1,38 @@
+﻿@model Footlocker.Logistics.Allocation.Models.MaintenanceModel
+
+@{
+    ViewBag.Title = "Data Maintenance";
+}
+
+<h2>Allocation Data Maintenance</h2>
+
+@using (Html.BeginForm()) {
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Allocation Data Maintenance</legend>
+
+        <div class="editor-label">
+            <p>Enter a SQL command to run on the database. </p>
+            <p>USE EXTREME CAUTION WHEN DOING THIS AND TEST IT FIRST!</p>
+        </div>
+        <div class="editor-field">
+            @Html.TextAreaFor(model => model.SQLCommand, new { @cols = 80, @rows = 10 })
+            @Html.ValidationMessageFor(model => model.SQLCommand)
+        </div>
+
+        <div class="editor-field">
+            @Model.ReturnMessage
+        </div>
+
+        <p>
+            <input type="submit" value="Execute" />
+        </p>
+    </fieldset>
+}
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

@@ -129,6 +129,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         if (rp.UpdatedBy.Contains("CORP"))
                             rp.UpdatedBy = getFullUserNameFromDatabase(rp.UpdatedBy.Replace('\\', '/'));
+
+                        var reInitStatus = (from a in db.ReInitializeSKUs
+                                            where a.ItemID == rp.ItemID
+                                            orderby a.CreateDate descending
+                                            select a).FirstOrDefault();
+
+                        if (reInitStatus != null)
+                        {
+                            rp.ReInitializeStatus = (reInitStatus.SkuExtracted) ? "SKU Extracted on " + reInitStatus.LastModifiedDate.ToShortDateString() : "Pending to be Extracted";
+                        }
                     });
                 }
             }
@@ -437,7 +447,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _StoreLeadTimes(string div, string store)
         {
-            List<StoreLeadTime> model = (from a in db.StoreLeadTimes where ((a.Division == div) && (a.Store == store)) select a).ToList();
+            List<StoreLeadTime> model = (from a in db.StoreLeadTimes where ((a.Division == div) && (a.Store == store) && a.Active == true) select a).ToList();
             foreach (StoreLeadTime lt in model)
             {
                 lt.Warehouse = (from a in db.DistributionCenters where a.ID == lt.DCID select a.Name).FirstOrDefault();

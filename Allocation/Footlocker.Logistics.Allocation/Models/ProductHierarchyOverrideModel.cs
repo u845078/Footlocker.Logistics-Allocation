@@ -10,6 +10,11 @@ namespace Footlocker.Logistics.Allocation.Models
 {
     public class ProductHierarchyOverrideModel
     {
+        public List<SelectListItem> Instances { get; set; }
+        public string selectedInstance { get; set; }
+        public List<SelectListItem> seasonalityLevels { get; set; }
+        public string selectedSeasonalityLevel { get; set; }
+
         public ProductHierarchyOverrides prodHierarchyOverride { get; set; }
         public List<SelectListItem> overrideTypes { get; set; }
         public List<SelectListItem> overrideDivisionList { get; set; }

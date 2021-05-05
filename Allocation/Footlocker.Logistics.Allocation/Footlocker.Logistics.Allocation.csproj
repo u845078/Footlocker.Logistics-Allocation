@@ -46,6 +46,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Aspose.Cells, Version=8.7.1.0, Culture=neutral, PublicKeyToken=716fcc553a201e56, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\FootLocker\Aspose.Cells\v8.4.1.0\net2.0\Aspose.Cells.dll</HintPath>
+    </Reference>
     <Reference Include="Aspose.Excel, Version=3.6.0.0, Culture=neutral, PublicKeyToken=716fcc553a201e56">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Footlocker\Aspose.Excel.dll</HintPath>
@@ -257,11 +261,15 @@
     <Compile Include="Models\BulkRDQModel.cs" />
     <Compile Include="Models\CheckBoxModel.cs" />
     <Compile Include="Models\EcomCustomerFulfillmentXrefModel.cs" />
+    <Compile Include="Models\HoldsUploadDeleteModel.cs" />
     <Compile Include="Models\InstanceModel.cs" />
+    <Compile Include="Models\MaintenanceModel.cs" />
+    <Compile Include="Models\PreSaleModel.cs" />
     <Compile Include="Models\QuantumDataDownloadModel.cs" />
     <Compile Include="Models\ProductHierarchyOverrideModel.cs" />
     <Compile Include="Models\PurgeArchiveTypeModel.cs" />
     <Compile Include="Models\RDQRestrictionModel.cs" />
+    <Compile Include="Models\ReInitializeSKUModel.cs" />
     <Compile Include="Models\RingFenceUploadModelNew.cs" />
     <Compile Include="Models\SkuSetupModel.cs" />
     <Compile Include="Models\TroubleshootRDQForSkuModel.cs" />
@@ -328,6 +336,7 @@
     <Compile Include="Models\TroubleshootInventory.cs" />
     <Compile Include="Models\TroubleshootModel.cs" />
     <Compile Include="Models\TroubleshootStoreModel.cs" />
+    <Compile Include="Models\UploadDataModel.cs" />
     <Compile Include="Models\VendorGroupDetailsModel.cs" />
     <Compile Include="Models\WarehouseBlackoutModel.cs" />
     <Compile Include="Models\WebPickModel.cs" />
@@ -505,6 +514,8 @@
     <Content Include="Content\Templates\HoldsUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\Templates\HoldsUpdatesTemplate.xlsx" />
+    <Content Include="Content\Templates\NetworkScheduleUpdateTemplate.xlsx" />
     <None Include="Content\Templates\ProductTypeTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -605,6 +616,12 @@
     <Content Include="Views\RDQRestriction\IndexByDestination_RegionGrid.cshtml" />
     <Content Include="Views\RDQRestriction\IndexByDestination_LeagueGrid.cshtml" />
     <Content Include="Views\RDQRestriction\IndexByDestination_DCGrid.cshtml" />
+    <Content Include="Views\Hold\UploadHoldsUpdates.cshtml" />
+    <Content Include="Views\Route\UploadChanges.cshtml" />
+    <Content Include="Views\SkuRange\CreatePreSale.cshtml" />
+    <Content Include="Views\SkuRange\CreateReInitializeSKU.cshtml" />
+    <Content Include="Views\Error\GenericallyDenied.cshtml" />
+    <Content Include="Views\Driver\Maintenance.cshtml" />
     <Content Include="Views\EcomCustXref\Index.cshtml" />
     <Content Include="Views\EcomCustXref\Create.cshtml" />
     <Content Include="Views\EcomCustXref\FormLayout.cshtml" />
@@ -749,6 +766,9 @@
     <Content Include="Views\Upload\ARSkusUpload.cshtml" />
     <Content Include="Views\Hold\Upload.cshtml" />
     <Content Include="Views\SkuRange\SkuRPDGUpload.cshtml" />
+    <Content Include="Views\SkuRange\PreSale.cshtml" />
+    <Content Include="Views\SkuRange\EditPreSale.cshtml" />
+    <Content Include="Views\SkuRange\ReInitializeSKU.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

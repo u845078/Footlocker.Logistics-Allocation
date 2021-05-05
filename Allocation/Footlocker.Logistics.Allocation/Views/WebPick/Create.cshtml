@@ -4,13 +4,12 @@
     ViewBag.Title = "Create";
 }
 
-<h2>Create</h2>
+<h2>Create Web or Emergency Pick</h2>
 <font color="red">@Html.Raw(Model.Message)</font>
 @using (Html.BeginForm()) {
     @Html.ValidationSummary(true)
 
     <fieldset>
-        <legend>Web Pick</legend>
 @*        @if (Model.AllowPickAnyway)
         {
             <div class="editor-field">
@@ -70,8 +69,8 @@
             Pick
         </div>
         <div class="editor-field">
-            @Html.DropDownListFor(model => model.RDQ.Status, new List<SelectListItem> { new SelectListItem { Text = "Store's next pick day", Value = "WEB PICK" }, new SelectListItem { Text = "Pick tomorrow", Value = "FORCE PICK" } }, new { disabled = "true" })
-            @Html.HiddenFor(model => model.RDQ.Status, new { Value = "WEB PICK" })
+            @Html.DropDownListFor(model => model.RDQ.Status, Model.PickOptions)
+            @*Html.DropDownListFor(model => model.RDQ.Status, new List<SelectListItem> { new SelectListItem { Text = "Store's next pick day", Value = "WEB PICK" }, new SelectListItem { Text = "Pick right away", Value = "E-PICK" } }) *@
             @Html.ValidationMessageFor(model => model.RDQ.Status)
         </div>
 

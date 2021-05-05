@@ -111,7 +111,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             List<WarehouseInventory> returnValue = new List<WarehouseInventory>();
             var futureSizes = uniqueCombos.Where(uc => uc.Item2.Length.Equals(3)).ToList();
             var futureCaselots = uniqueCombos.Where(uc => uc.Item2.Length.Equals(5)).ToList();
-            int batchSize = 30;
+            int batchSize = 20;
 
             if (futureSizes.Count > 0)
             {
@@ -128,7 +128,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 
             }
 
-            batchSize = 30;
+            batchSize = 20;
 
             if (futureCaselots.Count > 0)
             {
@@ -737,18 +737,29 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         public List<WarehouseInventory> ReduceAvailableInventory(List<WarehouseInventory> availableInventory)
         {
             int instanceID;
+            List<string> aiSKUs = availableInventory.Select(ai => ai.Sku).ToList();
+            string division = aiSKUs.First().Split('-')[0];
+            instanceID = db.InstanceDivisions.Where(id => id.Division.Equals(division))
+                                             .Select(id => id.InstanceID)
+                                             .FirstOrDefault();
+
             if (availableInventory.Count > 0)
             {
+                var invReductions = db.InventoryReductions.Where(ir => aiSKUs.Contains(ir.Sku)).ToList();
+
                 foreach (var ai in availableInventory)
                 {
-                    string division = ai.Sku.Split('-')[0];
-                    instanceID = db.InstanceDivisions.Where(id => id.Division.Equals(division)).Select(id => id.InstanceID).FirstOrDefault();
+                    //var inventoryReduction = db.InventoryReductions.Where(ir => ir.Sku.Equals(ai.Sku) &&
+                    //                                                            ir.Size.Equals(ai.size) &&
+                    //                                                            ir.MFCode.Equals(ai.DistributionCenterID) &&
+                    //                                                            ir.PO.Equals(ai.PO) &&
+                    //                                                            ir.InstanceID.Equals(instanceID)).FirstOrDefault();
+                    var inventoryReduction = invReductions.Where(ir => ir.Sku.Equals(ai.Sku) &&
+                                                                       ir.Size.Equals(ai.size) &&
+                                                                       ir.MFCode.Equals(ai.DistributionCenterID) &&
+                                                                       ir.PO.Equals(ai.PO) &&
+                                                                       ir.InstanceID.Equals(instanceID)).FirstOrDefault();
 
-                    var inventoryReduction = db.InventoryReductions.Where(ir => ir.Sku.Equals(ai.Sku) &&
-                                                                                ir.Size.Equals(ai.size) &&
-                                                                                ir.MFCode.Equals(ai.DistributionCenterID) &&
-                                                                                ir.PO.Equals(ai.PO) &&
-                                                                                ir.InstanceID.Equals(instanceID)).FirstOrDefault();
                     if (inventoryReduction != null)
                     {
                         ai.quantity -= inventoryReduction.Qty;

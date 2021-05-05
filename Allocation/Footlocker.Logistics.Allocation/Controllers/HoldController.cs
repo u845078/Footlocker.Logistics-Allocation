@@ -13,6 +13,8 @@ using Footlocker.Logistics.Allocation.DAO;
 using System.IO;
 using Aspose.Excel;
 using System.Globalization;
+using Aspose.Cells;
+using System.Data;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -221,6 +223,120 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(new GridModel(list));
         }
 
+        [GridAction]
+        public ActionResult ExportGrid(GridCommand settings, string duration)
+        {
+            if ((duration == null) || (duration == ""))
+            {
+                duration = "All";
+            }
+            List<Division> divs = Divisions();
+            List<Hold> list = db.Holds.ToList();
+            IQueryable<Hold> holds = (from a in list
+                                      join d in divs on a.Division equals d.DivCode
+                                      where ((a.Duration == duration) || (duration == "All"))
+                                      select a).AsQueryable();
+
+            if (settings.FilterDescriptors.Any())
+            {
+                holds = holds.ApplyFilters(settings.FilterDescriptors);
+            }
+            Workbook excelDocument = CreateHoldsExport(holds.ToList());
+
+            OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "Holds.xlsx", ContentDisposition.Attachment, save);
+            return RedirectToAction("Index");
+        }
+
+        private Workbook CreateHoldsExport(List<Hold> holds)
+        {
+            Workbook excelDocument = RetrieveHoldsExcelFile(false);
+            int row = 1;
+            Aspose.Cells.Worksheet workSheet = excelDocument.Worksheets[0];
+            foreach (var rr in holds)
+            {
+                Aspose.Cells.Style align = excelDocument.CreateStyle();
+                align.HorizontalAlignment = Aspose.Cells.TextAlignmentType.Right;
+
+                Aspose.Cells.Style date = excelDocument.CreateStyle();
+                date.Number = 14;
+
+                workSheet.Cells[row, 0].PutValue(rr.Division);
+                workSheet.Cells[row, 0].SetStyle(align);
+                workSheet.Cells[row, 1].PutValue(rr.Store);
+                workSheet.Cells[row, 1].SetStyle(align);
+                workSheet.Cells[row, 2].PutValue(rr.Level);
+                workSheet.Cells[row, 2].SetStyle(align);
+                workSheet.Cells[row, 3].PutValue(rr.Value);
+                workSheet.Cells[row, 3].SetStyle(align);
+                workSheet.Cells[row, 4].PutValue(rr.StartDate);
+                workSheet.Cells[row, 4].SetStyle(date);
+                workSheet.Cells[row, 5].PutValue(rr.EndDate);
+                workSheet.Cells[row, 5].SetStyle(date);
+                workSheet.Cells[row, 6].PutValue(rr.Duration);
+                workSheet.Cells[row, 6].SetStyle(align);
+                workSheet.Cells[row, 7].PutValue(rr.HoldType);
+                workSheet.Cells[row, 7].SetStyle(align);
+                workSheet.Cells[row, 8].PutValue(rr.Comments);
+                workSheet.Cells[row, 8].SetStyle(align);
+                row++;
+            }
+
+            for (int i = 0; i < 9; i++)
+            {
+                workSheet.AutoFitColumn(i);
+            }
+            return excelDocument;
+        }
+
+        private Workbook RetrieveHoldsExcelFile(bool errorFile)
+        {
+            int row = 0;
+            int col = 0;
+
+            Aspose.Cells.License license = new Aspose.Cells.License();
+            license.SetLicense("C:\\Aspose\\Aspose.Cells.lic");
+
+            Workbook excelDocument = new Workbook();
+            Aspose.Cells.Worksheet workSheet = excelDocument.Worksheets[0];
+
+            Aspose.Cells.Style style = excelDocument.CreateStyle();
+            style.Font.IsBold = true;
+
+            workSheet.Cells[row, col].PutValue("Division");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Store");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Level");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Value");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Start Date");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("End Date");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Duration");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Hold Type");
+            workSheet.Cells[row, col].SetStyle(style);
+            col++;
+            workSheet.Cells[row, col].PutValue("Comments");
+            workSheet.Cells[row, col].SetStyle(style);
+            if (errorFile)
+            {
+                col++;
+                workSheet.Cells[row, col].PutValue("Message");
+                workSheet.Cells[row, col].SetStyle(style);
+            }
+            return excelDocument;
+        }
 
         public ActionResult Create()
         {
@@ -551,7 +667,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             string value = hold.Value + "";
 
             AllocationContext db = new AllocationContext();
-            DateTime controlDate = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == hold.Division select a.RunDate).First();
+            DateTime controlDate = (from a in db.ControlDates 
+                                    join b in db.InstanceDivisions 
+                                    on a.InstanceID equals b.InstanceID 
+                                    where b.Division == hold.Division 
+                                    select a.RunDate).First();
 
             returnMessage = CheckHoldPermission(hold);
 
@@ -567,7 +687,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 if (hold.Level == "All")
                 {
-                    if ((from a in db.Holds where ((a.Division == hold.Division) && (a.Store == hold.Store) && (a.Level == hold.Level) && (a.ID != hold.ID)) select a).Count() > 0)
+                    if ((from a in db.Holds 
+                         where ((a.Division == hold.Division) && 
+                                (a.Store == hold.Store) && 
+                                (a.Level == hold.Level) && 
+                                (a.ID != hold.ID)) 
+                         select a).Count() > 0)
                     {
                         returnMessage = "There is already a hold for " + hold.Store;
                     }
@@ -581,20 +706,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
                     }
                 }
-                //else if ((from a in db.Holds
-                //          where ((a.ID != hold.ID) &&
-                //          (a.Level == hold.Level) && (a.Value == hold.Value)
-                //         && ((a.Store == hold.Store) || ((a.Store == null) && (hold.Store == null))))
-                //          select a).Count() > 0)
-                //{
-                //    returnMessage = "There is already a hold for " + hold.Store + " " + hold.Level + " " + hold.Value;
-                //}
                 else
                 {
-                    var holds = (from a in db.Holds where (a.ID != hold.ID) && (a.Level == hold.Level) && (a.Value == hold.Value) select a).ToList();
+                    var holds = (from a in db.Holds 
+                                 where (a.ID != hold.ID) && 
+                                       (a.Level == hold.Level) && 
+                                       (a.Value == hold.Value) 
+                                 select a).ToList();
 
-                    if (holds.Any(a => (!fromUpload && ((a.Store == hold.Store) || (a.Store == null) && (hold.Store == null))) ||
-                                       (fromUpload && (a.Store == hold.Store && ((a.EndDate == null) || (a.EndDate > hold.StartDate))))))
+                    if (holds.Any(a => (!fromUpload && 
+                                        a.Division == hold.Division &&
+                                         ((a.Store == hold.Store) || (a.Store == null) && 
+                                          (hold.Store == null))) ||
+                                       (fromUpload && 
+                                       a.Division == hold.Division &&
+                                       a.Store == hold.Store && 
+                                         ((a.EndDate == null) || (a.EndDate > hold.StartDate)))))
                     {
                         returnMessage = "There is already a hold for " + hold.Store + " " + hold.Level + " " + hold.Value;
                     }
@@ -675,13 +802,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    {
-                        if (!(usesRuleSet))
-                        {
-                            returnMessage = "You must specify one or more stores.";
-                        }
-                    }
                 }
                 else if (hold.Level == "VendorDept")
                 {
@@ -730,13 +850,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    {
-                        if (!(usesRuleSet))
-                        {
-                            returnMessage = "You must specify one or more stores.";
-                        }
-                    }
                 }
                 else if (hold.Level == "Category") //category
                 {
@@ -752,13 +865,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
-                    }
-                    else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    {
-                        if (!(usesRuleSet))
-                        {
-                            returnMessage = "You must specify one or more stores.";
-                        }
                     }
 
                 }
@@ -776,13 +882,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    {
-                        if (!(usesRuleSet))
-                        {
-                            returnMessage = "You must specify one or more stores.";
-                        }
-                    }
                 }
                 else if (String.Equals(hold.Level, "DeptCatTeam"))
                 {
@@ -798,13 +897,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
                     }
-                    else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    {
-                        if (!(usesRuleSet))
-                        {
-                            returnMessage = "You must specify one or more stores.";
-                        }
-                    }
                 }
                 else if (String.Equals(hold.Level, "DeptCatBrand"))
                 {
@@ -819,13 +911,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         returnMessage =
                             "You do not have authority to create this hold.  You need dept level access.";
-                    }
-                    else if ((hold.Store == null) || (hold.Store.Trim() == ""))
-                    {
-                        if (!(usesRuleSet))
-                        {
-                            returnMessage = "You must specify one or more stores.";
-                        }
                     }
                 }
                 else
@@ -1288,58 +1373,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             };
         }
 
-
-        // ------------------------------------------------------------------------------------------------------------------
-        // OLD: These actions were used to release RDQs at the RDQ level (item/size), not at the RDQGroup level (item) which is the current UI design...
-        // NOTE: Leaving this code commented out as an artifact and point to come back to in case the user's change their mind on the UI design...
-        // ------------------------------------------------------------------------------------------------------------------
-        //[GridAction]
-        //public ActionResult ReleaseRDQToWarehouse(int ID, int holdID)
-        //{
-        //    //to release back to the warehouse all we need to do is delete it
-        //    //the result will be that we no longer decrease the inventory we send to Q, 
-        //    //so it will see more available to allocate to whoever it would like
-
-        //    RDQ rdq = (from a in db.RDQs where a.ID == ID select a).First();
-
-        //    db.RDQs.Remove(rdq);
-        //    db.SaveChanges();
-        //    RDQDAO dao = new RDQDAO();
-        //    return PartialView(new GridModel(dao.GetRDQsForHold(holdID)));
-        //    //return RedirectToAction("Delete", new { id = holdID });
-        //}
-
-        //[GridAction]
-        //public ActionResult ReleaseRDQ(int ID, int holdID)
-        //{
-        //    //they are releasing the RDQ, so we'll make it a user RDQ so that the hold won't apply and it will be picked the next pick day
-
-        //    //first, find the RDQ being held.
-        //    RDQ rdq = (from a in db.RDQs where a.ID == ID select a).First();
-
-        //    //now update it to a user RDQ, so that it will go down with the next batch
-        //    rdq.Type = "user";
-        //    //set to WEB PICK so that it will pick on the stores next pick day
-        //    rdq.Status = "WEB PICK";
-        //    rdq.CreateDate = DateTime.Now;
-        //    rdq.CreatedBy = User.Identity.Name;
-
-        //    if ((rdq.PO != null) && (rdq.PO != "") && (rdq.PO != "N/A") && (rdq.Size.Length == 5))
-        //    {
-        //        rdq.DestinationType = "CROSSDOCK";
-        //    }
-        //    else
-        //    {
-        //        rdq.DestinationType = "WAREHOUSE";
-        //    }
-
-        //    db.SaveChanges();
-
-        //    RDQDAO dao = new RDQDAO();
-        //    return PartialView(new GridModel(dao.GetRDQsForHold(holdID)));
-        //}
-        // ---------------------------------------------------------------------------------------------------------------------------------------------------
-
         private List<RDQ> GetRDQsInSession()
         {
             if (Session["rdqgrouplist"] != null)
@@ -1394,8 +1427,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                 }
 
-                //model = list.Select(x => new RDQ(x)).ToList();
-
                 Session["holdgrouprdq"] = div + "|" + level + "|" + value;
                 Session["rdqgrouplist"] = model;
             }
@@ -1444,8 +1475,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         //    //don't know per qty, so we'll just leave blank
                     }
                 }
-
-                //model = list.Select(x => new RDQ(x)).ToList();
 
                 Session["holdgrouprdq"] = div + "|" + store;
                 Session["rdqgrouplist"] = model;
@@ -1496,8 +1525,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         //    //don't know per qty, so we'll just leave blank
                     }
                 }
-
-                //model = list.Select(x => new RDQ(x)).ToList();
 
                 Session["holdrdq"] = holdID;
                 Session["holdrdqlist"] = model;
@@ -1605,6 +1632,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
+        public ActionResult UploadHoldsUpdates()
+        {
+            return View();
+        }
+
+        public ActionResult ExcelDeleteTemplate()
+        {
+            Aspose.Cells.License license = new Aspose.Cells.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Cells.lic");
+                        
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["HoldsUpdates"]);
+            Workbook excelDocument = new Workbook(System.Web.HttpContext.Current.Server.MapPath(templateFilename));            
+
+            OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsUpdates.xlsx", ContentDisposition.Attachment, save);            
+            return View();
+        }
+
         public ActionResult ExcelHoldsUploadTemplate()
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -1618,8 +1664,170 @@ namespace Footlocker.Logistics.Allocation.Controllers
             file.Close();
             MemoryStream memoryStream1 = new MemoryStream(data1);
             excelDocument.Open(memoryStream1);
-            excelDocument.Save("HoldsUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("HoldsUpload.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View("HoldsUpload");
+        }
+
+        public ActionResult MassDeleteHolds(IEnumerable<HttpPostedFileBase> attachments)
+        {
+            Aspose.Cells.License license = new Aspose.Cells.License();
+            license.SetLicense("C:\\Aspose\\Aspose.Cells.lic");
+            
+            foreach (HttpPostedFileBase file in attachments)
+            {
+                Workbook workbook = new Workbook(file.InputStream);
+                Aspose.Cells.Worksheet worksheet = workbook.Worksheets[0];
+
+                int rows = worksheet.Cells.MaxDataRow;
+                int columns = worksheet.Cells.MaxDataColumn;
+
+                DataTable excelData = worksheet.Cells.ExportDataTable(0, 0, rows + 1, columns + 1, true);
+
+                if (!(excelData.Columns[0].ColumnName == "Division" && excelData.Columns[1].ColumnName == "Store" && excelData.Columns[2].ColumnName == "Level" &&
+                        excelData.Columns[3].ColumnName == "Value" && excelData.Columns[4].ColumnName == "Start Date" && excelData.Columns[5].ColumnName == "End Date" &&
+                        excelData.Columns[6].ColumnName == "Duration" && excelData.Columns[7].ColumnName == "Hold Type" && excelData.Columns[8].ColumnName == "Comments"))
+                {
+                    return Content("Incorrectly formatted or missing header row. Please correct and re-process.");
+                }
+
+                List<DataRow> errorData = excelData.AsEnumerable().Where(x => x[7].ToString().Contains("Reserve")).ToList();                    
+
+                List<HoldsUploadDeleteModel> errorList = new List<HoldsUploadDeleteModel>();
+
+                foreach (DataRow reserveData in errorData)
+                {
+                    HoldsUploadDeleteModel error = new HoldsUploadDeleteModel();
+
+                    string division = reserveData["Division"].ToString().Trim();    
+                    string store = String.IsNullOrEmpty(reserveData["Store"].ToString().Trim()) ? null : reserveData["Store"].ToString().Trim();
+                    string level = reserveData["Level"].ToString().Trim();
+                    string value = reserveData["Value"].ToString().Trim();
+                    DateTime StartDate = DateTime.Parse(reserveData["Start Date"].ToString().Trim());
+
+                    Hold hold = (from a in db.Holds
+                                 where (a.Division == division) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 1) && 
+                                        (a.StartDate == StartDate) && (a.Store == store)
+                                  select a).FirstOrDefault();
+
+                    if (hold != null && hold.ReserveInventoryBool)
+                    {
+                        RDQDAO dao = new RDQDAO();
+                        if (dao.GetUniqueRDQsForHold(hold.ID).Count > 0)
+                        {
+                            DateTime? dt = null;
+                            error.Division = division;
+                            error.Store = store;
+                            error.Level = level;
+                            error.Value = value;
+                            error.StartDate = StartDate;
+                            error.EndDate = String.IsNullOrEmpty(reserveData["End Date"].ToString().Trim()) ? dt : DateTime.Parse(reserveData["End Date"].ToString().Trim());
+                            error.Duration = reserveData["Duration"].ToString().Trim();
+                            error.HoldType = reserveData["Hold Type"].ToString().Trim();
+                            error.Comments = reserveData["Comments"].ToString().Trim();
+                            error.ErrorMessage = "You must release all RDQs before you can delete this hold.";
+
+                            errorList.Add(error);
+                            excelData.Rows.Remove(reserveData);
+                        }
+                    }                    
+                }
+                
+                foreach (DataRow validRows in excelData.Rows)
+                {
+
+                    string division = validRows["Division"].ToString().Trim();
+                    string store = String.IsNullOrEmpty(validRows["Store"].ToString().Trim()) ? null : validRows["Store"].ToString().Trim();
+                    string level = validRows["Level"].ToString().Trim();
+                    string value = validRows["Value"].ToString().Trim();
+                    DateTime StartDate = DateTime.Parse(validRows["Start Date"].ToString().Trim());
+
+                    Hold hold = (from a in db.Holds
+                                 where (a.Division == division) && (a.Level == level) && (a.Value == value) &&
+                                        (a.StartDate == StartDate) && (a.Store == store)
+                                 select a).FirstOrDefault();
+
+                    DateTime? dt = null;
+                    hold.EndDate = String.IsNullOrEmpty(validRows["End Date"].ToString().Trim()) ? dt : DateTime.Parse(validRows["End Date"].ToString().Trim());
+                    hold.Duration = validRows["Duration"].ToString().Trim();
+                    hold.HoldType = validRows["Hold Type"].ToString().Trim();
+                    hold.Comments = validRows["Comments"].ToString().Trim();
+                    hold.CreateDate = DateTime.Now;
+                    hold.CreatedBy = User.Identity.Name;
+
+                    db.Entry(hold).State = System.Data.EntityState.Modified;                    
+                }
+                db.SaveChanges();
+
+                if (errorList.Count() > 0)
+                {
+                    Session["errorList"] = errorList;
+
+                    string msg = excelData.Rows.Count + " Successfully uploaded";
+                    // and " + errorList.Count() + " error records downloaded to excel";
+
+                    //Workbook excelDocument = CreateErrorListExcel(errorList);
+
+                    //OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
+                    //excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsErrorList.xlsx", ContentDisposition.Attachment, save);
+                    //excelDocument.Save("HoldsErrorList.xlsx", save);
+
+                    return Content(msg);
+                }
+            }
+
+            return Content("");
+        }
+
+        public ActionResult DownloadDeleteErrors()
+        {
+            List<HoldsUploadDeleteModel> errorList = (List<HoldsUploadDeleteModel>)Session["errorList"];
+
+            Aspose.Cells.License license = new Aspose.Cells.License();
+            license.SetLicense("C:\\Aspose\\Aspose.Cells.lic");
+
+            Workbook excelDocument = RetrieveHoldsExcelFile(true);
+            int row = 1;
+            Aspose.Cells.Worksheet workSheet = excelDocument.Worksheets[0];
+            foreach (HoldsUploadDeleteModel rr in errorList)
+            {
+                Aspose.Cells.Style align = excelDocument.CreateStyle();
+                align.HorizontalAlignment = Aspose.Cells.TextAlignmentType.Right;
+
+                Aspose.Cells.Style date = excelDocument.CreateStyle();
+                date.Number = 14;
+
+                workSheet.Cells[row, 0].PutValue(rr.Division);
+                workSheet.Cells[row, 0].SetStyle(align);
+                workSheet.Cells[row, 1].PutValue(rr.Store);
+                workSheet.Cells[row, 1].SetStyle(align);
+                workSheet.Cells[row, 2].PutValue(rr.Level);
+                workSheet.Cells[row, 2].SetStyle(align);
+                workSheet.Cells[row, 3].PutValue(rr.Value);
+                workSheet.Cells[row, 3].SetStyle(align);
+                workSheet.Cells[row, 4].PutValue(rr.StartDate);
+                workSheet.Cells[row, 4].SetStyle(date);
+                workSheet.Cells[row, 5].PutValue(rr.EndDate);
+                workSheet.Cells[row, 5].SetStyle(date);
+                workSheet.Cells[row, 6].PutValue(rr.Duration);
+                workSheet.Cells[row, 6].SetStyle(align);
+                workSheet.Cells[row, 7].PutValue(rr.HoldType);
+                workSheet.Cells[row, 7].SetStyle(align);
+                workSheet.Cells[row, 8].PutValue(rr.Comments);
+                workSheet.Cells[row, 8].SetStyle(align);
+                workSheet.Cells[row, 9].PutValue(rr.ErrorMessage);
+                workSheet.Cells[row, 9].SetStyle(align);
+                row++;
+            }
+
+            for (int i = 0; i < 10; i++)
+            {
+                workSheet.AutoFitColumn(i);
+            }
+
+            OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsErrorList.xlsx", ContentDisposition.Attachment, save);
+
+            return View();
         }
 
         public ActionResult UploadHolds(IEnumerable<HttpPostedFileBase> attachments)
@@ -1735,7 +1943,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <param name="sheet"></param>
         /// <param name="row"></param>
         /// <returns></returns>
-        private bool HasDataOnRow(Worksheet sheet, int row)
+        private bool HasDataOnRow(Aspose.Excel.Worksheet sheet, int row)
         {
             return sheet.Cells[row, 0].Value != null ||
                    sheet.Cells[row, 1].Value != null ||
