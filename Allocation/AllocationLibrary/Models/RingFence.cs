@@ -11,15 +11,10 @@ using Footlocker.Common.Utilities.File;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
-    public class RingFence : BiExtract
+    public class RingFence
     {
         private string _store;
         private string _sku;
-
-        public override bool IsValid()
-        {
-            return true;
-        }
 
         [StringLayoutDelimited(0)]
         [Key]

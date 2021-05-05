@@ -11,13 +11,8 @@ using Footlocker.Common.Utilities.File;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
-    public class RangePlan : BiExtract
+    public class RangePlan
     {
-        public override bool IsValid()
-        {
-            return true;
-        }
-
         private Int64 _id;
 
         [StringLayoutDelimited(0)]

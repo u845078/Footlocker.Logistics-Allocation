@@ -11,14 +11,8 @@ using Footlocker.Common.Utilities.File;
 namespace Footlocker.Logistics.Allocation.Models
 {
     [Table("ExpeditePOs")]
-    public class ExpeditePO : BiExtract
-    {
-        public override bool IsValid()
-        {
-            return true;
-        }
-
-        
+    public class ExpeditePO 
+    {      
         [Key]
         [Column(Order=0)]
         [StringLayoutDelimited(0)]
@@ -29,7 +23,6 @@ namespace Footlocker.Logistics.Allocation.Models
         [StringLayoutDelimited(1)]
         public string PO { get; set; }
 
-        //[StringLayoutDelimited(2, "yyyy-MM-dd")]
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         [Display(Name = "ExpectedDeliveryDate")]

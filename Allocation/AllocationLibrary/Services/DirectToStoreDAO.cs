@@ -132,11 +132,6 @@ namespace Footlocker.Logistics.Allocation.Services
                 {
                     var constraint = factory.Create(dr);
 
-                    // --------------------------------------------------------------------------------------------------------------------------------------------------------
-                    // HACK: It seems as though the 'BIExtract' objects have been leveraged to support new UIs, rather than creating new models
-                    // Setting these properties out here, rather than the ctor, as the ctor was for extract purposes, this method is used to hydrate this extract object for UI,
-                    // so here is where we will put the UI custom populating
-                    // --------------------------------------------------------------------------------------------------------------------------------------------------------
                     constraint.VendorNumber = dr["VendorID"].ToString();
                     constraint.VendorDesc = dr["VendorDesc"].ToString();
                     constraint.VendorPackQty = Convert.ToInt32(dr["VendorPackQty"]);
