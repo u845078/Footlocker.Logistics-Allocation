@@ -21,43 +21,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             return View();
         }
-        //
-        // GET: /Account/Delete/5
-
-        //[HttpPost]
-        //public ActionResult _AutoCompleteFilteringAjax2(string text, string type)
-        //{
-        //    switch (type)
-        //    {
-        //        case "Store":
-        //            IQueryable<StoreLookup> stores = db.StoreLookups.AsQueryable();
-        //            stores = stores.Where((p) => p.Store.StartsWith(text));
-        //            return new JsonResult
-        //            {
-        //                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-        //                Data = new
-        //                    SelectList(stores.ToList(), "Store", "Store")
-        //            };
-        //        case "State":
-        //            IQueryable<String> states = (from a in db.StoreLookups where a.State.StartsWith(text) select a.State).Distinct();
-
-        //            return new JsonResult
-        //            {
-        //                JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-        //                Data = new
-        //                    SelectList(states.ToList())
-        //            };
-
-        //        //return new JsonResult { Data = stores.Select(p => p.Store) };
-        //    }
-
-        //    return new JsonResult
-        //    {
-        //        JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-        //        Data = new
-        //            SelectList(new List<StoreLookup>(), "Store", "Store")
-        //    }; 
-        //}
 
         [HttpPost]
         public ActionResult _AutoCompleteFilteringAjax(string text, string type)
@@ -129,14 +92,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             return new JsonResult { Data = new List<StoreLookup>() };
-
-            //return new JsonResult
-            //{
-            //    JsonRequestBehavior = JsonRequestBehavior.AllowGet,
-            //    Data = new
-            //        SelectList(new List<StoreLookup>(), "Store", "Store")
-            //};
-
         }
 
         [HttpPost]
@@ -251,14 +206,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<Rule> rules;
 
-            //if (ruleType == "hold")
-            //{
             rules = db.GetRulesForRuleSet(ruleSetID, ruleType);
-            //}
-            //else
-            //{
-            //    rules = db.GetRulesForPlan(ruleSetID, ruleType);
-            //}
+
             return View(new GridModel(rules));
         }
 
@@ -379,10 +328,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             Rule newRule = new Rule();
 
-            //if (ruleType != "hold")
-            //{
-            //    ruleSetID = (new RuleDAO()).GetRuleSetID(ruleSetID, ruleType, User.Identity.Name);
-            //}
             ClearRules(ruleSetID);
             Session["rulesetid"] = -1;
             return Json("Success", JsonRequestBehavior.AllowGet);
@@ -608,8 +553,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 finalRules = list;
             }
 
-
-
             if (rs.Type == "Delivery")
             {
                 //add rules to only pull back stores in the range plan if this is a Delivery type.
@@ -743,16 +686,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             dao.Delete(rule);
             Session["rulesetid"] = -1;
 
-            // Return result based on rule set type
-            //switch (ruleSetType)
-            //{
-            //    case "HOLD":
             return Json("Success");
-            //    case "SIZEALC":
-            //        return RedirectToAction("PresentationQuantities", "SkuRange", new { planID = planID });
-            //    default:
-            //        return RedirectToAction("AddStoresByRule", "SkuRange", new { planID = planID });
-            //}
         }
 
         public ActionResult Delete(Int64 id)
@@ -769,21 +703,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             Session["rulesetid"] = -1;
 
             dao.Delete(rule);
-            //db.Rules.Remove(rule);
-            //db.SaveChanges();
-            //if (rs.Type == "hold")
-            //{
+
             return Json("Success", JsonRequestBehavior.AllowGet);
-            //}
-
-
-            //return RedirectToAction("AddStoresByRule", "SkuRange", new { planID = planID });
-
-            /*
-            Rule rule = (from a in db.Rules where a.ID == id select a).First();
-
-            return View(rule);
-             */
         }
 
         //
@@ -801,14 +722,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 Int64 planID = dao.GetPlanID(id);
                 dao.Delete(rule);
                 Session["rulesetid"] = -1;
-                //if (rs.Type == "hold")
-                //{
-                return Json("Success");
-                //}
 
-                //db.Rules.Remove(rule);
-                //db.SaveChanges();
-                //return RedirectToAction("AddStoresByRule", "SkuRange", new { planID = planID });
+                return Json("Success");
             }
             catch
             {
@@ -877,24 +792,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             RuleSet rs = (from a in db.RuleSets where a.RuleSetID == rule.RuleSetID select a).First();
-            //if (rs.Type == "hold")
-            //{
+
             Session["rulesetid"] = -1;
             return Json("Success", JsonRequestBehavior.AllowGet);
-            //}
-
-            //Int64 planID = (new RuleDAO()).GetPlanID(id);
-
-            //if (rs.Type == "SizeAlc")
-            //{
-            //    return RedirectToAction("PresentationQuantities", "SkuRange", new { planID = planID });
-            //}
-            //else
-            //{
-            //    return RedirectToAction("AddStoresByRule", "SkuRange", new { planID = planID });
-            //}
-            //return RedirectToAction("AddStoresByRule", "SkuRange", new { planID = planID });
-
         }
 
         public ActionResult Down(Int64 id)
@@ -913,7 +813,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 rule.Sort = rule.Sort + 1;
                 ruleBelow.Sort = ruleBelow.Sort - 1;
-                //TryUpdateModel(rule);
+                
                 if (ModelState.IsValid)
                 {
                     db.SaveChanges();
@@ -921,24 +821,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             RuleSet rs = (from a in db.RuleSets where a.RuleSetID == rule.RuleSetID select a).First();
-            //if (rs.Type == "hold")
-            //{
+
             Session["rulesetid"] = -1;
             return Json("Success", JsonRequestBehavior.AllowGet);
-            //}
-
-            //Int64 planID = (new RuleDAO()).GetPlanID(id);
-
-            //if (rs.Type == "SizeAlc")
-            //{
-            //    return RedirectToAction("PresentationQuantities", "SkuRange", new { planID = planID });
-            //}
-            //else
-            //{
-            //    return RedirectToAction("AddStoresByRule", "SkuRange", new { planID = planID });
-            //}
-            //return RedirectToAction("AddStoresByRule", "SkuRange", new { planID = planID });
-
         }
 
         /// <summary>
@@ -1130,7 +1015,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 return Json("Error");
             }
-            //return GetGridJson(planID, page);
         }
 
         /// <summary>
@@ -1168,33 +1052,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     dao.RemoveStoresFromRuleset(dblist, 0, ruleSetID);
                 }
-                /*
-                foreach (StoreLookupModel s in this.GetStoresForRules(ruleSetID))
-                {
-                    var query = (from a in db.RuleSelectedStores where ((a.Store == s.Store) && (a.Division == s.Division) && (a.RuleSetID == ruleSetID)) select a);
-                    if (query.Count() > 0)
-                    {
-                        RuleSelectedStore det = query.First();
-                        db.RuleSelectedStores.Remove(det);
-                        updated = true;
-                    }
 
-                    if (rs.Type == "Main")
-                    {
-                        var query2 = (from a in details where ((a.Store == s.Store) && (a.Division == s.Division)) select a);
-                        if (query2.Count() > 0)
-                        {
-                            //delete it
-                            RangePlanDetail rpDet = query2.First();
-
-                            db.RangePlanDetails.Remove(rpDet);
-                            updated = true;
-                        }
-                    }
-
-                }
-                db.SaveChanges(UserName);
-                 */
                 Session["rulesetid"] = -1;
                 //for PresentationQuantities page, need to reset the session vars so they reload
                 Session["pqAllocs"] = null;
@@ -1211,7 +1069,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 return Json("Error");
             }
-            //return GetGridJson(planID, page);
         }
 
 
@@ -1475,17 +1332,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                                 if ((newDet.Store != "00000"))
                                 {
-                                    //if (checkStore)
-                                    //{
                                     if ((from a in StoresInRules where ((a.Division == newDet.Division) && (a.Store == newDet.Store)) select a).Count() > 0)
                                     {
                                         list.Add(newDet);
                                     }
-                                    //}
-                                    //else
-                                    //{ 
-                                    //    list.Add(newDet);
-                                    //}
                                 }
                             }
                             catch (Exception ex)
@@ -1530,8 +1380,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 return Content(ex.Message);
             }
-
-
         }
 
         private void UpdateRangePlanDate(long? planID)

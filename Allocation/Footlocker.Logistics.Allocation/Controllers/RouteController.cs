@@ -222,7 +222,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.DistributionCenterRestrictions = (from dcr in db.DistributionCenterRestrictions
                                                     select dcr).ToList();
 
-
             model.AvailableInstances = (from i in db.Instances
                                         select i).ToList();
 

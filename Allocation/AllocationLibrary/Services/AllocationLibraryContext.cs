@@ -81,6 +81,9 @@ namespace Footlocker.Logistics.Allocation.Services
 
         public DbSet<DistributionCenterRestrictions> DistributionCenterRestrictions { get; set; }
 
+        public DbSet<Country> Countries { get; set; }
+        public DbSet<State> States { get; set; }
+
         public AllocationLibraryContext()
             : base("AllocationContext")
         {
@@ -177,9 +180,10 @@ namespace Footlocker.Logistics.Allocation.Services
                 m.ToTable("vValidStores");
             });
 
-            //modelBuilder.Entity<ProductHierarchyOverrides>()
-            //    .HasRequired<ProductOverrideTypes>(p => p.productOverrideType)
-            //    .WithMany(s => s.productHierarchyOverrides);
+            modelBuilder.Entity<EcomCustomerFulfillmentXref>()
+                .HasRequired(p => p.State)
+                .WithMany()
+                .HasForeignKey(s => new { s.CountryCode, s.StateCode });
         }
 
         public void HistoryRingFence(RingFence rf, string user, System.Data.EntityState state)

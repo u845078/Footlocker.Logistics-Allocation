@@ -35,6 +35,7 @@ namespace Footlocker.Logistics.Allocation.Models
         [Column("MinihubInd")]
         public bool IsMinihub { get; set; }
 
+        [Display(Name = "Ecom Fulfillment Center")]
         [Column("FulfillmentCenterInd")]
         public bool IsFulfillmentCenter { get; set; }
 

@@ -19,10 +19,11 @@
         .HtmlAttributes(new { style = "margin-top: 10px;", @class = "selectable-grid" })
         .Columns(columns =>
         {
-            columns.Bound(o => o.Country);
-            columns.Bound(o => o.State).Width(50);
+            columns.Bound(o => o.Country.DisplayName);
+            columns.Bound(o => o.State.DisplayName).Width(50);
             columns.Bound(o => o.PostalCode);
-            columns.Bound(o => o.FulfillmentCenter.displayValue).Width(175);
+            columns.Bound(o => o.FulfillmentCenter.displayValue).Title("Fulfillment Center").Width(175);
+            columns.Bound(o => o.EcomStore).Title("Ecom Store");
             columns.Bound(o => o.EffectiveFromDate);
             columns.Bound(o => o.EffectiveToDate);
             columns.Bound(o => o.LastModifiedUser).Title("Updated By");
@@ -30,14 +31,14 @@
                             columns.Command(commands =>
                             {
                                 commands.Custom("Edit").Text("Edit")
-                                    .DataRouteValues(route => { route.Add(o => o.FulfillmentCenterID).RouteKey("ID"); })
+                                    .DataRouteValues(route => { route.Add(o => o.FulfillmentXrefID).RouteKey("ID"); })
                                     .Ajax(false)
                                     .Action("Edit", "EcomCustXref");
                                 commands.Custom("Delete").Text("Delete")
-                                    .DataRouteValues(route => { route.Add(o => o.FulfillmentCenterID).RouteKey("ID"); })
+                                    .DataRouteValues(route => { route.Add(o => o.FulfillmentXrefID).RouteKey("ID"); })
                                     .Ajax(false)
                                     .Action("Delete", "EcomCustXref").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
-                            }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
+                            }).HtmlAttributes(new { style = "text-align: left" }).Width(150);
         })
         .Sortable(s =>
         {

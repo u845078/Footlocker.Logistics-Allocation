@@ -33,6 +33,7 @@
       <siteMapNode title="Utility Index" controller="UtilityIndex" action="Index" />
       <siteMapNode title="Vendor Groups" controller="DTSVendorGroup" action="Index" />
 		  <siteMapNode title="Zones" controller="Network" action="Index"/>
+      <siteMapNode title="Ecom Fulfillment Centers" controller="EcomCustXref" action="Index"/>
 	  </siteMapNode>
 
 	  <siteMapNode title="Product">

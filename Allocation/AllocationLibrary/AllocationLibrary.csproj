@@ -96,6 +96,7 @@
   <ItemGroup>
     <Compile Include="Factories\AllocationDriverFactory.cs" />
     <Compile Include="Factories\DirectToStoreConstraintFactory.cs" />
+    <Compile Include="Factories\EcomCustFulfillmentFactory.cs" />
     <Compile Include="Factories\EcommWeightFactory.cs" />
     <Compile Include="Factories\ExistingPOFactory.cs" />
     <Compile Include="Factories\FamilyOfBusinessFactory.cs" />
@@ -128,6 +129,7 @@
     <Compile Include="Models\Config.cs" />
     <Compile Include="Models\ConfigParam.cs" />
     <Compile Include="Models\ControlDate.cs" />
+    <Compile Include="Models\Country.cs" />
     <Compile Include="Models\Departments.cs" />
     <Compile Include="Models\DistributionCenterRestrictions.cs" />
     <Compile Include="Models\EcomCustomerFulfillmentXref.cs" />
@@ -187,6 +189,7 @@
     <Compile Include="Models\RingFenceSummary.cs" />
     <Compile Include="Models\RingFenceType.cs" />
     <Compile Include="Models\Size.cs" />
+    <Compile Include="Models\State.cs" />
     <Compile Include="Models\StoreAttribute.cs" />
     <Compile Include="Models\StoreBase.cs" />
     <Compile Include="Models\StoreBTSGridExtract.cs" />
@@ -258,6 +261,7 @@
     <Compile Include="Services\ConvertRangeDAO.cs" />
     <Compile Include="Services\EcomCustXrefDAO.cs" />
     <Compile Include="Services\FootLockerCommonContext.cs" />
+    <Compile Include="Services\Repository.cs" />
     <Compile Include="Services\ItemDAO.cs" />
     <Compile Include="Services\LegacyFutureInventoryDAO.cs" />
     <Compile Include="Services\EcommWeightDAO.cs" />
@@ -285,6 +289,7 @@
     <Compile Include="Services\RuleDAO.cs" />
     <Compile Include="Services\SizeAllocationDAO.cs" />
     <Compile Include="Services\WarehouseInventoryDAO.cs" />
+    <Compile Include="Validation\EcomCustFulfillmentXref.cs" />
     <Compile Include="Validation\ModelClientValidationRequiredIfRule.cs" />
     <Compile Include="Validation\RequiredIfAttribute.cs" />
   </ItemGroup>
