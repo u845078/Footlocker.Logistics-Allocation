@@ -12,7 +12,7 @@
         @Html.ActionLink("Create New", "Create", null, new { @class = "t-button", @style = "float: right" })
     </p>
 
-    @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
+    @Html.Raw("<font color='red'>" + TempData["message"] + "</font>")
     <br />
     @(Html.Telerik().Grid<EcomCustomerFulfillmentXref>(Model)
         .Name("EcomCustXrefGrid")
@@ -37,7 +37,7 @@
                                 commands.Custom("Delete").Text("Delete")
                                     .DataRouteValues(route => { route.Add(o => o.FulfillmentXrefID).RouteKey("ID"); })
                                     .Ajax(false)
-                                    .Action("Delete", "EcomCustXref").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+                                    .Action("Delete", "EcomCustXref").HtmlAttributes(new { onclick = "return confirm('Are you sure you want to delete this XRef? It cannot be undone.');" });
                             }).HtmlAttributes(new { style = "text-align: left" }).Width(150);
         })
         .Sortable(s =>

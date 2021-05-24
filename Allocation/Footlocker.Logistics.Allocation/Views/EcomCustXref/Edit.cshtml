@@ -1,28 +1,25 @@
-﻿@model Footlocker.Logistics.Allocation.Models.EcomCustomerFulfillmentXrefModel
+﻿@using Footlocker.Logistics.Allocation.Models
+@model EcomCustomerFulfillmentXrefModel
 
 @{
-    ViewBag.Title = "Edit";
+    ViewBag.Title = "Edit Customer Location/Fulfillment Center Cross Reference";
 }
 
-<h2>Edit</h2>
+<h2>@ViewBag.Title</h2>
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
 
-@using (Html.BeginForm()) {
-    @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true)
+@using (Html.BeginForm("Edit", "EcomCustXref"))
+{
+    @Html.Partial(@Url.Content("~/Views/EcomCustXref/FormLayout.cshtml"), Model, ViewData)
 
-    <fieldset>
-        <legend>EcomCustomerFulfillmentXrefModel</legend>
-
-        <p>
-            <input type="submit" value="Save" />
-        </p>
-    </fieldset>
+    <div style="text-align: center;">
+        <button id="saveButton" type="submit">Submit</button>
+    </div>
 }
 
 <div>
     @Html.ActionLink("Back to List", "Index")
 </div>
 
-@section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
-}

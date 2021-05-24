@@ -15,7 +15,7 @@
                 var selectedCountry = $('#CountryCodeList').val();
 
                 // disable submit button while list(s) are loading
-                $('#saveButton').prop("disabled", true);
+                $('#saveButton').attr("disabled", true);
                 // grab the view model from the view
                 var model = @Html.Raw(Json.Encode(Model));
 
@@ -26,9 +26,8 @@
                     });
                     $('#StateCodeList').html(items);
                     $('#StateCodeList').change();
-                });
-
-                $('#saveButton').prop("disabled", false);
+                    $('#saveButton').removeAttr("disabled");
+                });          
             })
 
             $('#FulfillmentCenters').change(function () {
@@ -36,7 +35,8 @@
                 $('#ECOMStores').html(loading);
                 var divisionFilter;
                 // disable submit button while list(s) are loading
-                $('#saveButton').prop("disabled", true);
+                //$('#saveButton').prop("disabled", true);
+                $('#saveButton').attr("disabled", true);
                 // grab the view model from the view
                 var model = @Html.Raw(Json.Encode(Model));
 
@@ -47,9 +47,8 @@
                     });
                     $('#ECOMStores').html(items);
                     $('#ECOMStores').change();
+                    $('#saveButton').removeAttr("disabled");
                 });
-
-                $('#saveButton').prop("disabled", false);
             });
         });
 </script>

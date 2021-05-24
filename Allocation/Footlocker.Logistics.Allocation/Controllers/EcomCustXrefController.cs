@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
+using System.Net;
 using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
@@ -51,9 +51,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Create()
         {
-            EcomCustomerFulfillmentXrefModel model = new EcomCustomerFulfillmentXrefModel();
-
-            model.DataRec = new EcomCustFulfillmentXref();
+            EcomCustomerFulfillmentXrefModel model = new EcomCustomerFulfillmentXrefModel()
+            {
+                DataRec = new EcomCustFulfillmentXref()
+            };
 
             model = SetDropDowns(model);
 
@@ -70,6 +71,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 EcomCustomerFulfillmentXref newData = EcomCustFulfillmentFactory.CreateDBRec(model.DataRec, FullUserName);
                 db.EcomCustomerFulfillmentXrefs.Add(newData);
                 db.SaveChanges();
+                TempData["message"] = "Record has been successfully created.";
                 return RedirectToAction("Index");
             }
             else
@@ -80,9 +82,67 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-        public ActionResult Edit()
+        public ActionResult Edit(int? id)
         {
-            return View();
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            EcomCustomerFulfillmentXref rec = db.EcomCustomerFulfillmentXrefs.Find(id);
+            if (rec == null)
+            {
+                return HttpNotFound();
+            }
+
+            EcomCustomerFulfillmentXrefModel model = new EcomCustomerFulfillmentXrefModel()
+            {
+                DataRec = new EcomCustFulfillmentXref(), 
+                ID = id.Value
+            };
+
+            model.DataRec = EcomCustFulfillmentFactory.CreateValidationRec(rec);
+            model = SetDropDowns(model);
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult Edit(EcomCustomerFulfillmentXrefModel model)
+        {
+            List<ValidationResult> validationResults = new List<ValidationResult>();
+            bool isValid = Validator.TryValidateObject(model.DataRec, new ValidationContext(model.DataRec, null, null), validationResults);
+            if (isValid)
+            {
+                EcomCustomerFulfillmentXref editedData = db.EcomCustomerFulfillmentXrefs.Where(e => e.FulfillmentXrefID == model.ID).FirstOrDefault();
+                editedData = EcomCustFulfillmentFactory.CreateUpdatedDBRec(model.DataRec, editedData, FullUserName);
+                
+                db.SaveChanges();
+                TempData["message"] = "Record has been updated successfully.";
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                model = SetDropDowns(model);
+
+                return View(model);
+            }
+        }
+
+        public ActionResult Delete(int id)
+        {
+            EcomCustomerFulfillmentXref deleteData = db.EcomCustomerFulfillmentXrefs.Where(e => e.FulfillmentXrefID == id).FirstOrDefault();
+
+            if (deleteData == null)
+                TempData["message"] = "Record could not be found. Please refresh the grid and try again.";
+            else
+            {
+                db.EcomCustomerFulfillmentXrefs.Remove(deleteData);
+                db.SaveChanges();
+                TempData["message"] = "Record has been deleted successfully.";
+            }
+
+            return RedirectToAction("Index");
         }
 
         #region JSON Result routines

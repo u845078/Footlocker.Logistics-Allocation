@@ -27,5 +27,40 @@ namespace Footlocker.Logistics.Allocation.Factories
 
             return outRec;
         }
+
+        public static EcomCustomerFulfillmentXref CreateUpdatedDBRec(EcomCustFulfillmentXref validationData, EcomCustomerFulfillmentXref dbRec, string currUser)
+        {
+            EcomCustomerFulfillmentXref updatedRec = dbRec;
+
+            updatedRec.PostalCode = validationData.PostalCode;
+            updatedRec.StateCode = validationData.StateCode;
+            updatedRec.CountryCode = validationData.CountryCode;
+            updatedRec.FulfillmentCenterID = validationData.FulfillmentCenterID;
+            updatedRec.Division = validationData.Division;
+            updatedRec.Store = validationData.Store;
+            updatedRec.EffectiveFromDate = validationData.EffectiveFromDate;
+            updatedRec.EffectiveToDate = validationData.EffectiveToDate;
+            updatedRec.LastModifiedDate = DateTime.Now;
+            updatedRec.LastModifiedUser = currUser;
+
+            return updatedRec;
+        }
+
+        public static EcomCustFulfillmentXref CreateValidationRec(EcomCustomerFulfillmentXref dbRec)
+        {
+            EcomCustFulfillmentXref outRec = new EcomCustFulfillmentXref
+            {
+                PostalCode = dbRec.PostalCode,
+                StateCode = dbRec.StateCode,
+                CountryCode = dbRec.CountryCode,
+                FulfillmentCenterID = dbRec.FulfillmentCenterID,
+                Division = dbRec.Division,
+                Store = dbRec.Store,
+                EffectiveFromDate = dbRec.EffectiveFromDate,
+                EffectiveToDate = dbRec.EffectiveToDate
+            };
+
+            return outRec;
+        }
     }
 }

@@ -23,5 +23,7 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [Display(Name = "State/Province")]
         public List<SelectListItem> StateCodes { get; set; }
+
+        public int ID { get; set; }
     }
 }
