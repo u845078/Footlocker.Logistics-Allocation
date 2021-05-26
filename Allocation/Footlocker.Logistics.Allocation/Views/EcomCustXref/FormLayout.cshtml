@@ -30,7 +30,7 @@
                 });          
             })
 
-            $('#FulfillmentCenters').change(function () {
+            @*$('#FulfillmentCenters').change(function () {
                 // loading messages
                 $('#ECOMStores').html(loading);
                 var divisionFilter;
@@ -49,7 +49,7 @@
                     $('#ECOMStores').change();
                     $('#saveButton').removeAttr("disabled");
                 });
-            });
+            });*@
         });
 </script>
 
@@ -127,7 +127,7 @@
     @Html.DropDownListFor(m => m.DataRec.FulfillmentCenterID, Model.FulfillmentCenters, new { id = "FulfillmentCenters" })
 </div>
 
-<br />
+@*<br />
 <p>If there is more than one ECOM Store used for the Fulfillment Center for a division, please specify the ECOM Store as well.</p>
 
 <div class="editor-label">
@@ -135,5 +135,5 @@
 </div>
 <div class="editor-field">
     @Html.DropDownListFor(m => m.DataRec.EcomStore, Model.ECOMStores, new { id = "ECOMStores" })
-</div>
+</div>*@
 
