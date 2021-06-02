@@ -22,9 +22,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ecomXrefRepository = new Repository<EcomCustomerFulfillmentXref>(new AllocationLibraryContext());
         }
 
+        #region ActionResult handlers
         //
         // GET: /EcomCustXref/
-
         public ViewResult Index()
         {
             List<EcomCustomerFulfillmentXref> model;
@@ -144,6 +144,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return RedirectToAction("Index");
         }
+        #endregion
+
 
         #region JSON Result routines
         public JsonResult GetStateCodesJson(string Id)

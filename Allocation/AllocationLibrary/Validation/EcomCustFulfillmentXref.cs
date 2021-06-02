@@ -56,12 +56,11 @@ namespace Footlocker.Logistics.Allocation.Validation
 
         IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         {
-            var pEndDate = new[] { "EffectiveToDate" };
             if (EffectiveToDate.HasValue)
             {
                 if (EffectiveToDate.Value < EffectiveFromDate)
                 {
-                    yield return new ValidationResult("Effective To date cannot be before Effective From date", pEndDate);
+                    yield return new ValidationResult("Effective To date cannot be before Effective From date", new[] { "EffectiveToDate" });
                 }
             }
         }

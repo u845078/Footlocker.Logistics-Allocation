@@ -226,8 +226,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public List<SelectListItem> GetOverrideTypes()
         {
             List<SelectListItem> overrideTypeList = new List<SelectListItem>();
-            var query = (from a in db.ProductOverrideTypes select a).ToList();
-            var sortedTypes = query.OrderBy(o => o.sortValue).ToList();
+            var sortedTypes = (from a in db.ProductOverrideTypes
+                               orderby a.sortValue
+                               select a).ToList();
 
             if (sortedTypes.Count() > 0)
             {
@@ -478,9 +479,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 pho.overrideDivision = model.overrideDivisionList[0].Value;
             }
             
-
-
-
             model.seasonalityLevels = GetSeasonalityLevels();
             if (string.IsNullOrEmpty(model.selectedSeasonalityLevel))
             {
@@ -494,9 +492,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 pho.productOverrideTypeCode = model.overrideTypes[0].Value;
             }
-
-            //else
-            //    model.overrideDivisionList[model.overrideDivisionList.FindIndex(m => m.Value == model.prodHierarchyOverride.overrideDivision)].Selected = true;
 
             model.overrideDepartmentList = GetDepartmentList(pho.overrideDivision);
             var existentOverrideDepartment = model.overrideDepartmentList.Where(dept => dept.Value == pho.overrideDepartment).Count();
