@@ -186,6 +186,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<SelectListItem> stateCodes = new List<SelectListItem>();
 
+            stateCodes.Add(new SelectListItem() { Text = "** None **", Value = "" });
+
             if (!string.IsNullOrEmpty(countryCode))
             {
                 foreach (var state in db.States.Where(s => s.CountryCode == countryCode))
@@ -197,9 +199,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     });
                 }
             }
-
-            if (stateCodes.Count == 0)
-                stateCodes.Add(new SelectListItem() { Text = "** None **", Value = "" });
 
             return stateCodes;
         }
