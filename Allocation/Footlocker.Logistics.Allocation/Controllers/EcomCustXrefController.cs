@@ -64,6 +64,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Create(EcomCustomerFulfillmentXrefModel model)
         {
+            model.DataRec.doesThisOverlapOtherRequest = CheckOverlappingRequests(model);
+
             List<ValidationResult> validationResults = new List<ValidationResult>();
             bool isValid = Validator.TryValidateObject(model.DataRec, new ValidationContext(model.DataRec, null, null), validationResults);
             if (isValid)
@@ -76,6 +78,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
+                foreach (ValidationResult vr in validationResults)
+                {
+                    if (vr.MemberNames.Count() == 0 )
+                        ModelState.AddModelError("OverallErrors", vr.ErrorMessage);
+                }
+
                 model = SetDropDowns(model);
 
                 return View(model);
@@ -110,6 +118,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Edit(EcomCustomerFulfillmentXrefModel model)
         {
+            model.DataRec.doesThisOverlapOtherRequest = CheckOverlappingRequests(model);
+
             List<ValidationResult> validationResults = new List<ValidationResult>();
             bool isValid = Validator.TryValidateObject(model.DataRec, new ValidationContext(model.DataRec, null, null), validationResults);
             if (isValid)
@@ -123,6 +133,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
+                foreach (ValidationResult vr in validationResults)
+                {
+                    if (vr.MemberNames.Count() == 0)
+                        ModelState.AddModelError("OverallErrors", vr.ErrorMessage);
+                }
                 model = SetDropDowns(model);
 
                 return View(model);
@@ -233,5 +248,28 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return ecomStores;
         }
         #endregion
+
+        private bool CheckOverlappingRequests(EcomCustomerFulfillmentXrefModel model)
+        {
+            DateTime futureDate = DateTime.Now.AddDays(5);
+            DateTime newEffectiveToDate = model.DataRec.EffectiveToDate.GetValueOrDefault(futureDate);
+
+            var overlaps = ecomXrefRepository.Get(ex => ex.CountryCode == model.DataRec.CountryCode &&
+                                                        (ex.StateCode == model.DataRec.StateCode ||
+                                                         (string.IsNullOrEmpty(ex.StateCode) &&
+                                                         string.IsNullOrEmpty(model.DataRec.StateCode))) &&
+                                                        (ex.PostalCode == model.DataRec.PostalCode ||
+                                                         (string.IsNullOrEmpty(ex.PostalCode) &&
+                                                          string.IsNullOrEmpty(model.DataRec.PostalCode))) &&
+                                                        ex.EffectiveFromDate <= newEffectiveToDate &&
+                                                        (newEffectiveToDate <= ex.EffectiveToDate ||
+                                                         !ex.EffectiveToDate.HasValue) &&
+                                                         ex.FulfillmentXrefID != model.ID).ToList();
+
+            if (overlaps.Count > 0)
+                return true;
+            else
+                return false;
+        }
     }
 }

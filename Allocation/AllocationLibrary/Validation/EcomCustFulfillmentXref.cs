@@ -54,6 +54,8 @@ namespace Footlocker.Logistics.Allocation.Validation
             }
         }
 
+        public bool doesThisOverlapOtherRequest { get; set; }
+
         IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         {
             if (EffectiveToDate.HasValue)
@@ -62,6 +64,11 @@ namespace Footlocker.Logistics.Allocation.Validation
                 {
                     yield return new ValidationResult("Effective To date cannot be before Effective From date", new[] { "EffectiveToDate" });
                 }
+            }
+
+            if (doesThisOverlapOtherRequest)
+            {
+                yield return new ValidationResult("This request overlaps an already established Xref. Please revisit the data and start dates.", null);
             }
         }
     }
