@@ -289,7 +289,6 @@ namespace Footlocker.Logistics.Allocation.DAO
             // 05/15/2018 this looks like it is unused. (it's commented out in SaveChanges)
             RingFence rf = (from a in this.RingFences where a.ID == det.RingFenceID select a).First();
 
-            //rf.Qty = GetQtyForRingFenceWithChange(det, rf, state);
             rf.CreateDate = DateTime.Now;
             rf.CreatedBy = user;
 
@@ -297,57 +296,7 @@ namespace Footlocker.Logistics.Allocation.DAO
             {
                 this.Entry(rf).State = System.Data.EntityState.Modified;
             }
-
-            //if (rf.Type == 2)
-            //{
-            //    //update Ecomm Warehouse inventory qty
-            //    var ecomm = (from a in this.EcommInventory where ((a.Store == rf.Store) && (a.ItemID == rf.ItemID) && (a.Size == det.Size)) select a);
-            //    if (ecomm.Count() > 0)
-            //    {
-            //        if (state == System.Data.EntityState.Deleted)
-            //        {
-            //            ecomm.First().Qty = 0;
-            //        }
-            //        else
-            //        {
-            //            ecomm.First().Qty = det.Qty;
-            //        }
-            //    }
-            //    else if (state == System.Data.EntityState.Added)
-            //    {
-            //        CreateEcommInventory(det, rf, user);
-            //    }
-
-            //}
         }
-
-        //private void CreateEcommInventory(RingFenceDetail newDet, RingFence rf, string user)
-        //{
-        //    EcommInventory ecommInv;
-        //    Boolean addInventory;
-        //    if (rf.ItemID == 0)
-        //    {
-        //        rf.ItemID = (from a in ItemMasters where a.MerchantSku == rf.Sku select a.ID).First();
-        //    }
-        //    ecommInv = (from a in EcommInventory where ((a.Division == rf.Division) && (a.Store == rf.Store) && (a.ItemID == rf.ItemID) && (a.Size == newDet.Size)) select a).FirstOrDefault();
-        //    addInventory = false;
-        //    if (ecommInv == null)
-        //    {
-        //        addInventory = true;
-        //        ecommInv = new EcommInventory();
-        //        ecommInv.Division = rf.Division;
-        //        ecommInv.Store = rf.Store;
-        //        ecommInv.Size = newDet.Size;
-        //        ecommInv.ItemID = rf.ItemID;
-        //    }
-        //    ecommInv.Qty = newDet.Qty;
-        //    ecommInv.UpdateDate = DateTime.Now;
-        //    ecommInv.UpdatedBy = user;
-        //    if (addInventory)
-        //    {
-        //        EcommInventory.Add(ecommInv);
-        //    }
-        //}
 
         public void AuditRDQ(RDQ r, string user, System.Data.EntityState state)
         {
@@ -679,10 +628,6 @@ namespace Footlocker.Logistics.Allocation.DAO
                         {
                             this.RingFenceHistory.Add((RingFenceHistory)obj);
                         }
-                        //else if (obj.GetType().Name.StartsWith("RDQ"))
-                        //{
-                        //    AuditRDQ((RDQ)obj, user, states[i]);
-                        //}
                         else if (obj.GetType().Name.StartsWith("RangePlanDetail"))
                         {
                             switch (states[i])
@@ -708,8 +653,7 @@ namespace Footlocker.Logistics.Allocation.DAO
                 if (ringFenceUpdates.Count > 0)
                 {
                     //call stored procedure to update count and history
-                    RingFenceDAO dao = new RingFenceDAO();
-                    dao.SetRingFenceHeaderQtyAndHistory(ringFenceUpdates);
+                    RingFenceDAO.SetRingFenceHeaderQtyAndHistory(ringFenceUpdates);
                 }
 
                 return returnVal;

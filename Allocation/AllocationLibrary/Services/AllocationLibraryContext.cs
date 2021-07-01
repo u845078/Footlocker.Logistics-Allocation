@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using System.Data.Entity;
 using Footlocker.Logistics.Allocation.Models;
 using System.Data.Entity.Infrastructure;
@@ -11,7 +10,7 @@ namespace Footlocker.Logistics.Allocation.Services
 {
     public class AllocationLibraryContext : DbContext
     {
-        public DbSet<Footlocker.Logistics.Allocation.Models.Rule> Rules { get; set; }
+        public DbSet<Models.Rule> Rules { get; set; }
         public DbSet<RuleSet> RuleSets { get; set; }
         public DbSet<StoreLookup> StoreLookups { get; set; }
         public DbSet<RangePlanDetail> RangePlanDetails { get; set; }
@@ -97,12 +96,6 @@ namespace Footlocker.Logistics.Allocation.Services
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            // TODO: Pull over too?
-            //modelBuilder.Entity<RangePlan>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
-            //modelBuilder.Entity<DirectToStoreSku>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
-            //modelBuilder.Entity<RingFence>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
-
-
             modelBuilder.Entity<RangePlan>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
             modelBuilder.Entity<DirectToStoreSku>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
             modelBuilder.Entity<RingFence>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
@@ -229,16 +222,6 @@ namespace Footlocker.Logistics.Allocation.Services
                                a.ActiveInd == "1")
                            select a);
 
-            //var details = (from a in this.RingFenceDetails
-            //                where ((a.RingFenceID == det.RingFenceID) && 
-            //                    (a.Size.Length == 3)
-            //                    && ((a.Size != det.Size) || 
-            //                    //basically saying the PO doesn't match (handles null and blank as the same)
-            //                    (((det.PO == null)||(det.PO == "")) ? ((!(a.PO == null))&&(a.PO.Length > 0)) : ((a.PO != det.PO)||(a.PO == null) || (a.PO == ""))) 
-            //                    || (a.DCID != det.DCID))
-            //                    )
-            //                select a);
-
             if (details.Count() > 0)
             {
                 qty = details.Sum(a => a.Qty);
@@ -307,57 +290,7 @@ namespace Footlocker.Logistics.Allocation.Services
             {
                 this.Entry(rf).State = System.Data.EntityState.Modified;
             }
-
-            //if ((rf.Type == 2)&&((det.PO == "")||(det.PO == null)))
-            //{
-            //    //update Ecomm Warehouse inventory qty
-            //    var ecomm = (from a in this.EcommInventory where ((a.Store == rf.Store) && (a.ItemID == rf.ItemID) && (a.Size == det.Size)) select a);
-            //    if (ecomm.Count() > 0)
-            //    {
-            //        if (state == System.Data.EntityState.Deleted)
-            //        {
-            //            ecomm.First().Qty = 0;
-            //        }
-            //        else
-            //        {
-            //            ecomm.First().Qty = det.Qty;
-            //        }
-            //    }
-            //    else if (state == System.Data.EntityState.Added)
-            //    {
-            //        CreateEcommInventory(det, rf, user);
-            //    }
-
-            //}
         }
-
-        //private void CreateEcommInventory(RingFenceDetail newDet, RingFence rf, string user)
-        //{
-        //    EcommInventory ecommInv;
-        //    Boolean addInventory;
-        //    if (rf.ItemID == 0)
-        //    {
-        //        rf.ItemID = (from a in ItemMasters where a.MerchantSku == rf.Sku select a.ID).First();
-        //    }
-        //    ecommInv = (from a in EcommInventory where ((a.Division == rf.Division) && (a.Store == rf.Store) && (a.ItemID == rf.ItemID) && (a.Size == newDet.Size)) select a).FirstOrDefault();
-        //    addInventory = false;
-        //    if (ecommInv == null)
-        //    {
-        //        addInventory = true;
-        //        ecommInv = new EcommInventory();
-        //        ecommInv.Division = rf.Division;
-        //        ecommInv.Store = rf.Store;
-        //        ecommInv.Size = newDet.Size;
-        //        ecommInv.ItemID = rf.ItemID;
-        //    }
-        //    ecommInv.Qty = newDet.Qty;
-        //    ecommInv.UpdateDate = DateTime.Now;
-        //    ecommInv.UpdatedBy = user;
-        //    if (addInventory)
-        //    {
-        //        EcommInventory.Add(ecommInv);
-        //    }
-        //}
 
         public void AuditRDQ(RDQ r, string user, System.Data.EntityState state)
         {
@@ -448,6 +381,5 @@ namespace Footlocker.Logistics.Allocation.Services
 
             return returnVal;
         }
-
     }
 }

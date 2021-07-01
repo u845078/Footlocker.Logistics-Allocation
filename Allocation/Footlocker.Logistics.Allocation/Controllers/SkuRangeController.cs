@@ -468,7 +468,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _AutoCompleteSku(string text)
         {
             IQueryable<String> results;
-            results = (from a in db.RangePlans where a.Sku.StartsWith(text) select a.Sku).Distinct();
+            results = (from a in db.RangePlans 
+                       where a.Sku.StartsWith(text) 
+                       select a.Sku).Distinct();
             return new JsonResult { Data = results.ToList() };
         }
 
@@ -486,7 +488,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult SaveSkuRange(SizeAllocationModel model)
         {
-            RangePlan p = (from a in db.RangePlans where a.Id == model.Plan.Id select a).First();
+            RangePlan p = (from a in db.RangePlans 
+                           where a.Id == model.Plan.Id 
+                           select a).First();
+
             p.StartDate = model.Plan.StartDate;
             p.EndDate = model.Plan.EndDate;
             p.UpdateDate = DateTime.Now;

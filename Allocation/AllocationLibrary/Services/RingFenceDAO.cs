@@ -37,7 +37,8 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                     select a).ToList();
 
             list = (from a in list
-                    join d in validDivisions on a.Division equals d.DivCode
+                    join d in validDivisions 
+                    on a.Division equals d.DivCode
                     select a).OrderByDescending(x => x.CreateDate).ToList();
 
             return list;
@@ -749,11 +750,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
                 foreach (var ai in availableInventory)
                 {
-                    //var inventoryReduction = db.InventoryReductions.Where(ir => ir.Sku.Equals(ai.Sku) &&
-                    //                                                            ir.Size.Equals(ai.size) &&
-                    //                                                            ir.MFCode.Equals(ai.DistributionCenterID) &&
-                    //                                                            ir.PO.Equals(ai.PO) &&
-                    //                                                            ir.InstanceID.Equals(instanceID)).FirstOrDefault();
                     var inventoryReduction = invReductions.Where(ir => ir.Sku.Equals(ai.Sku) &&
                                                                        ir.Size.Equals(ai.size) &&
                                                                        ir.MFCode.Equals(ai.DistributionCenterID) &&
@@ -900,20 +896,23 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                             where a.ID == det.RingFenceID
                             select a).First();
 
-            RingFenceHistory history = new RingFenceHistory();
-            history.RingFenceID = det.RingFenceID;
-            history.Division = rf.Division;
-            history.Store = rf.Store;
-            history.Sku = rf.Sku;
-            history.Size = det.Size;
-            history.DCID = det.DCID;
-            history.PO = det.PO;
-            history.Qty = det.Qty;
-            history.StartDate = rf.StartDate;
-            history.EndDate = rf.EndDate;
-            history.Action = "Update Det";
-            history.CreateDate = DateTime.Now;
-            history.CreatedBy = user;
+            RingFenceHistory history = new RingFenceHistory()
+            {
+                RingFenceID = det.RingFenceID,
+                Division = rf.Division,
+                Store = rf.Store,
+                Sku = rf.Sku,
+                Size = det.Size,
+                DCID = det.DCID,
+                PO = det.PO,
+                Qty = det.Qty,
+                StartDate = rf.StartDate,
+                EndDate = rf.EndDate,
+                Action = "Update Det",
+                CreateDate = DateTime.Now,
+                CreatedBy = user
+            };
+
             db.RingFenceHistory.Add(history);
             db.SaveChanges();
 
@@ -926,14 +925,14 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             }           
         }
 
-        public void SetRingFenceHeaderQtyAndHistory(List<Int64> ringfences)
+        public static void SetRingFenceHeaderQtyAndHistory(List<long> ringfences)
         {
             Database database = DatabaseFactory.CreateDatabase("AllocationContext");
 
             DbCommand SQLCommand;
             string SQL = "dbo.[SetRingFenceHeaderQty]";
 
-            foreach (Int64 id in ringfences)
+            foreach (long id in ringfences)
             {
                 SQLCommand = database.GetStoredProcCommand(SQL);
                 database.AddInParameter(SQLCommand, "@id", DbType.Int64, id);
