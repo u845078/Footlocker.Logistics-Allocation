@@ -292,6 +292,7 @@
     <Compile Include="Validation\EcomCustFulfillmentXref.cs" />
     <Compile Include="Validation\ModelClientValidationRequiredIfRule.cs" />
     <Compile Include="Validation\RequiredIfAttribute.cs" />
+    <Compile Include="Validation\RingFenceInput.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

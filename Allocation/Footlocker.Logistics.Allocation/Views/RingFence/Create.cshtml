@@ -4,14 +4,15 @@
     ViewBag.Title = "Create RingFence";
 }
 
-<h2>Create RingFence</h2>
+<h2>Create Ring Fence</h2>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
-    if ((ViewData["message"] != "") && (ViewData["message"] != null))
-    { 
+    if (!string.IsNullOrEmpty(ViewBag.message))
+    {
         <font color="Red">
-        @Html.Raw(Convert.ToString(ViewData["message"]))
+            @Html.Raw(Convert.ToString(ViewBag.message))
         </font>
     }
 
@@ -27,7 +28,7 @@
         </div>
 
         <div class="editor-label">
-            @Html.LabelFor(model => model.RingFence.Store)&nbsp;(optional)
+            @Html.LabelFor(model => model.RingFence.Store) (optional)
         </div>
         <div class="editor-field">
             @Html.EditorFor(model => model.RingFence.Store)
@@ -44,8 +45,7 @@
 
 
         <div class="editor-label">
-            @Html.LabelFor(model => model.RingFence.EndDate)
-            (optional, only put in if you know the date this must release)
+            @Html.LabelFor(model => model.RingFence.EndDate) (optional, only put in if you know the date that this must release)
         </div>
         <div class="editor-field">
             @Html.EditorFor(model => model.RingFence.EndDate)
@@ -61,7 +61,7 @@
         </div>
 
         <p>
-            <input type="submit" value="Create" class="t-button"/>
+            <input type="submit" value="Create" class="t-button" />
         </p>
     </fieldset>
 }
