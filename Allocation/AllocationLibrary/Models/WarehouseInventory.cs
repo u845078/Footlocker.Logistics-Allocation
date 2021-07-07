@@ -14,7 +14,7 @@ namespace Footlocker.Logistics.Allocation.Models
         /// This is the mainframe code - ex. 08 = Junction City
         /// </summary>
         public string DistributionCenterID { get; set; }
-        public DistributionCenter distributionCenter { get; set; }
+        public virtual DistributionCenter distributionCenter { get; set; }
         public string size { get; set; }
         public string PO { get; set; }
         public ItemPack caseLot { get; set; }
@@ -153,14 +153,10 @@ namespace Footlocker.Logistics.Allocation.Models
             caseLot = null;
             HasSeparateECOMInventory = false;
             quantity = 0;
-            //totalQuantity = 0;
             pickReserve = 0;
-            //totalPickReserve = 0;
             ringFenceQuantity = 0;
-            //totalRingFenceQuantity = 0;
             rdqQuantity = 0;
             orderQuantity = 0;
-            //totalRDQQuantity = 0;
         }
 
         public WarehouseInventory(string sku, string size, string DCID, int warehouseQuantity)

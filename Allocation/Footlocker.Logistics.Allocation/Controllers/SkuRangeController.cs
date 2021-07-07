@@ -159,9 +159,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private long RetreiveOrCreateItemID(string SKU)
         {
-            var itemlist = (from a in db.ItemMasters
-                            where a.MerchantSku == SKU
-                            select a);
+            var itemlist = db.ItemMasters.Where(im => im.MerchantSku == SKU).ToList();
 
             if (itemlist.Count() > 0)
             {
