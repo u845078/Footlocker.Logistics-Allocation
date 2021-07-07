@@ -45,7 +45,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public int WarehouseAllocationTypeCode { get; set; }
 
         public virtual WarehouseAllocationType WarehouseAllocationType { get; set; }
-        public virtual ICollection<EcomCustomerFulfillmentXref> ECOMCustomerXrefs { get; set; }
+        //public virtual ICollection<EcomCustomerFulfillmentXref> ECOMCustomerXrefs { get; set; }
 
 
         [Column("DistributionCenterRestriction")]
