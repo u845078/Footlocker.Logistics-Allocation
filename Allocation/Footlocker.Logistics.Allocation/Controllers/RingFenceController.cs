@@ -486,20 +486,36 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _Audit(int ID)
         {
-            List<DistributionCenter> dcs = (from a in db.DistributionCenters select a).ToList();
-            List<RingFenceHistory> model = (from a in db.RingFenceHistory where a.RingFenceID == ID select a).ToList();
+            List<DistributionCenter> dcs = db.DistributionCenters.ToList();
+            List<RingFenceHistory> model = db.RingFenceHistory.Where(rfh => rfh.RingFenceID == ID).ToList();
 
             foreach (RingFenceHistory h in model)
             {
-                h.Warehouse = (from a in dcs where a.ID == h.DCID select a.Name).FirstOrDefault();
+                h.Warehouse = (from a in dcs 
+                               where a.ID == h.DCID 
+                               select a.Name).FirstOrDefault();
             }
+
+            Dictionary<string, string> names = new Dictionary<string, string>();
+            var users = (from a in model
+                         select a.CreatedBy).Distinct();
+            foreach (string userID in users)
+            {
+                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+            }
+            foreach (var item in model)
+            {
+                item.CreatedByName = names[item.CreatedBy];
+            }
+
             return View(new GridModel(model));
         }
 
         public ActionResult Audit(int ID)
         {
             RingFenceModel model = new RingFenceModel();
-            model.RingFence = (from a in db.RingFences where a.ID == ID select a).First();
+            model.RingFence = db.RingFences.Where(rf => rf.ID == ID).FirstOrDefault();
+
             return View(model);
         }
 
@@ -556,18 +572,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     foreach (ItemPackDetail pd in det.PackDetails)
                     {
-                        var query = (from a in sizes where a.Size == pd.Size select a);
+                        var query = (from a in sizes 
+                                     where a.Size == pd.Size 
+                                     select a);
                         if (query.Count() > 0)
                         {
                             currentSize = query.First();
                         }
                         else
                         {
-                            currentSize = new RingFenceSizeSummary();
-                            currentSize.Size = pd.Size;
+                            currentSize = new RingFenceSizeSummary()
+                            {
+                                Size = pd.Size
+                            };
+
                             sizes.Add(currentSize);
                         }
-                        if ((det.PO != null) && (det.PO != ""))
+                        if (!string.IsNullOrEmpty(det.PO))
                         {
                             currentSize.FutureQty += (pd.Quantity * det.Qty);
                         }
@@ -601,8 +622,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                           select a).ToList();
 
             List<RingFenceDetail> model = new List<RingFenceDetail>();
-            List<DistributionCenter> dcs = (from a in db.DistributionCenters select a).ToList();
-            Boolean includeDetail = false;
+            List<DistributionCenter> dcs = db.DistributionCenters.ToList(); 
+            bool includeDetail = false;
             long ringFenceItemID = (from a in db.RingFences
                                     where a.ID == ID
                                     select a.ItemID).First();
@@ -624,7 +645,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     try
                     {
                         var itemPack = db.ItemPacks.Include("Details").Single(p => p.ItemID == ringFenceItemID && 
-                                                                                    p.Name == newDetail.Size);
+                                                                                   p.Name == newDetail.Size);
                         newDetail.PackDetails = itemPack.Details.ToList();
 
                         foreach (ItemPackDetail pd in newDetail.PackDetails)

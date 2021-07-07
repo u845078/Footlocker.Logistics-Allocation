@@ -4,7 +4,7 @@
     ViewBag.Title = "Audit";
 }
 
-<h2>RingFence Audit</h2>
+<h2>Ring Fence Audit</h2>
 @Html.Raw("<table><tr><td><b>SKU:</b></td><td>" + Model.RingFence.Sku + "</td></tr>")
 @if ((Model.RingFence.Store != null) && (Model.RingFence.Store != ""))
 {
@@ -21,7 +21,7 @@ else
         .Columns(columns =>
         {
             columns.Bound(o => o.Action);
-            columns.Bound(o => o.CreatedBy).Title("Updated By");
+            columns.Bound(o => o.CreatedByName).Title("Updated By");
             columns.Bound(o => o.CreateDate).Title("Last Updated");
             columns.Bound(o => o.Division).Title("Div").Width(50);
             columns.Bound(o => o.Store).Width(50);
