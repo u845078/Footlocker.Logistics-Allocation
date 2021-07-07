@@ -912,7 +912,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         //    }           
         //}
 
-        public static void SetRingFenceHeaderQtyAndHistory(List<long> ringfences)
+        public static void SetRingFenceHeaderQtyAndHistory(List<long> ringfences, string user)
         {
             Database database = DatabaseFactory.CreateDatabase("AllocationContext");
 
@@ -923,6 +923,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             {
                 SQLCommand = database.GetStoredProcCommand(SQL);
                 database.AddInParameter(SQLCommand, "@id", DbType.Int64, id);
+                database.AddInParameter(SQLCommand, "@user", DbType.String, user);
 
                 database.ExecuteNonQuery(SQLCommand);
             }

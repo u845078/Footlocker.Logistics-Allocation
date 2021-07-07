@@ -797,11 +797,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             select wi.availableQuantity).FirstOrDefault();
 
             return qtyAvailable;
-
-            //RDQDAO dao = new RDQDAO();
-            //Int32 QtyAvailable = dao.GetWarehouseAvailable(rdq.Sku, rdq.Size, warehouse);
-
-            //return QtyAvailable;
         }
 
         /// <summary>
@@ -1771,7 +1766,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 List<WarehouseInventory> details = warehouseInventoryDAO.GetSQLWarehouseInventory(warehouseInventoryLookups);
             //    // retrieve all available quantity for the specified combinations in one mf call
                 RingFenceDAO rfDAO = new RingFenceDAO();
-            //    List<WarehouseInventory> details = rfDAO.GetWarehouseAvailableNew(uniqueCombos);
                 details = rfDAO.ReduceAvailableInventory(details);
 
                 // rdqs that cannot be satisfied by current whse avail quantity
@@ -1962,12 +1956,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 }
                             }
                         }
-
-                        //Boolean pickAnyway = false;
-                        //if ((Convert.ToString(mySheet.Cells[0, 9].Value).Contains("AllowNegative")))
-                        //{
-                        //    pickAnyway = Convert.ToBoolean(mySheet.Cells[row, 9].Value);
-                        //}
 
                         //message = CreateRDQ(rdq, ref pickAnyway);
                         if (message == "")

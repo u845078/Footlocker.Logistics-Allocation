@@ -1897,6 +1897,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if (!ecommwarehouse)
                 {
+                    bool addRF = false;
+
                     foreach (RingFenceDetail det in updated)
                     {
                         if (IsRingFenceDetailValid(det))
@@ -1915,12 +1917,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     det.Message = "";
                                     det.ActiveInd = "1";
 
-                                    if (det.PO == "")
+                                    if (string.IsNullOrEmpty(det.PO))
                                         det.ringFenceStatusCode = "4";
                                     else
                                         det.ringFenceStatusCode = "1";
 
-                                    db.RingFenceDetails.Add(det);
+                                    db.RingFenceDetails.Add(det);                               
                                 }
                                 else
                                 {
@@ -1930,7 +1932,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     db.Entry(existingDet).State = EntityState.Modified;
                                 }
 
-                                if (det.PO != "")
+                                addRF = true;
+
+                                if (!string.IsNullOrEmpty(det.PO))
                                 {
                                     List<ExistingPO> poList = (new ExistingPODAO()).GetExistingPO(ringFence.Division, det.PO);
 
@@ -1945,11 +1949,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                                 det.LastModifiedDate = DateTime.Now;
                                 det.LastModifiedUser = User.Identity.Name;
-
-                                db.SaveChanges(User.Identity.Name);
                             }
                         }
                     }
+
+                    db.SaveChanges(User.Identity.Name);
 
                     List<RingFenceDetail> details = (from a in db.RingFenceDetails
                                                      where a.RingFenceID == ringFenceID &&
@@ -3214,7 +3218,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             // validate the parsed ring fences.  all valid ring fences will be added to validRFs
                             ValidateParsedRFs(parsedRFs, validRFs, errorList, ecommRFs);
 
-
                             if (validRFs.Count > 0)
                             {
                                 // creates or updates the valid ring fences
@@ -3435,7 +3438,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             detail.ActiveInd = "1";
                             detail.LastModifiedDate = DateTime.Now;
                             detail.LastModifiedUser = User.Identity.Name;                            
-                            db.Entry(detail).State = System.Data.EntityState.Modified;
+                            db.Entry(detail).State = EntityState.Modified;
                         }
                     }
 
