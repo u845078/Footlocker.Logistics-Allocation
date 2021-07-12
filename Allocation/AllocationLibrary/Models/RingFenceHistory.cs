@@ -28,6 +28,9 @@ namespace Footlocker.Logistics.Allocation.Models
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime? EndDate { get; set; }
         public string CreatedBy { get; set; }
+        
+        [NotMapped]
+        public string CreatedByName { get; set; }
         public DateTime CreateDate { get; set; }
         public string Action { get; set; }
         [NotMapped]

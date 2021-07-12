@@ -313,14 +313,14 @@ namespace Footlocker.Logistics.Allocation.Services
         {
             DbCommand SQLCommand;
             string SQL;
-            int holds = 0;
+            int holds;
             SQL = "dbo.[SetRDQStatus]";
 
             SQLCommand = _database.GetStoredProcCommand(SQL);
             StringWriter sw = new StringWriter();
             XmlSerializer xs = new XmlSerializer(rdqs.GetType());
             xs.Serialize(sw, rdqs);
-            String xout = sw.ToString();
+            string xout = sw.ToString();
 
             _database.AddInParameter(SQLCommand, "@instanceID", DbType.String, instance);
             _database.AddInParameter(SQLCommand, "@rdqs", DbType.Xml, xout);
@@ -402,14 +402,14 @@ namespace Footlocker.Logistics.Allocation.Services
             StringWriter sw = new StringWriter();
             XmlSerializer xs = new XmlSerializer(rdqs.GetType());
             xs.Serialize(sw, rdqs);
-            String xout = sw.ToString();
+            string xout = sw.ToString();
 
             _database.AddInParameter(SQLCommand, "@rdqs", DbType.Xml, xout);
             //SQLCommand.CommandTimeout = 300;
-            DataSet data = new DataSet();
+            DataSet data;
             data = _database.ExecuteDataSet(SQLCommand);
 
-            RDQFactory factory = new RDQFactory();
+            //RDQFactory factory = new RDQFactory();
             int holds = 0;
             if (data.Tables.Count > 0)
             {

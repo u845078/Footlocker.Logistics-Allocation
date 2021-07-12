@@ -175,11 +175,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult DCIndex(string instanceID)
         {
-            DCList model = new DCList();
-            model.AvailableInstances = (from a in db.Instances
-                                        select a).ToList();
-            
-            model.InstanceID = Convert.ToInt32(instanceID);
+            DCList model = new DCList
+            {
+                AvailableInstances = db.Instances.ToList(),
+                InstanceID = Convert.ToInt32(instanceID)
+            };
+
             if (model.InstanceID == 0)
             {
                 model.InstanceID = 1;
@@ -208,28 +209,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult EditDC(int id)
         {
-            DistributionCenterModel model = new DistributionCenterModel();
+            DistributionCenterModel model = new DistributionCenterModel()
+            {
+                DC = db.DistributionCenters.Where(dc => dc.ID == id).First(),
+                WarehouseAllocationTypes = db.WarehouseAllocationTypes.ToList(),
+                DistributionCenterRestrictions = db.DistributionCenterRestrictions.ToList(),
+                AvailableInstances = db.Instances.ToList(),
+                SelectedInstances = new List<CheckBoxModel>()
+            };
 
-            model.DC = (from a in db.DistributionCenters
-                        where a.ID == id
-                        select a).First();
-
-            model.WarehouseAllocationTypes = (from w in db.WarehouseAllocationTypes
-                                              select w).ToList();
-
-            model.DistributionCenterRestrictions = (from dcr in db.DistributionCenterRestrictions
-                                                    select dcr).ToList();
-
-
-            model.AvailableInstances = (from i in db.Instances
-                                        select i).ToList();
-
-            model.SelectedInstances = new List<CheckBoxModel>();
             bool instChecked;
             foreach (var inst in model.AvailableInstances)
             {
                 instChecked = db.InstanceDistributionCenters.Any(i => i.DCID == id && i.InstanceID == inst.ID);
-                model.SelectedInstances.Add(new CheckBoxModel { ID = inst.ID, Desc = inst.Name, Checked = instChecked });
+                model.SelectedInstances.Add(new CheckBoxModel 
+                                                { 
+                                                    ID = inst.ID, 
+                                                    Desc = inst.Name, 
+                                                    Checked = instChecked 
+                                                });
             }
             return View(model);          
         }
@@ -239,7 +237,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             model.DC.LastModifiedDate = DateTime.Now;
             model.DC.LastModifiedUser = User.Identity.Name;
-            db.Entry(model.DC).State = System.Data.EntityState.Modified;
+            db.Entry(model.DC).State = EntityState.Modified;
 
             foreach (var selInst in model.SelectedInstances)
             {
@@ -257,10 +255,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if (!selInst.Checked && alreadyThere)
                 {
-                    db.InstanceDistributionCenters.Remove((from id in db.InstanceDistributionCenters
-                                                          where id.DCID == model.DC.ID && 
-                                                                id.InstanceID == selInst.ID
-                                                          select id).FirstOrDefault());
+                    db.InstanceDistributionCenters.Remove(db.InstanceDistributionCenters
+                                                                .Where(idc => idc.DCID == model.DC.ID && 
+                                                                              idc.InstanceID == selInst.ID).FirstOrDefault());
                 }
             }
 
@@ -271,16 +268,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult CreateDC(int instanceID)
         {
-            DistributionCenterModel model = new DistributionCenterModel();
-            model.DC = new DistributionCenter();
-            model.DC.InstanceID = instanceID;
-            model.WarehouseAllocationTypes = (from w in db.WarehouseAllocationTypes
-                                              select w).ToList();
+            DistributionCenterModel model = new DistributionCenterModel()
+            {
+                DC = new DistributionCenter()
+                {
+                    InstanceID = instanceID
+                },
+                WarehouseAllocationTypes = db.WarehouseAllocationTypes.ToList(),
+                AvailableInstances = db.Instances.ToList(),
+                SelectedInstances = new List<CheckBoxModel>()
+            };
 
-            model.AvailableInstances = (from i in db.Instances
-                                        select i).ToList();
-
-            model.SelectedInstances = new List<CheckBoxModel>();
             foreach (var inst in model.AvailableInstances)
             {
                 model.SelectedInstances.Add(new CheckBoxModel { ID = inst.ID, Desc = inst.Name, Checked = false });
@@ -297,8 +295,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.DC.LastModifiedUser = User.Identity.Name;
 
             db.DistributionCenters.Add(model.DC);
-
-            db.SaveChanges();
 
             foreach (var selInst in model.SelectedInstances)
             {
@@ -320,22 +316,33 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult RouteDC(int routeID)
         {
             RouteDCModel model = new RouteDCModel();
-            model.Route = (from a in db.Routes where a.ID == routeID select a).First();
-            model.AssignedDCs = (from a in db.DistributionCenters join b in db.RouteDistributionCenters on a.ID equals b.DCID where b.RouteID == routeID select a).ToList();
-            model.RemainingDCs = (from a in db.DistributionCenters select a).ToList();
+            model.Route = (from a in db.Routes 
+                           where a.ID == routeID 
+                           select a).First();
+            model.AssignedDCs = (from a in db.DistributionCenters 
+                                 join b in db.RouteDistributionCenters 
+                                 on a.ID equals b.DCID 
+                                 where b.RouteID == routeID 
+                                 select a).ToList();
+            model.RemainingDCs = (from a in db.DistributionCenters 
+                                  select a).ToList();
 
             return View(model);
         }
 
         public ActionResult AddDCToRoute(int routeID, int DCID)
         {
-            if ((from a in db.RouteDistributionCenters where ((a.RouteID == routeID) && (a.DCID == DCID)) select a).Count() == 0)
+            if ((from a in db.RouteDistributionCenters 
+                 where ((a.RouteID == routeID) && (a.DCID == DCID)) 
+                 select a).Count() == 0)
             {
-                RouteDistributionCenter rdc = new RouteDistributionCenter();
-                rdc.RouteID = routeID;
-                rdc.DCID = DCID;
-                rdc.CreatedBy = User.Identity.Name;
-                rdc.CreateDate = DateTime.Now;
+                RouteDistributionCenter rdc = new RouteDistributionCenter()
+                {
+                    RouteID = routeID,
+                    DCID = DCID,
+                    CreatedBy = User.Identity.Name,
+                    CreateDate = DateTime.Now
+                };
 
                 db.RouteDistributionCenters.Add(rdc);
                 db.SaveChanges();
@@ -346,7 +353,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult DeleteDCFromRoute(int routeID, int DCID)
         {
-            var query = (from a in db.RouteDistributionCenters where ((a.RouteID == routeID) && (a.DCID == DCID)) select a);
+            var query = (from a in db.RouteDistributionCenters 
+                         where ((a.RouteID == routeID) && (a.DCID == DCID)) 
+                         select a);
             if (query.Count() > 0)
             {
                 RouteDistributionCenter rdc = query.First();
@@ -770,7 +779,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
-            int originalLeadTime = 0;
             //save
             foreach (StoreLeadTime lt in model.LeadTimes)
             {
@@ -797,7 +805,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             //find new zone and save
 
-            //(from a in db.vValidStores where a.Division == div
             NetworkZoneStoreDAO dao = new NetworkZoneStoreDAO();
 
             int zoneid = dao.GetZoneForStore(div, store);
@@ -873,7 +880,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
-            int originalLeadTime = 0;
             //save
             foreach (StoreLeadTime lt in model.LeadTimes)
             {
@@ -905,7 +911,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             //find new zone and save
 
-            //(from a in db.vValidStores where a.Division == div
             NetworkZoneStoreDAO dao = new NetworkZoneStoreDAO();
 
             int zoneid = dao.GetZoneForStore(div, store);

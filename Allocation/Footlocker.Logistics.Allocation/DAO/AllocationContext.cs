@@ -217,166 +217,115 @@ namespace Footlocker.Logistics.Allocation.DAO
             return history;            
         }
 
-        private int GetQtyForRingFenceWithChange(RingFenceDetail det, RingFence rf, System.Data.EntityState state)
-        {
-            int qty = 0;
-            var details = (from a in this.RingFenceDetails
-                           where ((a.RingFenceID == det.RingFenceID) &&
-                               (a.Size.Length == 3) &&
-                               (a.ActiveInd == "1") &&
-                               ((a.Size != det.Size) || (a.PO != det.PO) || (a.DCID != det.DCID)))
-                           select a.Qty);
-            if (details.Count() > 0)
-            {
-                qty = details.Sum();
-            }
-            else
-            {
-                qty = 0;
-            }
-
-            var caselots = (from a in this.RingFenceDetails
-                            where ((a.RingFenceID == det.RingFenceID) &&
-                                   (a.Size.Length == 5)) &&
-                                   a.ActiveInd == "1" &&
-                                  ((a.Size != det.Size) || (a.PO != det.PO) || (a.DCID != det.DCID))
-                            select a).ToList();
-            foreach (RingFenceDetail cs in caselots)
-            {
-                try
-                {
-                    var query = ((from a in this.ItemPacks where (a.Name == cs.Size) select a.TotalQty));
-
-                    qty += (det.Qty * query.First());
-
-                }
-                catch
-                {
-                    //don't have details, leave qty without caselots
-                }
-            }
-
-            if (state != System.Data.EntityState.Deleted)
-            {
-                //add current detail
-                if (det.Size.Length == 3)
-                {
-                    qty += det.Qty;
-                }
-                else
-                {
-                    try
-                    {
-                        var query = ((from a in this.ItemPacks where (a.Name == det.Size) select a.TotalQty));
-
-                        qty += (det.Qty * query.First());
-                    }
-                    catch
-                    {
-                        //don't have details, leave qty without caselots
-                    }
-                }
-            }
-            if (qty == null)
-            {
-                qty = 0;
-            }
-            return qty;
-        }
-
-        public void PreCommitRingFenceDetail(RingFenceDetail det, string user, System.Data.EntityState state)
-        {
-            // 05/15/2018 this looks like it is unused. (it's commented out in SaveChanges)
-            RingFence rf = (from a in this.RingFences where a.ID == det.RingFenceID select a).First();
-
-            //rf.Qty = GetQtyForRingFenceWithChange(det, rf, state);
-            rf.CreateDate = DateTime.Now;
-            rf.CreatedBy = user;
-
-            if (this.Entry(rf).State != System.Data.EntityState.Modified)
-            {
-                this.Entry(rf).State = System.Data.EntityState.Modified;
-            }
-
-            //if (rf.Type == 2)
-            //{
-            //    //update Ecomm Warehouse inventory qty
-            //    var ecomm = (from a in this.EcommInventory where ((a.Store == rf.Store) && (a.ItemID == rf.ItemID) && (a.Size == det.Size)) select a);
-            //    if (ecomm.Count() > 0)
-            //    {
-            //        if (state == System.Data.EntityState.Deleted)
-            //        {
-            //            ecomm.First().Qty = 0;
-            //        }
-            //        else
-            //        {
-            //            ecomm.First().Qty = det.Qty;
-            //        }
-            //    }
-            //    else if (state == System.Data.EntityState.Added)
-            //    {
-            //        CreateEcommInventory(det, rf, user);
-            //    }
-
-            //}
-        }
-
-        //private void CreateEcommInventory(RingFenceDetail newDet, RingFence rf, string user)
+        //private int GetQtyForRingFenceWithChange(RingFenceDetail det, RingFence rf, System.Data.EntityState state)
         //{
-        //    EcommInventory ecommInv;
-        //    Boolean addInventory;
-        //    if (rf.ItemID == 0)
+        //    int qty = 0;
+        //    var details = (from a in this.RingFenceDetails
+        //                   where ((a.RingFenceID == det.RingFenceID) &&
+        //                       (a.Size.Length == 3) &&
+        //                       (a.ActiveInd == "1") &&
+        //                       ((a.Size != det.Size) || (a.PO != det.PO) || (a.DCID != det.DCID)))
+        //                   select a.Qty);
+        //    if (details.Count() > 0)
         //    {
-        //        rf.ItemID = (from a in ItemMasters where a.MerchantSku == rf.Sku select a.ID).First();
+        //        qty = details.Sum();
         //    }
-        //    ecommInv = (from a in EcommInventory where ((a.Division == rf.Division) && (a.Store == rf.Store) && (a.ItemID == rf.ItemID) && (a.Size == newDet.Size)) select a).FirstOrDefault();
-        //    addInventory = false;
-        //    if (ecommInv == null)
+        //    else
         //    {
-        //        addInventory = true;
-        //        ecommInv = new EcommInventory();
-        //        ecommInv.Division = rf.Division;
-        //        ecommInv.Store = rf.Store;
-        //        ecommInv.Size = newDet.Size;
-        //        ecommInv.ItemID = rf.ItemID;
+        //        qty = 0;
         //    }
-        //    ecommInv.Qty = newDet.Qty;
-        //    ecommInv.UpdateDate = DateTime.Now;
-        //    ecommInv.UpdatedBy = user;
-        //    if (addInventory)
+
+        //    var caselots = (from a in this.RingFenceDetails
+        //                    where ((a.RingFenceID == det.RingFenceID) &&
+        //                           (a.Size.Length == 5)) &&
+        //                           a.ActiveInd == "1" &&
+        //                          ((a.Size != det.Size) || (a.PO != det.PO) || (a.DCID != det.DCID))
+        //                    select a).ToList();
+        //    foreach (RingFenceDetail cs in caselots)
         //    {
-        //        EcommInventory.Add(ecommInv);
+        //        try
+        //        {
+        //            var query = ((from a in this.ItemPacks where (a.Name == cs.Size) select a.TotalQty));
+
+        //            qty += (det.Qty * query.First());
+
+        //        }
+        //        catch
+        //        {
+        //            //don't have details, leave qty without caselots
+        //        }
+        //    }
+
+        //    if (state != System.Data.EntityState.Deleted)
+        //    {
+        //        //add current detail
+        //        if (det.Size.Length == 3)
+        //        {
+        //            qty += det.Qty;
+        //        }
+        //        else
+        //        {
+        //            try
+        //            {
+        //                var query = ((from a in this.ItemPacks where (a.Name == det.Size) select a.TotalQty));
+
+        //                qty += (det.Qty * query.First());
+        //            }
+        //            catch
+        //            {
+        //                //don't have details, leave qty without caselots
+        //            }
+        //        }
+        //    }
+        //    //if (qty == null)
+        //    //{
+        //    //    qty = 0;
+        //    //}
+        //    return qty;
+        //}
+
+        //public void PreCommitRingFenceDetail(RingFenceDetail det, string user, System.Data.EntityState state)
+        //{
+        //    // 05/15/2018 this looks like it is unused. (it's commented out in SaveChanges)
+        //    RingFence rf = (from a in this.RingFences where a.ID == det.RingFenceID select a).First();
+
+        //    rf.CreateDate = DateTime.Now;
+        //    rf.CreatedBy = user;
+
+        //    if (this.Entry(rf).State != System.Data.EntityState.Modified)
+        //    {
+        //        this.Entry(rf).State = System.Data.EntityState.Modified;
         //    }
         //}
 
-        public void AuditRDQ(RDQ r, string user, System.Data.EntityState state)
-        {
-            if ((r.Status == "WEB PICK") || (r.Status == "FORCE PICK"))
-            {
-                AuditRDQ rdq = new AuditRDQ();
-                rdq.RDQID = r.ID;
-                rdq.Division = r.Division;
-                rdq.Store = r.Store;
-                rdq.DCID = r.DCID;
-                rdq.PO = r.PO;
-                rdq.ItemID = r.ItemID;
-                rdq.Sku = r.Sku;
-                rdq.Size = r.Size;
-                rdq.Qty = r.Qty;
-                rdq.TargetQty = r.TargetQty;
-                rdq.UserRequestedQty = r.UserRequestedQty;
-                rdq.NeedQty = r.NeedQty;
-                rdq.ForecastQty = r.ForecastQty;
-                rdq.Comment = state.ToString() + " Pick";
-                rdq.PickedBy = user;
-                rdq.PickDate = DateTime.Now;
-                if (rdq.DCID == null)
-                {
-                    rdq.DCID = 0;
-                }
-                this.AuditRDQs.Add(rdq);
-            }
-        }
+        //public void AuditRDQ(RDQ r, string user, System.Data.EntityState state)
+        //{
+        //    if ((r.Status == "WEB PICK") || (r.Status == "FORCE PICK"))
+        //    {
+        //        AuditRDQ rdq = new AuditRDQ();
+        //        rdq.RDQID = r.ID;
+        //        rdq.Division = r.Division;
+        //        rdq.Store = r.Store;
+        //        rdq.DCID = r.DCID;
+        //        rdq.PO = r.PO;
+        //        rdq.ItemID = r.ItemID;
+        //        rdq.Sku = r.Sku;
+        //        rdq.Size = r.Size;
+        //        rdq.Qty = r.Qty;
+        //        rdq.TargetQty = r.TargetQty;
+        //        rdq.UserRequestedQty = r.UserRequestedQty;
+        //        rdq.NeedQty = r.NeedQty;
+        //        rdq.ForecastQty = r.ForecastQty;
+        //        rdq.Comment = state.ToString() + " Pick";
+        //        rdq.PickedBy = user;
+        //        rdq.PickDate = DateTime.Now;
+        //        if (rdq.DCID == null)
+        //        {
+        //            rdq.DCID = 0;
+        //        }
+        //        this.AuditRDQs.Add(rdq);
+        //    }
+        //}
 
         public override int SaveChanges()
         {
@@ -503,7 +452,6 @@ namespace Footlocker.Logistics.Allocation.DAO
             var modifiedRingFences = this.ChangeTracker.Entries().Where(p => p.Entity is RingFence &&
                                                                              p.State.Equals(System.Data.EntityState.Modified)).ToList();
 
-            
             // First off, save data before auditing so we can reference primary key IDs between ringfences and ringfencedetails
             try
             {
@@ -551,9 +499,11 @@ namespace Footlocker.Logistics.Allocation.DAO
         {
             CheckBatchRunning();
 
-            var audits = this.ChangeTracker.Entries().Where(p => ((p.State == System.Data.EntityState.Added || p.State == System.Data.EntityState.Deleted || p.State == System.Data.EntityState.Modified) && (p.Entity.GetType().Name.StartsWith("RingFence") ||
-                //p.Entity.GetType().Name.StartsWith("RDQ") || 
-                p.Entity.GetType().Name.StartsWith("RangePlanDetail"))));
+            var audits = this.ChangeTracker.Entries().Where(p => ((p.State == System.Data.EntityState.Added || 
+                                                                   p.State == System.Data.EntityState.Deleted || 
+                                                                   p.State == System.Data.EntityState.Modified) && 
+                                                                   (p.Entity.GetType().Name.StartsWith("RingFence") ||
+                                                                    p.Entity.GetType().Name.StartsWith("RangePlanDetail"))));
 
             if (audits.Count() == 0)
             {
@@ -563,7 +513,8 @@ namespace Footlocker.Logistics.Allocation.DAO
                 }
                 catch (System.Data.Entity.Validation.DbEntityValidationException vex)
                 {
-                    string message = vex.EntityValidationErrors.First().ValidationErrors.First().PropertyName + ": " + vex.EntityValidationErrors.First().ValidationErrors.First().ErrorMessage;
+                    string message = vex.EntityValidationErrors.First().ValidationErrors.First().PropertyName + ": " + 
+                        vex.EntityValidationErrors.First().ValidationErrors.First().ErrorMessage;
                     message += ".";
                     throw vex;
                 }
@@ -571,7 +522,7 @@ namespace Footlocker.Logistics.Allocation.DAO
             List<object> auditRecords = new List<object>();
             List<System.Data.EntityState> states = new List<System.Data.EntityState>();
             List<long> ringFenceUpdates = new List<long>();
-            Boolean needUser = false;
+            bool needUser = false;
 
 
             // ----------------------------------------------------------    prior logic     -------------------------------------------------------
@@ -667,57 +618,45 @@ namespace Footlocker.Logistics.Allocation.DAO
                 throw new Exception("Must call SaveChanges with Userid for this recordtype");
             }
 
-            try
+            int returnVal = base.SaveChanges();
+            if (returnVal > 0)
             {
-                int returnVal = base.SaveChanges();
-                if (returnVal > 0)
+                int i = 0;
+                foreach (object obj in auditRecords)
                 {
-                    int i = 0;
-                    foreach (object obj in auditRecords)
+                    if (obj.GetType().Name.StartsWith("RingFenceHistory"))
                     {
-                        if (obj.GetType().Name.StartsWith("RingFenceHistory"))
-                        {
-                            this.RingFenceHistory.Add((RingFenceHistory)obj);
-                        }
-                        //else if (obj.GetType().Name.StartsWith("RDQ"))
-                        //{
-                        //    AuditRDQ((RDQ)obj, user, states[i]);
-                        //}
-                        else if (obj.GetType().Name.StartsWith("RangePlanDetail"))
-                        {
-                            switch (states[i])
-                            {
-                                case System.Data.EntityState.Added:
-                                    UpdateStoreCount(((RangePlanDetail)obj).ID, 1);
-                                    break;
-                                case System.Data.EntityState.Deleted:
-                                    UpdateStoreCount(((RangePlanDetail)obj).ID, -1);
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        
-                        i++;
+                        this.RingFenceHistory.Add((RingFenceHistory)obj);
                     }
-
-                    if (i > 0)
-                        returnVal = base.SaveChanges();
+                    else if (obj.GetType().Name.StartsWith("RangePlanDetail"))
+                    {
+                        switch (states[i])
+                        {
+                            case System.Data.EntityState.Added:
+                                UpdateStoreCount(((RangePlanDetail)obj).ID, 1);
+                                break;
+                            case System.Data.EntityState.Deleted:
+                                UpdateStoreCount(((RangePlanDetail)obj).ID, -1);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                        
+                    i++;
                 }
 
-                if (ringFenceUpdates.Count > 0)
-                {
-                    //call stored procedure to update count and history
-                    RingFenceDAO dao = new RingFenceDAO();
-                    dao.SetRingFenceHeaderQtyAndHistory(ringFenceUpdates);
-                }
-
-                return returnVal;
+                if (i > 0)
+                    returnVal = base.SaveChanges();
             }
-            catch (Exception ex)
+
+            if (ringFenceUpdates.Count > 0)
             {
-                throw;
+                //call stored procedure to update count and history
+                RingFenceDAO.SetRingFenceHeaderQtyAndHistory(ringFenceUpdates, user);
             }
+
+            return returnVal;
         }
 
         private void UpdateStoreCount(Int64 planID, int CountOfStoresAdded)
@@ -731,12 +670,12 @@ namespace Footlocker.Logistics.Allocation.DAO
             return RangePlanDetails.Where(d => ((d.ID == planID) && (d.Store == store) && (d.Division == div))).ToList();
         }
 
-        public IEnumerable<RangePlanDetail> GetRangePlanDetailsForPlan(Int64 planID)
+        public IEnumerable<RangePlanDetail> GetRangePlanDetailsForPlan(long planID)
         {
             return RangePlanDetails.Where(a => (a.ID == planID)).ToList();
         }
 
-        public List<StoreLookupModel> GetStoreLookupsForPlan(Int64 planID, string divisions)
+        public List<StoreLookupModel> GetStoreLookupsForPlan(long planID, string divisions)
         {
             RangePlan p = (from a in RangePlans
                            where a.Id == planID
@@ -768,7 +707,7 @@ namespace Footlocker.Logistics.Allocation.DAO
             return results;
         }
 
-        public List<StoreLookupModel> GetStoreLookupsNotInPlan(Int64 planID, string divisions)
+        public List<StoreLookupModel> GetStoreLookupsNotInPlan(long planID, string divisions)
         {
             RangePlan p = (from a in RangePlans
                            where a.Id == planID

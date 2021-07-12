@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using Footlocker.Common;
+using Footlocker.Logistics.Allocation.Validation;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
@@ -10,10 +11,10 @@ namespace Footlocker.Logistics.Allocation.Models
     {
         public RingFenceModel() { }
 
-        public RingFenceModel(RingFence rf)
-        {
-            this.RingFence = rf;
-        }
+        //public RingFenceModel(RingFence rf)
+        //{
+        //    this.RingFence = rf;
+        //}
 
         public RingFence RingFence { get; set; }
 

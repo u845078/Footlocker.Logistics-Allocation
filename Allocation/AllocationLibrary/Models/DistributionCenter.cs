@@ -9,7 +9,10 @@ namespace Footlocker.Logistics.Allocation.Models
 {
     public class DistributionCenter
     {
+        [Key]
+        [Column("ID")]
         public int ID { get; set; }
+
         [Required]
         [Display(Name="DC")]
         public string Name { get; set; }
@@ -32,12 +35,18 @@ namespace Footlocker.Logistics.Allocation.Models
         [Column("MinihubInd")]
         public bool IsMinihub { get; set; }
 
+        [Display(Name = "Ecom Fulfillment Center")]
+        [Column("FulfillmentCenterInd")]
+        public bool IsFulfillmentCenter { get; set; }
+
         [Column("WarehouseAllocationType")]        
         [ForeignKey("WarehouseAllocationType")]
         [Display(Name = "Warehouse Allocation Type")]
         public int WarehouseAllocationTypeCode { get; set; }
 
         public virtual WarehouseAllocationType WarehouseAllocationType { get; set; }
+        //public virtual ICollection<EcomCustomerFulfillmentXref> ECOMCustomerXrefs { get; set; }
+
 
         [Column("DistributionCenterRestriction")]
         [ForeignKey("DistributionCenterRestriction")]

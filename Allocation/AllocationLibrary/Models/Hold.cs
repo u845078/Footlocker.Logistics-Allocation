@@ -9,46 +9,20 @@ using Footlocker.Common.Utilities.File;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
-    public class Hold : BiExtract
+    public class Hold 
     {
-        public override bool IsValid()
-        {
-            return true;
-        }
-
-        public override Boolean CopyForAllStoresInDivision()
-        {
-            return (Store == "");
-        }
-
-        public override Boolean SubstituteStore(string division, string store)
-        {
-            if (this.Division == division)
-            {
-                this.Store = store;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        [StringLayoutDelimited(0)]
         [XmlAttribute]
         public Int64 ID { get; set; }
 
-        [StringLayoutDelimited(1)]
         [RegularExpression(@"^\d{2}$", ErrorMessage = "Division must be in the format ##")]
         [XmlAttribute]
         public string Division { get; set; }
 
-        [StringLayoutDelimited(2)]
         [XmlIgnore]
         public string Store { get; set; }
 
         private string _level;
 
-        [StringLayoutDelimited(3)]
         [XmlIgnore]
         public string Level 
         { 
@@ -67,20 +41,17 @@ namespace Footlocker.Logistics.Allocation.Models
             }
         }
 
-        [StringLayoutDelimited(4)]
         [XmlIgnore]
         public string Value { get; set; }
 
         [Required]
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        [StringLayoutDelimited(5, "yyyy-MM-dd")]
         [XmlIgnore]
         public DateTime StartDate { get; set; }
 
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        [StringLayoutDelimited(6, "yyyy-MM-dd")]
         [XmlIgnore]
         public DateTime? EndDate { get; set; }
 
@@ -134,7 +105,6 @@ namespace Footlocker.Logistics.Allocation.Models
         /// Gets or sets the reserved inventory character.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when a value other than 'Y' or 'N' is specified.</exception>
-        [StringLayoutDelimited(7)]
         [XmlIgnore]
         public char ReserveInventoryChar
         {
@@ -180,24 +150,19 @@ namespace Footlocker.Logistics.Allocation.Models
         /// <summary>
         /// Temporary or Permanent, for easy filtering on screen
         /// </summary>
-        [StringLayoutDelimited(8)]
         [XmlIgnore]
         public string Duration { get; set; }
 
-        [StringLayoutDelimited(9)]
         [XmlIgnore]
         public string Comments { get; set; }
 
-        [StringLayoutDelimited(10)]
         [XmlIgnore]
         public string CreatedBy { get; set; }
 
-        [StringLayoutDelimited(11, "yyyy-MM-dd h:mm:ss tt")]
         [XmlIgnore]
         public DateTime? CreateDate { get; set; }
 
         [NotMapped]
-        [StringLayoutDelimited(12)]
         [XmlIgnore]
         public string BISKU { get; set; }
 
@@ -261,7 +226,7 @@ namespace Footlocker.Logistics.Allocation.Models
         /// </summary>
         /// <param name="delimiter"></param>
         /// <returns></returns>
-        public override string ToString(char delimiter)
+        public string ToString(char delimiter)
         {
             var resultBuilder = new StringBuilder();
             var delimiterString = delimiter.ToString();

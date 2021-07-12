@@ -96,28 +96,18 @@
   <ItemGroup>
     <Compile Include="Factories\AllocationDriverFactory.cs" />
     <Compile Include="Factories\DirectToStoreConstraintFactory.cs" />
-    <Compile Include="Factories\DirectToStoreSkuBIExtractFactory.cs" />
+    <Compile Include="Factories\EcomCustFulfillmentFactory.cs" />
     <Compile Include="Factories\EcommWeightFactory.cs" />
     <Compile Include="Factories\ExistingPOFactory.cs" />
-    <Compile Include="Factories\ExpeditePOFactory.cs" />
     <Compile Include="Factories\FamilyOfBusinessFactory.cs" />
-    <Compile Include="Factories\HoldFactory.cs" />
-    <Compile Include="Factories\IBiExtractFactory.cs" />
     <Compile Include="Factories\InventorySummaryFactory.cs" />
     <Compile Include="Factories\LegacyFutureInventoryFactory.cs" />
     <Compile Include="Factories\LegacyInventoryFactory.cs" />
     <Compile Include="Factories\LostSalesFactory.cs" />
     <Compile Include="Factories\MainframeLinkFactory.cs" />
     <Compile Include="Factories\RangeFileItemFactory.cs" />
-    <Compile Include="Factories\RangePlanFactory.cs" />
-    <Compile Include="Factories\RDQExtractFactory.cs" />
     <Compile Include="Factories\RingFenceDataFactory.cs" />
-    <Compile Include="Factories\RingFenceFactory.cs" />
     <Compile Include="Factories\RingFenceSummaryFactory.cs" />
-    <Compile Include="Factories\FoqExtractFactory.cs" />
-    <Compile Include="Factories\StoreBTSExtractFactory.cs" />
-    <Compile Include="Factories\StoreRangeFactory.cs" />
-    <Compile Include="Factories\StoreSeasonalityGroupFactory.cs" />
     <Compile Include="Factories\VendorGroupDetailFactory.cs" />
     <Compile Include="Factories\ProductTypeFactory.cs" />
     <Compile Include="Factories\RDQFactory.cs" />
@@ -129,8 +119,6 @@
     <Compile Include="Models\AllocationDivision.cs" />
     <Compile Include="Models\AllocationDriver.cs" />
     <Compile Include="Models\ApplicationUser.cs" />
-    <Compile Include="Models\BiExtract.cs" />
-    <Compile Include="Models\BiExtractRequest.cs" />
     <Compile Include="Models\BrandIDs.cs" />
     <Compile Include="Models\BulkRange.cs" />
     <Compile Include="Models\CancelInventoryHoldsNextBatch.cs" />
@@ -141,8 +129,10 @@
     <Compile Include="Models\Config.cs" />
     <Compile Include="Models\ConfigParam.cs" />
     <Compile Include="Models\ControlDate.cs" />
+    <Compile Include="Models\Country.cs" />
     <Compile Include="Models\Departments.cs" />
     <Compile Include="Models\DistributionCenterRestrictions.cs" />
+    <Compile Include="Models\EcomCustomerFulfillmentXref.cs" />
     <Compile Include="Models\InstanceDistributionCenter.cs" />
     <Compile Include="Models\CrossDockExclusion.cs" />
     <Compile Include="Models\CustomerType.cs" />
@@ -152,7 +142,6 @@
     <Compile Include="Models\EcommWarehouse.cs" />
     <Compile Include="Models\EcommWeight.cs" />
     <Compile Include="Models\FamilyOfBusiness.cs" />
-    <Compile Include="Models\DirectToStoreSkuBIExtract.cs" />
     <Compile Include="Models\FOB.cs" />
     <Compile Include="Models\FOBDept.cs" />
     <Compile Include="Models\FOBPack.cs" />
@@ -187,7 +176,6 @@
     <Compile Include="Models\QuantumSeasonalityData.cs" />
     <Compile Include="Models\RangeFileItem.cs" />
     <Compile Include="Models\RangeIssue.cs" />
-    <Compile Include="Models\RDQExtract.cs" />
     <Compile Include="Models\RDQGroup.cs" />
     <Compile Include="Models\RDQRejectReasonCode.cs" />
     <Compile Include="Models\RDQRestriction.cs" />
@@ -200,15 +188,13 @@
     <Compile Include="Models\RingFenceStatusCodes.cs" />
     <Compile Include="Models\RingFenceSummary.cs" />
     <Compile Include="Models\RingFenceType.cs" />
-    <Compile Include="Models\FoqExtract.cs" />
     <Compile Include="Models\Size.cs" />
+    <Compile Include="Models\State.cs" />
     <Compile Include="Models\StoreAttribute.cs" />
     <Compile Include="Models\StoreBase.cs" />
-    <Compile Include="Models\StoreBTSExtract.cs" />
     <Compile Include="Models\StoreBTSGridExtract.cs" />
     <Compile Include="Models\StoreCluster.cs" />
     <Compile Include="Models\StoreInventory.cs" />
-    <Compile Include="Models\StoreRange.cs" />
     <Compile Include="Models\InstanceDivision.cs" />
     <Compile Include="Models\ItemPack.cs" />
     <Compile Include="Models\ItemPackDetail.cs" />
@@ -254,7 +240,6 @@
     <Compile Include="Factories\RuleFactory.cs" />
     <Compile Include="Models\StorePlan.cs" />
     <Compile Include="Models\StrategyType.cs" />
-    <Compile Include="Models\StoreSeasonalityGroup.cs" />
     <Compile Include="Models\TeamCodes.cs" />
     <Compile Include="Models\UploadRequest.cs" />
     <Compile Include="Models\ValidationSession.cs" />
@@ -271,11 +256,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\AllocationDriverDAO.cs" />
     <Compile Include="Services\AllocationLibraryContext.cs" />
-    <Compile Include="Services\BiExtractDAO.cs" />
     <Compile Include="Services\CategoryDAO.cs" />
     <Compile Include="Services\ConfigService.cs" />
     <Compile Include="Services\ConvertRangeDAO.cs" />
+    <Compile Include="Services\EcomCustXrefDAO.cs" />
     <Compile Include="Services\FootLockerCommonContext.cs" />
+    <Compile Include="Services\Repository.cs" />
     <Compile Include="Services\ItemDAO.cs" />
     <Compile Include="Services\LegacyFutureInventoryDAO.cs" />
     <Compile Include="Services\EcommWeightDAO.cs" />
@@ -283,7 +269,6 @@
     <Compile Include="Services\MainframeDAO.cs" />
     <Compile Include="Services\MainframeStoreDAO.cs" />
     <Compile Include="Services\InventorySummaryDAO.cs" />
-    <Compile Include="Services\Db2DAO.cs" />
     <Compile Include="Services\DirectToStoreDAO.cs" />
     <Compile Include="Services\ExistingPODAO.cs" />
     <Compile Include="Services\FamilyOfBusinessDAO.cs" />
@@ -304,8 +289,10 @@
     <Compile Include="Services\RuleDAO.cs" />
     <Compile Include="Services\SizeAllocationDAO.cs" />
     <Compile Include="Services\WarehouseInventoryDAO.cs" />
+    <Compile Include="Validation\EcomCustFulfillmentXref.cs" />
     <Compile Include="Validation\ModelClientValidationRequiredIfRule.cs" />
     <Compile Include="Validation\RequiredIfAttribute.cs" />
+    <Compile Include="Validation\RingFenceInput.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

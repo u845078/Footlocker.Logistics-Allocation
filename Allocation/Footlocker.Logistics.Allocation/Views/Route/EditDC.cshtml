@@ -56,6 +56,14 @@
     </div>
 
     <div class="editor-label">
+        @Html.LabelFor(model => model.DC.IsFulfillmentCenter)
+    </div>
+    <div class="editor-field">
+        @Html.CheckBoxFor(model => model.DC.IsFulfillmentCenter)
+        @Html.ValidationMessageFor(model => model.DC.IsFulfillmentCenter)
+    </div>
+
+    <div class="editor-label">
         @Html.LabelFor(model => model.DC.DistrictionCenterRestrictionCode)
     </div>
     <div class="editor-field">

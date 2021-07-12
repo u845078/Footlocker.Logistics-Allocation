@@ -30,21 +30,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public DateTime? EndDate { get; set; }
         public Boolean Rounding { get; set; }
         public String RoundMethod { get; set; }
-        //[NotMapped]
-        //public string Rnd
-        //{
-        //    get {
-        //        if (Rounding)
-        //        {
-        //            return "Yes";
-        //        }
-        //        else
-        //        {
-        //            return "No";
-        //        }
-        //    }
-        //    set { }
-        //}
+
         [Display(Name="Buying Multiple")]
         [StringLayoutDelimited(4)]
         public int VendorPackQty { get; set; }

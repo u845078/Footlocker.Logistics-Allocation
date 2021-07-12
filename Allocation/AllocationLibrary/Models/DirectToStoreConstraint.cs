@@ -9,13 +9,8 @@ using Footlocker.Common.Utilities.File;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
-    public class DirectToStoreConstraint : BiExtract
+    public class DirectToStoreConstraint 
     {
-        public override bool IsValid()
-        {
-            return true;
-        }
-
         [Key]
         [Column(Order=0)]
         [StringLayoutDelimited(0)]

@@ -1,0 +1,20 @@
+﻿@using Footlocker.Logistics.Allocation.Models
+@model EcomCustomerFulfillmentXrefModel
+
+@{
+    ViewBag.Title = "Create New Customer Location/Fulfillment Center Cross Reference";
+}
+
+<h2>@ViewBag.Title</h2>
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+@using (Html.BeginForm("Create", "EcomCustXref"))
+{
+    @Html.Partial(@Url.Content("~/Views/EcomCustXref/FormLayout.cshtml"), Model, ViewData)
+
+    <div style="text-align: center;">
+        <button id="saveButton" type="submit">Submit</button>
+    </div>
+}

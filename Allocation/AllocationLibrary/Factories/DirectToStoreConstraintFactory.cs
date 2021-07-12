@@ -8,7 +8,7 @@ using Footlocker.Logistics.Allocation.Models;
 
 namespace Footlocker.Logistics.Allocation.Factories
 {
-    public class DirectToStoreConstraintFactory : IBiExtractFactory<DirectToStoreConstraint>
+    public class DirectToStoreConstraintFactory
     {
         public DirectToStoreConstraint Create(DataRow dr)
         {
@@ -30,28 +30,6 @@ namespace Footlocker.Logistics.Allocation.Factories
             }
 
             return _newObject;
-        }
-
-        /// <summary>
-        /// Create a direct to store constraint.
-        /// </summary>
-        /// <param name="reader">The data reader containing the direct to store constraint's properties.</param>
-        /// <returns>The new direct to store constraint.</returns>
-        public DirectToStoreConstraint Create(IDataReader reader)
-        {
-            string sku = Convert.ToString(reader["Sku"]);
-            string size = Convert.ToString(reader["Size"]);
-            int maxQty = Convert.ToInt32(reader["MaxQty"]);
-            DateTime startDate = Convert.ToDateTime(reader["StartDate"]);
-            DateTime? endDate
-                = Convert.IsDBNull(reader["EndDate"]) ? new DateTime?()
-                    : new DateTime?(Convert.ToDateTime(reader["EndDate"]));
-            string createdBy = Convert.ToString(reader["CreatedBy"]);
-            DateTime createDate = Convert.ToDateTime(reader["CreateDTTM"]);
-            int vendorPackQty = Convert.ToInt32(reader["VendorPackQty"]);
-
-            return new DirectToStoreConstraint(sku, 0L, size, maxQty, startDate, endDate, createdBy, createDate
-                , String.Empty, vendorPackQty);
         }
     }
 }

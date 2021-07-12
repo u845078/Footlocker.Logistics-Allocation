@@ -18,11 +18,13 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         Database _database;
         Database _databaseEurope;
         AllocationLibraryContext db = new AllocationLibraryContext();
+        private Repository<ItemMaster> skuRespository;
 
         public RingFenceDAO()
         {
             _database = DatabaseFactory.CreateDatabase("DB2PROD");
             _databaseEurope = DatabaseFactory.CreateDatabase("DB2EURP");
+            skuRespository = new Repository<ItemMaster>(new AllocationLibraryContext());
         }
 
         /// <summary>
@@ -37,7 +39,8 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                     select a).ToList();
 
             list = (from a in list
-                    join d in validDivisions on a.Division equals d.DivCode
+                    join d in validDivisions 
+                    on a.Division equals d.DivCode
                     select a).OrderByDescending(x => x.CreateDate).ToList();
 
             return list;
@@ -62,11 +65,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             {
                 det.Warehouse = dc.Name;
                 det.DCID = dc.ID;
-            }
-
-            if (poNumber == "1492884" && stockSizeNumber == "070")
-            {
-
             }
 
             det.RingFenceID = currentRingfenceID;
@@ -125,7 +123,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                     generatedSQLStatements = BuildFutureWarehouseAvailableQuery(batchFutureSizes, true);
                     returnValue.AddRange(this.ExecuteFutureSQLandParseValues(generatedSQLStatements, true));
                 }
-                
             }
 
             batchSize = 20;
@@ -376,8 +373,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             SQL += " select a.EXPECTED_DELV_DATE, a.retl_oper_div_code, a.PO_NUM,b.STATUS_IND,a.PRIORITY_CODE, ";
             SQL += " c.WHSE_ID_NUM,c.CASELOT_NUMBER as STK_SIZE_NUM,SUM(c.ORDER_QTY - c.RECEIVED_QTY) as due_in ";
             SQL += " from tkpod001 a, tkpod003 b, tkpod007 c ";
-            SQL += " where ";
-            SQL += " a.retl_oper_div_code = b.retl_oper_div_code ";
+            SQL += " where a.retl_oper_div_code = b.retl_oper_div_code ";
             SQL += " and b.retl_oper_div_code = c.retl_oper_div_code ";
             SQL += " and a.PO_NUM = b.PO_NUM ";
             SQL += " and b.PO_NUM = c.PO_NUM ";
@@ -749,11 +745,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
                 foreach (var ai in availableInventory)
                 {
-                    //var inventoryReduction = db.InventoryReductions.Where(ir => ir.Sku.Equals(ai.Sku) &&
-                    //                                                            ir.Size.Equals(ai.size) &&
-                    //                                                            ir.MFCode.Equals(ai.DistributionCenterID) &&
-                    //                                                            ir.PO.Equals(ai.PO) &&
-                    //                                                            ir.InstanceID.Equals(instanceID)).FirstOrDefault();
                     var inventoryReduction = invReductions.Where(ir => ir.Sku.Equals(ai.Sku) &&
                                                                        ir.Size.Equals(ai.size) &&
                                                                        ir.MFCode.Equals(ai.DistributionCenterID) &&
@@ -808,17 +799,10 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
         public bool isEcommWarehouse(string division, string store)
         {
-            if (store == "00800")
-                return true;
-            else if (store == "00900" && division == "31")
-                return true;
-            else
-            {
-                return (from a in db.EcommWarehouses
-                        where ((a.Division == division) &&
-                               (a.Store == store))
-                        select a).Count() > 0;
-            }
+            return (from a in db.EcommWarehouses
+                    where ((a.Division == division) &&
+                            (a.Store == store))
+                    select a).Count() > 0;
         }
 
         public bool isValidRingFence(RingFence rf, string userName, out string errorMessage)
@@ -838,10 +822,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                     return false;
                 }
 
-                int count = (from a in db.ItemMasters
-                             where (a.MerchantSku == rf.Sku)
-                             select a).Count();
-                if (count == 0)
+                if (skuRespository.Get(sm => sm.MerchantSku == rf.Sku).Count() == 0)
                 {
                     errorMessage = "Invalid Sku, does not exist";
                     return false;
@@ -851,92 +832,98 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             return result;
         }
 
-        public void UpdateRingFence(RingFence rf, string user)
-        {
-            // not sure if we should keep setting these create columns
-            rf.CreateDate = DateTime.Now;
-            rf.CreatedBy = user;
+        //public void UpdateRingFence(RingFence rf, string user)
+        //{
+        //    // not sure if we should keep setting these create columns
+        //    rf.CreateDate = DateTime.Now;
+        //    rf.CreatedBy = user;
 
-            rf.LastModifiedDate = DateTime.Now;
-            rf.LastModifiedUser = user;
+        //    rf.LastModifiedDate = DateTime.Now;
+        //    rf.LastModifiedUser = user;
             
-            db.Entry(rf).State = EntityState.Modified;
-            db.SaveChanges();
+        //    db.Entry(rf).State = EntityState.Modified;
 
-            RingFenceHistory history = new RingFenceHistory();
-            history.RingFenceID = rf.ID;
-            history.Qty = rf.Qty;
-            history.Division = rf.Division;
-            history.EndDate = rf.EndDate;
-            history.Size = rf.Size;
-            history.Sku = rf.Sku;
-            history.StartDate = rf.StartDate;
-            history.Store = rf.Store;
-            history.Action = "Update";
-            history.CreateDate = DateTime.Now;
-            history.CreatedBy = user;
-            db.RingFenceHistory.Add(history);
-            db.SaveChanges();
-        }
+        //    RingFenceHistory history = new RingFenceHistory()
+        //    {
+        //        RingFenceID = rf.ID,
+        //        Qty = rf.Qty,
+        //        Division = rf.Division,
+        //        EndDate = rf.EndDate,
+        //        Size = rf.Size,
+        //        Sku = rf.Sku,
+        //        StartDate = rf.StartDate,
+        //        Store = rf.Store,
+        //        Action = "Update",
+        //        CreateDate = DateTime.Now,
+        //        CreatedBy = user
+        //    };
 
-        public int GetRingFenceDetailTotalQuantity(long ringFenceID)
-        {
-            int newQty;
+        //    db.RingFenceHistory.Add(history);
+        //    db.SaveChanges();
+        //}
 
-            newQty = (from a in db.RingFenceDetails
-                      where a.RingFenceID == ringFenceID &&
-                            a.ActiveInd == "1"
-                      select a.Qty).Sum();
+        //public int GetRingFenceDetailTotalQuantity(long ringFenceID)
+        //{
+        //    int newQty;
 
-            return newQty;
-        }
+        //    newQty = (from a in db.RingFenceDetails
+        //              where a.RingFenceID == ringFenceID &&
+        //                    a.ActiveInd == "1"
+        //              select a.Qty).Sum();
 
-        public void UpdateRingFenceDetail(RingFenceDetail det, string user)
-        {
-            db.Entry(det).State = EntityState.Modified;
-            db.SaveChanges();
+        //    return newQty;
+        //}
 
-            RingFence rf = (from a in db.RingFences
-                            where a.ID == det.RingFenceID
-                            select a).First();
+        //public void UpdateRingFenceDetail(RingFenceDetail det, string user)
+        //{
+        //    db.Entry(det).State = EntityState.Modified;
+        //    db.SaveChanges();
 
-            RingFenceHistory history = new RingFenceHistory();
-            history.RingFenceID = det.RingFenceID;
-            history.Division = rf.Division;
-            history.Store = rf.Store;
-            history.Sku = rf.Sku;
-            history.Size = det.Size;
-            history.DCID = det.DCID;
-            history.PO = det.PO;
-            history.Qty = det.Qty;
-            history.StartDate = rf.StartDate;
-            history.EndDate = rf.EndDate;
-            history.Action = "Update Det";
-            history.CreateDate = DateTime.Now;
-            history.CreatedBy = user;
-            db.RingFenceHistory.Add(history);
-            db.SaveChanges();
+        //    RingFence rf = (from a in db.RingFences
+        //                    where a.ID == det.RingFenceID
+        //                    select a).First();
 
-            int newQty = GetRingFenceDetailTotalQuantity(det.RingFenceID);
+        //    RingFenceHistory history = new RingFenceHistory()
+        //    {
+        //        RingFenceID = det.RingFenceID,
+        //        Division = rf.Division,
+        //        Store = rf.Store,
+        //        Sku = rf.Sku,
+        //        Size = det.Size,
+        //        DCID = det.DCID,
+        //        PO = det.PO,
+        //        Qty = det.Qty,
+        //        StartDate = rf.StartDate,
+        //        EndDate = rf.EndDate,
+        //        Action = "Update Det",
+        //        CreateDate = DateTime.Now,
+        //        CreatedBy = user
+        //    };
 
-            if (rf.Qty != newQty)
-            {
-                rf.Qty = newQty;
-                UpdateRingFence(rf, user);
-            }           
-        }
+        //    db.RingFenceHistory.Add(history);
+        //    db.SaveChanges();
 
-        public void SetRingFenceHeaderQtyAndHistory(List<Int64> ringfences)
+        //    int newQty = GetRingFenceDetailTotalQuantity(det.RingFenceID);
+
+        //    if (rf.Qty != newQty)
+        //    {
+        //        rf.Qty = newQty;
+        //        UpdateRingFence(rf, user);
+        //    }           
+        //}
+
+        public static void SetRingFenceHeaderQtyAndHistory(List<long> ringfences, string user)
         {
             Database database = DatabaseFactory.CreateDatabase("AllocationContext");
 
             DbCommand SQLCommand;
             string SQL = "dbo.[SetRingFenceHeaderQty]";
 
-            foreach (Int64 id in ringfences)
+            foreach (long id in ringfences)
             {
                 SQLCommand = database.GetStoredProcCommand(SQL);
                 database.AddInParameter(SQLCommand, "@id", DbType.Int64, id);
+                database.AddInParameter(SQLCommand, "@user", DbType.String, user);
 
                 database.ExecuteNonQuery(SQLCommand);
             }

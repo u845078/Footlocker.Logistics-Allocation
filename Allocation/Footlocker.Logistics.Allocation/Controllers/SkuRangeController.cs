@@ -62,10 +62,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          join di in divs on im.Div equals di
                          select new { RangePlan = rp, Division = im.Div, Department = im.Dept }).ToList();
 
-            //(from q in query
-            // join pre in db.PreSaleSKUs on q.RangePlan.ItemID equals pre.ItemID
-            // select q).ToList().ForEach(x => x.RangePlan.PreSaleSKU = "Yes");
-
             List<RangePlan> model = query.Where(q => temp.Contains(q.Division + "-" + q.Department))
                                           .Select(q => q.RangePlan)
                                           .OrderBy(q => q.Sku)
@@ -90,8 +86,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-
-
         public ActionResult Delete(Int64 planID)
         {
             var rangePlanExists = db.RangePlans.Any(rp => rp.Id.Equals(planID));
@@ -113,7 +107,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             RangePlan plan = rangeQuery.First();
             return View(plan);
-            //return Json("Success");
         }
 
         public ActionResult CreateRangePlan()
@@ -166,9 +159,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private long RetreiveOrCreateItemID(string SKU)
         {
-            var itemlist = (from a in db.ItemMasters
-                            where a.MerchantSku == SKU
-                            select a);
+            var itemlist = db.ItemMasters.Where(im => im.MerchantSku == SKU).ToList();
 
             if (itemlist.Count() > 0)
             {
@@ -475,7 +466,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _AutoCompleteSku(string text)
         {
             IQueryable<String> results;
-            results = (from a in db.RangePlans where a.Sku.StartsWith(text) select a.Sku).Distinct();
+            results = (from a in db.RangePlans 
+                       where a.Sku.StartsWith(text) 
+                       select a.Sku).Distinct();
             return new JsonResult { Data = results.ToList() };
         }
 
@@ -493,7 +486,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult SaveSkuRange(SizeAllocationModel model)
         {
-            RangePlan p = (from a in db.RangePlans where a.Id == model.Plan.Id select a).First();
+            RangePlan p = (from a in db.RangePlans 
+                           where a.Id == model.Plan.Id 
+                           select a).First();
+
             p.StartDate = model.Plan.StartDate;
             p.EndDate = model.Plan.EndDate;
             p.UpdateDate = DateTime.Now;
@@ -514,11 +510,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 planID = list.First().PlanID;
             }
 
-
             SizeAllocationDAO dao = new SizeAllocationDAO();
 
             List<Rule> rules = db.GetRulesForPlan(planID, "SizeAlc");
-
 
             IEnumerable<StoreLookup> stores;
 
@@ -643,7 +637,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return SaveTotalDates(list);
             }
 
-            //if (list.Count() > 0)
             if (processedCount > 0)
             {
                 UpdateRangePlanDate(planID);
@@ -696,10 +689,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
-
             ////Now let's update the date of the rangeplan
             List<RangePlanDetail> detList = (from a in db.RangePlanDetails where a.ID == planID select a).ToList();
-
 
             //filter it for the stores based on current rules
             if (stores != null)
@@ -717,7 +708,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             foreach (RangePlanDetail det in detList)
             {
-                //det.StartDate = list.First().StartDate;
                 if (list.First().EndDate != null)
                 {
                     det.EndDate = list.First().EndDate;
@@ -745,7 +735,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return RedirectToAction("PresentationQuantities", "SkuRange", new { planID = planID });
         }
-
 
         private void UpdateRangeHeader(long planID)
         {
@@ -775,24 +764,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.SaveChanges(UserName);
         }
 
-
         public ActionResult ExcelSizeAllocation(Int64 planID)
         {
             SizeAllocationDAO dao = new SizeAllocationDAO();
             List<SizeAllocation> allocations = dao.GetSizeAllocationList(planID);
-
 
             Aspose.Excel.License license = new Aspose.Excel.License();
             //Set the license 
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            //FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["SkuTypeTemplate"]), FileMode.Open);
-            //Byte[] data1 = new Byte[file.Length];
-            //file.Read(data1, 0, data1.Length);
-            //file.Close();
-            //MemoryStream memoryStream1 = new MemoryStream(data1);
-            //excelDocument.Open(memoryStream1);
+
             Worksheet mySheet = excelDocument.Worksheets[0];
 
             mySheet.Cells[0, 0].PutValue("PlanID");
@@ -833,13 +815,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
-
-
         public ActionResult SaveStoreSizeAllocation(IList<SizeAllocation> list)
         {
             long planID = 1;
             SizeAllocationDAO dao = new SizeAllocationDAO();
-            //List<Rule> rules = db.GetRulesForPlan(planID, "SizeAlc");
 
             List<StoreLookup> stores = new List<StoreLookup>();
 
@@ -935,16 +914,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                select a).First();
                         det.StartDate = t.StartDate;
                         det.EndDate = t.EndDate;
-                        //if (t.RangeType != "N\\A")
-                        //{
-                        //    det.RangeType = t.RangeType;
-                        //}
 
-                        //always default to "Both"
-                        //if (string.IsNullOrEmpty(det.RangeType))
-                        //{
                         det.RangeType = "Both";
-                        //}
 
                         fixEndDate(det);
                         db.Entry(det).State = System.Data.EntityState.Modified;
@@ -961,7 +932,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             return Json("Success");
-            //return RedirectToAction("PresentationQuantities", "SkuRange", new { planID = planID });
         }
 
         private List<SizeAllocationTotal> GetTotals(List<SizeAllocation> list)
@@ -1001,20 +971,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     (currentTotal.InitialDemand != sa.InitialDemand) ||
                     (currentTotal.MinEndDays != sa.MinEndDays))
                 {
-                    //if ((sa.Days != null) && (sa.Min != null) && (sa.Max != null))
-                    //{
                     currentTotal.ModifiedStore = true;
-                    //}
                 }
                 if ((currentTotal.StartDate != sa.StartDate) || (currentTotal.EndDate != sa.EndDate))
                 {
                     //TODO, show on screen that all dates aren't the same
                     currentTotal.ModifiedDates = true;
                 }
-                //if ((currentTotal.Range != sa.Range))
-                //{
-                //    currentTotal.ModifiedStore = true;
-                //}
+
                 prevSize = sa.Size;
             }
             if (currentTotal != null)
@@ -1034,18 +998,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             if (currentTotal != null)
             {
-                //if (currentTotal.Max < 0)
-                //{
-                //    currentTotal.Max = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["defaultMax"]);
-                //}
-                //if (currentTotal.Min < 0)
-                //{
-                //    currentTotal.Min = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["defaultMin"]);
-                //}
-                //if (currentTotal.Days < 0)
-                //{
-                //    currentTotal.Days = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["defaultDays"]);
-                //}
                 totals.Add(currentTotal);
             }
         }
@@ -1146,8 +1098,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _CheckRoute(int routeid, int planID)
         {
-            //ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == sku select a).First();
-
             //verify all these zones are in routes
             var zoneids = (from a in db.RangePlanDetails
                            join b in db.NetworkZoneStores on new { a.Division, a.Store } equals new { b.Division, b.Store }
@@ -1175,9 +1125,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 issues.Add(issue);
             }
 
-
             return View(new GridModel(issues));
-
         }
 
 
@@ -1283,30 +1231,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 issues.Add(issue);
             }
 
-            ////verify all these zones are in routes
-            //var zoneids = (from a in db.RangePlanDetails join b in db.NetworkZoneStores on new { a.Division, a.Store } equals new { b.Division, b.Store } where a.ID == planID select b);
-            ////1.  Figure out what route it should be
-
-            //Route route = (from a in db.Routes select a).First();
-            ////2.  See if all zoneids are in that route
-            //var routeZones = (from a in db.Routes join b in db.RouteDetails on a.ID equals b.RouteID where a.ID == route.ID select new { b.RouteID, b.ZoneID });
-
-            //var missingZones = (from a in zoneids
-            // where (!routeZones.Any(b => (b.ZoneID == a.ZoneID)))
-            // select a);
-
-            //foreach (var det in missingZones)
-            //{
-            //    issue = new RangeIssue();
-            //    issue.Division = det.Division;
-            //    issue.Store = det.Store;
-            //    issue.Message = "Zone not in route for this product (" + route.Perspective + " " + route.Pass + " " + route.Name + ")";
-            //    issues.Add(issue);
-            //}
-
             return View(new GridModel(issues));
         }
-
 
         public ActionResult ShowQFeedText(Int64 planID)
         {
@@ -1366,13 +1292,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult ClearFilteredStores(Int64 planID)
         {
-            //delete all the ruleselected stores
-            //foreach (RuleSelectedStore rss in (from a in db.RuleSelectedStores where a.RuleSetID == ruleSetID select a))
-            //{
-            //    db.RuleSelectedStores.Remove(rss);
-            //}
-            //db.SaveChanges(UserName);
-
             return RedirectToAction("PresentationQuantities", new { planID = planID });
         }
 
@@ -1391,8 +1310,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult SelectDeliveryGroup(Int64 DeliveryGroupID, Int64 planID)
         {
-            //SizeAllocationModel model = InitPresentationQtyModel(planID, null,null,null);
-            //GetPresentationQtyDeliveryGroups(model);
             if (Session["selectedDeliveryGroups"] != null)
             {
                 List<DeliveryGroup> groups = ((List<DeliveryGroup>)Session["selectedDeliveryGroups"]);
@@ -1402,13 +1319,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             return RedirectToAction("PresentationQuantities", new { planID = planID });
         }
-
-        //public ActionResult PresentationQuantities(Int64 planID, string message, string page, string show)
-        //{
-        //    SizeAllocationModel model = GetPresentationQtyModel(planID, message, page, show);
-
-        //    return View(model);
-        //}
 
         private SkuSetupModel GetPresentationQtyModel(Int64 planID, string message, string page, string show)
         {
@@ -1432,7 +1342,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             SkuSetupModel model = new SkuSetupModel();
             model.RangePlan = (from a in db.RangePlans where a.Id == planID select a).First();
-            //model.PlanID = planID;
 
             //update the store count
             model.RangePlan.StoreCount = (from a in db.RangePlanDetails join b in db.vValidStores on new { a.Division, a.Store } equals new { b.Division, b.Store } where a.ID == planID select a).Count();
@@ -1682,24 +1591,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 Session["selectedDeliveryGroups"] = model.DeliveryGroups;
             }
-
-            //set the current models selected stores to those saved in the session as selected
-            //List<DeliveryGroup> groups = ((List<DeliveryGroup>)Session["selectedDeliveryGroups"]);
-            //foreach (DeliveryGroup dg in model.DeliveryGroups)
-            //{
-            //    try
-            //    {
-            //        dg.Selected = ((from a in groups
-            //                        where a.ID == dg.ID
-            //                        select a).First().Selected);
-            //    }
-            //    catch
-            //    {
-            //        dg.Selected = true;
-            //        groups.Add(dg);
-            //        Session["selectedDeliveryGroups"] = groups;
-            //    }
-            //}
         }
 
         /// <summary>
@@ -1861,7 +1752,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("PresentationQuantities", new { planID = planID });
         }
 
-        //public ActionResult AddMissingStoreToDeliveryGroup(string div, string store, long ruleSetID, long planID, string rangeType)
         public ActionResult AddMissingStoreToDeliveryGroup(string div, string store, long ruleSetID, long planID)
         {
             if (ruleSetID < 0)
@@ -2007,9 +1897,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _DeliveryGroupStores(Int64 planID, Int64 deliveryGroupID)
         {
-            //DeliveryGroupModel model = new DeliveryGroupModel();
-            //model.DeliveryGroup = (from a in db.DeliveryGroups where a.ID == deliveryGroupID select a).First();
-            //List<DeliveryGroupDetail> DeliveryGroupDetails = (from a in db.DeliveryGroupDetails where a.DeliveryGroupID == deliveryGroupID select a).ToList();
             List<StoreLookupModel> PlanStores = db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name));
             return View(new GridModel(PlanStores));
         }
@@ -2041,8 +1928,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 ViewData["LifeCycle"] = i.LifeCycleDays;
             }
-
-
 
             model.RuleModel = new RuleModel();
             model.RuleModel.RuleSetID = model.DeliveryGroup.RuleSetID;
@@ -2400,12 +2285,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            //FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ProductTypeTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
-            //Byte[] data1 = new Byte[file.Length];
-            //file.Read(data1, 0, data1.Length);
-            //file.Close();
-            //MemoryStream memoryStream1 = new MemoryStream(data1);
-            //excelDocument.Open(memoryStream1);
+
             excelDocument.Worksheets[0].Cells[0, 0].PutValue("Div (##)");
             excelDocument.Worksheets[0].Cells[0, 1].PutValue("Store (#####)");
             excelDocument.Worksheets[0].Cells[0, 0].Style.Font.IsBold = true;
@@ -2422,12 +2302,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            //FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["SkuTypeTemplate"]), FileMode.Open);
-            //Byte[] data1 = new Byte[file.Length];
-            //file.Read(data1, 0, data1.Length);
-            //file.Close();
-            //MemoryStream memoryStream1 = new MemoryStream(data1);
-            //excelDocument.Open(memoryStream1);
+
             Worksheet mySheet = excelDocument.Worksheets[0];
 
             mySheet.Cells[0, 0].PutValue("Div (##)");
@@ -2532,12 +2407,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             else
             {
                 List<Rule> rules = db.GetRulesForPlan(planID, ruleType);
-                //(from r in db.Rules
-                //                join rs in db.RuleSets
-                //                    on r.RuleSetID equals rs.RuleSetID
-                //                where ((rs.PlanID == planID) && (rs.Type == "main"))
-                //                orderby r.Sort ascending
-                //                select r).ToList();
 
                 try
                 {
@@ -2560,9 +2429,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _StoreLookupList(Int64 planID, string gridtype, string ruleType)
         {
-            List<StoreLookupModel> list;// = new List<StoreLookupModel>();
-            //ViewData["planID"] = planID;
-            //ViewData["gridtype"] = filter;
+            List<StoreLookupModel> list;
 
             if (gridtype == "AllStores")
             {
@@ -2572,11 +2439,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             else
             {
                 List<Rule> rules = db.GetRulesForPlan(planID, ruleType);
-                //(from r in db.Rules 
-                //                join rs in db.RuleSets 
-                //                    on r.RuleSetID equals rs.RuleSetID
-                //                    where ((rs.PlanID == planID)&&(rs.Type == "main")) 
-                //                orderby r.Sort ascending select r).ToList();
 
                 try
                 {
@@ -2646,8 +2508,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             ViewData["ruleSetID"] = model.RuleSetID;
 
-
-            //fds  model.RuleToAdd = new Rule();
             model.PlanID = planID;
             model.Plan = (from a in db.RangePlans
                           where a.Id == planID
@@ -2700,7 +2560,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 return RedirectToAction("AddStoresByRule", new { planID = planID });
             }
-            //return RedirectToAction("AddStoresByRule", new { planID = planID });
         }
 
         /// <summary>
@@ -2734,8 +2593,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-
-
         /// <summary>
         /// Add a new rule specified by user
         /// "Store Equals 07801"
@@ -2762,13 +2619,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-
         /// <summary>
         /// Add all the stores that meet the new rules to the range plan (planID)
         /// </summary>
         public ActionResult AddAllStores(Int64 planID)
         {
-            //List<Rule> RulesForPlan = (from r in db.Rules where r.PlanID == planID orderby r.Sort ascending select r).ToList();
             List<Rule> RulesForPlan = db.GetRulesForPlan(planID, "Main");
 
             List<StoreLookupModel> StoreList = GetStoresForRules(RulesForPlan, planID);
@@ -2791,7 +2646,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             dao.AddStores(details);
 
             UpdateRangePlanDate(planID);
-            //ClearSessionVariables();
+
             return RedirectToAction("AddStoresByRule", new { planID = planID });
 
         }
@@ -2802,7 +2657,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// </summary>
         public JsonResult AddFilteredStores(Int64 planID, string filter, string ruleType)
         {
-            //List<Rule> RulesForPlan = (from r in db.Rules where r.PlanID == planID orderby r.Sort ascending select r).ToList();
             List<Rule> RulesForPlan = db.GetRulesForPlan(planID, ruleType);
 
             List<StoreLookupModel> StoreList = GetStoresForRules(RulesForPlan, planID);
@@ -2826,8 +2680,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             UpdateRangePlanDate(planID);
             return Json("Success");
-            //return RedirectToAction("AddStoresByRule", new { planID = planID });
-
         }
 
 
@@ -2880,7 +2732,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 db.RangePlanDetails.Add(det);
                 db.SaveChanges();
 
-                //UpdateStoreCount(planID, 1);
                 UpdateRangePlanDate(planID);
 
                 return Json("Success");
@@ -2889,7 +2740,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 return Json("Error");
             }
-            //return GetGridJson(planID, page);
         }
 
         /// <summary>
@@ -2915,7 +2765,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     db.SaveChanges();
                 }
 
-                //UpdateStoreCount(planID, -1);
                 UpdateRangePlanDate(planID);
 
                 return Json("Success");
@@ -2926,12 +2775,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
         #endregion
-
         #endregion
 
 
         #region Get Store List from Rule List
-
         private Boolean ValidateRules(List<Rule> rules)
         {
             try
@@ -2982,7 +2829,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             Expression finalExpression = GetExpression(finalRules, pe);
             // Create an expression tree that represents the expression 
-            // 'queryableData.Where(company => (company.ToLower() == "coho winery" || company.Length > 16))'
             MethodCallExpression whereCallExpression = Expression.Call(
                 typeof(Queryable),
                 "Where",
@@ -3080,8 +2926,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             Expression exp = null;
             Expression left = null;
             Expression right = null;
-            //ParameterExpression pe = Expression.Parameter(typeof(StoreLookup), "StoreLookup");
-
 
             if (rule.Field == "AdHocCode")
             {
@@ -3095,7 +2939,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if (rule.Field == "RangePlan")
                 {
-                    Int64 planID;// = Convert.ToInt64(rule.Value);
+                    Int64 planID;
                     string sku = Convert.ToString(rule.Value);
 
                     string myInClause = DivisionList(User.Identity.Name);
@@ -3122,7 +2966,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 Expression memberExpression2 = Expression.Property(pe, "Division");
                 MethodCallExpression concatExpression = Expression.Call(method, memberExpression2, memberExpression);
 
-                //Expression convertExpression = Expression.Convert(memberExpression, typeof(string));  //store only
                 Expression convertExpression = Expression.Convert(concatExpression, typeof(string));  //store and divison
                 MethodCallExpression containsExpression = Expression.Call(foreignKeysParameter
                     , "Contains", new Type[] { }, convertExpression);
@@ -3278,10 +3121,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         #endregion
 
-
-
         #region OrderPlanningRequest
-
         public ActionResult CreateOrderPlanningRequest(Int64 planID)
         {
             OrderPlanningRequest model = new OrderPlanningRequest();
@@ -3465,7 +3305,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         #endregion
 
-
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult UploadRange()
         {
@@ -3644,27 +3483,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return View(new GridModel(reInitializeSKU));
         }
-
-        //[GridAction]
-        //public ActionResult ReInitializeSKUDetails(string itemID, bool allSKU)
-        //{
-        //    long cItemID = Int64.Parse(itemID);
-        //    List<ReInitializeSKU> details = new List<ReInitializeSKU>();
-
-        //    if (allSKU)
-        //    {
-        //        details = (from a in db.ReInitializeSKUs
-        //                   where a.ItemID == cItemID
-        //                   select a).ToList();
-        //    }
-        //    else
-        //    {
-        //        details = (from a in db.ReInitializeSKUs
-        //                   where a.ItemID == cItemID && a.SkuExtracted == false
-        //                   select a).ToList();
-        //    }
-        //    return View(new GridModel(details));
-        //}
 
         public ActionResult DeleteSKUDetails(string id)
         {
@@ -3855,30 +3673,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             row++;
                         }
 
-                        //List<string> skus = (from a in updateList select a.Sku).Distinct().ToList();
-                        //if (purgeFirst)
-                        //{
-                        //    if (skus.Count > 1)
-                        //    {
-                        //        return Content("You can only update a single sku when you choose to purge first.");
-                        //    }
-                        //    else if (skus.Count == 1)
-                        //    {
-                        //        try
-                        //        {
-                        //            long planid;
-                        //            string sku = skus[0];
-                        //            List<RangePlan> plans = (from a in db.RangePlans where a.Sku == sku select a).ToList();
-                        //            planid = plans[0].Id;
-                        //            ClearStoreFromPlan(plans[0].Id);
-                        //        }
-                        //        catch (Exception ex)
-                        //        {
-                        //            return Content(ex.Message);
-                        //        }
-                        //    }
-                        //}
-
                         RangePlanDetailDAO dao = new RangePlanDetailDAO();
                         errorList = dao.BulkUpdateRange(updateList, User.Identity.Name, purgeFirst);
 
@@ -4055,7 +3849,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
-
         public ActionResult ExcelDeliveryGroup(int deliveryGroupID)
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -4106,9 +3899,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             excelDocument.Save(sku + "-" + dg.Name + ".xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
-
-
-
 
         /// <summary>
         /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
@@ -4256,8 +4046,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
-
-
             // Upload if spreadsheet has valid data
             if (!errorsFound)
             {
@@ -4268,9 +4056,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         UpdateDeliveryGroupDates(dg);
                         UpdateRangeHeader(dg.PlanID);
                     }
-
-
-
                 }
                 catch (Exception ex)
                 {
@@ -4285,7 +4070,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             return sheet.Cells[row, 0].Value != null;
         }
-
 
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult ExcelSkuRangePlanDGUploadTemplate()
@@ -4303,7 +4087,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             MemoryStream memoryStream1 = new MemoryStream(data1);
             excelDocument.Open(memoryStream1);
             excelDocument.Save("SkuRangePlanDGUploadTemplate.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
-            //return View();
+
             return View();
         }
     }
