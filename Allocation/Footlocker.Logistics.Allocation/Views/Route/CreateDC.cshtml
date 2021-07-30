@@ -51,6 +51,30 @@
         @Html.CheckBoxFor(model => model.DC.IsMinihub)
     </div>
 
+    <div class="editor-label">
+        @Html.LabelFor(model => model.DC.IsFulfillmentCenter)
+    </div>
+    <div class="editor-field">
+        @Html.CheckBoxFor(model => model.DC.IsFulfillmentCenter)
+        @Html.ValidationMessageFor(model => model.DC.IsFulfillmentCenter)
+    </div>
+
+    <div class="editor-label">
+        @Html.LabelFor(model => model.DC.DistrictionCenterRestrictionCode)
+    </div>
+    <div class="editor-field">
+        @Html.DropDownListFor(model => model.DC.DistrictionCenterRestrictionCode, new SelectList(Model.DistributionCenterRestrictions, "Code", "Description"))
+        @Html.ValidationMessageFor(model => model.DC.DistributionCenterRestriction)
+    </div>
+
+    <div class="editor-label">
+        @Html.LabelFor(model => model.DC.TransmitRDQsToKafka)
+    </div>
+    <div class="editor-field">
+        @Html.CheckBoxFor(model => model.DC.TransmitRDQsToKafka)
+        @Html.ValidationMessageFor(model => model.DC.TransmitRDQsToKafka)
+    </div>
+
     <br />
     <p>This Distribution Center can be used with the following Instances:</p>
     @for (var i = 0; i < Model.SelectedInstances.Count(); i++)
@@ -59,7 +83,7 @@
         @Html.HiddenFor(it => it.SelectedInstances[i].ID)
         @Html.DisplayFor(it => it.SelectedInstances[i].Desc)
         <br />
-     }    
+    }
 
     @Html.HiddenFor(model => model.DC.InstanceID)
 

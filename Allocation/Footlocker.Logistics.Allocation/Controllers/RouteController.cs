@@ -276,6 +276,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 },
                 WarehouseAllocationTypes = db.WarehouseAllocationTypes.ToList(),
                 AvailableInstances = db.Instances.ToList(),
+                DistributionCenterRestrictions = db.DistributionCenterRestrictions.ToList(),
                 SelectedInstances = new List<CheckBoxModel>()
             };
 
@@ -295,6 +296,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.DC.LastModifiedUser = User.Identity.Name;
 
             db.DistributionCenters.Add(model.DC);
+            db.SaveChanges();
 
             foreach (var selInst in model.SelectedInstances)
             {
