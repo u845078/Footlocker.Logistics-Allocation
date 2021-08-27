@@ -688,13 +688,16 @@ namespace Footlocker.Logistics.Allocation.DAO
                         select new { Store = store, StoreExtension = store.StoreExtension });
             List<StoreLookupModel> results = new List<StoreLookupModel>();
 
-            List<ConceptType> concepts = ConceptTypes.ToList();
+            List<ConceptType> concepts = (from a in ConceptTypes
+                                          select a).ToList();
             foreach (var s in list)
             {
                 try
                 {
                     s.Store.StoreExtension = s.StoreExtension;
-                    s.Store.StoreExtension.ConceptType = concepts.Where(c => c.ID == s.StoreExtension.ConceptTypeID).FirstOrDefault();
+                    s.Store.StoreExtension.ConceptType = (from a in concepts
+                                                          where a.ID == s.Store.StoreExtension.ConceptTypeID
+                                                          select a).FirstOrDefault();
                 }
                 catch
                 { }

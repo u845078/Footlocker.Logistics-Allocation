@@ -222,7 +222,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult TroubleshootStore()
         {
             TroubleshootStoreModel model = new TroubleshootStoreModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = this.Divisions();
             return View(model);
         }
 
@@ -247,7 +247,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == model.Division select a.RunDate).FirstOrDefault();
             
 
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = this.Divisions();
 
             //model.BTSGroups = (from a in db.StoreBTS join b in db.StoreBTSDetails on a.ID equals b.GroupID where ((b.Store == model.Store) && (b.Division == model.Division)) select a).ToList();
 

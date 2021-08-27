@@ -7,10 +7,10 @@ using Footlocker.Common;
 using Telerik.Web.Mvc;
 using System.DirectoryServices;
 using System.Web.Routing;
-using Footlocker.Logistics.Allocation.Models;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
+
     /// <summary>
     /// Inherit from your controller from this, and you will get sitewide security/etc.
     /// </summary>
@@ -20,8 +20,37 @@ namespace Footlocker.Logistics.Allocation.Controllers
     {
         Footlocker.Logistics.Allocation.Services.FootLockerCommonContext flCommon = new Footlocker.Logistics.Allocation.Services.FootLockerCommonContext();
 
-        public WebUser currentUser;
-        public const string AppName = "Allocation";
+        public string getCurrentUserFullUserName()
+        {
+            try
+            {
+                DirectoryEntry de = new DirectoryEntry("WinNT://" + Environment.UserDomainName + "/" + Environment.UserName);
+                if (de != null)
+                    return de.Properties["fullname"].Value.ToString();
+                else
+                    return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public string getFullUserName(string fullUserID)
+        {            
+            try
+            {
+                DirectoryEntry de = new DirectoryEntry("WinNT://" + fullUserID);
+                if (de.Guid != null)
+                    return de.Properties["fullname"].Value.ToString();
+                else
+                    return null;
+            }
+            catch
+            {
+                return fullUserID;
+            }
+        }
 
         public string getFullUserNameFromDatabase(string fullUserID)
         {
@@ -49,19 +78,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             get
             {
-                return currentUser.NetworkID;
+                return FullUserName.Replace("CORP\\", "");
             }
         }
 
-        private void LoadCurrentUser()
+        public string FullUserName
         {
-            DirectoryEntry de;
-
-            currentUser = new WebUser(Environment.UserDomainName, Environment.UserName);
-            de = new DirectoryEntry(currentUser.ActiveDirectoryEntry);
-
-            if (de.Guid != null)
-                currentUser.FullName = de.Properties["fullname"].Value.ToString();
+            get
+            {
+                return System.Web.HttpContext.Current.User.Identity.Name;
+            }
         }
 
         public Alert UserAlert
@@ -84,17 +110,51 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
+        private List<Division> _divisions;
+
+        public List<Division> Divisions()
+        {
+            if (_divisions == null)
+            {
+                _divisions = WebSecurityService.ListUserDivisions(UserName, "Allocation");
+            }
+            return _divisions;
+        }
+
+        private List<Department> _departments;
+
+        public List<Department> Departments()
+        {
+            if (_departments == null)
+            {
+                _departments = new List<Department>();
+                foreach (Division d in Divisions())
+                {
+                    _departments.AddRange(WebSecurityService.ListUserDepartments(UserName, "Allocation", d.DivCode));
+                }
+            }
+            return _departments;
+        }
+
+        public string DivisionList(string user)
+        {
+            string returnVal = "";
+            foreach (Division d in Divisions())
+            {
+                returnVal = returnVal + d.DivCode;
+            }
+            return returnVal;
+        }
+
         public AppController()
         {
         }
 
         protected override void Initialize(RequestContext requestContext)
         {
-            
             base.Initialize(requestContext);
-            LoadCurrentUser();
+            ViewBag.FullUserName = getFullUserName(User.Identity.Name.Replace('\\', '/'));
 
-            ViewBag.FullUserName = currentUser.FullName;
             ViewBag.CurrentDate = DateTime.Now;
         }
     }

@@ -18,7 +18,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             AllocationDriverDAO dao = new AllocationDriverDAO();
             DriverModel model = new DriverModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = this.Divisions();
             if ((div == null) && (model.Divisions.Count() > 0))
             {
                 div = model.Divisions[0].DivCode;
@@ -33,7 +33,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             DriverModel model = new DriverModel();
             model.NewDriver = new AllocationDriver();
             model.NewDriver.Division = div;
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = this.Divisions();
             model.Departments = DepartmentService.ListDepartments(div);
 
             return View(model);
@@ -51,7 +51,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             AllocationDriverDAO dao = new AllocationDriverDAO();
             DriverModel model = new DriverModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = this.Divisions();
             model.NewDriver = dao.GetAllocationDriver(div, dept);
 
             return View(model);

@@ -118,7 +118,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ViewData["message"] = message;
             }
             ExpeditePOModel model = new ExpeditePOModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = Divisions();
             if ((div == null) || (div == ""))
             {
                 if (model.Divisions.Count() > 0)
@@ -139,7 +139,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ViewData["message"] = message;
             }
             ExpeditePOModel model = new ExpeditePOModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = Divisions();
             if ((div == null) || (div == ""))
             {
                 if (model.Divisions.Count() > 0)
@@ -156,7 +156,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _Index(string div)
         {
             ExpeditePOModel model = new ExpeditePOModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = Divisions();
             if ((div == null) || (div == ""))
             {
                 if (model.Divisions.Count() > 0)
@@ -181,7 +181,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _IndexByPO(string div)
         {
             ExpeditePOModel model = new ExpeditePOModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = Divisions();
             if ((div == null) || (div == ""))
             {
                 if (model.Divisions.Count() > 0)
@@ -206,7 +206,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ExpeditePOModel model = new ExpeditePOModel();
             model.NewPO = new ExpeditePO();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = this.Divisions();
             model.NewPO.Division = div;
             return View(model);
         }
@@ -258,7 +258,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             else
             {
                 ViewData["message"] = "PO not found";
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = this.Divisions();
                 return View(model);            
             }
         }
@@ -267,7 +267,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ExpeditePOModel model = new ExpeditePOModel();
             model.NewPO = new ExpeditePO();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = this.Divisions();
             model.NewPO.Division = div;
             return View(model);
         }

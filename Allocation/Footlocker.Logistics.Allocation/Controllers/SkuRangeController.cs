@@ -49,13 +49,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private List<RangePlan> GetRangesForUser()
         {
-            List<string> temp = new List<string>();
+            List<string> divs = (from a in Divisions() select a.DivCode).ToList();
+            List<string> temp = new List<String>();
 
-            temp = currentUser.GetUserDevDept(AppName);
+            foreach (string div in divs)
+            {
+                temp.AddRange((from a in WebSecurityService.ListUserDepartments(UserName, "Allocation", div) select div + '-' + a.DeptNumber).ToList());
+            }
 
             var query = (from rp in db.RangePlans
                          join im in db.ItemMasters on rp.ItemID equals im.ID
-                         join di in currentUser.GetUserDivList(AppName) on im.Div equals di
+                         join di in divs on im.Div equals di
                          select new { RangePlan = rp, Division = im.Div, Department = im.Dept }).ToList();
 
             List<RangePlan> model = query.Where(q => temp.Contains(q.Division + "-" + q.Department))
@@ -68,7 +72,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Manage()
         {
-            List<string> temp = currentUser.GetUserDevDept(AppName);
+            List<string> divs = (from a in Divisions() select a.DivCode).ToList();
+
+            List<string> temp = new List<String>();
+
+            foreach (string div in divs)
+            {
+                temp.AddRange((from a in WebSecurityService.ListUserDepartments(UserName, "Allocation", div) select div + '-' + a.DeptNumber).ToList());
+            }
 
             List<RangePlan> model = db.RangePlans.Include("ItemMaster").Where(u => temp.Contains(u.Sku.Substring(0, 5))).ToList();
 
@@ -108,6 +119,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             string result = "";
 
+            Regex regexSku = new Regex(@"^\d{2}-\d{2}-\d{5}-\d{2}$");
+            if (!(regexSku.IsMatch(SKU)))
+            {
+                result = "Invalid Sku, format should be ##-##-#####-##";
+                return result;
+            }
+
             if (db.RangePlans.Any(a => a.Sku == SKU))
             {
                 result = "Range Plan Already Exists for this Sku";
@@ -120,9 +138,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return result;
             }
 
-            if (!currentUser.GetUserDevDept(AppName).Exists(ud => ud == SKU.Substring(0, 5)))
+            if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", SKU.Substring(0, 2), SKU.Substring(3, 2))))
             {
                 result = "You do not have permission for this division/department.";
+                return result;
+            }
+
+            List<Division> divs = Divisions();
+
+            if ((from d in divs
+                 where d.DivCode == SKU.Substring(0, 2)
+                 select d).Count() == 0)
+            {
+                result = "You do not have permission to create a range plan for this division";
                 return result;
             }
 
@@ -139,7 +167,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                ItemDAO dao = new ItemDAO();
+                Footlocker.Logistics.Allocation.Services.ItemDAO dao = new ItemDAO();
                 string div = SKU.Substring(0, 2);
                 int instance = (from a in db.InstanceDivisions
                                 where a.Division == div
@@ -162,10 +190,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult CreateRangePlan(RangePlan p)
         {
-            p.CreatedBy = currentUser.NetworkID;
+            p.CreatedBy = User.Identity.Name;
             p.CreateDate = DateTime.Now;
 
-            p.UpdatedBy = currentUser.NetworkID;
+            p.UpdatedBy = User.Identity.Name;
             p.UpdateDate = DateTime.Now;
 
             string validationMessage;
@@ -178,11 +206,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return View(p);
             }
 
-            ItemDAO itemDAO = new ItemDAO();
-
             try
             {
-                p.ItemID = itemDAO.RetreiveOrCreateItemID(p.Sku);
+                p.ItemID = RetreiveOrCreateItemID(p.Sku);
             }
             catch (Exception ex)
             {
@@ -192,8 +218,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             db.RangePlans.Add(p);
             db.SaveChanges();
-
             //update ActiveARStatus since we added a new rangeplan
+            ItemDAO itemDAO = new ItemDAO();
             itemDAO.UpdateActiveARStatus();
             return RedirectToAction("EditStores", new { planID = p.Id });
         }
@@ -1803,7 +1829,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             newGroup.PlanID = planID;
             model.DeliveryGroups.Insert(0, newGroup);
 
-            List<StoreLookupModel> list = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
+            List<StoreLookupModel> list = db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name));
             List<RuleSelectedStore> ruleSetStores = (from a in db.RuleSets
                                                      join b in db.RuleSelectedStores
                                                         on a.RuleSetID equals b.RuleSetID
@@ -1869,9 +1895,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [GridAction]
-        public ActionResult _DeliveryGroupStores(long planID, long deliveryGroupID)
+        public ActionResult _DeliveryGroupStores(Int64 planID, Int64 deliveryGroupID)
         {
-            List<StoreLookupModel> PlanStores = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
+            List<StoreLookupModel> PlanStores = db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name));
             return View(new GridModel(PlanStores));
         }
 
@@ -2133,19 +2159,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
 
-        public ActionResult EditStores(long planID, string message)
+        public ActionResult EditStores(Int64 planID, string message)
         {
             ViewData["planID"] = planID;
             ViewData["gridtype"] = "AllStores";
             ViewData["message"] = message;
-            EditStoreModel model = new EditStoreModel
-            {
-                plan = db.RangePlans.Where(rp => rp.Id == planID).FirstOrDefault()
-            };
-
-            model.plan.ItemMaster = db.ItemMasters.Where(im => im.ID == model.plan.ItemID).FirstOrDefault();
-            model.CurrentStores = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
-            model.RemainingStores = db.GetStoreLookupsNotInPlan(planID, currentUser.GetUserDivisionsString(AppName));
+            EditStoreModel model = new EditStoreModel();
+            RangePlan p = (from a in db.RangePlans where a.Id == planID select a).First();
+            model.plan = p;
+            model.plan.ItemMaster = (from a in db.ItemMasters where a.ID == p.ItemID select a).FirstOrDefault();
+            model.CurrentStores = db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name));
+            model.RemainingStores = db.GetStoreLookupsNotInPlan(planID, DivisionList(User.Identity.Name));
             return View(model);
         }
 
@@ -2154,7 +2178,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// </summary>
         /// <param name="attachments"></param>
         /// <returns></returns>
-        public ActionResult UploadStores(IEnumerable<HttpPostedFileBase> attachments, long planID)
+        public ActionResult UploadStores(IEnumerable<HttpPostedFileBase> attachments, Int64 planID)
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
             //Set the license 
@@ -2252,6 +2276,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
+
+
         public ActionResult StoreTemplate()
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -2303,7 +2329,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             mySheet.Cells[0, 10].Style.Font.IsBold = true;
 
             int row = 1;
-            foreach (StoreLookupModel store in db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName)))
+            foreach (StoreLookupModel store in db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name)))
             {
                 mySheet.Cells[row, 0].PutValue(store.Division);
                 mySheet.Cells[row, 1].PutValue(store.Store);
@@ -2356,13 +2382,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [GridAction]
-        public ActionResult _RuleList(long planID)
+        public ActionResult _RuleList(Int64 planID)
         {
             Int64 rulesetid = (new RuleDAO()).GetRuleSetID(planID, "main", User.Identity.Name);
-            List<Rule> rules = (from r in db.Rules 
-                                where r.RuleSetID == rulesetid 
-                                orderby r.Sort ascending 
-                                select r).ToList();
+            List<Rule> rules = (from r in db.Rules where r.RuleSetID == rulesetid orderby r.Sort ascending select r).ToList();
             return PartialView(new GridModel(rules));
         }
 
@@ -2371,15 +2394,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// </summary>
         /// <param name="planID"></param>
         /// <returns></returns>
-        public ActionResult StoreLookupList(long planID, string gridtype, string ruleType)
+        public ActionResult StoreLookupList(Int64 planID, string gridtype, string ruleType)
         {
             List<StoreLookupModel> list;
             ViewData["planID"] = planID;
             //ViewData["gridtype"] = filter;
             if (gridtype == "AllStores")
             {
-                list = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
-                list.AddRange(db.GetStoreLookupsNotInPlan(planID, currentUser.GetUserDivisionsString(AppName)));
+                list = db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name));
+                list.AddRange(db.GetStoreLookupsNotInPlan(planID, DivisionList(User.Identity.Name)));
             }
             else
             {
@@ -2404,14 +2427,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <param name="planID"></param>
         /// <returns></returns>
         [GridAction]
-        public ActionResult _StoreLookupList(long planID, string gridtype, string ruleType)
+        public ActionResult _StoreLookupList(Int64 planID, string gridtype, string ruleType)
         {
             List<StoreLookupModel> list;
 
             if (gridtype == "AllStores")
             {
-                list = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
-                list.AddRange(db.GetStoreLookupsNotInPlan(planID, currentUser.GetUserDivisionsString(AppName)));
+                list = db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name));
+                list.AddRange(db.GetStoreLookupsNotInPlan(planID, DivisionList(User.Identity.Name)));
             }
             else
             {
@@ -2426,12 +2449,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     list = new List<StoreLookupModel>();
                     ShowError(ex);
                 }
-                List<StoreLookupModel> currStores = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
+                List<StoreLookupModel> currStores = db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name));
 
-                var currlist = from n in list
+                var currlist =
+                        from n in list
                         join c in currStores on new { n.Division, n.Store } equals new { c.Division, c.Store }
                         select n;
 
+                //var currlist = (from a in list where (StoreInList(a.Division, a.Store, currStores)) select a);
                 foreach (StoreLookupModel m in currlist)
                 {
                     m.InCurrentPlan = true;
@@ -2917,21 +2942,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     Int64 planID;
                     string sku = Convert.ToString(rule.Value);
 
-                    string myInClause = currentUser.GetUserDivisionsString(AppName);
+                    string myInClause = DivisionList(User.Identity.Name);
                     try
                     {
-                        planID = (from x in db.RangePlans 
-                                  where (x.Sku == sku) 
-                                  select x).First().Id;
+                        planID = (from x in db.RangePlans where (x.Sku == sku) select x).First().Id;
                     }
                     catch
                     {
                         stores = new List<string>();
                         planID = -1;
                     }
-                    stores = (from rp in db.RangePlanDetails 
-                              where ((rp.ID == planID) && (myInClause.Contains(rp.Division))) 
-                              select rp.Division + rp.Store).Distinct().ToList();
+                    stores = (from rp in db.RangePlanDetails where ((rp.ID == planID) && (myInClause.Contains(rp.Division))) select rp.Division + rp.Store).Distinct().ToList();
                 }
                 else
                 {

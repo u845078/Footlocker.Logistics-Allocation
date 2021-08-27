@@ -34,7 +34,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _Index(GridCommand settings)
         {
             List<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders.AsEnumerable()
-                                                join d in currentUser.GetUserDivisions(AppName)
+                                                join d in Divisions()
                                                     on new { Division = a.Division } equals
                                                        new { Division = d.DivCode }
                                                 orderby a.Division, a.Dept, a.Category
@@ -68,7 +68,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void InitializeDivisions(SkuAttributeModel model)
         {
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = Divisions();
             if (string.IsNullOrEmpty(model.Division))
             {
                 //default to first one in the list
@@ -728,7 +728,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult ExportGrid(GridCommand settings)
         {
             IQueryable<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders.Include("SkuAttributeDetails").AsEnumerable()
-                                                join d in currentUser.GetUserDivisions(AppName)
+                                                join d in Divisions()
                                                     on new { Division = a.Division } equals
                                                        new { Division = d.DivCode }
                                                 orderby a.Division, a.Dept, a.Category

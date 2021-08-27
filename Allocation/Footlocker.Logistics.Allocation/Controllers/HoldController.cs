@@ -84,7 +84,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 duration = "All";
             }
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Division> divs = Divisions();
             List<Hold> list = db.Holds.ToList();
             list = (from a in list
                     join d in divs on a.Division equals d.DivCode where ((a.Duration == duration) || (duration == "All"))
@@ -127,7 +127,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 duration = "All";
             }
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Division> divs = Divisions();
             List<Hold> list = db.Holds.ToList();
             list = (from a in list
                     join d in divs on a.Division equals d.DivCode
@@ -145,7 +145,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 duration = "All";
             }
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Division> divs = Divisions();
             List<Hold> list = db.Holds.ToList();
             list = (from a in list
                     join d in divs on a.Division equals d.DivCode
@@ -165,7 +165,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 duration = "All";
             }
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Division> divs = Divisions();
             List<Hold> list = db.Holds.ToList();
             list = (from a in list
                     join d in divs on a.Division equals d.DivCode
@@ -186,7 +186,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 duration = "All";
             }
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Division> divs = Divisions();
             List<Hold> list = db.Holds.ToList();
             list = (from a in list
                     join d in divs on a.Division equals d.DivCode
@@ -209,7 +209,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 duration = "All";
             }
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Division> divs = Divisions();
             List<Hold> list = db.Holds.ToList();
             list = (from a in list
                     join d in divs on a.Division equals d.DivCode
@@ -230,7 +230,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 duration = "All";
             }
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Division> divs = Divisions();
             List<Hold> list = db.Holds.ToList();
             IQueryable<Hold> holds = (from a in list
                                       join d in divs on a.Division equals d.DivCode
@@ -343,7 +343,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             HoldModel model = new HoldModel();
             model.Hold = new Hold();
             model.Hold.StartDate = DateTime.Now.AddDays(1);
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = this.Divisions();
             model.ShowStoreSelector = "no";
             model.RuleModel = new RuleModel();
             ViewData["ruleSetID"] = model.RuleSetID;
@@ -374,13 +374,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 ViewData["ruleSetID"] = model.RuleSetID;
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = this.Divisions();
                 return View(model);
             }
             if (validationMessage != "")
             {
                 ViewData["message"] = validationMessage;
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = this.Divisions();
                 return View(model);
             }
             else
@@ -388,13 +388,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.Hold.CreateDate = DateTime.Now;
                 model.Hold.CreatedBy = User.Identity.Name;
                 //TODO:  Do we want dept level security on holds???
-
-                if (currentUser.GetUserDivList(AppName).Contains(model.Hold.Division))
+                if ((Footlocker.Common.WebSecurityService.UserHasDivision(UserName, "Allocation", model.Hold.Division)))
                 {
                     if ((model.Hold.Level == "Sku") && (model.Hold.Division != model.Hold.Value.Substring(0, 2)))
                     {
                         ViewData["message"] = "Invalid Sku, division does not match selection.";
-                        model.Divisions = currentUser.GetUserDivisions(AppName);
+                        model.Divisions = this.Divisions();
                         return View(model);
                     }
                     else
@@ -438,7 +437,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 else
                 {
                     ViewData["message"] = "You are not authorized to create holds for this division.";
-                    model.Divisions = currentUser.GetUserDivisions(AppName);
+                    model.Divisions = this.Divisions();
                     return View(model);
                 }
             }
@@ -474,7 +473,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             HoldModel model = new HoldModel();
             model.Hold = (from a in db.Holds where a.ID == ID select a).First();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = this.Divisions();
             model.OriginalStartDate = model.Hold.StartDate;
 
             return View(model);
@@ -491,7 +490,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (validationMessage != "")
             {
                 ViewData["message"] = validationMessage;
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = this.Divisions();
                 return View(model);
             }
             else
@@ -517,7 +516,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.Hold = (from a in db.Holds where ((a.Division == div) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 0)) select a).First();
             }
             model.Hold.Comments = "";
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = this.Divisions();
             model.OriginalStartDate = model.Hold.StartDate;
 
             return View(model);
@@ -535,7 +534,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.Hold = (from a in db.Holds where ((a.Division == div) && (a.Store == store) && (a.ReserveInventory == 0)) select a).First();
             }
             model.Hold.Comments = "";
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = this.Divisions();
             model.OriginalStartDate = model.Hold.StartDate;
 
             return View(model);
@@ -584,7 +583,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (validationMessage != "")
             {
                 ViewData["message"] = validationMessage;
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = this.Divisions();
                 return View(model);
             }
             else
@@ -644,7 +643,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (validationMessage != "")
             {
                 ViewData["message"] = validationMessage;
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = this.Divisions();
                 return View(model);
             }
             else
@@ -699,11 +698,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                     else
                     {
-                        int divDepts = DepartmentService.ListDepartments(hold.Division).Count(); 
-                        int enabledDepts = currentUser.GetUserDepartments(AppName)
-                            .Where(m => m.DivCode == hold.Division)
-                            .Count();
-
+                        int divDepts = DepartmentService.ListDepartments(hold.Division).Count();  //db.Departments.Where(m => m.divisionCode == hold.Division).Count();
+                        int enabledDepts = Departments().Where(m => m.DivCode == hold.Division).Count();
                         if (divDepts != enabledDepts)
                         {
                             returnMessage = "You do not have authority to create this hold.  Store level holds must have dept level access for ALL departments in the division.";
@@ -773,15 +769,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage = "Invalid Sku, format should be ##-##-#####-##";
                     }
 
-                    else if (!currentUser.GetUserDivList(AppName).Contains(hold.Value.Substring(0, 2)))
+                    else if (
+                        !(Footlocker.Common.WebSecurityService.UserHasDivision(UserName, "Allocation",
+                            hold.Value.Substring(0, 2))))
                     {
-                        returnMessage = "You do not have authority to create this hold. You need division level access.";
+                        returnMessage =
+                            "You do not have authority to create this hold.  You need division level access.";
                     }
                     else if (
                         !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
                             hold.Value.Substring(0, 2), hold.Value.Substring(3, 2))))
                     {
-                        returnMessage = "You do not have authority to create this hold.  You need dept level access.";
+                        returnMessage =
+                            "You do not have authority to create this hold.  You need dept level access.";
                     }
                     else if ((hold.Level == "Sku") && (hold.Division != hold.Value.Substring(0, 2)))
                     {

@@ -24,16 +24,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
             IQueryable<StoreCluster> stores = db.StoreClusters.AsQueryable();
             stores = stores.Where((p) => p.Division.Equals(div));
             return new JsonResult { Data = stores.Select(p => p.Name) };
+
         }
+
 
         public ActionResult Index(string message, string div, int? year)
         {
             ViewData["message"] = message;
 
             StoreBTSModel model = new StoreBTSModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = Divisions();
             if (model.Divisions.Count() > 0)
             {
+                
                 if ((div==null)||(div == ""))
                 {
                     div = model.Divisions[0].DivCode;

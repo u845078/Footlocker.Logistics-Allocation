@@ -3,24 +3,19 @@
     ViewBag.Title = "Edit Stores " + Model.plan.Sku;
 }
 <h2>
-<table>
-    <tr>
-      <td>
-        <img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.plan.Sku)"/>
-      </td>
-      <td>Add / Remove Stores
-          <br />
-            @Html.Raw(Model.plan.Sku) -
-            @if (Model.plan.ItemMaster != null)
-            {
-                @Html.Raw(Model.plan.ItemMaster.Description)
-            }
-            <br />
-            @Html.Raw(Model.plan.Description)
-            <br />
-       </td>
-    </tr>
-</table>
+<table><tr><td>
+<img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.plan.Sku)"/>
+</td><td>
+    @Html.Raw(Model.plan.Sku)
+     Add / Remove Stores
+     <br />
+    @Html.Raw(Model.plan.Description)
+    <br />
+    @if (Model.plan.ItemMaster != null)
+    {
+    @Html.Raw(Model.plan.ItemMaster.Description)
+    }
+</td></tr></table>
 </h2>
 <fieldset>
     <b>Upload .xls: </b><span id="message">(Spreadsheet columns should be Div, Store)</span>

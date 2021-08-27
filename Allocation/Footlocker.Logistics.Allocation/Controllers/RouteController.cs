@@ -373,7 +373,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             StoreLeadTimeModel model = new StoreLeadTimeModel()
             {
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = Divisions()
             };
 
             var permissions = WebSecurityService.ListUserRoles(UserName, "Allocation");
