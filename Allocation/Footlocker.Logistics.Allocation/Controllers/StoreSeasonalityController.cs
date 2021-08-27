@@ -19,7 +19,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ViewData["message"] = message;
             StoreSeasonalityModel model = new StoreSeasonalityModel();
-            model.Divisions = Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
             List<InstanceDivision> instDivs = (from a in db.InstanceDivisions
                                                join b in db.Configs on a.InstanceID equals b.InstanceID
                                                join c in db.ConfigParams on b.ParamID equals c.ParamID
@@ -435,7 +435,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             int instanceID = (from a in db.InstanceDivisions where a.Division == div select a.InstanceID).First();
             // Get div codes that user has access to in the Europe instance
-            var userDivCodes = Divisions().Select(d => d.DivCode);
+            var userDivCodes = currentUser.GetUserDivList(AppName);
             var userInstanceDivCodes = db.InstanceDivisions
                 .Where(id => id.InstanceID == instanceID && userDivCodes.Contains(id.Division))
                 .Select(id => id.Division);

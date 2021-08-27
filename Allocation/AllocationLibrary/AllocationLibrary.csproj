@@ -252,6 +252,7 @@
     <Compile Include="Models\WarehouseBlackout.cs" />
     <Compile Include="Models\WarehouseInventory.cs" />
     <Compile Include="Models\WarehouseAvailableInventory.cs" />
+    <Compile Include="Models\WebUser.cs" />
     <Compile Include="Models\wsm.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\AllocationDriverDAO.cs" />

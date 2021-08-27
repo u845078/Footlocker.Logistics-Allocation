@@ -7,36 +7,63 @@ using System.Data.Common;
 using Microsoft.Practices.EnterpriseLibrary.Data;
 using Footlocker.Logistics.Allocation.Factories;
 using Footlocker.Logistics.Allocation.Models;
+using Footlocker.Logistics.Allocation.Services;
+using System.Linq;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
     public class ItemDAO
     {
         Database _database;
+        AllocationLibraryContext db;
 
         public ItemDAO()
         {
             _database = DatabaseFactory.CreateDatabase("AllocationContext");
-
+            db = new AllocationLibraryContext();
         }
 
-        
+        public long RetreiveOrCreateItemID(string SKU)
+        {
+            var itemlist = db.ItemMasters.Where(im => im.MerchantSku == SKU).ToList();
+
+            if (itemlist.Count() > 0)
+            {
+                return itemlist.First().ID;
+            }
+            else
+            {
+                string div = SKU.Substring(0, 2);
+                int instance = (from a in db.InstanceDivisions
+                                where a.Division == div
+                                select a.InstanceID).First();
+                try
+                {
+                    CreateItemMaster(SKU, instance);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+
+                return (from a in db.ItemMasters
+                        where a.MerchantSku == SKU
+                        select a.ID).First();
+            }
+        }
+
         public void CreateItemMaster(string sku, int instance)
         {
             ConfigService service = new ConfigService();
+            string[] tokens = sku.Split('-');
 
             Database mfDatabase;
             mfDatabase = DatabaseFactory.CreateDatabase(service.GetValue(instance, "DB2_ENV"));
 
-           
-            //SQLMF = "delete from " + System.Configuration.ConfigurationManager.AppSettings["DB2PREFIX"] + "TCQTM001 ";
             DbCommand SQLCommandMF;
-            string SQLMF = "SELECT * ";
-            SQLMF = SQLMF + " FROM TC051007 ";
-            string[] tokens = sku.Split('-');
-            SQLMF = SQLMF + " WHERE RETL_OPER_DIV_CD = '"+ tokens[0] +
-                "' and STK_DEPT_NUM = '" + tokens[1] + "' and STK_NUM = '" + tokens[2] + 
-                "' and STK_WC_NUM = '" + tokens[3] + "'";
+            string SQLMF = "SELECT * FROM TC051007 ";
+            SQLMF += string.Format("WHERE RETL_OPER_DIV_CD = '{0}' and STK_DEPT_NUM = '{1}' and STK_NUM = '{2}' and STK_WC_NUM = '{3}'", 
+                tokens[0], tokens[1], tokens[2], tokens[3]);
 
             SQLCommandMF = mfDatabase.GetSqlStringCommand(SQLMF);
             DataSet data = mfDatabase.ExecuteDataSet(SQLCommandMF);
@@ -44,7 +71,7 @@ namespace Footlocker.Logistics.Allocation.Services
             List<SizeObj> newSizes = new List<SizeObj>();
             SizeObj size;
             string temp;
-            string description="";
+
             if (data.Tables.Count > 0)
             {
                 foreach (DataRow dr in data.Tables[0].Rows)
@@ -58,14 +85,16 @@ namespace Footlocker.Logistics.Allocation.Services
                             {
                                 break;
                             }
-                            size = new SizeObj();
-                            size.Sku = sku;
-                            size.InstanceID = instance;
-                            size.Size = temp.Substring(0, 3);
+
+                            size = new SizeObj()
+                            {
+                                Sku = sku,
+                                InstanceID = instance,
+                                Size = temp.Substring(0, 3)
+                            };
                             newSizes.Add(size);
                         }
                     }
-                    
                 }
             }
 
@@ -86,7 +115,6 @@ namespace Footlocker.Logistics.Allocation.Services
                 _database.AddInParameter(SQLCommand, "@merchantsku", DbType.String, sku);
 
                 _database.ExecuteNonQuery(SQLCommand);
-
             }
             else
             {

@@ -26,7 +26,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Index(string message)
         {
-            List<Division> divs = Divisions();
+            List<Division> divs = currentUser.GetUserDivisions(AppName);
             List<RDQ> list = (from a in db.RDQs
                               where a.Type == "user"
                               select a).ToList();
@@ -124,14 +124,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void InitializeDivisions(BulkRDQModel model)
         {
-            //model.Instances = new List<Instance>();
-            //model.Divisions = new List<Division>();
-            //model.Departments = new List<Department>();
-            //model.StatusList = new List<string>();
-
-            List<Division> divs = Divisions();
-            var allInstances = (from a in db.Instances join b in db.InstanceDivisions on a.ID equals b.InstanceID select new { instance = a, Division = b.Division }).ToList();
-            model.Instances = (from a in allInstances join b in divs on a.Division equals b.DivCode select a.instance).Distinct().ToList();
+            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            var allInstances = (from a in db.Instances 
+                                join b in db.InstanceDivisions 
+                                on a.ID equals b.InstanceID 
+                                select new { instance = a, Division = b.Division }).ToList();
+            model.Instances = (from a in allInstances 
+                               join b in divs 
+                               on a.Division equals b.DivCode 
+                               select a.instance).Distinct().ToList();
 
             if (model.Instances.Any())
             {
@@ -407,7 +408,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             db.SaveChanges(UserName);
 
-            List<Division> divs = Divisions();
+            List<Division> divs = currentUser.GetUserDivisions(AppName);
             List<RDQ> list = (from a in db.RDQs select a).ToList();
             list = (from a in list join b in divs on a.Division equals b.DivCode select a).ToList();
             return View(new GridModel(list));
@@ -611,7 +612,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void InitializeCreate(WebPickModel model)
         {
-            model.Divisions = Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
             model.DCs = (from a in db.DistributionCenters
                          where (a.Type == "BOTH" || 
                                 a.Type == "BIN")
@@ -1404,7 +1405,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 this.PopulateRDQProps(validRDQs, controlDate);
                                 //validRDQs.ForEach(r => db.RDQs.Add(r));
                                 RDQDAO rdqDAO = new RDQDAO();
-                                rdqDAO.InsertRDQs(validRDQs, FullUserName);
+                                rdqDAO.InsertRDQs(validRDQs, currentUser.FullNetworkID);
 
                                 db.SaveChanges("");
 
@@ -1569,7 +1570,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     errorList.Insert(0, Tuple.Create(rdq, string.Format("{0} on hold.  Please go to Release Held RDQs to view held RDQs.", holdCount)));
                 }
 
-                List<RDQ> rejectedRDQs = rdqDAO.ApplyCancelHoldsNew(validRDQs, division, uniqueItems, uniqueSkus, FullUserName);
+                List<RDQ> rejectedRDQs = rdqDAO.ApplyCancelHoldsNew(validRDQs, division, uniqueItems, uniqueSkus, currentUser.FullNetworkID);
                 if (rejectedRDQs.Count > 0)
                 {
                     rejectedRDQs.ForEach(r =>

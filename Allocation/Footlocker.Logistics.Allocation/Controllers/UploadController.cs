@@ -1722,7 +1722,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (!errorsFound)
             {
                 var invalidList = (from a in list
-                    where !this.Divisions().Any(p => p.DivCode == a.Division)
+                    where !currentUser.GetUserDivisions(AppName).Any(p => p.DivCode == a.Division)
                     select a);
 
                 if (invalidList.Any())
@@ -1820,7 +1820,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (!errorsFound)
             {
                 var invalidList = (from a in list
-                                   where !this.Divisions().Any(p => p.DivCode == a.Division)
+                                   where !currentUser.GetUserDivisions(AppName).Any(p => p.DivCode == a.Division)
                                    select a);
 
                 if (invalidList.Any())

@@ -70,7 +70,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             bool isValid = Validator.TryValidateObject(model.DataRec, new ValidationContext(model.DataRec, null, null), validationResults);
             if (isValid)
             {
-                EcomCustomerFulfillmentXref newData = EcomCustFulfillmentFactory.CreateDBRec(model.DataRec, FullUserName);
+                EcomCustomerFulfillmentXref newData = EcomCustFulfillmentFactory.CreateDBRec(model.DataRec, currentUser.FullNetworkID);
                 db.EcomCustomerFulfillmentXrefs.Add(newData);
                 db.SaveChanges();
                 TempData["message"] = "Record has been successfully created.";
@@ -125,7 +125,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (isValid)
             {
                 EcomCustomerFulfillmentXref editedData = db.EcomCustomerFulfillmentXrefs.Where(e => e.FulfillmentXrefID == model.ID).FirstOrDefault();
-                editedData = EcomCustFulfillmentFactory.CreateUpdatedDBRec(model.DataRec, editedData, FullUserName);
+                editedData = EcomCustFulfillmentFactory.CreateUpdatedDBRec(model.DataRec, editedData, currentUser.FullNetworkID);
                 
                 db.SaveChanges();
                 TempData["message"] = "Record has been updated successfully.";

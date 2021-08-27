@@ -107,7 +107,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RingFenceModel> model = new List<RingFenceModel>();
 
             RingFenceDAO rfDAO = new RingFenceDAO();
-            List<RingFence> list = rfDAO.GetValidRingFences(Divisions());
+            List<RingFence> list = rfDAO.GetValidRingFences(currentUser.GetUserDivisions(AppName));
 
             Dictionary<string, string> names = new Dictionary<string, string>();
             var users = (from a in list
@@ -141,7 +141,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _RingFenceSummary()
         {
             RingFenceDAO rfDAO = new RingFenceDAO();
-            List<RingFence> list = rfDAO.GetValidRingFences(Divisions());
+            List<RingFence> list = rfDAO.GetValidRingFences(currentUser.GetUserDivisions(AppName));
 
             var rfGroups = from rf in list
             group rf by new
@@ -165,7 +165,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _RingFenceStores()
         {
-            List<Division> divs = Divisions();
+            List<Division> divs = currentUser.GetUserDivisions(AppName);
             List<StoreLookup> list = (from a in db.RingFences
                                       join rfd in db.RingFenceDetails
                                         on a.ID equals rfd.RingFenceID
@@ -188,7 +188,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             div = div.Trim();
             store = store.Trim();
 
-            List<Division> divs = Divisions();
+            List<Division> divs = currentUser.GetUserDivisions(AppName);
             List<FOB> list = (from a in db.RingFences 
                               join b in db.StoreLookups 
                               on new { a.Division, a.Store } equals new { b.Division, b.Store } 
@@ -213,7 +213,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _RingFences(string sku)
         {
-            List<Division> divs = Divisions();
+            List<Division> divs = currentUser.GetUserDivisions(AppName);
             List<RingFence> list = (from a in db.RingFences 
                                     where ((a.Qty > 0) && (a.Sku == sku)) 
                                     select a).ToList();
@@ -257,7 +257,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _RingFencesForStore(string div, string store)
         {
             List<RingFence> list;
-            List<Division> divs = Divisions();
+            List<Division> divs = currentUser.GetUserDivisions(AppName);
             list = (from a in db.RingFences
                     where ((a.Qty > 0) && (a.Division == div) && (a.Store == store))
                     select a).ToList();
@@ -312,7 +312,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                List<Division> divs = Divisions();
+                List<Division> divs = currentUser.GetUserDivisions(AppName);
                 list = (from a in db.RingFences 
                         join i in db.ItemMasters on a.ItemID equals i.ID
                         join b in db.FOBDepts on i.Dept equals b.Department
@@ -351,54 +351,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RingFenceModel model = new RingFenceModel()
             {
                 RingFence = new RingFence(),
-                Divisions = Divisions()
+                Divisions = currentUser.GetUserDivisions(AppName)
             };
 
             return View(model);
         }
-
-        //private void createEcommRingFences(RingFence ringFence)
-        //{
-        //    //Europe ecomm for all countries, need to create on for each country
-        //    List<EcommWarehouse> list = (from a in db.EcommWarehouses
-        //                                 where a.Store != "00800"
-        //                                 select a).ToList();
-        //    Boolean add;
-        //    foreach (EcommWarehouse w in list)
-        //    {
-        //        add = false;
-
-        //        RingFence rf = (from a in db.RingFences
-        //                        where ((a.Division == w.Division) &&
-        //                               (a.Store == w.Store) &&
-        //                               (a.ItemID == ringFence.ItemID))
-        //                        select a).FirstOrDefault();
-        //        if (rf == null)
-        //        {
-        //            add = true;
-        //            rf = new RingFence()
-        //            {
-        //                Division = w.Division,
-        //                Store = w.Store,
-        //                Sku = ringFence.Sku,
-        //                ItemID = ringFence.ItemID
-        //            };
-        //        }
-        //        rf.Comments = ringFence.Comments;
-        //        rf.StartDate = ringFence.StartDate;
-        //        rf.EndDate = ringFence.EndDate;
-        //        rf.DCID = ringFence.DCID;
-        //        rf.Type = 2;
-        //        rf.LastModifiedDate = DateTime.Now;
-        //        rf.LastModifiedUser = User.Identity.Name;
-
-        //        if (add)
-        //        {
-        //            db.RingFences.Add(rf);
-        //        }
-        //    }
-        //    db.SaveChanges(UserName);
-        //}
 
         public void SetUpRingFenceHeader(RingFence rf)
         {
@@ -431,7 +388,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Create(RingFenceModel model)
         {
-            model.Divisions = Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
             RingFenceDAO rfDAO = new RingFenceDAO();
             string errorMessage;
 
@@ -455,7 +412,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ViewData["ringFenceID"] = model.RingFence.ID;
 
-            model.Divisions = this.Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
 
             return View("AssignInventory", model);
         }
@@ -479,7 +436,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                  select a).First().Name;
             }
 
-            model.Divisions = this.Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
             return View(model);
         }
 
@@ -607,7 +564,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                select a).First();
             model.Details = sizes;
 
-            model.Divisions = this.Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
             return View(model);
         }
 
@@ -690,7 +647,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             model.FutureAvailable = new List<RingFenceDetail>();
 
-            model.Divisions = this.Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
             ViewData["Size"] = size;
             return View(model);
         }
@@ -716,7 +673,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return RedirectToAction("Index", new { message = errorMessage });
             }
 
-            model.Divisions = this.Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
 
             return View(model);
         }
@@ -729,7 +686,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             try
             {
-                model.Divisions = this.Divisions();
+                model.Divisions = currentUser.GetUserDivisions(AppName);
                 ViewData["ringFenceID"] = model.RingFence.ID;
                 if (!rfDAO.canUserUpdateRingFence(model.RingFence, UserName, out errorMessage))
                 {
@@ -913,7 +870,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RingFencePickModel model = new RingFencePickModel();
             model.RingFence = rf;
             model.Details = GetRingFenceDetails(rf.ID);
-            model.Divisions = this.Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
             return View(model);
         }
 

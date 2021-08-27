@@ -19,15 +19,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private List<MandatoryCrossdock> GetMandatoryCrossdocksForUser()
         {
-            List<string> divs = (from a in Divisions() select a.DivCode).ToList();
-            List<string> temp = new List<String>();
-
-            foreach (string div in divs)
-            {
-                temp.AddRange((from a in WebSecurityService.ListUserDepartments(UserName, "Allocation", div) select div + '-' + a.DeptNumber).ToList());
-            }
-
-            //List<MandatoryCrossdock> model = db.MandatoryCrossdocks.Include("ItemMaster").Where(u => temp.Contains(u.ItemMaster.MerchantSku.Substring(0, 5))).ToList();
+            List<string> temp = currentUser.GetUserDevDept(AppName);
 
             var query = (from mc in db.MandatoryCrossdocks
                          join im in db.ItemMasters
