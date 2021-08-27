@@ -53,6 +53,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
+        private void LoadCurrentUser()
+        {
+            DirectoryEntry de;
+
+            currentUser = new WebUser(Environment.UserDomainName, Environment.UserName);
+            de = new DirectoryEntry(currentUser.ActiveDirectoryEntry);
+
+            if (de.Guid != null)
+                currentUser.FullName = de.Properties["fullname"].Value.ToString();
+        }
+
         public Alert UserAlert
         {
             get
@@ -79,13 +90,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         protected override void Initialize(RequestContext requestContext)
         {
-            DirectoryEntry de;
+            
             base.Initialize(requestContext);
-            currentUser = new WebUser(Environment.UserDomainName, Environment.UserName);
-            de = new DirectoryEntry(currentUser.ActiveDirectoryEntry);
-
-            if (de.Guid != null)
-               currentUser.FullName = de.Properties["fullname"].Value.ToString();
+            LoadCurrentUser();
 
             ViewBag.FullUserName = currentUser.FullName;
             ViewBag.CurrentDate = DateTime.Now;
