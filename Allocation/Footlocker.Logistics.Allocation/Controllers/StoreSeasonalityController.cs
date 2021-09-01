@@ -18,14 +18,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Index(string message, string div)
         {
             ViewData["message"] = message;
-            StoreSeasonalityModel model = new StoreSeasonalityModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            StoreSeasonalityModel model = new StoreSeasonalityModel()
+            {
+                Divisions = currentUser.GetUserDivisions(AppName)
+            };
+
             List<InstanceDivision> instDivs = (from a in db.InstanceDivisions
                                                join b in db.Configs on a.InstanceID equals b.InstanceID
                                                join c in db.ConfigParams on b.ParamID equals c.ParamID
                                                where ((c.Name == "BTS_SEASONALITY")&&(b.Value != "true"))
                                                select a).ToList();
-            model.Divisions = (from a in model.Divisions join b in instDivs on a.DivCode equals b.Division select a).ToList();
+            model.Divisions = (from a in model.Divisions 
+                               join b in instDivs 
+                                 on a.DivCode equals b.Division 
+                               select a).ToList();
 
             if (model.Divisions.Count() > 0)
             {
@@ -388,12 +394,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            //FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ProductTypeTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
-            //Byte[] data1 = new Byte[file.Length];
-            //file.Read(data1, 0, data1.Length);
-            //file.Close();
-            //MemoryStream memoryStream1 = new MemoryStream(data1);
-            //excelDocument.Open(memoryStream1);
+
             Worksheet mySheet = excelDocument.Worksheets[0];
             int row = 1;
             mySheet.Cells[0, 0].PutValue("Div");

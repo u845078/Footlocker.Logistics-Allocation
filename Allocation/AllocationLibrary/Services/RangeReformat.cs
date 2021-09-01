@@ -14,7 +14,6 @@ namespace Footlocker.Logistics.Allocation.Services
 
         public RangeReformat(int instance)
         {
-            //_InstanceOnOrderPlanning = (new Allocation.Services.ConfigService()).IsTrue(instance, "ORDER_PLANNING");
 
         }
         public string Format(IDataReader dr, int instance)

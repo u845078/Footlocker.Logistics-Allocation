@@ -2164,12 +2164,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ViewData["planID"] = planID;
             ViewData["gridtype"] = "AllStores";
             ViewData["message"] = message;
-            EditStoreModel model = new EditStoreModel();
-            RangePlan p = (from a in db.RangePlans where a.Id == planID select a).First();
-            model.plan = p;
-            model.plan.ItemMaster = (from a in db.ItemMasters where a.ID == p.ItemID select a).FirstOrDefault();
-            model.CurrentStores = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
-            model.RemainingStores = db.GetStoreLookupsNotInPlan(planID, currentUser.GetUserDivisionsString(AppName));
+            EditStoreModel model = new EditStoreModel()
+            {
+                plan = db.RangePlans.Where(rp => rp.Id == planID).First(),
+                CurrentStores = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName)),
+                RemainingStores = db.GetStoreLookupsNotInPlan(planID, currentUser.GetUserDivisionsString(AppName))
+            };
+
+            model.plan.ItemMaster = db.ItemMasters.Where(i => i.ID == model.plan.ItemID).FirstOrDefault();
+
             return View(model);
         }
 

@@ -1,10 +1,4 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="ConfigService.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
-
-namespace Footlocker.Logistics.Allocation.Services
+﻿namespace Footlocker.Logistics.Allocation.Services
 {
     using System;
     using System.Collections.Generic;
@@ -12,42 +6,44 @@ namespace Footlocker.Logistics.Allocation.Services
     using System.Text;
     using Footlocker.Logistics.Allocation.Models;
 
-    /// <summary>
-    /// TODO: Update summary.
-    /// </summary>
     public class ConfigService
     {
-        AllocationLibraryContext db;
+        private readonly AllocationLibraryContext db;
 
         public ConfigService()
         {
             db = new AllocationLibraryContext();
         }
     
-        public Boolean IsTrue(int instanceid, string setting)
+        public bool IsTrue(int instanceid, string setting)
         {
             Config config = (from a in db.Configs
-                        join b in db.ConfigParams on a.ParamID equals b.ParamID
-                        where ((a.InstanceID == instanceid) && (b.Name == setting))
-                        select a).FirstOrDefault();
+                             join b in db.ConfigParams 
+                             on a.ParamID equals b.ParamID 
+                             where (a.InstanceID == instanceid) && 
+                             (b.Name == setting) 
+                             select a).FirstOrDefault();
 
             if (config == null)
             {
-                throw new Exception("Configuration setting " + setting + " is not setup for instance " + instanceid);
+                throw new Exception(string.Format("Configuration setting {0} is not setup for instance {1}", setting, instanceid.ToString()));
             }
+
             return config.Value.ToLower() == "true";
         }
 
         public string GetValue(int instanceid, string setting)
         {
             Config config = (from a in db.Configs
-                             join b in db.ConfigParams on a.ParamID equals b.ParamID
-                             where ((a.InstanceID == instanceid) && (b.Name == setting))
+                             join b in db.ConfigParams 
+                             on a.ParamID equals b.ParamID
+                             where (a.InstanceID == instanceid) && 
+                             (b.Name == setting)
                              select a).FirstOrDefault();
 
             if (config == null)
             {
-                throw new Exception("Configuration setting " + setting + " is not setup for instance " + instanceid);
+                throw new Exception(string.Format("Configuration setting {0} is not setup for instance {1}", setting, instanceid.ToString()));
             }
             return config.Value;
         }
@@ -56,12 +52,12 @@ namespace Footlocker.Logistics.Allocation.Services
         {
             Config config = (from a in db.Configs
                              join b in db.ConfigParams on a.ParamID equals b.ParamID
-                             where ((a.InstanceID == instanceid) && (b.Name == setting))
+                             where (a.InstanceID == instanceid) && (b.Name == setting)
                              select a).FirstOrDefault();
 
             if (config == null)
             {
-                throw new Exception("Configuration setting " + setting + " is not setup for instance " + instanceid);
+                throw new Exception(string.Format("Configuration setting {0} is not setup for instance {1}", setting, instanceid.ToString()));
             }
             return Convert.ToInt32(config.Value);
         }
