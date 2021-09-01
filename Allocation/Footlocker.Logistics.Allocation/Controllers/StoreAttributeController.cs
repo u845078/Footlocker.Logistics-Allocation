@@ -20,7 +20,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<StoreLookup> model = new List<StoreLookup>();
 
             model = (from a in db.StoreAttributes join b in db.StoreLookups on new { a.Division, a.Store } equals new { b.Division, b.Store } select b).Distinct().ToList();
-            model = (from a in model join b in this.Divisions() on a.Division equals b.DivCode select a).ToList();
+            model = (from a in model join b in currentUser.GetUserDivisions(AppName) on a.Division equals b.DivCode select a).ToList();
                      
             return View(model);
         }
@@ -37,7 +37,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.newStoreAttribute.Weight = 100;
             model.newStoreAttribute.LikeStoreDemandScalingFactor = 1;
             model.newStoreAttribute.StartDate = DateTime.Now;
-            model.Divisions = this.Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
             ViewData["message"] = message;
 
             FamilyOfBusinessDAO dao = new FamilyOfBusinessDAO();
@@ -63,7 +63,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (message != "")
             {
                 ViewData["message"] = message;
-                model.Divisions = this.Divisions();
+                model.Divisions = currentUser.GetUserDivisions(AppName);
                 model.FOBs = dao.GetFOBs(model.newStoreAttribute.Division);
                 model.StoreAttributes = (from a in db.StoreAttributes where ((a.Division == model.newStoreAttribute.Division) && (a.Store == model.newStoreAttribute.Store)) select a).ToList();
                 return View(model);
@@ -92,7 +92,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.newStoreAttribute.Store = store;
                 model.newStoreAttribute.StartDate = DateTime.Now;
                 model.newStoreAttribute.Weight = 100;
-                model.Divisions = this.Divisions();
+                model.Divisions = currentUser.GetUserDivisions(AppName);
 
                 return View(model);
             }
@@ -100,7 +100,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void ResetStoreAttributeModel(EditStoreAttributeModel model, FamilyOfBusinessDAO dao)
         {
-            model.Divisions = this.Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
             model.FOBs = dao.GetFOBs(model.newStoreAttribute.Division);
             model.StoreAttributes = (from a in db.StoreAttributes where ((a.Division == model.newStoreAttribute.Division) && (a.Store == model.newStoreAttribute.Store)) select a).ToList();
         }
@@ -108,7 +108,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Create()
         {
             CreateStoreAttributeModel model = new CreateStoreAttributeModel();
-            model.Divisions = this.Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
             model.StoreAttribute = new StoreAttribute();
             model.StoreAttribute.StartDate = DateTime.Now;
             model.StoreAttribute.Weight = 100;
@@ -129,7 +129,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 if (message != "")
                 {
                     ViewData["message"] = message;
-                    model.Divisions = this.Divisions();
+                    model.Divisions = currentUser.GetUserDivisions(AppName);
                     model.FOBs = fobDAO.GetFOBs("");
                     return View(model);
                     //return RedirectToAction("Edit", new { div = model.StoreAttribute.Division, store = model.StoreAttribute.Store, message = message });
@@ -149,7 +149,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             catch (Exception ex)
             {
                 ViewData["message"] = ex.Message;
-                model.Divisions = this.Divisions();
+                model.Divisions = currentUser.GetUserDivisions(AppName);
                 FamilyOfBusinessDAO dao = new FamilyOfBusinessDAO();
                 model.FOBs = dao.GetFOBs("");
                 return View(model);
@@ -195,7 +195,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult EditStoreAttribute(Int32 ID)
         {
             CreateStoreAttributeModel model = new CreateStoreAttributeModel();
-            model.Divisions = this.Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
             model.StoreAttribute = (from a in db.StoreAttributes where a.ID == ID select a).First();
             FamilyOfBusinessDAO dao = new FamilyOfBusinessDAO();
             model.FOBs = dao.GetFOBs(model.StoreAttribute.Division);
@@ -211,7 +211,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (message != "")
             {
                 ViewData["message"] = message;
-                model.Divisions = this.Divisions();
+                model.Divisions = currentUser.GetUserDivisions(AppName);
                 model.FOBs = fobDAO.GetFOBs("");
                 return View(model);
 
@@ -333,7 +333,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 else
                 {
-                    if (!this.Departments().Any(d => d.DivCode.Equals(sa.Division) && d.DeptNumber.Equals(sa.Value)))
+                    if (!currentUser.GetUserDevDept(AppName).Contains(string.Format("{0}-{1}", sa.Division, sa.Value)))
                     {
                         errorMessage = SetErrorMessage(errorMessage, "The provided department does not exist or you do not have permission for this department.");
                     }

@@ -33,7 +33,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ViewData["message"] = message;
 
             StoreBTSModel model = new StoreBTSModel();
-            model.Divisions = Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
             if (model.Divisions.Count() > 0)
             {
                 

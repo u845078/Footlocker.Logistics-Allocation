@@ -261,7 +261,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     while (mySheet.Cells[row, 0].Value != null)
                     {
                         vendornumber = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(5,'0');
-                        string message = "";
                         var existing = (from a in db.VendorGroupDetails where (a.VendorNumber == vendornumber) select a);
                         if (existing.Count() > 0)
                         {

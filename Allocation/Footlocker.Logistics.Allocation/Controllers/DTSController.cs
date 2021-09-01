@@ -21,7 +21,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<DirectToStoreSku> model;
             List<DirectToStoreSku> allDTS = (from a in db.DirectToStoreSkus select a).ToList();
 
-            model = (from a in allDTS join b in this.Departments() on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } select a).ToList();
+            model = (from a in allDTS join b in currentUser.GetUserDepartments(AppName) on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } select a).ToList();
             ViewData["message"] = message;
             return View(model);
         }
@@ -33,7 +33,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             List<DTSConstraintModel> allDTS = (from a in db.DTSConstraintModels select a).ToList();
 
-            model = (from a in allDTS join b in this.Departments() on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } select a).ToList();
+            model = (from a in allDTS join b in currentUser.GetUserDepartments(AppName) on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } select a).ToList();
 
             return View(model);
         }
@@ -54,7 +54,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 DirectToStoreDAO dao = new DirectToStoreDAO();
                 List<DirectToStoreConstraint> allDTS = dao.GetDTSConstraintsOneSize();
-                model = (from a in allDTS join b in this.Departments() on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } orderby a.Sku select a).ToList();
+                model = (from a in allDTS join b in currentUser.GetUserDepartments(AppName) on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } orderby a.Sku select a).ToList();
                 Session["OneSizeConstraintsList"] = model;
             }
             else
@@ -110,7 +110,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<DirectToStoreSku> model;
             List<DirectToStoreSku> allDTS = (from a in db.DirectToStoreSkus.Include("ItemMaster")
                                              select a).ToList();
-            model = (from a in allDTS join b in this.Departments() on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } select a).ToList();
+            model = (from a in allDTS join b in currentUser.GetUserDepartments(AppName) on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } select a).ToList();
             GridModel gridList = new GridModel(model);
             
             return View(gridList);
@@ -122,7 +122,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<DirectToStoreSku> model;
             List<DirectToStoreSku> allDTS = (from a in db.DirectToStoreSkus select a).ToList();
-            model = (from a in allDTS join b in this.Departments() on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } select a).ToList();
+            model = (from a in allDTS join b in currentUser.GetUserDepartments(AppName) on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } select a).ToList();
             return View(new GridModel(model));
         }
 

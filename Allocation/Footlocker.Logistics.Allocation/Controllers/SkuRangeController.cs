@@ -49,7 +49,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private List<RangePlan> GetRangesForUser()
         {
-            List<string> divs = (from a in Divisions() select a.DivCode).ToList();
+            List<string> divs = currentUser.GetUserDivList(AppName);
             List<string> temp = new List<String>();
 
             foreach (string div in divs)
@@ -72,7 +72,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Manage()
         {
-            List<string> divs = (from a in Divisions() select a.DivCode).ToList();
+            List<string> divs = currentUser.GetUserDivList(AppName);
 
             List<string> temp = new List<String>();
 
@@ -144,7 +144,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return result;
             }
 
-            List<Division> divs = Divisions();
+            List<Division> divs = currentUser.GetUserDivisions(AppName);
 
             if ((from d in divs
                  where d.DivCode == SKU.Substring(0, 2)
@@ -1829,7 +1829,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             newGroup.PlanID = planID;
             model.DeliveryGroups.Insert(0, newGroup);
 
-            List<StoreLookupModel> list = db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name));
+            List<StoreLookupModel> list = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
             List<RuleSelectedStore> ruleSetStores = (from a in db.RuleSets
                                                      join b in db.RuleSelectedStores
                                                         on a.RuleSetID equals b.RuleSetID
@@ -1897,7 +1897,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _DeliveryGroupStores(Int64 planID, Int64 deliveryGroupID)
         {
-            List<StoreLookupModel> PlanStores = db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name));
+            List<StoreLookupModel> PlanStores = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
             return View(new GridModel(PlanStores));
         }
 
@@ -2168,8 +2168,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RangePlan p = (from a in db.RangePlans where a.Id == planID select a).First();
             model.plan = p;
             model.plan.ItemMaster = (from a in db.ItemMasters where a.ID == p.ItemID select a).FirstOrDefault();
-            model.CurrentStores = db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name));
-            model.RemainingStores = db.GetStoreLookupsNotInPlan(planID, DivisionList(User.Identity.Name));
+            model.CurrentStores = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
+            model.RemainingStores = db.GetStoreLookupsNotInPlan(planID, currentUser.GetUserDivisionsString(AppName));
             return View(model);
         }
 
@@ -2329,7 +2329,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             mySheet.Cells[0, 10].Style.Font.IsBold = true;
 
             int row = 1;
-            foreach (StoreLookupModel store in db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name)))
+            foreach (StoreLookupModel store in db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName)))
             {
                 mySheet.Cells[row, 0].PutValue(store.Division);
                 mySheet.Cells[row, 1].PutValue(store.Store);
@@ -2401,8 +2401,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //ViewData["gridtype"] = filter;
             if (gridtype == "AllStores")
             {
-                list = db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name));
-                list.AddRange(db.GetStoreLookupsNotInPlan(planID, DivisionList(User.Identity.Name)));
+                list = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
+                list.AddRange(db.GetStoreLookupsNotInPlan(planID, currentUser.GetUserDivisionsString(AppName)));
             }
             else
             {
@@ -2433,8 +2433,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (gridtype == "AllStores")
             {
-                list = db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name));
-                list.AddRange(db.GetStoreLookupsNotInPlan(planID, DivisionList(User.Identity.Name)));
+                list = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
+                list.AddRange(db.GetStoreLookupsNotInPlan(planID, currentUser.GetUserDivisionsString(AppName)));
             }
             else
             {
@@ -2449,7 +2449,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     list = new List<StoreLookupModel>();
                     ShowError(ex);
                 }
-                List<StoreLookupModel> currStores = db.GetStoreLookupsForPlan(planID, DivisionList(User.Identity.Name));
+                List<StoreLookupModel> currStores = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
 
                 var currlist =
                         from n in list
@@ -2942,7 +2942,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     Int64 planID;
                     string sku = Convert.ToString(rule.Value);
 
-                    string myInClause = DivisionList(User.Identity.Name);
+                    string myInClause = currentUser.GetUserDivisionsString(AppName);
                     try
                     {
                         planID = (from x in db.RangePlans where (x.Sku == sku) select x).First().Id;
@@ -3584,8 +3584,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
 
                     int row = 1;
-                    int validCount = 0;
-                    int errorCount = 0;
+
                     if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Division")) &&
                         (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("League")) &&
                         (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Region")) &&

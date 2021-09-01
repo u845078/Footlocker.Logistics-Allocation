@@ -405,7 +405,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             try
             {
-                Expression finalExpression = dao.GetExpression(finalRules, pe, DivisionList(UserName));
+                Expression finalExpression = dao.GetExpression(finalRules, pe, currentUser.GetUserDivisionsString(AppName));
                 // Create an expression tree that represents the expression 
                 // 'queryableData.Where(company => (company.ToLower() == "coho winery" || company.Length > 16))'
                 MethodCallExpression whereCallExpression = Expression.Call(
@@ -421,9 +421,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 int count = results.Count();
                 if (results != null)
                 {
-                    var divisions = (from a in this.Divisions() select a);
+                    var divisions = (from a in currentUser.GetUserDivisions(AppName) select a);
                     List<StoreLookup> lresults = results.ToList();
-                    count = (from a in lresults join b in this.Divisions() on a.Division equals b.DivCode select a).Count();
+                    count = (from a in lresults join b in currentUser.GetUserDivisions(AppName) on a.Division equals b.DivCode select a).Count();
                 }
                 return Json(new { Count = count });
             }
@@ -589,7 +589,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RuleDAO dao = new RuleDAO();
             try
             {
-                Expression finalExpression = dao.GetExpression(finalRules, pe, DivisionList(UserName));
+                Expression finalExpression = dao.GetExpression(finalRules, pe, currentUser.GetUserDivisionsString(AppName));
 
                 // Create an expression tree that represents the expression 
                 // 'queryableData.Where(company => (company.ToLower() == "coho winery" || company.Length > 16))'
@@ -647,7 +647,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if (retList != null)
                 {
-                    retList = (from a in retList join b in this.Divisions() on a.Division equals b.DivCode select a).ToList();
+                    retList = (from a in retList join b in currentUser.GetUserDivisions(AppName) on a.Division equals b.DivCode select a).ToList();
                 }
                 Session["rulesetid"] = ruleSetID;
                 Session["ruleselectedstores"] = retList;
@@ -938,7 +938,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             try
             {
-                Boolean updated = false;
                 RuleSet rs = (from a in db.RuleSets
                               where a.RuleSetID == ruleSetID
                               select a).First();
@@ -1154,8 +1153,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (gridtype == "AllStores")
             {
-                list = db.GetStoreLookupsForPlan(ruleSetID, DivisionList(User.Identity.Name));
-                list.AddRange(db.GetStoreLookupsNotInPlan(ruleSetID, DivisionList(User.Identity.Name)));
+                list = db.GetStoreLookupsForPlan(ruleSetID, currentUser.GetUserDivisionsString(AppName));
+                list.AddRange(db.GetStoreLookupsNotInPlan(ruleSetID, currentUser.GetUserDivisionsString(AppName)));
             }
             else
             {
@@ -1172,7 +1171,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 List<StoreLookupModel> currStores = new List<StoreLookupModel>();
                 if (ruleSet.PlanID != null)
                 {
-                    currStores = db.GetStoreLookupsForPlan((long)ruleSet.PlanID, DivisionList(User.Identity.Name));
+                    currStores = db.GetStoreLookupsForPlan((long)ruleSet.PlanID, currentUser.GetUserDivisionsString(AppName));
                 }
                 else
                 {

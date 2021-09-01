@@ -632,10 +632,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 string zone;
                 int wc, ch, jc, jv, ed, te;
 
-                NetworkZone z = null;
-                RouteDetail det;
-                NetworkZoneStore nzstore;
-                string prevZone = "";
                 DateTime createdate = DateTime.Now;
 
                 while (mySheet.Cells[row, 0].Value != null)
@@ -1722,7 +1718,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (!errorsFound)
             {
                 var invalidList = (from a in list
-                    where !this.Divisions().Any(p => p.DivCode == a.Division)
+                    where !currentUser.GetUserDivisions(AppName).Any(p => p.DivCode == a.Division)
                     select a);
 
                 if (invalidList.Any())
@@ -1820,7 +1816,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (!errorsFound)
             {
                 var invalidList = (from a in list
-                                   where !this.Divisions().Any(p => p.DivCode == a.Division)
+                                   where !currentUser.GetUserDivisions(AppName).Any(p => p.DivCode == a.Division)
                                    select a);
 
                 if (invalidList.Any())
