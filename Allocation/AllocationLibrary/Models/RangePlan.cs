@@ -7,15 +7,12 @@ using System.Data.Entity;
 using System.Linq;
 using System.Text;
 
-using Footlocker.Common.Utilities.File;
-
 namespace Footlocker.Logistics.Allocation.Models
 {
     public class RangePlan
     {
         private Int64 _id;
 
-        [StringLayoutDelimited(0)]
         public Int64 Id
         {
             get { return _id; }
@@ -24,7 +21,6 @@ namespace Footlocker.Logistics.Allocation.Models
 
         private string _sku;
 
-        [StringLayoutDelimited(1)]
         [RegularExpression(@"^\d{2}-\d{2}-\d{5}-\d{2}$", ErrorMessage = "SKU must be in the format ##-##-#####-##")]
         public string Sku
         {
@@ -34,7 +30,6 @@ namespace Footlocker.Logistics.Allocation.Models
 
         private string _description;
 
-        [StringLayoutDelimited(2)]
         [Display(Name = "Range Description")]
         [StringLength(50, ErrorMessage = "Max length 50 characters")]
         public string Description
@@ -45,7 +40,6 @@ namespace Footlocker.Logistics.Allocation.Models
 
         private DateTime? _startDate;
 
-        [StringLayoutDelimited(3, "d")]
         public DateTime? StartDate
         {
             get { return _startDate; }
@@ -54,7 +48,6 @@ namespace Footlocker.Logistics.Allocation.Models
 
         private DateTime? _endDate;
 
-        [StringLayoutDelimited(4, "d")]
         public DateTime? EndDate
         {
             get { return _endDate; }
@@ -64,7 +57,6 @@ namespace Footlocker.Logistics.Allocation.Models
         private string _planType;
 
         [NotMapped]
-        [StringLayoutDelimited(5)]
         public string PlanType
         {
             get
@@ -81,7 +73,6 @@ namespace Footlocker.Logistics.Allocation.Models
 
         private string _updatedBy;
 
-        [StringLayoutDelimited(6)]
         public string UpdatedBy
         {
             get { return _updatedBy; }
@@ -89,8 +80,6 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         private DateTime? _updateDate;
-
-        [StringLayoutDelimited(7)]
         public DateTime? UpdateDate
         {
             get { return _updateDate; }
@@ -99,7 +88,6 @@ namespace Footlocker.Logistics.Allocation.Models
 
         private string _createdBy;
 
-        [StringLayoutDelimited(8)]
         public string CreatedBy
         {
             get { return _createdBy; }
@@ -108,7 +96,6 @@ namespace Footlocker.Logistics.Allocation.Models
 
         private DateTime _createDate;
 
-        [StringLayoutDelimited(9, "yyyy-MM-dd h:mm:ss tt")]
         public DateTime CreateDate
         {
             get { return _createDate; }
@@ -165,19 +152,6 @@ namespace Footlocker.Logistics.Allocation.Models
         public string ReInitializeStatus { get; set; }
 
         public virtual ItemMaster ItemMaster { get; set; }
-
-        //public virtual DirectToStoreSku DirectToStoreSku { get; set; }
-
-        //[NotMapped]
-        //public string AR 
-        //{
-        //    get 
-        //    {
-        //        if (this.DirectToStoreSku != null)
-        //            return "yes";
-        //        return "no";
-        //    }
-        //}
 
         /// <summary>
         /// Initializes a new instance of the RangePlan class.

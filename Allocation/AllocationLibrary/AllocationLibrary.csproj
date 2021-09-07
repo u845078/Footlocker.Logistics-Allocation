@@ -151,6 +151,7 @@
     <Compile Include="Models\Departments.cs" />
     <Compile Include="Models\DistributionCenterRestrictions.cs" />
     <Compile Include="Models\EcomCustomerFulfillmentXref.cs" />
+    <Compile Include="Models\HierarchyItem.cs" />
     <Compile Include="Models\InstanceDistributionCenter.cs" />
     <Compile Include="Models\CrossDockExclusion.cs" />
     <Compile Include="Models\CustomerType.cs" />
@@ -201,7 +202,6 @@
     <Compile Include="Models\Region.cs" />
     <Compile Include="Models\ReInitializeSKU.cs" />
     <Compile Include="Models\Renumber.cs" />
-    <Compile Include="Models\RingFenceBIExtract.cs" />
     <Compile Include="Models\RingFenceSizeSummary.cs" />
     <Compile Include="Models\RingFenceStatusCodes.cs" />
     <Compile Include="Models\RingFenceSummary.cs" />

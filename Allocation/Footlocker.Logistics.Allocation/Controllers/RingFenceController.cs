@@ -3682,7 +3682,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 var rfsToDelete = parsedRFs.Where(pr => pr.Sku.Equals(rf.Item1.Sku) &&
                                                         pr.Size.Equals(rf.Item1.Size) &&
-                                                        pr.DC.Equals(rf.Item1.DC)).ToList();
+                                                        pr.DC.Equals(rf.Item1.DC) &&
+                                                        string.IsNullOrEmpty(pr.PO)).ToList();
                 rfsToDelete.ForEach(drf =>
                 {
                     SetErrorMessage(errorList, drf

@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Text;
 using Footlocker.Logistics.Allocation.Services;
 
-using Footlocker.Common.Utilities.File;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
@@ -16,15 +15,12 @@ namespace Footlocker.Logistics.Allocation.Models
         private string _store;
         private string _sku;
 
-        [StringLayoutDelimited(0)]
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long ID { get; set; }
 
-        [StringLayoutDelimited(1)]
         public string Division { get; set; }
 
-        [StringLayoutDelimited(2)]
         public string Store
         {
             get
@@ -60,7 +56,6 @@ namespace Footlocker.Logistics.Allocation.Models
             }
         }
 
-        [StringLayoutDelimited(3)]
         [Required(ErrorMessage ="SKU is required")]
         [RegularExpression(@"^\d{2}-\d{2}-\d{5}-\d{2}$", ErrorMessage = "Invalid Sku, format should be ##-##-#####-##")]
         public string Sku
@@ -84,12 +79,10 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         [Display(Name = "Caselot / Size")]
-        [StringLayoutDelimited(4)]
         public string Size { get; set; }
 
         [NotMapped]
         [Display(Name = "Purchase Order")]
-        [StringLayoutDelimited(5)]
         public string PO { get; set; }
 
         [NotMapped]        
@@ -97,17 +90,14 @@ namespace Footlocker.Logistics.Allocation.Models
         public Int32 DCID { get; set; }
 
         [NotMapped]
-        [StringLayoutDelimited(1)]
         public string MFCode { get; set; }
 
         [NotMapped]
         [Display(Name = "Bin Qty")]
-        [StringLayoutDelimited(7)]
         public Int32 BinQty { get; set; }
 
         [NotMapped]
         [Display(Name = "Case Qty")]
-        [StringLayoutDelimited(8)]
         public Int32 CaseQty { get; set; }
 
         //[StringLayoutDelimited(7)]
@@ -116,16 +106,12 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        [StringLayoutDelimited(9, "yyyy-MM-dd")]
         public DateTime StartDate { get; set; }
 
-        [StringLayoutDelimited(10, "yyyy-MM-dd")]
         public DateTime? EndDate { get; set; }
 
-        [StringLayoutDelimited(11)]
         public string CreatedBy { get; set; }
 
-        [StringLayoutDelimited(12, "yyyy-MM-dd h:mm:ss tt")]
         public DateTime? CreateDate { get; set; }
 
         public string LastModifiedUser { get; set; }

@@ -8,8 +8,6 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Aspose.Excel;
 
-using Footlocker.Common;
-using Footlocker.Common.Utilities.File;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Common.Services; 
@@ -79,25 +77,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             db = new AllocationLibraryContext();
         }
-
-        //
-        // GET: /Upload/
-        //#region "Session Variables"
-        //public List<string> UploadList
-        //{
-        //    get
-        //    {
-        //        if (Session["UploadList"] == null)
-        //        {
-        //            Session["UploadList"] = new List<string>();
-        //        }
-
-        //        return (List<string>)Session["UploadList"];
-
-        //    }
-        //    set { Session["UploadList"] = value; }
-        //}
-        //#endregion
 
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,Admin,Support")]
         public ActionResult SkuTypeUpload()
