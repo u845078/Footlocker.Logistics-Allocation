@@ -44,7 +44,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             return new JsonResult()
             {
-                Data = new SelectList(Divisions().OrderBy(d => d.DisplayName).ToList(), "DivCode", "DisplayName")
+                Data = new SelectList(currentUser.GetUserDivisions(AppName).OrderBy(d => d.DisplayName).ToList(), "DivCode", "DisplayName")
             };
         }
 

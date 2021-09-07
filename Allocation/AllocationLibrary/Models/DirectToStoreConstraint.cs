@@ -5,25 +5,20 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 
-using Footlocker.Common.Utilities.File;
-
 namespace Footlocker.Logistics.Allocation.Models
 {
     public class DirectToStoreConstraint 
     {
         [Key]
         [Column(Order=0)]
-        [StringLayoutDelimited(0)]
         public string Sku { get; set; }
 
         public Int64 ItemID { get; set; }
 
         [Key]
         [Column(Order = 1)]
-        [StringLayoutDelimited(1)]
         public string Size { get; set; }
 
-        [StringLayoutDelimited(2)]
         public int MaxQty { get; set; }
 
         private int _maxQtyCase = -1;
@@ -43,24 +38,19 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         [Display(Name="Start")]
-        [StringLayoutDelimited(3, "yyyy-MM-dd")]
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime StartDate { get; set; }
 
         [Display(Name = "End")]
-        [StringLayoutDelimited(4, "yyyy-MM-dd")]
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime? EndDate { get; set; }
 
-        [StringLayoutDelimited(5)]
         public string CreatedBy { get; set; }
 
-        [StringLayoutDelimited(6, "yyyy-MM-dd h:mm:ss tt")]
         public DateTime CreateDate { get; set; }
 
-        [StringLayoutDelimited(7)]
         [NotMapped]
         public int VendorPackQty { get; set; }
 

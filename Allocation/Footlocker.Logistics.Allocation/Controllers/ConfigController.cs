@@ -30,7 +30,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _ConfigDetails(int instanceid)
         {
-            List<Config> list = (from a in db.Configs.Include("ConfigParam") where a.InstanceID == instanceid select a).ToList();
+            List<Config> list = (from a in db.Configs.Include("ConfigParam") 
+                                 where a.InstanceID == instanceid 
+                                 select a).ToList();
             //workaround, worked on localhost before, but got circular reference error on server
             return View(new GridModel(list.Select(x => new { InstanceID = x.InstanceID,
                                                              ParamID = x.ParamID,
@@ -54,8 +56,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             EditConfigModel model = new EditConfigModel();
 
-            model.Config = (from a in db.Configs where ((a.InstanceID == instanceid) && (a.ParamID == paramid)) select a).First();
-            model.Param = (from a in db.ConfigParams where (a.ParamID == paramid) select a).First();
+            model.Config = (from a in db.Configs 
+                            where (a.InstanceID == instanceid) && 
+                            (a.ParamID == paramid) 
+                            select a).First();
+
+            model.Param = (from a in db.ConfigParams 
+                           where a.ParamID == paramid
+                           select a).First();
 
             return View(model);
         }

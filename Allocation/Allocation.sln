@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.168
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31410.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AllocationLibrary", "AllocationLibrary\AllocationLibrary.csproj", "{D63C6B8B-23A5-447D-A73D-05CD2AD30016}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Footlocker.Logistics.Allocation", "Footlocker.Logistics.Allocation\Footlocker.Logistics.Allocation.csproj", "{E2F50E2F-9AAA-4EC8-9E25-676504C0A820}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{3325DFE7-386B-4D74-AFDA-25893C70F531}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,15 +23,20 @@ Global
 		{E2F50E2F-9AAA-4EC8-9E25-676504C0A820}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2F50E2F-9AAA-4EC8-9E25-676504C0A820}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2F50E2F-9AAA-4EC8-9E25-676504C0A820}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3325DFE7-386B-4D74-AFDA-25893C70F531}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3325DFE7-386B-4D74-AFDA-25893C70F531}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3325DFE7-386B-4D74-AFDA-25893C70F531}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3325DFE7-386B-4D74-AFDA-25893C70F531}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
+		EnterpriseLibraryConfigurationToolBinariesPath = packages\Unity.2.1.505.0\lib\NET35;packages\Unity.Interception.2.1.505.0\lib\NET35;packages\EnterpriseLibrary.Common.5.0.505.0\lib\NET35;packages\EnterpriseLibrary.Data.5.0.505.0\lib\NET35
 		SolutionGuid = {2E6A8B06-3ADB-4F83-8FC4-0226F3ACF8E4}
 	EndGlobalSection
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 3
+		SccNumberOfProjects = 4
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = http://mlwweb05:8080/tfs/defaultcollection
 		SccLocalPath0 = .
@@ -39,5 +46,8 @@ Global
 		SccProjectUniqueName2 = Footlocker.Logistics.Allocation\\Footlocker.Logistics.Allocation.csproj
 		SccProjectName2 = Footlocker.Logistics.Allocation
 		SccLocalPath2 = Footlocker.Logistics.Allocation
+		SccProjectUniqueName3 = UnitTests\\UnitTests.csproj
+		SccProjectName3 = UnitTests
+		SccLocalPath3 = UnitTests
 	EndGlobalSection
 EndGlobal

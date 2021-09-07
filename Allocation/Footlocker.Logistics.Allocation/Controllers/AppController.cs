@@ -7,10 +7,10 @@ using Footlocker.Common;
 using Telerik.Web.Mvc;
 using System.DirectoryServices;
 using System.Web.Routing;
+using Footlocker.Logistics.Allocation.Models;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
-
     /// <summary>
     /// Inherit from your controller from this, and you will get sitewide security/etc.
     /// </summary>
@@ -20,37 +20,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
     {
         Footlocker.Logistics.Allocation.Services.FootLockerCommonContext flCommon = new Footlocker.Logistics.Allocation.Services.FootLockerCommonContext();
 
-        public string getCurrentUserFullUserName()
-        {
-            try
-            {
-                DirectoryEntry de = new DirectoryEntry("WinNT://" + Environment.UserDomainName + "/" + Environment.UserName);
-                if (de != null)
-                    return de.Properties["fullname"].Value.ToString();
-                else
-                    return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        public string getFullUserName(string fullUserID)
-        {            
-            try
-            {
-                DirectoryEntry de = new DirectoryEntry("WinNT://" + fullUserID);
-                if (de.Guid != null)
-                    return de.Properties["fullname"].Value.ToString();
-                else
-                    return null;
-            }
-            catch
-            {
-                return fullUserID;
-            }
-        }
+        public WebUser currentUser;
+        public const string AppName = "Allocation";
 
         public string getFullUserNameFromDatabase(string fullUserID)
         {
@@ -78,72 +49,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             get
             {
-                return FullUserName.Replace("CORP\\", "");
+                return currentUser.NetworkID;
             }
         }
 
-        public string FullUserName
+        private void LoadCurrentUser()
         {
-            get
-            {
-                return System.Web.HttpContext.Current.User.Identity.Name;
-            }
-        }
+            DirectoryEntry de;
 
-        public Alert UserAlert
-        {
-            get
-            {
-                Alert alert = null;
+            currentUser = new WebUser(Environment.UserDomainName, User.Identity.Name.Replace("CORP\\", ""));
+            de = new DirectoryEntry(currentUser.ActiveDirectoryEntry);
 
-                if (Session["UserAlert"] != null)
-                {
-                    alert = (Alert)Session["UserAlert"];
-                    Session["UserAlert"] = null;
-                }
-
-                return alert;
-            }
-            set
-            {
-                Session["UserAlert"] = value;
-            }
-        }
-
-        private List<Division> _divisions;
-
-        public List<Division> Divisions()
-        {
-            if (_divisions == null)
-            {
-                _divisions = WebSecurityService.ListUserDivisions(UserName, "Allocation");
-            }
-            return _divisions;
-        }
-
-        private List<Department> _departments;
-
-        public List<Department> Departments()
-        {
-            if (_departments == null)
-            {
-                _departments = new List<Department>();
-                foreach (Division d in Divisions())
-                {
-                    _departments.AddRange(WebSecurityService.ListUserDepartments(UserName, "Allocation", d.DivCode));
-                }
-            }
-            return _departments;
-        }
-
-        public string DivisionList(string user)
-        {
-            string returnVal = "";
-            foreach (Division d in Divisions())
-            {
-                returnVal = returnVal + d.DivCode;
-            }
-            return returnVal;
+            if (de.Guid != null)
+                currentUser.FullName = de.Properties["fullname"].Value.ToString();
         }
 
         public AppController()
@@ -152,9 +70,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         protected override void Initialize(RequestContext requestContext)
         {
-            base.Initialize(requestContext);
-            ViewBag.FullUserName = getFullUserName(User.Identity.Name.Replace('\\', '/'));
 
+            base.Initialize(requestContext);
+            LoadCurrentUser();
+
+            ViewBag.FullUserName = currentUser.FullName;
+            ViewBag.NetworkID = currentUser.FullNetworkID;
             ViewBag.CurrentDate = DateTime.Now;
         }
     }

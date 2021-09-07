@@ -33,7 +33,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ViewData["message"] = message;
 
             StoreBTSModel model = new StoreBTSModel();
-            model.Divisions = Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
             if (model.Divisions.Count() > 0)
             {
                 
@@ -842,12 +842,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            //FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ProductTypeTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
-            //Byte[] data1 = new Byte[file.Length];
-            //file.Read(data1, 0, data1.Length);
-            //file.Close();
-            //MemoryStream memoryStream1 = new MemoryStream(data1);
-            //excelDocument.Open(memoryStream1);
+
             Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
             int row = 1;
             mySheet.Cells[0, 0].PutValue("Div");

@@ -6,15 +6,14 @@
 <table><tr><td>
 <img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.plan.Sku)"/>
 </td><td>
-    @Html.Raw(Model.plan.Sku)
-     Add / Remove Stores
-     <br />
-    @Html.Raw(Model.plan.Description)
+    Add / Remove Stores
     <br />
+    @Html.Raw(Model.plan.Sku) -
     @if (Model.plan.ItemMaster != null)
     {
-    @Html.Raw(Model.plan.ItemMaster.Description)
-    }
+        @Html.Raw(Model.plan.ItemMaster.Description)
+    }<br />
+    @Html.Raw(Model.plan.Description)
 </td></tr></table>
 </h2>
 <fieldset>

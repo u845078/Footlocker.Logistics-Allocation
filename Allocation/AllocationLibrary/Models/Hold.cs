@@ -5,7 +5,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
-using Footlocker.Common.Utilities.File;
 
 namespace Footlocker.Logistics.Allocation.Models
 {

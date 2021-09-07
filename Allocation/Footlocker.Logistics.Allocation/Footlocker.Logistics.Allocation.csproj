@@ -54,14 +54,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Footlocker\Aspose.Excel.dll</HintPath>
     </Reference>
-    <Reference Include="edtFTPnet, Version=1.3.0.0, Culture=neutral, PublicKeyToken=4b0c991f43097782">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Footlocker\edtFTPNet\Version 2.2.2\edtFTPnet.dll</HintPath>
-    </Reference>
-    <Reference Include="edtFTPnetPRO, Version=8.6.5.20, Culture=neutral, PublicKeyToken=0dce1ad63760d80b, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\FootLocker\edtFTPNet\Version 8.6.5.20\edtFTPnetPRO.dll</HintPath>
-    </Reference>
     <Reference Include="EntityFramework, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.5.0.0\lib\net40\EntityFramework.dll</HintPath>
     </Reference>

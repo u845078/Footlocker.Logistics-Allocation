@@ -289,7 +289,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["SkuTypeTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
+
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["SkuTypeTemplate"]);
+            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
+
             Byte[] data1 = new Byte[file.Length];
             file.Read(data1, 0, data1.Length);
             file.Close();
@@ -306,7 +309,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ProductTypeTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ProductTypeTemplate"]);
+            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
+
             Byte[] data1 = new Byte[file.Length];
             file.Read(data1, 0, data1.Length);
             file.Close();
@@ -460,7 +465,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ProductTypeTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ProductTypeTemplate"]);
+            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
+
             Byte[] data1 = new Byte[file.Length];
             file.Read(data1, 0, data1.Length);
             file.Close();
@@ -632,10 +639,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 string zone;
                 int wc, ch, jc, jv, ed, te;
 
-                NetworkZone z = null;
-                RouteDetail det;
-                NetworkZoneStore nzstore;
-                string prevZone = "";
                 DateTime createdate = DateTime.Now;
 
                 while (mySheet.Cells[row, 0].Value != null)
@@ -1463,7 +1466,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["SkuIdUploadTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
+
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["SkuIdUploadTemplate"]);
+            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
+
             Byte[] data1 = new Byte[file.Length];
             file.Read(data1, 0, data1.Length);
             file.Close();
@@ -1482,7 +1488,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ARSkusUploadTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ARSkusUploadTemplate"]);
+            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
+
             Byte[] data1 = new Byte[file.Length];
             file.Read(data1, 0, data1.Length);
             file.Close();
@@ -1501,7 +1509,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ARConstraintsUploadTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ARConstraintsUploadTemplate"]);
+            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
+
             Byte[] data1 = new Byte[file.Length];
             file.Read(data1, 0, data1.Length);
             file.Close();
@@ -1722,7 +1732,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (!errorsFound)
             {
                 var invalidList = (from a in list
-                    where !this.Divisions().Any(p => p.DivCode == a.Division)
+                    where !currentUser.GetUserDivisions(AppName).Any(p => p.DivCode == a.Division)
                     select a);
 
                 if (invalidList.Any())
@@ -1820,7 +1830,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (!errorsFound)
             {
                 var invalidList = (from a in list
-                                   where !this.Divisions().Any(p => p.DivCode == a.Division)
+                                   where !currentUser.GetUserDivisions(AppName).Any(p => p.DivCode == a.Division)
                                    select a);
 
                 if (invalidList.Any())

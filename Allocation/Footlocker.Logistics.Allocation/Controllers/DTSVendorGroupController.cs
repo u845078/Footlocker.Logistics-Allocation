@@ -261,7 +261,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     while (mySheet.Cells[row, 0].Value != null)
                     {
                         vendornumber = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(5,'0');
-                        string message = "";
                         var existing = (from a in db.VendorGroupDetails where (a.VendorNumber == vendornumber) select a);
                         if (existing.Count() > 0)
                         {
@@ -346,12 +345,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
             Excel excelDocument = new Excel();
-            //FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ProductTypeTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
-            //Byte[] data1 = new Byte[file.Length];
-            //file.Read(data1, 0, data1.Length);
-            //file.Close();
-            //MemoryStream memoryStream1 = new MemoryStream(data1);
-            //excelDocument.Open(memoryStream1);
             Worksheet mySheet = excelDocument.Worksheets[0];
             int row = 1;
             mySheet.Cells[0, 0].PutValue("VendorNumber");

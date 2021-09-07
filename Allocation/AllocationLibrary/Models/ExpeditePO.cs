@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-using Footlocker.Common.Utilities.File;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
@@ -15,12 +14,10 @@ namespace Footlocker.Logistics.Allocation.Models
     {      
         [Key]
         [Column(Order=0)]
-        [StringLayoutDelimited(0)]
         public string Division { get; set; }
 
         [Key]
         [Column(Order = 1)]
-        [StringLayoutDelimited(1)]
         public string PO { get; set; }
 
         [DataType(DataType.Date)]
@@ -35,12 +32,9 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        [StringLayoutDelimited(3, "yyyy-MM-dd")]
         public DateTime OverrideDate { get; set; }
 
-        [StringLayoutDelimited(4)]
         public string CreatedBy { get; set; }
-        [StringLayoutDelimited(5, "yyyy-MM-dd h:mm:ss tt")]
         public DateTime? CreateDate { get; set; }
         
         public string Departments { get; set; }

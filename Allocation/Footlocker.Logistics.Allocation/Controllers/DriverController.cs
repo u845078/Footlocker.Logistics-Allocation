@@ -17,8 +17,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Index(string div)
         {
             AllocationDriverDAO dao = new AllocationDriverDAO();
-            DriverModel model = new DriverModel();
-            model.Divisions = this.Divisions();
+            DriverModel model = new DriverModel()
+            {
+                Divisions = currentUser.GetUserDivisions(AppName)
+            };
+
             if ((div == null) && (model.Divisions.Count() > 0))
             {
                 div = model.Divisions[0].DivCode;
@@ -30,11 +33,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Create(string div)
         {
-            DriverModel model = new DriverModel();
-            model.NewDriver = new AllocationDriver();
-            model.NewDriver.Division = div;
-            model.Divisions = this.Divisions();
-            model.Departments = DepartmentService.ListDepartments(div);
+            DriverModel model = new DriverModel()
+            {
+                NewDriver = new AllocationDriver()
+                {
+                    Division = div
+                },
+                Divisions = currentUser.GetUserDivisions(AppName),
+                Departments = DepartmentService.ListDepartments(div)
+            };
 
             return View(model);
         }
@@ -51,7 +58,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             AllocationDriverDAO dao = new AllocationDriverDAO();
             DriverModel model = new DriverModel();
-            model.Divisions = this.Divisions();
+            model.Divisions = currentUser.GetUserDivisions(AppName);
             model.NewDriver = dao.GetAllocationDriver(div, dept);
 
             return View(model);
@@ -96,15 +103,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Support")]
         public ActionResult Control()
         {
-            List<ControlDate> model = (from a in db.ControlDates 
-                                       select a).ToList();
+            List<ControlDate> model = db.ControlDates.ToList();
             return View(model);
         }
 
         [CheckPermission(Roles = "IT")]
         public ActionResult EditControlDate(int instanceID)
         {
-            ControlDate model = (from a in db.ControlDates where a.InstanceID == instanceID select a).First();
+            ControlDate model = db.ControlDates.Where(cd => cd.InstanceID == instanceID).First();
             return View(model);
         }
 

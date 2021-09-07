@@ -30,7 +30,6 @@ namespace Footlocker.Logistics.Allocation.Services
             }
             catch (Exception ex)
             {
-                var test = true;
             }
         }
 

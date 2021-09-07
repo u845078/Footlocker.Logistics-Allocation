@@ -30,7 +30,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private bool IsWithAccessToConcept(int conceptTypeID, Footlocker.Logistics.Allocation.DAO.AllocationContext context)
         {
             // Get user's accessible divisons and concept divisions
-            var accessibleDivCodes = Divisions().Select(d => d.DivCode);
+            var accessibleDivCodes = currentUser.GetUserDivList(AppName);
             var fetchedConcept = context.ConceptTypes.Include("Divisions").Single(ct => ct.ID == conceptTypeID);
             var conceptDivisions = fetchedConcept.Divisions.Select(d => d.Division);
 
@@ -244,7 +244,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // Get all divisions by concept type (WITHOUT Divisional Security applied)
             var conceptTypeDivisions = db.ConceptTypeDivisions.Where(ctd => ctd.ConceptTypeID == conceptTypeID);
             var allConceptDivisons = Footlocker.Common.DivisionService.ListDivisions().Where(div => conceptTypeDivisions.Select(d => d.Division).Contains(div.DivCode));
-            var accessibleConceptDivCodes = Divisions().Where(div => conceptTypeDivisions.Select(d => d.Division).Contains(div.DivCode)).Select(d => d.DivCode);
+            var accessibleConceptDivCodes = currentUser.GetUserDivisions(AppName).Where(div => conceptTypeDivisions.Select(d => d.Division).Contains(div.DivCode)).Select(d => d.DivCode);
             var viewModelsList = 
                 allConceptDivisons.Select(d => new SecuredDivisionModel() { 
                     DivCode = d.DivCode, 
@@ -260,7 +260,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             // Get all divisions not associated to concept type (WITH Divisional Security applied)
             var conceptTypeDivisions = db.ConceptTypeDivisions.Where(ctd => ctd.ConceptTypeID == conceptTypeID);
-            var divisions = Divisions().Where(div => !conceptTypeDivisions.Select(d => d.Division).Contains(div.DivCode));
+            var divisions = currentUser.GetUserDivisions(AppName).Where(div => !conceptTypeDivisions.Select(d => d.Division).Contains(div.DivCode));
 
             return View(new GridModel(divisions));
         }

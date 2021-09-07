@@ -9,17 +9,6 @@ namespace Footlocker.Logistics.Allocation.Models
 {
     public class StoreLookup
     {
-
-        private int _instanceID;
-
-        //[Key]
-        //[Column(Order = 0)]
-        //public int InstanceID
-        //{
-        //    get { return _instanceID; }
-        //    set { _instanceID = value; }
-        //}
-
         private string _division;
 
         [Key]

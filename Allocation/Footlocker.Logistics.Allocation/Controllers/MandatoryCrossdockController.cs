@@ -19,7 +19,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private List<MandatoryCrossdock> GetMandatoryCrossdocksForUser()
         {
-            List<string> divs = (from a in Divisions() select a.DivCode).ToList();
+            List<string> divs = (from a in currentUser.GetUserDivisions(AppName) select a.DivCode).ToList();
             List<string> temp = new List<String>();
 
             foreach (string div in divs)
