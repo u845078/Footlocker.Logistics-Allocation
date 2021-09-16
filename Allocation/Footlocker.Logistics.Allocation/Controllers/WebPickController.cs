@@ -174,19 +174,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         model.Division = model.Divisions.First().DivCode;
                 }
 
-                model.Departments = WebSecurityService.ListUserDepartments(UserName, "Allocation", model.Division);
+                model.Departments = currentUser.GetUserDepartments(AppName).Where(d => d.DivCode == model.Division).ToList();
                 if (model.Departments.Any())
                 {
-                    Department dept = new Department();
-                    dept.DeptNumber = "00";
-                    dept.DepartmentName = "All departments";
+                    Department dept = new Department()
+                    {
+                        DeptNumber = "00",
+                        DepartmentName = "All departments"
+                    };
+
                     model.Departments.Insert(0, dept);
                 }
                 else
                 {
-                    Department dept = new Department();
-                    dept.DeptNumber = "-1";
-                    dept.DepartmentName = "No department permissions enabled";
+                    Department dept = new Department() 
+                    {
+                        DeptNumber = "-1",
+                        DepartmentName = "No department permissions enabled"
+                    };
+
                     model.Departments.Insert(0, dept);
                 }
             }
@@ -319,7 +325,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if (department == "00")
                 {
-                    List<Department> depts = WebSecurityService.ListUserDepartments(UserName, "Allocation", div);
+                    List<Department> depts = currentUser.GetUserDepartments(AppName).Where(d => d.DivCode == div).ToList();
 
                     var templist = (from a in db.RDQs
                             join b in db.InstanceDivisions on a.Division equals b.Division

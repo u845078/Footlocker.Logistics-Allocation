@@ -85,7 +85,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void InitializeDepartments(SkuAttributeModel model, bool reset)
         {
-            model.Departments = WebSecurityService.ListUserDepartments(UserName, "Allocation", model.Division);
+            model.Departments = currentUser.GetUserDepartments(AppName).Where(d => d.DivCode == model.Division).ToList();
 
             if (reset || string.IsNullOrEmpty(model.Department))
             {

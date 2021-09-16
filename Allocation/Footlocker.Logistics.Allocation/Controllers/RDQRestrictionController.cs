@@ -1579,7 +1579,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private List<SelectListItem> GetDivisionsList()
         {
             List<SelectListItem> divisionList = new List<SelectListItem>();
-            List<Division> userDivList = WebSecurityService.ListUserDivisions(UserName, "Allocation");
+            List<Division> userDivList = currentUser.GetUserDivisions(AppName); 
             var divsWithDepts = (from a in db.Departments select a.divisionCode).Distinct();
 
 

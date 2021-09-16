@@ -49,20 +49,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private List<RangePlan> GetRangesForUser()
         {
+            List<string> userDivDepts = currentUser.GetUserDevDept(AppName);
             List<string> divs = currentUser.GetUserDivList(AppName);
-            List<string> temp = new List<String>();
-
-            foreach (string div in divs)
-            {
-                temp.AddRange((from a in WebSecurityService.ListUserDepartments(UserName, "Allocation", div) select div + '-' + a.DeptNumber).ToList());
-            }
 
             var query = (from rp in db.RangePlans
                          join im in db.ItemMasters on rp.ItemID equals im.ID
                          join di in divs on im.Div equals di
                          select new { RangePlan = rp, Division = im.Div, Department = im.Dept }).ToList();
 
-            List<RangePlan> model = query.Where(q => temp.Contains(q.Division + "-" + q.Department))
+            List<RangePlan> model = query.Where(q => userDivDepts.Contains(q.Division + "-" + q.Department))
                                           .Select(q => q.RangePlan)
                                           .OrderBy(q => q.Sku)
                                           .ToList();
@@ -72,16 +67,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Manage()
         {
-            List<string> divs = currentUser.GetUserDivList(AppName);
+            List<string> userDivDepts = currentUser.GetUserDevDept(AppName);
 
-            List<string> temp = new List<String>();
-
-            foreach (string div in divs)
-            {
-                temp.AddRange((from a in WebSecurityService.ListUserDepartments(UserName, "Allocation", div) select div + '-' + a.DeptNumber).ToList());
-            }
-
-            List<RangePlan> model = db.RangePlans.Include("ItemMaster").Where(u => temp.Contains(u.Sku.Substring(0, 5))).ToList();
+            List<RangePlan> model = db.RangePlans.Include("ItemMaster").Where(u => userDivDepts.Contains(u.Sku.Substring(0, 5))).ToList();
 
             return View(model);
         }
