@@ -109,10 +109,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult IndexByStore(string duration, string message)
         {
-            if ((duration == null) || (duration == ""))
-            {
-                duration = "All";
-            }
             //this is more for developer debugging
             //clear the cache when they go back to the index.
             Session["rdqgrouplist"] = null;
@@ -123,7 +119,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _Index(string duration)
         {
-            if ((duration == null) || (duration == ""))
+            if (string.IsNullOrEmpty(duration))
             {
                 duration = "All";
             }
@@ -141,7 +137,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _IndexByProduct(string duration)
         {
-            if ((duration == null) || (duration == ""))
+            if (string.IsNullOrEmpty(duration))
             {
                 duration = "All";
             }
@@ -161,7 +157,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _IndexByStore(string duration)
         {
-            if ((duration == null) || (duration == ""))
+            if (string.IsNullOrEmpty(duration))
             {
                 duration = "All";
             }
@@ -182,7 +178,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _HoldDetails(string div, string level, string value, string holdType, string duration)
         {
-            if ((duration == null) || (duration == ""))
+            if (string.IsNullOrEmpty(duration))
             {
                 duration = "All";
             }
@@ -205,7 +201,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _HoldStoreDetails(string div, string store, string holdType, string duration)
         {
-            if ((duration == null) || (duration == ""))
+            if (string.IsNullOrEmpty(duration))
             {
                 duration = "All";
             }
@@ -215,9 +211,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     join d in divs on a.Division equals d.DivCode
                     where (((a.Duration == duration) || (duration == "All"))
                     && (a.Division == div)
-                    && ((a.Store == store) || ((a.Store == null) && (store == "")))
-                    && (a.HoldType == holdType)
-                    )
+                    && (a.Store == store || string.IsNullOrEmpty(a.Store))
+                    && (a.HoldType == holdType))
                     select a).ToList();
 
             return View(new GridModel(list));
@@ -226,7 +221,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult ExportGrid(GridCommand settings, string duration)
         {
-            if ((duration == null) || (duration == ""))
+            if (string.IsNullOrEmpty(duration))
             {
                 duration = "All";
             }
@@ -340,12 +335,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Create()
         {
-            HoldModel model = new HoldModel();
-            model.Hold = new Hold();
-            model.Hold.StartDate = DateTime.Now.AddDays(1);
-            model.Divisions = currentUser.GetUserDivisions(AppName);
-            model.ShowStoreSelector = "no";
-            model.RuleModel = new RuleModel();
+            HoldModel model = new HoldModel()
+            {
+                Hold = new Hold() 
+                { 
+                    StartDate = DateTime.Now.AddDays(1) 
+                },
+                Divisions = currentUser.GetUserDivisions(AppName),
+                ShowStoreSelector = "no",
+                RuleModel = new RuleModel()
+            };
+
             ViewData["ruleSetID"] = model.RuleSetID;
             ViewData["ruleType"] = "hold";
             return View(model);
@@ -362,11 +362,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 if (model.RuleSetID < 1)
                 {
                     //get a new ruleset
-                    RuleSet rs = new RuleSet();
-                    rs.Type = "hold";
-                    rs.CreateDate = DateTime.Now;
-                    rs.CreatedBy = UserName;
-                    rs.Division = model.Hold.Division;
+                    RuleSet rs = new RuleSet()
+                    {
+                        Type = "hold",
+                        CreateDate = DateTime.Now,
+                        CreatedBy = currentUser.NetworkID,
+                        Division = model.Hold.Division
+                    };
+
                     db.RuleSets.Add(rs);
                     db.SaveChanges();
 
@@ -377,7 +380,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.Divisions = currentUser.GetUserDivisions(AppName);
                 return View(model);
             }
-            if (validationMessage != "")
+            if (string.IsNullOrEmpty(validationMessage))
             {
                 ViewData["message"] = validationMessage;
                 model.Divisions = currentUser.GetUserDivisions(AppName);
@@ -388,7 +391,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.Hold.CreateDate = DateTime.Now;
                 model.Hold.CreatedBy = User.Identity.Name;
                 //TODO:  Do we want dept level security on holds???
-                if ((Footlocker.Common.WebSecurityService.UserHasDivision(UserName, "Allocation", model.Hold.Division)))
+                if (currentUser.GetUserDivisions(AppName).Exists(d => d.DivCode == model.Hold.Division))
                 {
                     if ((model.Hold.Level == "Sku") && (model.Hold.Division != model.Hold.Value.Substring(0, 2)))
                     {
@@ -412,19 +415,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             Hold h;
                             foreach (StoreLookup s in dao.GetStoresInRuleSet(model.RuleSetID))
                             {
-                                h = new Hold();
-                                h.Store = s.Store;
-                                h.Division = s.Division;
-                                h.Comments = model.Hold.Comments;
-                                h.Duration = model.Hold.Duration;
-                                h.EndDate = model.Hold.EndDate;
-                                h.HoldType = model.Hold.HoldType;
-                                h.Level = model.Hold.Level;
-                                h.ReserveInventory = model.Hold.ReserveInventory;
-                                h.StartDate = model.Hold.StartDate;
-                                h.Value = model.Hold.Value;
-                                h.CreateDate = model.Hold.CreateDate;
-                                h.CreatedBy = model.Hold.CreatedBy;
+                                h = new Hold()
+                                {
+                                    Store = s.Store,
+                                    Division = s.Division,
+                                    Comments = model.Hold.Comments,
+                                    Duration = model.Hold.Duration,
+                                    EndDate = model.Hold.EndDate,
+                                    HoldType = model.Hold.HoldType,
+                                    Level = model.Hold.Level,
+                                    ReserveInventory = model.Hold.ReserveInventory,
+                                    StartDate = model.Hold.StartDate,
+                                    Value = model.Hold.Value,
+                                    CreateDate = model.Hold.CreateDate,
+                                    CreatedBy = model.Hold.CreatedBy
+                                };
+
                                 db.Holds.Add(h);
                                 db.SaveChanges();
 
@@ -447,7 +453,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             RDQDAO rdqDAO = new RDQDAO();
             List<RDQ> list = rdqDAO.GetRDQsForHold(h.ID);
-            Boolean needsave = false;
+            bool needsave = false;
             foreach (RDQ rdq in list)
             {
                 if (!(h.ReserveInventoryBool))
@@ -472,7 +478,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Edit(int ID)
         {
             HoldModel model = new HoldModel();
-            model.Hold = (from a in db.Holds where a.ID == ID select a).First();
+            model.Hold = db.Holds.Where(h => h.ID == ID).FirstOrDefault();
             model.Divisions = currentUser.GetUserDivisions(AppName);
             model.OriginalStartDate = model.Hold.StartDate;
 
@@ -487,7 +493,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 validationMessage = "Start date must be after original start date of hold";
             }
-            if (validationMessage != "")
+            if (string.IsNullOrEmpty(validationMessage))
             {
                 ViewData["message"] = validationMessage;
                 model.Divisions = currentUser.GetUserDivisions(AppName);
@@ -509,11 +515,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
             HoldModel model = new HoldModel();
             if (holdType.Contains("Reserve"))
             {
-                model.Hold = (from a in db.Holds where ((a.Division == div) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 1)) select a).First();
+                model.Hold = (from a in db.Holds 
+                              where ((a.Division == div) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 1)) 
+                              select a).First();
             }
             else
             {
-                model.Hold = (from a in db.Holds where ((a.Division == div) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 0)) select a).First();
+                model.Hold = (from a in db.Holds
+                              where ((a.Division == div) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 0)) 
+                              select a).First();
             }
             model.Hold.Comments = "";
             model.Divisions = currentUser.GetUserDivisions(AppName);
@@ -546,11 +556,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<Hold> holds;
             if (model.Hold.HoldType.Contains("Reserve"))
             {
-                holds = (from a in db.Holds where ((a.Division == model.Hold.Division) && (a.Level == model.Hold.Level) && (a.Value == model.Hold.Value) && (a.ReserveInventory == 1)) select a).ToList();
+                holds = (from a in db.Holds 
+                         where ((a.Division == model.Hold.Division) && (a.Level == model.Hold.Level) && (a.Value == model.Hold.Value) && (a.ReserveInventory == 1)) 
+                         select a).ToList();
             }
             else
             {
-                holds = (from a in db.Holds where ((a.Division == model.Hold.Division) && (a.Level == model.Hold.Level) && (a.Value == model.Hold.Value) && (a.ReserveInventory == 0)) select a).ToList();
+                holds = (from a in db.Holds 
+                         where ((a.Division == model.Hold.Division) && (a.Level == model.Hold.Level) && (a.Value == model.Hold.Value) && (a.ReserveInventory == 0)) 
+                         select a).ToList();
             }
 
             string validationMessage = "";
@@ -1683,7 +1697,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 int rows = worksheet.Cells.MaxDataRow;
                 int columns = worksheet.Cells.MaxDataColumn;
 
-                DataTable excelData = worksheet.Cells.ExportDataTable(0, 0, rows + 1, columns + 1, true);
+                DataTable excelData = worksheet.Cells.ExportDataTable(0, 0, rows + 1, columns + 1, new ExportTableOptions() { ExportAsString = true, ExportColumnName = true});
 
                 if (!(excelData.Columns[0].ColumnName == "Division" && excelData.Columns[1].ColumnName == "Store" && excelData.Columns[2].ColumnName == "Level" &&
                         excelData.Columns[3].ColumnName == "Value" && excelData.Columns[4].ColumnName == "Start Date" && excelData.Columns[5].ColumnName == "End Date" &&
