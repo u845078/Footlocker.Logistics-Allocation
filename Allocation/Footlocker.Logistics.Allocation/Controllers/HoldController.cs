@@ -477,9 +477,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Edit(int ID)
         {
-            HoldModel model = new HoldModel();
-            model.Hold = db.Holds.Where(h => h.ID == ID).FirstOrDefault();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            HoldModel model = new HoldModel()
+            {
+                Hold = db.Holds.Where(h => h.ID == ID).FirstOrDefault(),
+                Divisions = currentUser.GetUserDivisions(AppName)
+            };
+
             model.OriginalStartDate = model.Hold.StartDate;
 
             return View(model);
@@ -493,7 +496,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 validationMessage = "Start date must be after original start date of hold";
             }
-            if (string.IsNullOrEmpty(validationMessage))
+            if (!string.IsNullOrEmpty(validationMessage))
             {
                 ViewData["message"] = validationMessage;
                 model.Divisions = currentUser.GetUserDivisions(AppName);
@@ -502,7 +505,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             else
             {
                 model.Hold.CreateDate = DateTime.Now;
-                model.Hold.CreatedBy = User.Identity.Name;
+                model.Hold.CreatedBy = currentUser.NetworkID;
 
                 db.Entry(model.Hold).State = System.Data.EntityState.Modified;
                 db.SaveChanges();
@@ -675,7 +678,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
 
-        private string ValidateHold(Hold hold, Boolean usesRuleSet, Boolean edit, Boolean fromUpload = false)
+        private string ValidateHold(Hold hold, bool usesRuleSet, bool edit, bool fromUpload = false)
         {
             string returnMessage = "";
             string value = hold.Value + "";
@@ -693,7 +696,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 if (hold.StartDate <= controlDate.AddDays(2))
                 {
-                    returnMessage = "Start date must be after " + controlDate.AddDays(2).ToShortDateString();
+                    returnMessage = string.Format("Start date must be after {0}", controlDate.AddDays(2).ToShortDateString());
                 }
             }
 
@@ -708,11 +711,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 (a.ID != hold.ID)) 
                          select a).Count() > 0)
                     {
-                        returnMessage = "There is already a hold for " + hold.Store;
+                        returnMessage = string.Format("There is already a hold for {0}", hold.Store);
                     }
                     else
                     {
-                        int divDepts = DepartmentService.ListDepartments(hold.Division).Count();  //db.Departments.Where(m => m.divisionCode == hold.Division).Count();
+                        int divDepts = DepartmentService.ListDepartments(hold.Division).Count();  
                         int enabledDepts = currentUser.GetUserDepartments(AppName).Where(m => m.DivCode == hold.Division).Count();
                         if (divDepts != enabledDepts)
                         {
@@ -737,10 +740,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                        a.Store == hold.Store && 
                                          ((a.EndDate == null) || (a.EndDate > hold.StartDate)))))
                     {
-                        returnMessage = "There is already a hold for " + hold.Store + " " + hold.Level + " " + hold.Value;
+                        returnMessage = string.Format("There is already a hold for {0} {1} {2}", hold.Store, hold.Level, hold.Value);
                     }
-                }
-                
+                }                
             }
 
             if (string.IsNullOrEmpty(returnMessage) && hold.EndDate != null)
@@ -761,10 +763,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     hold.Store = hold.Store.PadLeft(5, '0');
 
-                    StoreLookup lookupStore = (from s in db.StoreLookups
-                                               where s.Store == hold.Store &&
-                                                     s.Division == hold.Division
-                                               select s).FirstOrDefault();
+                    StoreLookup lookupStore = db.StoreLookups.Where(sl => sl.Store == hold.Store && sl.Division == hold.Division).FirstOrDefault();                                            
                     if (lookupStore == null)
                     {
                         returnMessage = "Store ID is not valid or it is not under the selected division";
@@ -783,19 +782,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage = "Invalid Sku, format should be ##-##-#####-##";
                     }
 
-                    else if (
-                        !(Footlocker.Common.WebSecurityService.UserHasDivision(UserName, "Allocation",
-                            hold.Value.Substring(0, 2))))
+                    else if (!(Footlocker.Common.WebSecurityService.UserHasDivision(UserName, "Allocation", hold.Value.Substring(0, 2))))
                     {
-                        returnMessage =
-                            "You do not have authority to create this hold.  You need division level access.";
+                        returnMessage = "You do not have authority to create this hold.  You need division level access.";
                     }
-                    else if (
-                        !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
-                            hold.Value.Substring(0, 2), hold.Value.Substring(3, 2))))
+                    else if (!(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation", hold.Value.Substring(0, 2), hold.Value.Substring(3, 2))))
                     {
-                        returnMessage =
-                            "You do not have authority to create this hold.  You need dept level access.";
+                        returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
                     else if ((hold.Level == "Sku") && (hold.Division != hold.Value.Substring(0, 2)))
                     {
@@ -809,34 +802,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         returnMessage = "Invalid Department, format should be ##";
                     }
-                    else if (
-                        !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
-                            hold.Division, hold.Value)))
+                    else if (!(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation", hold.Division, hold.Value)))
                     {
-                        returnMessage =
-                            "You do not have authority to create this hold.  You need dept level access.";
+                        returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
                 }
                 else if (hold.Level == "VendorDept")
                 {
-                    System.Text.RegularExpressions.Regex regexSku =
-                        new System.Text.RegularExpressions.Regex(@"^\d{5}-\d{2}$");
+                    System.Text.RegularExpressions.Regex regexSku = new System.Text.RegularExpressions.Regex(@"^\d{5}-\d{2}$");
                     if (!(regexSku.IsMatch(value)))
                     {
                         returnMessage = "Invalid Vendor-Dept, format should be #####-##";
                     }
-                    else if (
-                        !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
-                            hold.Division, hold.Value.Substring(6, 2))))
+                    else if (!(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation", hold.Division, hold.Value.Substring(6, 2))))
                     {
-                        returnMessage =
-                            "You do not have authority to create this hold.  You need dept level access.";
+                        returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
                 }
                 else if (hold.Level == "VendorDeptCategory")
                 {
-                    System.Text.RegularExpressions.Regex regexSku =
-                        new System.Text.RegularExpressions.Regex(@"^\d{5}-\d{2}-\d{3}$");
+                    System.Text.RegularExpressions.Regex regexSku = new System.Text.RegularExpressions.Regex(@"^\d{5}-\d{2}-\d{3}$");
                     if (!(regexSku.IsMatch(value)))
                     {
                         returnMessage = "Invalid Vendor-Dept-Category, format should be #####-##-###";
@@ -845,8 +830,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
                             hold.Division, hold.Value.Substring(6, 2))))
                     {
-                        returnMessage =
-                            "You do not have authority to create this hold.  You need dept level access.";
+                        returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
                 }
                 else if (hold.Level == "DeptBrand")
@@ -861,8 +845,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
                             hold.Division, hold.Value.Substring(0, 2))))
                     {
-                        returnMessage =
-                            "You do not have authority to create this hold.  You need dept level access.";
+                        returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
                 }
                 else if (hold.Level == "Category") //category
@@ -877,8 +860,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
                             hold.Division, hold.Value.Substring(0, 2))))
                     {
-                        returnMessage =
-                            "You do not have authority to create this hold.  You need dept level access.";
+                        returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
 
                 }
@@ -893,8 +875,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
                             hold.Division, hold.Value.Substring(0, 2))))
                     {
-                        returnMessage =
-                            "You do not have authority to create this hold.  You need dept level access.";
+                        returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
                 }
                 else if (String.Equals(hold.Level, "DeptCatTeam"))
@@ -908,8 +889,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
                             hold.Division, hold.Value.Substring(0, 2))))
                     {
-                        returnMessage =
-                            "You do not have authority to create this hold.  You need dept level access.";
+                        returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
                 }
                 else if (String.Equals(hold.Level, "DeptCatBrand"))
@@ -923,8 +903,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
                             hold.Division, hold.Value.Substring(0, 2))))
                     {
-                        returnMessage =
-                            "You do not have authority to create this hold.  You need dept level access.";
+                        returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
                 }
                 else
@@ -932,7 +911,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     //store hold
                     if ((hold.Store == null) || (hold.Store.Trim() == ""))
                     {
-                        if (!(usesRuleSet))
+                        if (!usesRuleSet)
                         {
                             returnMessage = "For Store level, you must specify store.";
                         }
@@ -948,12 +927,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     //if it was cancel inventory before, then let it be
                     var reserveinventory = (from a in db.Holds where a.ID == hold.ID select a.ReserveInventory).First();
-                    if ((reserveinventory != null) && (reserveinventory > 0))
+                    if (reserveinventory > 0)
                     {
                         returnMessage = "RDQs already assigned to this hold, you must release the RDQs before setting this to Cancel Inventory";
                     }
                 }
-
             }
 
             return returnMessage;

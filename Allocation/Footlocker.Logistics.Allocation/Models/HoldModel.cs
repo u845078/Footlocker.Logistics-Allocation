@@ -23,12 +23,6 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public string ShowStoreSelector { get; set; }
 
-        //public Int64 HoldRuleSetID { get; set; }
-
-        //public Rule RuleToAdd { get; set; }
-
-        //private List<Rule> _rules = new List<Rule>();
-        //public List<Rule> Rules { get { return _rules; } set { _rules = value; } }
 
         private RuleModel _ruleModel;
 
@@ -37,8 +31,5 @@ namespace Footlocker.Logistics.Allocation.Models
             get { return _ruleModel; }
             set { _ruleModel = value; }
         }
-
-        //private List<StoreLookupModel> _newStores = new List<StoreLookupModel>();
-        //public List<StoreLookupModel> NewStores { get { return _newStores; } set { _newStores = value; } }
     }
 }

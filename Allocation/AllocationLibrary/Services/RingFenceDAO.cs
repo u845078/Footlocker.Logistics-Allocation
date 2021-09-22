@@ -32,18 +32,19 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         /// </summary>
         /// <param name="validDivisions">A list of divisions that you want to match the ring fences against</param>
         /// <returns></returns>
-        public List<RingFence> GetValidRingFences(List<Division> validDivisions)
+        public List<RingFence> GetValidRingFences(List<string> validDivisions)
         {
             List<RingFence> list = (from a in db.RingFences
-                                    where a.Qty > 0
+                                    where a.Qty > 0 &&
+                                    validDivisions.Contains(a.Division) 
                                     select a).ToList();
 
-            list = (from a in list
-                    join d in validDivisions 
-                    on a.Division equals d.DivCode
-                    select a).OrderByDescending(x => x.CreateDate).ToList();
+            //list = (from a in list
+            //        join d in validDivisions 
+            //        on a.Division equals d.DivCode
+            //        select a).OrderByDescending(x => x.CreateDate).ToList();
 
-            return list;
+            return list.OrderByDescending(x => x.CreateDate).ToList();
         }
 
         public RingFenceDetail BuildFutureRingFenceDetail(string sku, string stockSizeNumber, string warehouseCode, 
