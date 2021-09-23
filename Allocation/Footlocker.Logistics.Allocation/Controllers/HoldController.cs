@@ -380,7 +380,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.Divisions = currentUser.GetUserDivisions(AppName);
                 return View(model);
             }
-            if (string.IsNullOrEmpty(validationMessage))
+            if (!string.IsNullOrEmpty(validationMessage))
             {
                 ViewData["message"] = validationMessage;
                 model.Divisions = currentUser.GetUserDivisions(AppName);
@@ -389,7 +389,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             else
             {
                 model.Hold.CreateDate = DateTime.Now;
-                model.Hold.CreatedBy = User.Identity.Name;
+                model.Hold.CreatedBy = currentUser.NetworkID;
                 //TODO:  Do we want dept level security on holds???
                 if (currentUser.GetUserDivisions(AppName).Exists(d => d.DivCode == model.Hold.Division))
                 {
