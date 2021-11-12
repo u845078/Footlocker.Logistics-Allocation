@@ -86,26 +86,28 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 workSheet.Cells[row, 3].Style.HorizontalAlignment = TextAlignmentType.Right;
                 workSheet.Cells[row, 4].PutValue(rr.Vendor);
                 workSheet.Cells[row, 4].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 5].PutValue(rr.RDQType);
+                workSheet.Cells[row, 5].PutValue(rr.SKU);
                 workSheet.Cells[row, 5].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 6].PutValue(rr.FromDate);
-                workSheet.Cells[row, 6].Style.Number = 14;
-                workSheet.Cells[row, 7].PutValue(rr.ToDate);
+                workSheet.Cells[row, 6].PutValue(rr.RDQType);
+                workSheet.Cells[row, 6].Style.HorizontalAlignment = TextAlignmentType.Right;
+                workSheet.Cells[row, 7].PutValue(rr.FromDate);
                 workSheet.Cells[row, 7].Style.Number = 14;
-                workSheet.Cells[row, 8].PutValue(rr.FromDCCode);
-                workSheet.Cells[row, 8].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 9].PutValue(rr.ToLeague);
+                workSheet.Cells[row, 8].PutValue(rr.ToDate);
+                workSheet.Cells[row, 8].Style.Number = 14;
+                workSheet.Cells[row, 9].PutValue(rr.FromDCCode);
                 workSheet.Cells[row, 9].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 10].PutValue(rr.ToRegion);
+                workSheet.Cells[row, 10].PutValue(rr.ToLeague);
                 workSheet.Cells[row, 10].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 11].PutValue(rr.ToStore);
+                workSheet.Cells[row, 11].PutValue(rr.ToRegion);
                 workSheet.Cells[row, 11].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 12].PutValue(rr.ToDCCode);
+                workSheet.Cells[row, 12].PutValue(rr.ToStore);
                 workSheet.Cells[row, 12].Style.HorizontalAlignment = TextAlignmentType.Right;
+                workSheet.Cells[row, 13].PutValue(rr.ToDCCode);
+                workSheet.Cells[row, 13].Style.HorizontalAlignment = TextAlignmentType.Right;
                 row++;
             }
 
-            for (int i = 0; i < 13; i++)
+            for (int i = 0; i < 14; i++)
             {
                 workSheet.AutoFitColumn(i);
             }
@@ -148,7 +150,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Create(RDQRestrictionModel model)
         {
-            string message = "";
+            string message;
 
             if (!ValidateRDQRestriction(model, out message))
             {
@@ -158,7 +160,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             model.RDQRestriction.LastModifiedDate = DateTime.Now;
-            model.RDQRestriction.LastModifiedUser = User.Identity.Name;
+            model.RDQRestriction.LastModifiedUser = currentUser.NetworkID;
             db.RDQRestrictions.Add(model.RDQRestriction);
             db.SaveChanges();
 
@@ -202,11 +204,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Edit(RDQRestrictionModel model, int id)
         {
-            string message = "";
+            string message;
 
             model.RDQRestriction.RDQRestrictionID = id;
             model.RDQRestriction.LastModifiedDate = DateTime.Now;
-            model.RDQRestriction.LastModifiedUser = User.Identity.Name;
+            model.RDQRestriction.LastModifiedUser = currentUser.NetworkID;
 
             if (!ValidateRDQRestriction(model, out message))
             {
@@ -337,46 +339,43 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<RDQRestriction> returnValue = new List<RDQRestriction>();
 
-            List<string> divisions 
-                = currentUser.GetUserDivisions(AppName)
-                    .Select(d => d.DivCode)
+            List<string> divisions = currentUser.GetUserDivList(AppName)
                     .Distinct()
                     .ToList();
 
-            var list
-                = db.RDQRestrictions
+            var list  = db.RDQRestrictions
                     .Where(rr => divisions.Contains(rr.Division))
-                    .Select(rr => new { rr.Division, rr.Department, rr.Category, rr.Brand })
+                    .Select(rr => new { rr.Division, rr.Department, rr.Category, rr.Brand, rr.SKU })
                     .Distinct()
                     .ToList();
 
-            returnValue
-                = list
-                    .Select(rr => new RDQRestriction(rr.Division, rr.Department, rr.Category, rr.Brand))
-                    .OrderBy(rr => rr.Division)
-                    .ThenBy(rr => rr.Department)
-                    .ThenBy(rr => rr.Category)
-                    .ThenBy(rr => rr.Brand)
-                    .ToList();
+            returnValue = list
+                .Select(rr => new RDQRestriction() { Division = rr.Division, Department = rr.Department, Category = rr.Category, Brand = rr.Brand, SKU = rr.SKU } )
+                .OrderBy(rr => rr.Division)
+                .ThenBy(rr => rr.Department)
+                .ThenBy(rr => rr.Category)
+                .ThenBy(rr => rr.Brand)
+                .ThenBy(rr => rr.SKU)
+                .ToList();
 
             return PartialView(new GridModel(returnValue));
         }
 
         [GridAction]
-        public ActionResult _RDQRestrictionsForProduct(string div, string dept, string cat, string brand)
+        public ActionResult _RDQRestrictionsForProduct(string div, string dept, string cat, string brand, string sku)
         {
-            List<RDQRestriction> returnValue = new List<RDQRestriction>();
+            List<RDQRestriction> returnValue;
 
-            returnValue = RetrieveRDQRestrictionsForProduct(div, dept, cat, brand);
+            returnValue = RetrieveRDQRestrictionsForProduct(div, dept, cat, brand, sku);
 
             return PartialView(new GridModel(returnValue));
         }
 
-        public ActionResult DeleteRDQRestrictionsByProduct(string div, string dept, string cat, string brand)
+        public ActionResult DeleteRDQRestrictionsByProduct(string div, string dept, string cat, string brand, string sku)
         {
             List<RDQRestriction> rdqRestrictions = new List<RDQRestriction>();
 
-            rdqRestrictions = RetrieveRDQRestrictionsForProduct(div, dept, cat, brand);
+            rdqRestrictions = RetrieveRDQRestrictionsForProduct(div, dept, cat, brand, sku);
 
             foreach (var rr in rdqRestrictions)
             {
@@ -718,86 +717,94 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return model;
         }
 
-        private List<RDQRestriction> RetrieveRDQRestrictionsForProduct(string div, string dept, string cat, string brand)
+        private List<RDQRestriction> RetrieveRDQRestrictionsForProduct(string div, string dept, string cat, string brand, string sku)
         {
             List<RDQRestriction> returnValue = new List<RDQRestriction>();
 
             bool departmentExists = !string.IsNullOrEmpty(dept);
             bool categoryExists = !string.IsNullOrEmpty(cat);
             bool brandExists = !string.IsNullOrEmpty(brand);
+            bool skuExists = !string.IsNullOrEmpty(sku);
 
-            if (departmentExists && !categoryExists && !brandExists)
-            {
-                returnValue
-                    = db.RDQRestrictions
-                        .Where(rr => rr.Division.Equals(div) &&
-                                     rr.Department.Equals(dept) &&
-                                     rr.Category == null &&
-                                     rr.Brand == null).ToList();
-            }
-            else if (departmentExists && categoryExists && !brandExists)
-            {
-                returnValue
-                    = db.RDQRestrictions
-                        .Where(rr => rr.Division.Equals(div) &&
-                                     rr.Department.Equals(dept) &&
-                                     rr.Category.Equals(cat) &&
-                                     rr.Brand == null).ToList();
-            }
-            else if (departmentExists && categoryExists && brandExists)
-            {
-                returnValue
-                    = db.RDQRestrictions
-                        .Where(rr => rr.Division.Equals(div) &&
-                                     rr.Department.Equals(dept) &&
-                                     rr.Category.Equals(cat) &&
-                                     rr.Brand.Equals(brand)).ToList();
-            }
-            else if (departmentExists && !categoryExists && brandExists)
-            {
-                returnValue
-                    = db.RDQRestrictions
-                        .Where(rr => rr.Division.Equals(div) &&
-                                     rr.Department.Equals(dept) &&
-                                     rr.Category == null &&
-                                     rr.Brand.Equals(brand)).ToList();
-            }
-            else if (!departmentExists && categoryExists && !brandExists)
-            {
-                returnValue
-                    = db.RDQRestrictions
-                        .Where(rr => rr.Division.Equals(div) &&
-                                     rr.Department == null &&
-                                     rr.Category.Equals(cat) &&
-                                     rr.Brand == null).ToList();
-            }
-            else if (!departmentExists && !categoryExists && brandExists)
-            {
-                returnValue
-                    = db.RDQRestrictions
-                        .Where(rr => rr.Division.Equals(div) &&
-                                     rr.Department == null &&
-                                     rr.Category == null &&
-                                     rr.Brand.Equals(brand)).ToList();
-            }
-            else if (!departmentExists && !categoryExists && !brandExists)
-            {
-                returnValue
-                    = db.RDQRestrictions
-                        .Where(rr => rr.Division.Equals(div) &&
-                                     rr.Department == null &&
-                                     rr.Category == null &&
-                                     rr.Brand == null).ToList();
-            }
-            else if (!departmentExists && categoryExists && brandExists)
-            {
-                returnValue
-                    = db.RDQRestrictions
-                        .Where(rr => rr.Division.Equals(div) &&
-                                     rr.Department == null &&
-                                     rr.Category.Equals(cat) &&
-                                     rr.Brand.Equals(brand)).ToList();
-            }
+            returnValue = db.RDQRestrictions
+                .Where(rr => rr.Division.Equals(div) && 
+                             ((departmentExists && rr.Department.Equals(dept)) || (!departmentExists && rr.Department == null)) &&
+                             ((categoryExists && rr.Category.Equals(cat)) || (!categoryExists && rr.Category == null)) &&
+                             ((brandExists && rr.Brand.Equals(brand)) || (!brandExists && rr.Brand == null)) &&
+                             ((skuExists && rr.SKU.Equals(sku)) || (!skuExists && (rr.SKU == null)))).ToList();
+
+            //if (departmentExists && !categoryExists && !brandExists)
+            //{
+            //    returnValue
+            //        = db.RDQRestrictions
+            //            .Where(rr => rr.Division.Equals(div) &&
+            //                         rr.Department.Equals(dept) &&
+            //                         rr.Category == null &&
+            //                         rr.Brand == null).ToList();
+            //}
+            //else if (departmentExists && categoryExists && !brandExists)
+            //{
+            //    returnValue
+            //        = db.RDQRestrictions
+            //            .Where(rr => rr.Division.Equals(div) &&
+            //                         rr.Department.Equals(dept) &&
+            //                         rr.Category.Equals(cat) &&
+            //                         rr.Brand == null).ToList();
+            //}
+            //else if (departmentExists && categoryExists && brandExists)
+            //{
+            //    returnValue
+            //        = db.RDQRestrictions
+            //            .Where(rr => rr.Division.Equals(div) &&
+            //                         rr.Department.Equals(dept) &&
+            //                         rr.Category.Equals(cat) &&
+            //                         rr.Brand.Equals(brand)).ToList();
+            //}
+            //else if (departmentExists && !categoryExists && brandExists)
+            //{
+            //    returnValue
+            //        = db.RDQRestrictions
+            //            .Where(rr => rr.Division.Equals(div) &&
+            //                         rr.Department.Equals(dept) &&
+            //                         rr.Category == null &&
+            //                         rr.Brand.Equals(brand)).ToList();
+            //}
+            //else if (!departmentExists && categoryExists && !brandExists)
+            //{
+            //    returnValue
+            //        = db.RDQRestrictions
+            //            .Where(rr => rr.Division.Equals(div) &&
+            //                         rr.Department == null &&
+            //                         rr.Category.Equals(cat) &&
+            //                         rr.Brand == null).ToList();
+            //}
+            //else if (!departmentExists && !categoryExists && brandExists)
+            //{
+            //    returnValue
+            //        = db.RDQRestrictions
+            //            .Where(rr => rr.Division.Equals(div) &&
+            //                         rr.Department == null &&
+            //                         rr.Category == null &&
+            //                         rr.Brand.Equals(brand)).ToList();
+            //}
+            //else if (!departmentExists && !categoryExists && !brandExists)
+            //{
+            //    returnValue
+            //        = db.RDQRestrictions
+            //            .Where(rr => rr.Division.Equals(div) &&
+            //                         rr.Department == null &&
+            //                         rr.Category == null &&
+            //                         rr.Brand == null).ToList();
+            //}
+            //else if (!departmentExists && categoryExists && brandExists)
+            //{
+            //    returnValue
+            //        = db.RDQRestrictions
+            //            .Where(rr => rr.Division.Equals(div) &&
+            //                         rr.Department == null &&
+            //                         rr.Category.Equals(cat) &&
+            //                         rr.Brand.Equals(brand)).ToList();
+            //}
 
             return returnValue;
         }
@@ -880,7 +887,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 {
                                     this.RevertDefaultValues(rr);
                                     rr.LastModifiedDate = DateTime.Now;
-                                    rr.LastModifiedUser = User.Identity.Name;
+                                    rr.LastModifiedUser = currentUser.NetworkID;
                                     db.RDQRestrictions.Add(rr);
                                 }
                                 db.SaveChanges();
@@ -1086,14 +1093,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 (Convert.ToString(workSheet.Cells[0, 2].Value).Contains("Category")) &&
                 (Convert.ToString(workSheet.Cells[0, 3].Value).Contains("Brand")) &&
                 (Convert.ToString(workSheet.Cells[0, 4].Value).Contains("Vendor")) &&
-                (Convert.ToString(workSheet.Cells[0, 5].Value).Contains("RDQ Type")) &&
-                (Convert.ToString(workSheet.Cells[0, 6].Value).Contains("From Date")) &&
-                (Convert.ToString(workSheet.Cells[0, 7].Value).Contains("To Date")) &&
-                (Convert.ToString(workSheet.Cells[0, 8].Value).Contains("From DC Code")) &&
-                (Convert.ToString(workSheet.Cells[0, 9].Value).Contains("To League")) &&
-                (Convert.ToString(workSheet.Cells[0, 10].Value).Contains("To Region")) &&
-                (Convert.ToString(workSheet.Cells[0, 11].Value).Contains("To Store")) &&
-                (Convert.ToString(workSheet.Cells[0, 12].Value).Contains("To DC Code"));
+                (Convert.ToString(workSheet.Cells[0, 5].Value).Contains("SKU")) &&
+                (Convert.ToString(workSheet.Cells[0, 6].Value).Contains("RDQ Type")) &&
+                (Convert.ToString(workSheet.Cells[0, 7].Value).Contains("From Date")) &&
+                (Convert.ToString(workSheet.Cells[0, 8].Value).Contains("To Date")) &&
+                (Convert.ToString(workSheet.Cells[0, 9].Value).Contains("From DC Code")) &&
+                (Convert.ToString(workSheet.Cells[0, 10].Value).Contains("To League")) &&
+                (Convert.ToString(workSheet.Cells[0, 11].Value).Contains("To Region")) &&
+                (Convert.ToString(workSheet.Cells[0, 12].Value).Contains("To Store")) &&
+                (Convert.ToString(workSheet.Cells[0, 13].Value).Contains("To DC Code"));
         }
 
         private bool HasDataOnRow(Worksheet workSheet, int row)
@@ -1110,29 +1118,46 @@ namespace Footlocker.Logistics.Allocation.Controllers
                    workSheet.Cells[row, 9].Value != null ||
                    workSheet.Cells[row, 10].Value != null ||
                    workSheet.Cells[row, 11].Value != null ||
-                   workSheet.Cells[row, 12].Value != null;
+                   workSheet.Cells[row, 12].Value != null ||
+                   workSheet.Cells[row, 13].Value != null;
         }
 
         private RDQRestriction ParseUploadRow(Worksheet workSheet, int row)
         {
-            RDQRestriction returnValue = null;
+            RDQRestriction returnValue;
 
             string division = Convert.ToString(workSheet.Cells[row, 0].Value);
             string department = Convert.ToString(workSheet.Cells[row, 1].Value);
             string category = Convert.ToString(workSheet.Cells[row, 2].Value);
             string brand = Convert.ToString(workSheet.Cells[row, 3].Value);
             string vendor = Convert.ToString(workSheet.Cells[row, 4].Value);
-            string rdqType = Convert.ToString(workSheet.Cells[row, 5].Value);
-            DateTime fromDate = Convert.ToDateTime(workSheet.Cells[row, 6].Value);
-            DateTime toDate = Convert.ToDateTime(workSheet.Cells[row, 7].Value);
-            string fromDCCode = Convert.ToString(workSheet.Cells[row, 8].Value);
-            string toLeague = Convert.ToString(workSheet.Cells[row, 9].Value);
-            string toRegion = Convert.ToString(workSheet.Cells[row, 10].Value);
-            string toStore = Convert.ToString(workSheet.Cells[row, 11].Value);
-            string toDCCode = Convert.ToString(workSheet.Cells[row, 12].Value);
+            string sku = Convert.ToString(workSheet.Cells[row, 5].Value);
+            string rdqType = Convert.ToString(workSheet.Cells[row, 6].Value);
+            DateTime fromDate = Convert.ToDateTime(workSheet.Cells[row, 7].Value);
+            DateTime toDate = Convert.ToDateTime(workSheet.Cells[row, 8].Value);
+            string fromDCCode = Convert.ToString(workSheet.Cells[row, 9].Value);
+            string toLeague = Convert.ToString(workSheet.Cells[row, 10].Value);
+            string toRegion = Convert.ToString(workSheet.Cells[row, 11].Value);
+            string toStore = Convert.ToString(workSheet.Cells[row, 12].Value);
+            string toDCCode = Convert.ToString(workSheet.Cells[row, 13].Value);
 
-            returnValue = new RDQRestriction(division, department, category, brand, vendor, rdqType,
-                                fromDate, toDate, fromDCCode, toLeague, toRegion, toStore, toDCCode);
+            returnValue = new RDQRestriction()
+            {
+                Division = division,
+                Department = department,
+                Category = category,
+                Brand = brand, 
+                SKU = sku,
+                Vendor = vendor,
+                RDQType = rdqType,
+                FromDate = fromDate,
+                ToDate = toDate,
+                FromDCCode = fromDCCode,
+                ToLeague = toLeague,
+                ToRegion = toRegion,
+                ToStore = toStore,
+                ToDCCode = toDCCode
+            };
 
             return returnValue;
         }
@@ -1175,7 +1200,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             // check to see if there are any duplicates and remove them
             parsedRRs
-                .GroupBy(pr => new { pr.Division, pr.Department, pr.Category, pr.Brand, pr.Vendor, pr.RDQType, pr.FromDCCode, pr.ToLeague, pr.ToRegion, pr.ToStore, pr.ToDCCode })
+                .GroupBy(pr => new { pr.Division, pr.Department, pr.Category, pr.Brand, pr.Vendor, pr.SKU, pr.RDQType, pr.FromDCCode, pr.ToLeague, pr.ToRegion, pr.ToStore, pr.ToDCCode })
                 .Where(pr => pr.Count() > 1)
                 .Select(pr => new { DuplicatesRRs = pr.ToList(), Counter = pr.Count() })
                 .ToList()
@@ -1218,6 +1243,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             ((r.Department == null && string.IsNullOrEmpty(pr.Department) || r.Department.Equals(pr.Department)) &&
                             ((r.Category == null && string.IsNullOrEmpty(pr.Category)) || r.Category.Equals(pr.Category)) &&
                             ((r.Brand == null && string.IsNullOrEmpty(pr.Brand)) || r.Brand.Equals(pr.Brand)) &&
+                            ((r.SKU == null && string.IsNullOrEmpty(pr.SKU)) || r.SKU.Equals(pr.SKU)) &&
                             ((r.RDQType == null && string.IsNullOrEmpty(pr.RDQType)) || r.RDQType.Equals(pr.RDQType)) &&
                             ((r.Vendor == null && string.IsNullOrEmpty(pr.Vendor)) || r.Vendor.Equals(pr.Vendor)) &&
                             ((r.FromDCCode == null && string.IsNullOrEmpty(pr.FromDCCode)) || r.FromDCCode.Equals(pr.FromDCCode)) &&
@@ -1230,8 +1256,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     SetErrorMessage(errorList, rr, "The combination provided already exists within the system.");
                 });
-
-
 
             // required dates are populated
             parsedRRs
@@ -1393,6 +1417,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     SetErrorMessage(errorList, rr, "The division / vendor combination does not exist.");
                 });
+
+            // SKU combination exists
+            var allSKUData = parsedRRs
+                .Where(pr => !string.IsNullOrEmpty(pr.SKU))
+                .Select(pr => new { pr.Division, pr.Vendor, pr.Brand, pr.Category, pr.Department, pr.SKU })
+                .Distinct();
+
+            var invalidSKUs = allSKUData
+                .Where(s => !db.ItemMasters.Any(im => im.Div.Equals(s.Division) &&
+                                                      im.Vendor.Equals(s.Vendor) &&
+                                                      im.Brand.Equals(s.Brand) &&
+                                                      im.Category.Equals(s.Category) &&
+                                                      im.Dept.Equals(s.Department) &&
+                                                      im.MerchantSku.Equals(s.SKU)));
+       
+            parsedRRs.Where(pr => invalidSKUs.Contains(new { pr.Division, pr.Vendor, pr.Brand, pr.Category, pr.Department, pr.SKU }))
+                     .ToList()
+                     .ForEach(rr =>
+                     {
+                        SetErrorMessage(errorList, rr, "The Div/Vendor/Brand/Category/Department combination does not exist for this SKU.");
+                     });
 
             // rdq type exists
             var uniqueRDQTypes

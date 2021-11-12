@@ -64,12 +64,13 @@
                     columns.Bound(rr => rr.Department);
                     columns.Bound(rr => rr.Category);
                     columns.Bound(rr => rr.Brand);
+                    columns.Bound(rr => rr.SKU);
                     columns.Template(@<text>
-                                        @Html.Raw("<a class=\"t-button\" href='javascript:MassDeleteGrid(\"" + item.Division + "\",\"" + item.Department + "\",\"" + item.Category + "\",\"" + item.Brand + "\");'>Delete</a>")
-                                     </text>)
-                           .ClientTemplate("<a class=\"t-button\" href='javascript:MassDeleteGrid(\"<#= Division #>\", \"<#= Department #>\",\"<#= Category #>\",\"<#= Brand #>\");'>Delete</a>")
-                           .Width(200);
-                })
+                                            @Html.Raw("<a class=\"t-button\" href='javascript:MassDeleteGrid(\"" + item.Division + "\",\"" + item.Department + "\",\"" + item.Category + "\",\"" + item.Brand + "\",\"" + item.SKU + "\" );'>Delete</a>")
+                                         </text>)
+                               .ClientTemplate("<a class=\"t-button\" href='javascript:MassDeleteGrid(\"<#= Division #>\", \"<#= Department #>\",\"<#= Category #>\",\"<#= Brand #>\",\"<#= SKU #>\");'>Delete</a>")
+                               .Width(200);
+                    })
                 .DataBinding(dataBinding =>
                 {
                     dataBinding.Ajax().Select("_RDQRestrictionProducts", "RDQRestriction");
@@ -83,7 +84,7 @@
                 .Footer(true)
                 .DetailView(rrDetails => rrDetails.ClientTemplate(
                     Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQRestriction>()
-                        .Name("RDQRestriction" + "_<#= Division #>" + "_<#= Department #>" + "_<#= Category #>" + "_<#= Brand #>")
+                        .Name("RDQRestriction" + "_<#= Division #>" + "_<#= Department #>" + "_<#= Category #>" + "_<#= Brand #>" + "_<#= SKU #>")
                         .Columns(columns =>
                         {
                             columns.Bound(rr => rr.Vendor);
@@ -107,7 +108,7 @@
                         })
                         .DataBinding(dataBinding =>
                         {
-                            dataBinding.Ajax().Select("_RDQRestrictionsForProduct", "RDQRestriction", new { div = "<#= Division #>", dept = "<#= Department #>", cat = "<#= Category #>", brand = "<#= Brand #>" });
+                            dataBinding.Ajax().Select("_RDQRestrictionsForProduct", "RDQRestriction", new { div = "<#= Division #>", dept = "<#= Department #>", cat = "<#= Category #>", brand = "<#= Brand #>", sku = "<#= SKU #>" });
                         })
                         .Pageable()
                         .Sortable()

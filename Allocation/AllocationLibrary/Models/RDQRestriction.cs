@@ -102,6 +102,20 @@ namespace Footlocker.Logistics.Allocation.Models
             }
         }
 
+        private string _sku;
+        [RegularExpression(@"^\d{2}-\d{2}-\d{5}-\d{2}$", ErrorMessage = "SKU must be in ##-##-#####-## format")]
+        public string SKU
+        {
+            get { return _sku; }
+            set 
+            {
+                if (!string.IsNullOrEmpty(value))
+                    _sku = value.Trim();
+                else
+                    _sku = string.Empty;
+            }
+        }
+
         private string _rdqType;
         [Display(Name = "RDQ Type")]
         public string RDQType
@@ -244,32 +258,32 @@ namespace Footlocker.Logistics.Allocation.Models
             this.ToDCCode = string.Empty;
         }
 
-        public RDQRestriction(string division, string department, string category, string brand)
-            : this()
-        {
-            this.Division = division;
-            this.Department = department;
-            this.Category = category;
-            this.Brand = brand;
-        }
+        //public RDQRestriction(string division, string department, string category, string brand)
+        //    : this()
+        //{
+        //    this.Division = division;
+        //    this.Department = department;
+        //    this.Category = category;
+        //    this.Brand = brand;
+        //}
 
-        public RDQRestriction(string division, string department, string category, string brand, string vendor, string rdqType, DateTime fromDate,
-                                DateTime toDate, string fromDCCode, string toLeague, string toRegion, string toStore, string toDCCode)
-            : this()
-        {
-            this.Division = division;
-            this.Department = department;
-            this.Category = category;
-            this.Brand = brand;
-            this.Vendor = vendor;
-            this.RDQType = rdqType;
-            this.FromDate = fromDate;
-            this.ToDate = toDate;
-            this.FromDCCode = fromDCCode;
-            this.ToLeague = toLeague;
-            this.ToRegion = toRegion;
-            this.ToStore = toStore;
-            this.ToDCCode = toDCCode;
-        }
+        //public RDQRestriction(string division, string department, string category, string brand, string vendor, string rdqType, DateTime fromDate,
+        //                        DateTime toDate, string fromDCCode, string toLeague, string toRegion, string toStore, string toDCCode)
+        //    : this()
+        //{
+        //    this.Division = division;
+        //    this.Department = department;
+        //    this.Category = category;
+        //    this.Brand = brand;
+        //    this.Vendor = vendor;
+        //    this.RDQType = rdqType;
+        //    this.FromDate = fromDate;
+        //    this.ToDate = toDate;
+        //    this.FromDCCode = fromDCCode;
+        //    this.ToLeague = toLeague;
+        //    this.ToRegion = toRegion;
+        //    this.ToStore = toStore;
+        //    this.ToDCCode = toDCCode;
+        //}
     }
 }

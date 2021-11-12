@@ -230,6 +230,16 @@
                     @Html.TextBoxFor(model => model.RDQRestriction.ToRegion)
                 </div>
             </div>
+            <div id="skuDiv">
+                <div class="editor-label">
+                    @Html.LabelFor(model => model.RDQRestriction.SKU)
+                </div>
+
+                <div class="editor-field">
+                    @Html.TextBoxFor(model => model.RDQRestriction.SKU)<br />
+                    @Html.ValidationMessageFor(model => model.RDQRestriction.SKU)
+                </div>
+            </div>
         </div>
     </div>
 </fieldset>
