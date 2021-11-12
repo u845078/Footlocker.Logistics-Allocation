@@ -127,7 +127,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     Division = Convert.ToString(mySheet.Cells[row, 0].Value).Substring(0, 2);
                     mainDivision = Division;
-                    if (!(Footlocker.Common.WebSecurityService.UserHasDivision(User.Identity.Name.Split('\\')[1], "Allocation", Division)))
+                    if (!currentUser.HasDivision(AppName, Division))
                     {
                         txtWrite.Flush();
                         txtWrite.Close();
@@ -371,7 +371,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     while (mySheet.Cells[row, 0].Value != null)
                     {
                         division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0');
-                        if (!(Footlocker.Common.WebSecurityService.UserHasDivision(User.Identity.Name.Split('\\')[1], "allocation", division)))
+                        if (!currentUser.HasDivision(AppName, division))
                         {
                             return Content("You are not authorized to update division " + division);
                         }
@@ -1570,8 +1570,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
 
                         // Validate that the current user has access to the division that the sku is referencing... (else error out)
-                        if (!(Footlocker.Common.WebSecurityService.UserHasDivision(User.Identity.Name.Split('\\')[1], "Allocation", divCodeOfCurrentSpreadsheet)))
-                            { return Content("You do not have permission to update this division."); }
+                        if (!currentUser.HasDivision(AppName, divCodeOfCurrentSpreadsheet)) 
+                        { 
+                            return Content("You do not have permission to update this division."); 
+                        }
 
                         // Burn through each populated row of spreadsheet
                         int row = 1;
@@ -1862,7 +1864,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 foreach (string div in divisions)
                 {
-                    if (Footlocker.Common.WebSecurityService.UserHasDivision(username, "Allocation", div))
+                    if (currentUser.HasDivision(AppName, div))
                     {
                         canLoad = true;
                         break;

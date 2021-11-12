@@ -96,5 +96,17 @@ namespace AllocationTests
             Assert.IsTrue(userDepartments.Exists(ud => ud.DivCode == "76" && ud.DeptNumber == "55"));
             Assert.IsTrue(userDepartments.Exists(ud => ud.DivCode == "24" && ud.DeptNumber == "64"));
         }
+
+        [TestMethod]
+        public void UserHasDepartmentTest()
+        {
+            WebUser testUser = new WebUser("CORP", "u695130");
+            bool dataCheck = testUser.HasDivision("Allocation", "31");
+            Assert.IsTrue(dataCheck);
+            dataCheck = testUser.HasDivision("Allocation", "03");
+            Assert.IsTrue(dataCheck);
+            dataCheck = testUser.HasDivision("Allocation", "99");
+            Assert.IsFalse(dataCheck);
+        }
     }
 }

@@ -966,6 +966,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             workSheet.Cells[row, col].PutValue("Vendor");
             workSheet.Cells[row, col].Style.Font.IsBold = true;
             col++;
+            workSheet.Cells[row, col].PutValue("SKU");
+            workSheet.Cells[row, col].Style.Font.IsBold = true;
+            col++;
             workSheet.Cells[row, col].PutValue("RDQ Type");
             workSheet.Cells[row, col].Style.Font.IsBold = true;
             col++;
@@ -1022,6 +1025,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         workSheet.Cells[row, col++].PutValue(error.Item1.Category);
                         workSheet.Cells[row, col++].PutValue(error.Item1.Brand);
                         workSheet.Cells[row, col++].PutValue(error.Item1.Vendor);
+                        workSheet.Cells[row, col++].PutValue(error.Item1.SKU);
                         workSheet.Cells[row, col++].PutValue(error.Item1.RDQType);
                         if (error.Item1.FromDate.Equals(DateTime.MinValue) || error.Item1.FromDate == null)
                         {
@@ -1049,7 +1053,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         workSheet.Cells[row++, col].PutValue(error.Item2);
                     }
 
-                    for (int i = 0; i < 14; i++)
+                    for (int i = 0; i < 15; i++)
                     {
                         workSheet.AutoFitColumn(i);
                     }
@@ -1176,8 +1180,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 });
 
             // check to see if the user has permission for each division, if not remove them
-            string userName = User.Identity.Name.Split('\\')[1];
-
             List<string> uniqueDivisions
                 = parsedRRs
                     .Select(pr => pr.Division)
@@ -1186,7 +1188,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             List<string> invalidDivisions
                 = uniqueDivisions
-                    .Where(div => !WebSecurityService.UserHasDivision(userName, "Allocation", div))
+                    .Where(div => !currentUser.GetUserDivList(AppName).Contains(div))
                     .ToList();
 
             parsedRRs
@@ -1744,12 +1746,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private List<SelectListItem> GetDestinationsList()
         {
-            List<SelectListItem> destinationsList = new List<SelectListItem>();
-
-            destinationsList.Add(new SelectListItem { Text = "Store", Value = "Store" });
-            destinationsList.Add(new SelectListItem { Text = "Region", Value = "Region" });
-            destinationsList.Add(new SelectListItem { Text = "League", Value = "League" });
-            destinationsList.Add(new SelectListItem { Text = "DC", Value = "DC" });            
+            List<SelectListItem> destinationsList = new List<SelectListItem>()
+            {
+                new SelectListItem { Text = "Store", Value = "Store" },
+                new SelectListItem { Text = "Region", Value = "Region" },
+                new SelectListItem { Text = "League", Value = "League" },
+                new SelectListItem { Text = "DC", Value = "DC" }
+            };       
 
             return destinationsList;
         }

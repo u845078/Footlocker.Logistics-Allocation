@@ -41,6 +41,17 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         /// <summary>
+        /// A quick check to see if the user has a division in their security
+        /// </summary>
+        /// <param name="app">The Application Name</param>
+        /// <param name="division">The division you're looking for</param>
+        /// <returns>boolean: true, they got it; false, they don't</returns>
+        public bool HasDivision(string app, string division)
+        {
+            return GetUserDivisionsString(app).Contains(division);
+        }
+
+        /// <summary>
         /// This will return a list of user allowed divisions and departments
         /// </summary>
         /// <param name="app">The websecurity application name string</param>

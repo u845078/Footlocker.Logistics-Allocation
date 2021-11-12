@@ -1484,7 +1484,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     string userName = User.Identity.Name.Split('\\')[1];
                     // 2) check to see if user has permission for this division
-                    if (!Footlocker.Common.WebSecurityService.UserHasDivision(userName, "Allocation", division))
+                    if (!currentUser.HasDivision(AppName, division)) 
                     {
                         errorMessage = string.Format("You do not have permission for Division {0}.", division);
                         return false;
@@ -1834,7 +1834,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         Division = (Convert.ToString(mySheet.Cells[row, 1].Value)).Substring(0, 2);
                         mainDivision = Division;
 
-                        if (!(Footlocker.Common.WebSecurityService.UserHasDivision(User.Identity.Name.Split('\\')[1], "Allocation", Division)))
+                        if (!currentUser.HasDivision(AppName, Division))
                         {
                             return Content("You do not have permission to update this division.");
                         }

@@ -782,7 +782,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         returnMessage = "Invalid Sku, format should be ##-##-#####-##";
                     }
 
-                    else if (!(Footlocker.Common.WebSecurityService.UserHasDivision(UserName, "Allocation", hold.Value.Substring(0, 2))))
+                    else if (!currentUser.HasDivision(AppName, hold.Value.Substring(0, 2)))
                     {
                         returnMessage = "You do not have authority to create this hold.  You need division level access.";
                     }

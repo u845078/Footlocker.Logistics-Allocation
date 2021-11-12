@@ -280,9 +280,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult Delete(string Sku)
         {
-            DirectToStoreSku model = (from a in db.DirectToStoreSkus where a.Sku == Sku select a).First();
+            DirectToStoreSku model = (from a in db.DirectToStoreSkus 
+                                      where a.Sku == Sku 
+                                      select a).First();
 
-            if (Footlocker.Common.WebSecurityService.UserHasDivision(UserName, "Allocation", model.Sku.Substring(0, 2)))
+            if (currentUser.HasDivision(AppName, model.Sku.Substring(0, 2)))
             {
                 db.DirectToStoreSkus.Remove(model);
                 db.SaveChanges();

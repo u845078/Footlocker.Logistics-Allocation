@@ -866,7 +866,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             int permissionCount = 0;
             foreach (RingFence rf in ringfences)
             {
-                if (!(WebSecurityService.UserHasDivision(UserName, "Allocation", rf.Division)))
+                if (!currentUser.HasDivision(AppName, rf.Division)) 
                 {
                     permissionCount++;
                 }
@@ -1278,7 +1278,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             foreach (RingFence rf in rfList)
             {
-                if (!(WebSecurityService.UserHasDivision(UserName, "Allocation", rf.Division)))
+                if (!currentUser.HasDivision(AppName, rf.Division))
                 {
                     permissionCount++;
                 }
@@ -2262,7 +2262,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     foreach (string div in uniqueDivisions)
                     {
-                        if (!(WebSecurityService.UserHasDivision(UserName, "allocation", div)))
+                        if (!currentUser.HasDivision(AppName, div))
                         {
                             Errors.AddRange((from id in InputData
                                              where id.Division == div

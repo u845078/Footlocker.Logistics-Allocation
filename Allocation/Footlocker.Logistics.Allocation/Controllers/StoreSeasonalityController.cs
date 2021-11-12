@@ -298,17 +298,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     Division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0');
                     mainDivision = Division;
-                    //if (!(Footlocker.Common.Services.WebSecurityService.UserHasDivision(User.Identity.Name.Split('\\')[1], "Allocation", Division)))
-                    //{
-                    //    return Content("You do not have permission to update this division.");
-                    //}
                     while (mySheet.Cells[row, 0].Value != null)
                     {
                         Division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2,'0');
-                        //if (!(Division.Equals(mainDivision)))
-                        //{
-                        //    return Content("Spreadsheet must be for one division only.");
-                        //}
 
                         Store = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(5, '0');
                         var foundStore = (from a in db.vValidStores where ((a.Division == Division) && (a.Store == Store)) select a);

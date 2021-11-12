@@ -3601,9 +3601,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             if (division != Convert.ToString(mySheet.Cells[row, 0].Value).Trim().PadLeft(2, '0'))
                             {
                                 division = Convert.ToString(mySheet.Cells[row, 0].Value).Trim().PadLeft(2, '0');
-                                if (
-                                    !(Footlocker.Common.WebSecurityService.UserHasDivision(
-                                        User.Identity.Name.Split('\\')[1], "allocation", division)))
+                                if (!currentUser.HasDivision(AppName, division))
                                 {
                                     return Content("You are not authorized to update division " + division);
                                 }
