@@ -489,6 +489,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                               ((r.Brand == null && rr.Brand == null) || r.Brand.Equals(rr.Brand)) &&
                               ((r.RDQType == null && rr.RDQType == null) || r.RDQType.Equals(rr.RDQType)) &&
                               ((r.Vendor == null && rr.Vendor == null) || r.Vendor.Equals(rr.Vendor)) &&
+                              ((r.SKU == null && rr.SKU == null) || r.SKU.Equals(rr.SKU)) &&
                               ((r.FromDCCode == null && rr.FromDCCode == null) || r.FromDCCode.Equals(rr.FromDCCode)) &&
                               ((r.ToDCCode == null && rr.ToDCCode == null) || r.ToDCCode.Equals(rr.ToDCCode)) &&
                               ((r.ToLeague == null && rr.ToLeague == null) || r.ToLeague.Equals(rr.ToLeague)) &&
@@ -511,6 +512,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             bool hasRDQTypeSelected = !string.IsNullOrEmpty(rr.RDQType);
             bool hasFromDCSelected = !string.IsNullOrEmpty(rr.FromDCCode);
             bool hasToDCSelected = !string.IsNullOrEmpty(rr.ToDCCode);
+            bool hasSKUSelected = !string.IsNullOrEmpty(rr.SKU);
 
             if (hasDepartmentSelected && !hasCategorySelected && !hasBrandSelected)
             {
@@ -560,9 +562,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     errorMessage += (errorMessage == null) ? message : lineBreak + message;
                 }
             }
+             
+            if (hasDepartmentSelected && hasSKUSelected)
+            {
+                // validation for division/department/category/brand combination
+                var validCombination = db.ItemMasters.Any(im => im.MerchantSku.Equals(rr.SKU) &&
+                                                                im.Div.Equals(rr.Division) &&
+                                                                im.Dept.Equals(rr.Department) &&
+                                                                (im.Category.Equals(rr.Category) || !hasCategorySelected) &&
+                                                                (im.Brand.Equals(rr.Brand) || !hasBrandSelected));
+
+                if (!validCombination)
+                {
+                    // err
+                    result = false;
+                    string message = "The Division, Department, Category, Brand, and SKU combination is not valid.";
+                    errorMessage += (errorMessage == null) ? message : lineBreak + message;
+                }
+            }
 
             // validate that only one of the following four properties exist: ToLeague, ToRegion, ToStore, ToDCCode
-            
+
             int existsCounter = 0;
             existsCounter += !string.IsNullOrEmpty(rr.ToLeague) ? 1 : 0;
             existsCounter += !string.IsNullOrEmpty(rr.ToRegion) ? 1 : 0;
@@ -594,8 +614,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     string message = string.Format("The division/vendor combination is not valid. {0}, {1}", rr.Division, rr.Vendor);
                     errorMessage += (errorMessage == null) ? message : lineBreak + message;
                 }
+                else               
+                {
+                    if (!string.IsNullOrEmpty(rr.SKU))
+                    {
+                        validVendor = db.ItemMasters.Any(im => im.MerchantSku.Equals(rr.SKU) &&
+                                                               im.MerchantSku.Equals(rr.Vendor));
+                        if (!validVendor)
+                        {
+                            // err
+                            result = false;
+                            string message = string.Format("The vendor is not valid for this SKU. {0}, {1}", rr.Vendor, rr.SKU);
+                            errorMessage += (errorMessage == null) ? message : lineBreak + message;
+                        }
+                    }
+                }
             }
-
 
             // validate store
             if (!string.IsNullOrEmpty(rr.ToStore))
@@ -1428,10 +1462,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             var invalidSKUs = allSKUData
                 .Where(s => !db.ItemMasters.Any(im => im.Div.Equals(s.Division) &&
-                                                      im.Vendor.Equals(s.Vendor) &&
-                                                      im.Brand.Equals(s.Brand) &&
-                                                      im.Category.Equals(s.Category) &&
-                                                      im.Dept.Equals(s.Department) &&
+                                                      (im.Vendor.Equals(s.Vendor) || string.IsNullOrEmpty(s.Vendor)) &&
+                                                      (im.Brand.Equals(s.Brand) || string.IsNullOrEmpty(s.Brand)) &&
+                                                      (im.Category.Equals(s.Category) || string.IsNullOrEmpty(s.Category)) &&
+                                                      (im.Dept.Equals(s.Department) || string.IsNullOrEmpty(s.Department)) &&
                                                       im.MerchantSku.Equals(s.SKU)));
        
             parsedRRs.Where(pr => invalidSKUs.Contains(new { pr.Division, pr.Vendor, pr.Brand, pr.Category, pr.Department, pr.SKU }))
