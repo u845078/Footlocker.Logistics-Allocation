@@ -137,6 +137,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _Index()
         {
             List<RDQRestriction> list = db.RDQRestrictions.ToList();
+
+            Dictionary<string, string> names = new Dictionary<string, string>();
+            var users = (from a in list
+                         select a.LastModifiedUser).Distinct();
+
+            foreach (string userID in users)
+            {
+                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+            }
+
+            foreach (var item in list)
+            {
+                item.LastModifiedUser = names[item.LastModifiedUser];
+            }
             return View(new GridModel(list));
         }
 
