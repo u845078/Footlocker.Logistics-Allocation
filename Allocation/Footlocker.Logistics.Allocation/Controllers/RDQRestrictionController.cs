@@ -936,8 +936,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     this.RevertDefaultValues(rr);
                                     rr.LastModifiedDate = DateTime.Now;
                                     rr.LastModifiedUser = currentUser.NetworkID;
+
                                     db.RDQRestrictions.Add(rr);
                                 }
+
                                 db.SaveChanges();
                             }
 
@@ -1287,20 +1289,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void ValidateParsedRRs(List<RDQRestriction> parsedRRs, List<RDQRestriction> validRRs, List<Tuple<RDQRestriction, string>> errorList)
         {
-            // check for duplicates in db
+            List<RDQRestriction> dbRDQRestrictions = db.RDQRestrictions.ToList();            
+
             parsedRRs
-                .Where(pr => db.RDQRestrictions.Any(r => r.Division.Equals(pr.Division) &&
-                            ((r.Department == null && string.IsNullOrEmpty(pr.Department) || r.Department.Equals(pr.Department)) &&
-                            ((r.Category == null && string.IsNullOrEmpty(pr.Category)) || r.Category.Equals(pr.Category)) &&
-                            ((r.Brand == null && string.IsNullOrEmpty(pr.Brand)) || r.Brand.Equals(pr.Brand)) &&
-                            ((r.SKU == null && string.IsNullOrEmpty(pr.SKU)) || r.SKU.Equals(pr.SKU)) &&
-                            ((r.RDQType == null && string.IsNullOrEmpty(pr.RDQType)) || r.RDQType.Equals(pr.RDQType)) &&
-                            ((r.Vendor == null && string.IsNullOrEmpty(pr.Vendor)) || r.Vendor.Equals(pr.Vendor)) &&
-                            ((r.FromDCCode == null && string.IsNullOrEmpty(pr.FromDCCode)) || r.FromDCCode.Equals(pr.FromDCCode)) &&
-                            ((r.ToDCCode == null && string.IsNullOrEmpty(pr.ToDCCode)) || r.ToDCCode.Equals(pr.ToDCCode)) &&
-                            ((r.ToLeague == null && string.IsNullOrEmpty(pr.ToLeague)) || r.ToLeague.Equals(pr.ToLeague)) &&
-                            ((r.ToRegion == null && string.IsNullOrEmpty(pr.ToRegion)) || r.ToRegion.Equals(pr.ToRegion)) &&
-                            ((r.ToStore == null && string.IsNullOrEmpty(pr.ToStore)) || r.ToStore.Equals(pr.ToStore)))))
+                .Where(pr => dbRDQRestrictions.Any(r => r.Division.Equals(pr.Division) &&
+                            ((r.Department == null && string.IsNullOrEmpty(pr.Department) || r.Department == pr.Department) &&
+                            ((r.Category == null && string.IsNullOrEmpty(pr.Category)) || r.Category == pr.Category) &&
+                            ((r.Brand == null && string.IsNullOrEmpty(pr.Brand)) || r.Brand == pr.Brand) &&
+                            ((r.SKU == null && string.IsNullOrEmpty(pr.SKU)) || r.SKU == pr.SKU) &&
+                            ((r.RDQType == null && string.IsNullOrEmpty(pr.RDQType)) || r.RDQType == pr.RDQType) &&
+                            ((r.Vendor == null && string.IsNullOrEmpty(pr.Vendor)) || r.Vendor == pr.Vendor) &&
+                            ((r.FromDCCode == null && string.IsNullOrEmpty(pr.FromDCCode)) || r.FromDCCode == pr.FromDCCode) &&
+                            ((r.ToDCCode == null && string.IsNullOrEmpty(pr.ToDCCode)) || r.ToDCCode == pr.ToDCCode) &&
+                            ((r.ToLeague == null && string.IsNullOrEmpty(pr.ToLeague)) || r.ToLeague == pr.ToLeague) &&
+                            ((r.ToRegion == null && string.IsNullOrEmpty(pr.ToRegion)) || r.ToRegion == pr.ToRegion) &&
+                            ((r.ToStore == null && string.IsNullOrEmpty(pr.ToStore)) || r.ToStore == pr.ToStore))))
                 .ToList()
                 .ForEach(rr =>
                 {
@@ -1333,6 +1336,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     SetErrorMessage(errorList, rr, "The To Date is greater than the From Date.");
                 });
 
+            var uniqueDivisions = parsedRRs.Select(pr => pr.Division)
+                .Distinct()
+                .ToList();
+
+            List<ItemMaster> dbItemMasters = db.ItemMasters.Where(im => uniqueDivisions.Contains(im.Div)).ToList();
+
             // has valid combination ( div / department / category / brand )
             var uniqueCombos
                 = parsedRRs
@@ -1350,8 +1359,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             var invalidCombos
                 = divDeptCombos
-                    .Where(uc => !db.ItemMasters.Any(im => im.Div.Equals(uc.Division) &&
-                                                           im.Dept.Equals(uc.Department))).ToList();
+                    .Where(uc => !dbItemMasters.Any(im => im.Div.Equals(uc.Division) &&
+                                                          im.Dept.Equals(uc.Department))).ToList();
 
             parsedRRs
                 .Where(pr => invalidCombos.Contains(new { pr.Division, pr.Department, pr.Category, pr.Brand }))
@@ -1371,9 +1380,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             invalidCombos
                 = divDeptCatCombos
-                    .Where(uc => !db.ItemMasters.Any(im => im.Div.Equals(uc.Division) &&
+                    .Where(uc => !dbItemMasters.Any(im => im.Div.Equals(uc.Division) &&
                                                            im.Dept.Equals(uc.Department) &&
-                                                           im.Category.Equals(uc.Category))).ToList();
+                                                           im.Category == uc.Category)).ToList();
 
             parsedRRs
                 .Where(pr => invalidCombos.Contains(new { pr.Division, pr.Department, pr.Category, pr.Brand }))
@@ -1393,10 +1402,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             invalidCombos
                 = divDeptCatBrandCombos
-                    .Where(uc => !db.ItemMasters.Any(im => im.Div.Equals(uc.Division) &&
+                    .Where(uc => !dbItemMasters.Any(im => im.Div.Equals(uc.Division) &&
                                                            im.Dept.Equals(uc.Department) &&
-                                                           im.Category.Equals(uc.Category) &&
-                                                           im.Brand.Equals(uc.Brand))).ToList();
+                                                           im.Category == uc.Category &&
+                                                           im.Brand == uc.Brand)).ToList();
 
             parsedRRs
                 .Where(pr => invalidCombos.Contains(new { pr.Division, pr.Department, pr.Category, pr.Brand }))
@@ -1416,8 +1425,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             invalidCombos
                 = divBrandCombos
-                    .Where(uc => !db.ItemMasters.Any(im => im.Div.Equals(uc.Division) &&
-                                                           im.Brand.Equals(uc.Brand))).ToList();
+                    .Where(uc => !dbItemMasters.Any(im => im.Div.Equals(uc.Division) &&
+                                                           im.Brand == uc.Brand)).ToList();
 
             parsedRRs
                 .Where(pr => invalidCombos.Contains(new { pr.Division, pr.Department, pr.Category, pr.Brand }))
@@ -1437,8 +1446,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             invalidCombos
                 = divCatCombos
-                    .Where(uc => !db.ItemMasters.Any(im => im.Div.Equals(uc.Division) &&
-                                                           im.Category.Equals(uc.Category))).ToList();
+                    .Where(uc => !dbItemMasters.Any(im => im.Div.Equals(uc.Division) &&
+                                                           im.Category == uc.Category)).ToList();
 
             parsedRRs
                 .Where(pr => invalidCombos.Contains(new { pr.Division, pr.Department, pr.Category, pr.Brand }))
@@ -1457,8 +1466,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             var invalidVendors
                 = divVendorCombos
-                    .Where(vc => !db.ItemMasters.Any(im => im.Div.Equals(vc.Division) &&
-                                                           im.Vendor.Equals(vc.Vendor)));
+                    .Where(vc => !dbItemMasters.Any(im => im.Div.Equals(vc.Division) &&
+                                                           im.Vendor == vc.Vendor));
 
             parsedRRs
                 .Where(pr => invalidVendors.Contains(new { pr.Division, pr.Vendor }))
@@ -1472,15 +1481,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
             var allSKUData = parsedRRs
                 .Where(pr => !string.IsNullOrEmpty(pr.SKU))
                 .Select(pr => new { pr.Division, pr.Vendor, pr.Brand, pr.Category, pr.Department, pr.SKU })
-                .Distinct();
+                .Distinct()
+                .ToList();
 
             var invalidSKUs = allSKUData
-                .Where(s => !db.ItemMasters.Any(im => im.Div.Equals(s.Division) &&
-                                                      (im.Vendor.Equals(s.Vendor) || string.IsNullOrEmpty(s.Vendor)) &&
-                                                      (im.Brand.Equals(s.Brand) || string.IsNullOrEmpty(s.Brand)) &&
-                                                      (im.Category.Equals(s.Category) || string.IsNullOrEmpty(s.Category)) &&
-                                                      (im.Dept.Equals(s.Department) || string.IsNullOrEmpty(s.Department)) &&
-                                                      im.MerchantSku.Equals(s.SKU)));
+                .Where(s => !dbItemMasters.Any(im => im.Div.Equals(s.Division) &&
+                                                      (im.Vendor == s.Vendor || string.IsNullOrEmpty(s.Vendor)) &&
+                                                      (im.Brand == s.Brand || string.IsNullOrEmpty(s.Brand)) &&
+                                                      (im.Category == s.Category || string.IsNullOrEmpty(s.Category)) &&
+                                                      (im.Dept == s.Department || string.IsNullOrEmpty(s.Department)) &&
+                                                      im.MerchantSku == s.SKU))
+                .ToList();
        
             parsedRRs.Where(pr => invalidSKUs.Contains(new { pr.Division, pr.Vendor, pr.Brand, pr.Category, pr.Department, pr.SKU }))
                      .ToList()
