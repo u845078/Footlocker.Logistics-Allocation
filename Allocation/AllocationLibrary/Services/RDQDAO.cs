@@ -445,5 +445,23 @@ namespace Footlocker.Logistics.Allocation.Services
 
             _database.ExecuteNonQuery(SQLCommand);
         }
+
+        public void InsertRDQRestrictions(List<RDQRestriction> list, string user)
+        {
+            DbCommand SQLCommand;
+            string SQL;
+            SQL = "dbo.InsertRDQRestrictions";
+
+            SQLCommand = _database.GetStoredProcCommand(SQL);
+            StringWriter sw = new StringWriter();
+            XmlSerializer xs = new XmlSerializer(list.GetType());
+            xs.Serialize(sw, list);
+            String xout = sw.ToString();
+
+            _database.AddInParameter(SQLCommand, "@xmlData", DbType.Xml, xout);
+            _database.AddInParameter(SQLCommand, "@user", DbType.String, user);
+
+            _database.ExecuteNonQuery(SQLCommand);
+        }
     }
 }

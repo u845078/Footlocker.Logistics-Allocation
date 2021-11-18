@@ -10,6 +10,7 @@ using Telerik.Web.Mvc;
 using Aspose.Excel;
 using System.IO;
 using Footlocker.Logistics.Allocation.Common;
+using Footlocker.Logistics.Allocation.Services;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -937,10 +938,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     rr.LastModifiedDate = DateTime.Now;
                                     rr.LastModifiedUser = currentUser.NetworkID;
 
-                                    db.RDQRestrictions.Add(rr);
+                                    //db.RDQRestrictions.Add(rr);
                                 }
 
-                                db.SaveChanges();
+                                RDQDAO rdqDAO = new RDQDAO();
+                                rdqDAO.InsertRDQRestrictions(validRRs, currentUser.NetworkID);
+
+                                //db.SaveChanges();
                             }
 
                             successfulCount = validRRs.Count;
