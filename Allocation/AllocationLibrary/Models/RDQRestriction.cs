@@ -86,6 +86,7 @@ namespace Footlocker.Logistics.Allocation.Models
 
         private string _vendor;
         [StringLength(5, ErrorMessage = "Vendor cannot exceed more than 5 characters")]
+        [RegularExpression(@"^\d{5}$", ErrorMessage = "Vendor must be in ##### format with leading zeros")]
         public string Vendor
         {
             get { return _vendor; }
@@ -165,6 +166,7 @@ namespace Footlocker.Logistics.Allocation.Models
         private string _toLeague;
         [Display(Name = "To League")]
         [StringLength(50, ErrorMessage = "To League should not exceed more than 50 characters")]
+        [RegularExpression(@"^\d{3}$", ErrorMessage = "League must be in ### format")]
         public string ToLeague
         {
             get { return _toLeague; }
@@ -184,6 +186,7 @@ namespace Footlocker.Logistics.Allocation.Models
         private string _toRegion;
         [Display(Name = "To Region")]
         [StringLength(50, ErrorMessage = "To Region should not exceed more than 50 characters")]
+        [RegularExpression(@"^\d{2}$", ErrorMessage = "Region must be in ## format")]
         public string ToRegion
         {
             get { return _toRegion; }
@@ -203,6 +206,7 @@ namespace Footlocker.Logistics.Allocation.Models
         private string _toStore;
         [Display(Name = "To Store")]
         [StringLength(5, ErrorMessage = "The store cannot exceed more than 5 characters")]
+        [RegularExpression(@"^\d{5}$", ErrorMessage = "Store must be in ##### format with leading zeros")]
         public string ToStore
         {
             get { return _toStore; }

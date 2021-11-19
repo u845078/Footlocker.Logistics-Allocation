@@ -200,7 +200,8 @@
                     @Html.LabelFor(model => model.RDQRestriction.Vendor)
                 </div>
                 <div class="editor-field">
-                    @Html.TextBoxFor(model => model.RDQRestriction.Vendor)
+                    @Html.TextBoxFor(model => model.RDQRestriction.Vendor)<br />
+                    @Html.ValidationMessageFor(model => model.RDQRestriction.Vendor)
                 </div>
             </div>
         </div>
@@ -210,7 +211,8 @@
                     @Html.LabelFor(model => model.RDQRestriction.ToStore)
                 </div>
                 <div class="editor-field">
-                    @Html.TextBoxFor(model => model.RDQRestriction.ToStore)
+                    @Html.TextBoxFor(model => model.RDQRestriction.ToStore)<br />
+                    @Html.ValidationMessageFor(model => model.RDQRestriction.ToStore)
                 </div>
             </div>
             <div id="leagueDiv">
@@ -218,7 +220,8 @@
                     @Html.LabelFor(model => model.RDQRestriction.ToLeague)
                 </div>
                 <div class="editor-field">
-                    @Html.TextBoxFor(model => model.RDQRestriction.ToLeague)
+                    @Html.TextBoxFor(model => model.RDQRestriction.ToLeague)<br />
+                    @Html.ValidationMessageFor(model => model.RDQRestriction.ToLeague)
                 </div>
             </div>
             <div id="regionDiv">
@@ -227,7 +230,8 @@
                 </div>
 
                 <div class="editor-field">
-                    @Html.TextBoxFor(model => model.RDQRestriction.ToRegion)
+                    @Html.TextBoxFor(model => model.RDQRestriction.ToRegion)<br />
+                    @Html.ValidationMessageFor(model => model.RDQRestriction.ToRegion)
                 </div>
             </div>
             <div id="skuDiv">
