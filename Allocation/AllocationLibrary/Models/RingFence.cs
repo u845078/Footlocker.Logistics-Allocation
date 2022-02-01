@@ -87,22 +87,22 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [NotMapped]        
         [Display(Name = "DCID")]
-        public Int32 DCID { get; set; }
+        public int DCID { get; set; }
 
         [NotMapped]
         public string MFCode { get; set; }
 
         [NotMapped]
         [Display(Name = "Bin Qty")]
-        public Int32 BinQty { get; set; }
+        public int BinQty { get; set; }
 
         [NotMapped]
         [Display(Name = "Case Qty")]
-        public Int32 CaseQty { get; set; }
+        public int CaseQty { get; set; }
 
         //[StringLayoutDelimited(7)]
         [Display(Name="Quantity")]
-        public Int32 Qty { get; set; }
+        public int Qty { get; set; }
 
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
@@ -123,7 +123,7 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public string Comments { get; set; }
 
-        public Int64 ItemID { get; set; }
+        public long ItemID { get; set; }
 
         public virtual ItemMaster ItemMaster { get; set; }
 
@@ -160,9 +160,9 @@ namespace Footlocker.Logistics.Allocation.Models
             set { _ringFenceTypeDescription = value; }
         }
 
-        private Int32 _type;
+        private int _type;
 
-        public Int32 Type 
+        public int Type 
         {
             get { return _type; }
             set { _type = value; }

@@ -8,9 +8,14 @@ namespace Footlocker.Logistics.Allocation.Models
     public class WarehouseBlackout
     {
         public int ID { get; set; }
+        
+        [Display(Name ="Distribution Center")]
         public int DCID { get; set; }
+
         [Required]
+        [Display(Name = "Start Date")]
         public DateTime StartDate { get; set; }
+        [Display(Name = "End Date")]
         public DateTime? EndDate { get; set; }
         public string CreatedBy { get; set; }
         public DateTime CreateDate { get; set; }
@@ -24,7 +29,7 @@ namespace Footlocker.Logistics.Allocation.Models
                 if (_dc == null)
                 {
                     Footlocker.Logistics.Allocation.Services.AllocationLibraryContext context = new Footlocker.Logistics.Allocation.Services.AllocationLibraryContext();
-                    _dc = (from a in context.DistributionCenters where a.ID == this.DCID select a).FirstOrDefault();
+                    _dc = context.DistributionCenters.Where(dc => dc.ID == DCID).FirstOrDefault();
                 }
 
                 return _dc; 

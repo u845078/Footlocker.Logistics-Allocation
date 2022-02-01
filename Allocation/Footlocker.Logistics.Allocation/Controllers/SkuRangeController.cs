@@ -3318,7 +3318,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             foreach (PreSaleModel m in model)
             {
                 if (m.preSaleSKU.LastModifiedUser.Contains("CORP"))
-                    m.preSaleSKU.LastModifiedUser = getFullUserNameFromDatabase(m.preSaleSKU.LastModifiedUser.Replace('\\', '/'));
+                    m.preSaleSKU.LastModifiedUser = currentUser.NetworkID;
             }
 
             return View(model);
