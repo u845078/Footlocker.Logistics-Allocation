@@ -37,8 +37,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Index()
         {
             PurgeArchiveTypeModel model = new PurgeArchiveTypeModel();
-            var permissions = WebSecurityService.ListUserRoles(UserName, "Allocation");
-            model.CanEdit = permissions.Contains("IT");
+            model.CanEdit = currentUser.HasUserRole(AppName, "IT");
             return View(model);
         }
 

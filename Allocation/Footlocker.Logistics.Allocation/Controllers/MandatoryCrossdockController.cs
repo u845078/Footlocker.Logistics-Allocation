@@ -24,8 +24,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             foreach (string div in divs)
             {
-                //temp.AddRange((from a in WebSecurityService.ListUserDepartments(UserName, "Allocation", div) select div + '-' + a.DeptNumber).ToList());
-                temp.AddRange(currentUser.GetUserDevDept(AppName));
+                temp.AddRange(currentUser.GetUserDivDept(AppName));
             }
 
             var query = (from mc in db.MandatoryCrossdocks

@@ -18,7 +18,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,Support,Epick")]
     public class WebPickController : AppController
     {
-        List<string> webPickRoles = new List<string> { "Merchandiser", "Head Merchandiser", "Div Logistics",
+        readonly List<string> webPickRoles = new List<string> { "Merchandiser", "Head Merchandiser", "Div Logistics",
                     "Director of Allocation", "Support" };
         //
         // GET: /WebPick/
@@ -630,9 +630,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             };
 
-            if (WebSecurityService.ListUserRoles(UserName, "Allocation").Contains("EPick"))
+            if (currentUser.HasUserRole(AppName, "EPick"))
             {
-                List<string> userRoles = WebSecurityService.ListUserRoles(UserName, "Allocation");
+                List<string> userRoles = currentUser.GetUserRoles(AppName);
 
                 // if they don't have any web pick roles, take out web pick
                 if (!userRoles.Intersect(webPickRoles).Any())
@@ -1454,7 +1454,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 bool canEPick = false;
                 bool canWebPick = true;
 
-                List<string> userRoles = WebSecurityService.ListUserRoles(UserName, "Allocation");
+                List<string> userRoles = currentUser.GetUserRoles(AppName);
 
                 // if they don't have any web pick roles, take out web pick
                 if (!userRoles.Intersect(webPickRoles).Any())

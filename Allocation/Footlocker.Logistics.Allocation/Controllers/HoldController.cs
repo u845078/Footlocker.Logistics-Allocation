@@ -68,10 +68,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             if (!string.IsNullOrEmpty(roles))
-            {
-                string username = System.Web.HttpContext.Current.User.Identity.Name.ToLower().Replace("corp\\", "");
+            {                
                 string[] rolelist = roles.Split(new char[] { ',' });
-                ok = WebSecurityService.UserHasRole(username, "Allocation", rolelist);
+                ok = WebSecurityService.UserHasRole(currentUser.NetworkID, "Allocation", rolelist);
             }
 
             return ok;
@@ -80,7 +79,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Index(string duration, string message)
         {
-            if ((duration == null) || (duration == ""))
+            if (string.IsNullOrEmpty(duration))
             {
                 duration = "All";
             }
@@ -786,7 +785,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         returnMessage = "You do not have authority to create this hold.  You need division level access.";
                     }
-                    else if (!(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation", hold.Value.Substring(0, 2), hold.Value.Substring(3, 2))))
+                    else if (!currentUser.HasDivDept(AppName, hold.Value.Substring(0, 2), hold.Value.Substring(3, 2)))
                     {
                         returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
@@ -798,11 +797,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 else if (hold.Level == "Dept")
                 {
                     System.Text.RegularExpressions.Regex regexDept = new System.Text.RegularExpressions.Regex(@"^\d{2}$");
-                    if (!(regexDept.IsMatch(value)))
+                    if (!regexDept.IsMatch(value))
                     {
                         returnMessage = "Invalid Department, format should be ##";
-                    }
-                    else if (!(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation", hold.Division, hold.Value)))
+                    }                    
+                    else if (!currentUser.HasDivDept(AppName, hold.Division, hold.Value))
                     {
                         returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
@@ -810,11 +809,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 else if (hold.Level == "VendorDept")
                 {
                     System.Text.RegularExpressions.Regex regexSku = new System.Text.RegularExpressions.Regex(@"^\d{5}-\d{2}$");
-                    if (!(regexSku.IsMatch(value)))
+                    if (!regexSku.IsMatch(value))
                     {
                         returnMessage = "Invalid Vendor-Dept, format should be #####-##";
                     }
-                    else if (!(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation", hold.Division, hold.Value.Substring(6, 2))))
+                    else if (!currentUser.HasDivDept(AppName, hold.Division, hold.Value.Substring(6, 2)))
                     {
                         returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
@@ -822,86 +821,71 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 else if (hold.Level == "VendorDeptCategory")
                 {
                     System.Text.RegularExpressions.Regex regexSku = new System.Text.RegularExpressions.Regex(@"^\d{5}-\d{2}-\d{3}$");
-                    if (!(regexSku.IsMatch(value)))
+                    if (!regexSku.IsMatch(value))
                     {
                         returnMessage = "Invalid Vendor-Dept-Category, format should be #####-##-###";
-                    }
-                    else if (
-                        !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
-                            hold.Division, hold.Value.Substring(6, 2))))
+                    }                    
+                    else if (!currentUser.HasDivDept(AppName, hold.Division, hold.Value.Substring(6, 2)))
                     {
                         returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
                 }
                 else if (hold.Level == "DeptBrand")
                 {
-                    System.Text.RegularExpressions.Regex regexSku =
-                        new System.Text.RegularExpressions.Regex(@"^\d{2}-\d{3}$");
-                    if (!(regexSku.IsMatch(value)))
+                    System.Text.RegularExpressions.Regex regexSku = new System.Text.RegularExpressions.Regex(@"^\d{2}-\d{3}$");
+                    if (!regexSku.IsMatch(value))
                     {
                         returnMessage = "Invalid Dept-Brand, format should be ##-###";
                     }
-                    else if (
-                        !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
-                            hold.Division, hold.Value.Substring(0, 2))))
+                    else if (!currentUser.HasDivDept(AppName, hold.Division, hold.Value.Substring(0, 2)))
                     {
                         returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
                 }
                 else if (hold.Level == "Category") //category
                 {
-                    System.Text.RegularExpressions.Regex regex =
-                        new System.Text.RegularExpressions.Regex(@"^\d{2}-\d{3}$");
-                    if (!(regex.IsMatch(value)))
+                    System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^\d{2}-\d{3}$");
+                    if (!regex.IsMatch(value))
                     {
                         returnMessage = "Invalid Category, format should be ##-###";
                     }
-                    else if (
-                        !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
-                            hold.Division, hold.Value.Substring(0, 2))))
+                    else if (!currentUser.HasDivDept(AppName, hold.Division, hold.Value.Substring(0, 2)))
                     {
                         returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
-
                 }
-                else if (String.Equals(hold.Level, "DeptTeam"))
+                else if (string.Equals(hold.Level, "DeptTeam"))
                 {
                     var regex = new System.Text.RegularExpressions.Regex(@"^\d{2}-\d{3}$");
-                    if (!(regex.IsMatch(value)))
+                    if (!regex.IsMatch(value))
                     {
                         returnMessage = "Invalid Dept-Team, format should be ##-###";
                     }
-                    else if (
-                        !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
-                            hold.Division, hold.Value.Substring(0, 2))))
+                    else if (!currentUser.HasDivDept(AppName, hold.Division, hold.Value.Substring(0, 2)))
                     {
                         returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
                 }
-                else if (String.Equals(hold.Level, "DeptCatTeam"))
+                else if (string.Equals(hold.Level, "DeptCatTeam"))
                 {
                     var regex = new System.Text.RegularExpressions.Regex(@"^\d{2}-\d{3}-\d{3}$");
-                    if (!(regex.IsMatch(value)))
+                    if (!regex.IsMatch(value))
                     {
                         returnMessage = "Invalid Dept-Cat-Team, format should be ##-###-###";
                     }
-                    else if (
-                        !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
-                            hold.Division, hold.Value.Substring(0, 2))))
+                    else if (!currentUser.HasDivDept(AppName, hold.Division, hold.Value.Substring(0, 2)))
                     {
                         returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
                 }
-                else if (String.Equals(hold.Level, "DeptCatBrand"))
+                else if (string.Equals(hold.Level, "DeptCatBrand"))
                 {
                     var regex = new System.Text.RegularExpressions.Regex(@"^\d{2}-\d{3}-\d{3}$");
-                    if (!(regex.IsMatch(value)))
+                    if (!regex.IsMatch(value))
                     {
                         returnMessage = "Invalid Dept-Cat-Brand, format should be ##-###-###";
                     }
-                    else if (
-                        !(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation",
-                            hold.Division, hold.Value.Substring(0, 2))))
+                    else if (!currentUser.HasDivDept(AppName, hold.Division, hold.Value.Substring(0, 2)))
                     {
                         returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                     }
@@ -936,7 +920,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return returnMessage;
         }
-
 
         public ActionResult ReleaseRDQs(int ID)
         {

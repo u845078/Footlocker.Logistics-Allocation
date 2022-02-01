@@ -74,7 +74,7 @@ namespace AllocationTests
         {
             List<string> userDepartments;
             WebUser testUser = new WebUser("CORP", "u695130");
-            userDepartments = testUser.GetUserDevDept("Allocation");
+            userDepartments = testUser.GetUserDivDept("Allocation");
             Assert.IsTrue(userDepartments.Contains("03-17"));
             Assert.IsTrue(userDepartments.Contains("18-05"));
             Assert.IsTrue(userDepartments.Contains("16-05"));
@@ -107,6 +107,39 @@ namespace AllocationTests
             Assert.IsTrue(dataCheck);
             dataCheck = testUser.HasDivision("Allocation", "99");
             Assert.IsFalse(dataCheck);
+        }
+
+        [TestMethod]
+        public void UserHasDivDeptTest()
+        {
+            WebUser testUser = new WebUser("CORP", "u695130");
+            Assert.IsTrue(testUser.HasDivDept("Allocation", "03", "17"));
+            Assert.IsTrue(testUser.HasDivDept("Allocation", "18", "05"));
+            Assert.IsTrue(testUser.HasDivDept("Allocation", "16", "05"));
+            Assert.IsTrue(testUser.HasDivDept("Allocation", "31", "55"));
+            Assert.IsFalse(testUser.HasDivDept("Allocation", "99", "99"));
+        }
+
+        [TestMethod]
+        public void UserRoleListTest()
+        {
+            List<string> userRoles;
+            WebUser testUser = new WebUser("CORP", "u695130");
+            userRoles = testUser.GetUserRoles("Allocation");
+            Assert.IsTrue(userRoles.Contains("IT"));
+            Assert.IsTrue(userRoles.Contains("Support"));
+            Assert.IsTrue(userRoles.Contains("EPick"));
+            Assert.IsFalse(userRoles.Contains("Director"));
+        }
+
+        [TestMethod]
+        public void UserRoleTests()
+        {
+            WebUser testUser = new WebUser("CORP", "u695130");
+            Assert.IsTrue(testUser.HasUserRole("Allocation", "IT"));
+            Assert.IsTrue(testUser.HasUserRole("Allocation", "Support"));
+            Assert.IsTrue(testUser.HasUserRole("Allocation", "EPick"));
+            Assert.IsFalse(testUser.HasUserRole("Allocation", "Director"));
         }
     }
 }

@@ -376,8 +376,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 Divisions = currentUser.GetUserDivisions(AppName)
             };
 
-            var permissions = WebSecurityService.ListUserRoles(UserName, "Allocation");
-            model.CanUploadData = permissions.Contains("IT");
+            model.CanUploadData = currentUser.HasUserRole(AppName, "IT");
 
             if ((div == null) && (model.Divisions.Count > 0))
             {

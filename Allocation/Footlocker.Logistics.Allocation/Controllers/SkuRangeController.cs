@@ -49,7 +49,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private List<RangePlan> GetRangesForUser()
         {
-            List<string> userDivDepts = currentUser.GetUserDevDept(AppName);
+            List<string> userDivDepts = currentUser.GetUserDivDept(AppName);
             List<string> divs = currentUser.GetUserDivList(AppName);
 
             var query = (from rp in db.RangePlans
@@ -67,7 +67,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Manage()
         {
-            List<string> userDivDepts = currentUser.GetUserDevDept(AppName);
+            List<string> userDivDepts = currentUser.GetUserDivDept(AppName);
 
             List<RangePlan> model = db.RangePlans.Include("ItemMaster").Where(u => userDivDepts.Contains(u.Sku.Substring(0, 5))).ToList();
 
@@ -108,7 +108,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             string result = "";
 
             Regex regexSku = new Regex(@"^\d{2}-\d{2}-\d{5}-\d{2}$");
-            if (!(regexSku.IsMatch(SKU)))
+            if (!regexSku.IsMatch(SKU))
             {
                 result = "Invalid Sku, format should be ##-##-#####-##";
                 return result;
@@ -126,7 +126,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return result;
             }
 
-            if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", SKU.Substring(0, 2), SKU.Substring(3, 2))))
+            if (!currentUser.HasDivDept(AppName, SKU.Substring(0, 2), SKU.Substring(3, 2)))
             {
                 result = "You do not have permission for this division/department.";
                 return result;
@@ -2043,11 +2043,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     db.Entry(det).State = System.Data.EntityState.Modified;
 
                     //set start/end date
-                    if (model.StartDate != null)
+                    if (model.StartDate.HasValue)
                     {
-                        det.StartDate = ((DateTime)model.StartDate);
-                    }
-                    det.EndDate = ((DateTime)model.EndDate);
+                        det.StartDate = model.StartDate.Value;
+                        det.EndDate = model.EndDate.Value;
+                    }                    
                 }
             }
             else if (dts == 0)
@@ -2063,17 +2063,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         db.Entry(det).State = System.Data.EntityState.Modified;
                         //set start/end date
-                        if (model.StartDate != null)
+                        if (model.StartDate.HasValue)
                         {
-                            det.StartDate = ((DateTime)model.StartDate).AddDays(lt.LeadTime);
+                            det.StartDate = model.StartDate.Value.AddDays(lt.LeadTime);
                         }
                         else
                         {
                             det.StartDate = model.StartDate;
                         }
-                        if (model.EndDate != null)
+                        if (model.EndDate.HasValue)
                         {
-                            det.EndDate = ((DateTime)model.EndDate).AddDays(lt.LeadTime);
+                            det.EndDate = model.EndDate.Value.AddDays(lt.LeadTime);
                         }
                         else
                         {
@@ -2088,14 +2088,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 foreach (RangePlanDetail det in queryLT)
                 {
                     //set start/end date
-                    if (model.StartDate != null)
+                    if (model.StartDate.HasValue)
                     {
-                        det.StartDate = ((DateTime)model.StartDate).AddDays(_DEFAULT_MAX_LEADTIME);
+                        det.StartDate = model.StartDate.Value.AddDays(_DEFAULT_MAX_LEADTIME);
                         db.Entry(det).State = System.Data.EntityState.Modified;
                     }
-                    if (model.EndDate != null)
+                    if (model.EndDate.HasValue)
                     {
-                        det.EndDate = ((DateTime)model.EndDate).AddDays(_DEFAULT_MAX_LEADTIME);
+                        det.EndDate = model.EndDate.Value.AddDays(_DEFAULT_MAX_LEADTIME);
                     }
                 }
             }
@@ -2105,11 +2105,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     //set start/end date
                     db.Entry(det).State = System.Data.EntityState.Modified;
-                    if (model.StartDate != null)
+                    if (model.StartDate.HasValue)
                     {
-                        det.StartDate = ((DateTime)model.StartDate);
-                    }
-                    det.EndDate = ((DateTime)model.EndDate);
+                        det.StartDate = model.StartDate;
+                        det.EndDate = model.EndDate;
+                    }                    
                 }
             }
 
@@ -3161,7 +3161,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (model.StartSend < start.AddDays(2))
             {
-                if (!WebSecurityService.UserHasRole(UserName, "Allocation", "IT"))
+                if (!currentUser.HasUserRole(AppName, "IT"))
                 {
                     if (!edit)
                     {
@@ -4002,7 +4002,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 }
 
 
-                                if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", division, department)))
+                                if (!currentUser.HasDivDept(AppName, division, department))
                                 {
                                     message = message + @" 
                                     " + string.Format(" You do not have permission for the division/department {0}/{1} on Row {2}.", division, department, row + 1);

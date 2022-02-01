@@ -294,7 +294,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             InitializeCategories(model);
             InitializeBrands(model);
 
-            if (WebSecurityService.UserHasDepartment(UserName, "Allocation", model.Division, model.Department))
+            if (currentUser.HasDivDept(AppName, model.Division, model.Department))
             {
                 //check edit role
                 ViewData["hasEditRole"] = HasEditRole();
@@ -314,7 +314,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ViewData["hasEditRole"] = true;
 
-            if (WebSecurityService.UserHasDepartment(UserName, "Allocation", model.Division, model.Department))
+            if (currentUser.HasDivDept(AppName, model.Division, model.Department))
             {
                 int total = model.Attributes.Sum(a => a.WeightInt);
 
@@ -365,7 +365,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             SkuAttributeHeader header = (from a in db.SkuAttributeHeaders where a.ID == ID select a).First();
 
-            if (WebSecurityService.UserHasDepartment(UserName, "Allocation", header.Division, header.Dept))
+            if (currentUser.HasDivDept(AppName, header.Division, header.Dept))
             {
                 db.SkuAttributeHeaders.Remove(header);
                 db.SaveChanges();

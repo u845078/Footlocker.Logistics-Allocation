@@ -333,7 +333,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 else
                 {
-                    if (!currentUser.GetUserDevDept(AppName).Contains(string.Format("{0}-{1}", sa.Division, sa.Value)))
+                    if (!currentUser.GetUserDivDept(AppName).Contains(string.Format("{0}-{1}", sa.Division, sa.Value)))
                     {
                         errorMessage = SetErrorMessage(errorMessage, "The provided department does not exist or you do not have permission for this department.");
                     }

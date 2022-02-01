@@ -223,7 +223,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 int skucount = 0;
                 foreach (ExistingPO po in model.ExistingPOs)
                 {
-                    if (!(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation", po.Division, po.Sku.Substring(3, 2))))
+                    if (!currentUser.HasDivDept(AppName, po.Division, po.Sku.Substring(3, 2)))
                     {
                         model.Message = model.Message + "<br>You do not have permission for dept " + po.Sku.Substring(3, 2);
                     }
@@ -280,7 +280,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.NewPO.Departments = "";
             foreach (ExistingPO po in model.ExistingPOs)
             {
-                if (!(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation", po.Division, po.Sku.Substring(3, 2))))
+                if (!currentUser.HasDivDept(AppName, po.Division, po.Sku.Substring(3, 2)))
                 {
                     model.Message = model.Message + "<br>You do not have permission for dept " + po.Sku.Substring(3, 2);
                 }
@@ -681,14 +681,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             int skucount = 0;
                             foreach (ExistingPO po in existingPOs)
                             {
-                                if (!(Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation", po.Division, po.Sku.Substring(3, 2))))
+                                if (!currentUser.HasDivDept(AppName, po.Division, po.Sku.Substring(3, 2)))
                                 {
                                     errorCount++;
                                     overridePO.ErrorMessage = "Permission denied.";
                                     errors.Add(overridePO);
                                     break;
                                 }
-                                if (!(overridePO.Departments.Contains(po.Sku.Substring(3, 2))))
+                                if (!overridePO.Departments.Contains(po.Sku.Substring(3, 2)))
                                 {
                                     if (overridePO.Departments.Length > 0)
                                     {

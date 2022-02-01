@@ -141,8 +141,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
 
             model.CreateDate = DateTime.Now;
-            model.CreatedBy = User.Identity.Name;
-            if (Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation", model.Sku.Substring(0, 2), model.Sku.Substring(3, 2)))
+            model.CreatedBy = currentUser.NetworkID;
+            if (currentUser.HasDivDept(AppName, model.Sku.Substring(0, 2), model.Sku.Substring(3, 2)))
             {
                 ItemMaster item = (from a in db.ItemMasters
                                    where a.MerchantSku == model.Sku &&
@@ -151,21 +151,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if (item != null)
                 {
-                    if ((from a in db.VendorGroupDetails where a.VendorNumber == item.Vendor select a).Count() > 0)
+                    if (db.VendorGroupDetails.Where(vgd => vgd.VendorNumber == item.Vendor).Count() > 0)
                     {
                         model.ItemID = item.ID;
                         model.Vendor = item.Vendor;
                         db.DirectToStoreSkus.Add(model);
 
                         //update range - set start date for each store equal to the delivery group
-                        List<DeliveryGroup> groups = (from a in db.DeliveryGroups join b in db.RangePlans on a.PlanID equals b.Id where b.Sku == item.MerchantSku select a).ToList();
+                        List<DeliveryGroup> groups = (from a in db.DeliveryGroups 
+                                                      join b in db.RangePlans 
+                                                      on a.PlanID equals b.Id 
+                                                      where b.Sku == item.MerchantSku 
+                                                      select a).ToList();
                         RangePlanDetail detail;
                         foreach (DeliveryGroup dg in groups)
                         {
-                            List<RuleSelectedStore> stores = (from a in db.RuleSelectedStores where a.RuleSetID == dg.RuleSetID select a).ToList();
+                            List<RuleSelectedStore> stores = db.RuleSelectedStores.Where(rss => rss.RuleSetID == dg.RuleSetID).ToList();
                             foreach (RuleSelectedStore store in stores)
                             {
-                                detail = (from a in db.RangePlanDetails where ((a.ID == dg.PlanID)&&(a.Division == store.Division)&&(a.Store == store.Store)) select a).FirstOrDefault();
+                                detail = (from a in db.RangePlanDetails 
+                                          where ((a.ID == dg.PlanID) && 
+                                                 (a.Division == store.Division) && 
+                                                 (a.Store == store.Store)) 
+                                          select a).FirstOrDefault();
                                 if (detail != null)
                                 {
                                     if (dg.StartDate != null)
@@ -229,7 +237,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             DirectToStoreDAO vendorDao = new DirectToStoreDAO();
             model.Vendors = vendorDao.GetVendors(model.Sku);
 
-            if (Footlocker.Common.WebSecurityService.UserHasDepartment(UserName, "Allocation", model.Sku.Substring(0, 2), model.Sku.Substring(3, 2)))
+            if (currentUser.HasDivDept(AppName, model.Sku.Substring(0, 2), model.Sku.Substring(3, 2)))
             {
                 ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == model.Sku select a).FirstOrDefault();
 

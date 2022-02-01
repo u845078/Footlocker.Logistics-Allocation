@@ -40,7 +40,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private RDQRestrictionModel RetrieveModel()
         {
             RDQRestrictionModel model = new RDQRestrictionModel();
-            var permissions = WebSecurityService.ListUserRoles(UserName, "Allocation");
+            var permissions = currentUser.GetUserRoles(AppName);
             model.CanEdit = permissions.Contains("Support") || permissions.Contains("Logistics");
             return model;
         }

@@ -870,7 +870,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     permissionCount++;
                 }
-                else if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", rf.Division, rf.Department)))
+                else if (!currentUser.HasDivDept(AppName, rf.Division, rf.Department))
                 {
                     permissionCount++;
                 }
@@ -890,13 +890,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     count++;
                 }
             }
-            if (count>0)
+            if (count > 0)
             {
                 db.SaveChanges(User.Identity.Name);
             }
 
             string message = "Deleted " + count + " ringfences for " + key + ".  ";
-            if (permissionCount >0)
+            if (permissionCount > 0)
             {
                 message = message + permissionCount + " you do not have permission.  ";
             }
@@ -1282,7 +1282,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     permissionCount++;
                 }
-                else if (!(WebSecurityService.UserHasDepartment(UserName, "Allocation", rf.Division, rf.Department)))
+                else if (!currentUser.HasDivDept(AppName, rf.Division, rf.Department))
                 {
                     permissionCount++;
                 }

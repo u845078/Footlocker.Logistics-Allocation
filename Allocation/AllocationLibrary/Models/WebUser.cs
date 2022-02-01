@@ -33,7 +33,37 @@ namespace Footlocker.Logistics.Allocation.Models
 
         private List<Division> UserDivisions { get; set; }
         private List<Department> UserDepartments { get; set; }
+        private List<string> UserRoles { get; set; }
 
+        /// <summary>
+        /// Checks to see if a user has a specific role
+        /// </summary>
+        /// <param name="app">The app name</param>
+        /// <param name="role">The role you're looking for</param>
+        /// <returns>boolean if it is found</returns>
+        public bool HasUserRole(string app, string role)
+        {
+            return GetUserRoles(app).Contains(role);
+        }
+
+        /// <summary>
+        /// Gets a list of roles that the current user is a part of
+        /// </summary>
+        /// <param name="app">Application name</param>
+        /// <returns>List of role strings</returns>
+        public List<string> GetUserRoles(string app)
+        {
+            if (UserRoles == null)
+                UserRoles = WebSecurityService.ListUserRoles(NetworkID, app);
+
+            return UserRoles;
+        }
+
+        /// <summary>
+        /// Returns all the user divisions concatenated into one string
+        /// </summary>
+        /// <param name="app">The application name</param>
+        /// <returns></returns>
         public string GetUserDivisionsString(string app)
         {
             List<string> userDivCodes = GetUserDivList(app);
@@ -49,6 +79,18 @@ namespace Footlocker.Logistics.Allocation.Models
         public bool HasDivision(string app, string division)
         {
             return GetUserDivisionsString(app).Contains(division);
+        }
+
+        /// <summary>
+        /// Checks to see if the user has a both the division and department for an app
+        /// </summary>
+        /// <param name="app">The websecurity application name string</param>
+        /// <param name="div">Division</param>
+        /// <param name="dept">Division</param>
+        /// <returns></returns>
+        public bool HasDivDept(string app, string div, string dept)
+        {
+            return GetUserDivDept(app).Contains(string.Format("{0}-{1}", div, dept));
         }
 
         /// <summary>
@@ -76,7 +118,7 @@ namespace Footlocker.Logistics.Allocation.Models
         /// </summary>
         /// <param name="app">The websecurity application name string</param>
         /// <returns>list of div-dept strings</returns>
-        public List<string> GetUserDevDept(string app)
+        public List<string> GetUserDivDept(string app)
         {
             List<string> temp = new List<string>();
             UserDepartments = GetUserDepartments(app);
