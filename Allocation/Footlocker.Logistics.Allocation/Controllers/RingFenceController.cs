@@ -738,13 +738,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 else
                 {
-
                     // get original ringfence to see if enddate is being changed
-                    DateTime? originalEndDate
-                        = db.RingFences
-                            .Where(rf => rf.ID == model.RingFence.ID)
-                            .Select(rf => rf.EndDate)
-                            .FirstOrDefault();
+                    DateTime? originalEndDate = db.RingFences.Where(rf => rf.ID == model.RingFence.ID)
+                                                             .Select(rf => rf.EndDate)
+                                                             .FirstOrDefault();
 
                     if (originalEndDate != model.RingFence.EndDate)
                     {
@@ -776,10 +773,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                 }
 
-                model.RingFence.CreatedBy = User.Identity.Name;
+                if (db.EcommWarehouses.Any(ew => ew.Division == model.RingFence.Division && ew.Store == model.RingFence.Store))
+                    model.RingFence.Type = 2;
+                else
+                    model.RingFence.Type = 1;
+
+                model.RingFence.CreatedBy = currentUser.NetworkID;
                 model.RingFence.CreateDate = DateTime.Now;
                 model.RingFence.LastModifiedDate = DateTime.Now;
-                model.RingFence.LastModifiedUser = User.Identity.Name;
+                model.RingFence.LastModifiedUser = currentUser.NetworkID;
 
                 db.Entry(model.RingFence).State = System.Data.EntityState.Modified;
 
