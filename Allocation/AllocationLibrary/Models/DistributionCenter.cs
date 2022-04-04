@@ -45,8 +45,6 @@ namespace Footlocker.Logistics.Allocation.Models
         public int WarehouseAllocationTypeCode { get; set; }
 
         public virtual WarehouseAllocationType WarehouseAllocationType { get; set; }
-        //public virtual ICollection<EcomCustomerFulfillmentXref> ECOMCustomerXrefs { get; set; }
-
 
         [Column("DistributionCenterRestriction")]
         [ForeignKey("DistributionCenterRestriction")]
@@ -58,6 +56,10 @@ namespace Footlocker.Logistics.Allocation.Models
         [Column("TransmitRDQsToKafkaInd")]
         [Display(Name="Transmit RDQs To Kafka")]
         public bool TransmitRDQsToKafka { get; set; }
+
+        [Column("UseSundayPickForMondayInd")]
+        [Display(Name = "Use Sunday Pick for Monday")]
+        public bool UseSundayPickForMonday { get; set; }
 
         public string displayValue
         {

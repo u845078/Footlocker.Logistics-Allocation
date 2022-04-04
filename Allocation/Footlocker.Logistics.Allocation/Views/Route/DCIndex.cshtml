@@ -32,6 +32,7 @@
             columns.Bound(o => o.WarehouseAllocationType.Description).Title("Allocation Type");
             columns.Bound(o => o.IsFulfillmentCenter).Width(100);
             columns.Bound(o => o.TransmitRDQsToKafka).Width(100);
+            columns.Bound(o => o.UseSundayPickForMonday).Width(100);
             columns.Bound(o => o.DistributionCenterRestriction.Description).Title("DC Restriction");
             columns.Bound(o => o.LastModifiedUserName).Width(175);
             columns.Bound(o => o.LastModifiedDate);
