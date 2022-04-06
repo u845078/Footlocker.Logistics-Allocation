@@ -29,6 +29,6 @@ namespace Footlocker.Logistics.Allocation.Models
         public int RDQQuantity { get; set; }
 
         [Column("OrderQty")]
-        public decimal OrderQuantity { get; set; }
+        public int OrderQuantity { get; set; }
     }
 }
