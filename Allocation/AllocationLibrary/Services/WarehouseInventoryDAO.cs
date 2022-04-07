@@ -229,7 +229,7 @@ namespace Footlocker.Logistics.Allocation.Services
                 {
                     wi.ringFenceQuantity = reductionRec.RingFenceQuantity;
                     wi.rdqQuantity = reductionRec.RDQQuantity;
-                    wi.orderQuantity = Convert.ToInt32(reductionRec.OrderQuantity);
+                    wi.orderQuantity = reductionRec.OrderQuantity;
                 }
             }
 
