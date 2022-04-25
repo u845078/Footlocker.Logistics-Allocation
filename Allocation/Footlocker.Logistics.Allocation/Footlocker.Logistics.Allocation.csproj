@@ -267,6 +267,7 @@
     <Compile Include="Controllers\WarehouseBlackoutController.cs" />
     <Compile Include="Controllers\WebPickController.cs" />
     <Compile Include="DAO\AllocationContext.cs" />
+    <Compile Include="DAO\FootlockerCommonContext.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

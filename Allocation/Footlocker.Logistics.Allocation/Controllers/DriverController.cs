@@ -77,6 +77,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Maintenance()
         {
             MaintenanceModel model = new MaintenanceModel();
+            
             return View(model);
         }
 
@@ -84,7 +85,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Maintenance(MaintenanceModel model)
         {
-            int recordsAffected = db.Database.ExecuteSqlCommand(model.SQLCommand);
+            int recordsAffected = 0;
+
+            switch (model.SelectedDatabase)
+            {
+                case MaintenanceDataBases.Allocation:
+                    recordsAffected = db.Database.ExecuteSqlCommand(model.SQLCommand);
+                    break;
+                case MaintenanceDataBases.Footlocker_Common:
+                    FootLockerCommonContext commDB = new FootLockerCommonContext();
+                    recordsAffected = commDB.Database.ExecuteSqlCommand(model.SQLCommand);
+                    break;
+            }         
+            
             db.SaveChanges();
 
             model.ReturnMessage = string.Format("There were {0} records affected", recordsAffected);
