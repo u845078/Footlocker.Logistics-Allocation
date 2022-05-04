@@ -403,8 +403,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public void SetUpRingFenceHeader(RingFence rf)
         {
             rf.ItemID = (from a in db.ItemMasters
-                         where (a.MerchantSku == rf.Sku)
-                         select a).First().ID;
+                         where a.MerchantSku == rf.Sku
+                         select a.ID).First();
 
             rf.StartDate = (from a in db.ControlDates
                                  join b in db.InstanceDivisions
@@ -413,9 +413,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             select a.RunDate).First().AddDays(1);
 
             rf.CreateDate = DateTime.Now;
-            rf.CreatedBy = User.Identity.Name;
+            rf.CreatedBy = currentUser.NetworkID;
             rf.LastModifiedDate = DateTime.Now;
-            rf.LastModifiedUser = User.Identity.Name;
+            rf.LastModifiedUser = currentUser.NetworkID;
 
             RingFenceDAO rfDAO = new RingFenceDAO();
             if (rfDAO.isEcommWarehouse(rf.Division, rf.Store))
@@ -469,14 +469,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                            a.ActiveInd == "1"
                                      select a).ToList();
 
-            List<DistributionCenter> dcs = (from a in db.DistributionCenters
-                                            select a).ToList();
+            List<DistributionCenter> dcs = db.DistributionCenters.ToList();
 
             foreach (RingFenceDetail det in model.FutureAvailable)
             {
                 det.Warehouse = (from a in dcs
                                  where a.ID == det.DCID
-                                 select a).First().Name;
+                                 select a.Name).First();
             }
 
             model.Divisions = currentUser.GetUserDivisions(AppName);
@@ -1123,19 +1122,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Pick(int ID)
         {
-            Boolean optionalPick = false;
-            string message=null;
+            bool optionalPick = false;
+            string message = null;
             string errorMessage;
             RingFenceDAO rfDAO = new RingFenceDAO();
 
-            var ringfenceQuery = (from a in db.RingFences where a.ID == ID select a);
-            if (ringfenceQuery.Count() == 0)
+            var rf = db.RingFences.Where(r => r.ID == ID).FirstOrDefault();
+            if (rf == null)
             {
-                return RedirectToAction("Index", new { message = "Ringfence no longer exists.  Please verify.  " });
+                return RedirectToAction("Index", new { message = "Ring Fence no longer exists. Please verify." });
             }
-            RingFence rf = ringfenceQuery.First();
 
-            if (!rfDAO.canUserUpdateRingFence(rf, UserName, out errorMessage))
+            if (!rfDAO.canUserUpdateRingFence(rf, currentUser.NetworkID, out errorMessage))
             {
                 return RedirectToAction("Index", new { message = errorMessage });
             }
@@ -1143,7 +1141,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (rf.Type == 2)
             { 
                 //this is an ecomm ringfence, you can't pick it
-                return RedirectToAction("Index", new { message = "Sorry, you cannot pick for an Ecomm warehouse.  Do you mean Delete?" });
+                return RedirectToAction("Index", new { message = "Sorry, you cannot pick for an Ecomm warehouse. Do you mean Delete?" });
             }
             if (rf.StartDate > (from a in db.ControlDates
                                       join b in db.InstanceDivisions 
@@ -1154,7 +1152,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 //startdate is the next control date, so make sure no details have POs if they do, warn them.
                 optionalPick = true;
             }
-            if ((rf.Store == null)||(rf.Store == ""))
+            if (string.IsNullOrEmpty(rf.Store))
             {
                 //FLOW:  Pick a division/store
                 //show rdq's for everything on there, with a qty that they can input
@@ -1167,16 +1165,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                    a.ActiveInd == "1"
                                              select a).ToList();
 
-            RingFenceHistory history = new RingFenceHistory();
-            history.RingFenceID = ID;
-            history.Action = "Picked";
-            history.Division = rf.Division;
-            history.Store = rf.Store;
-            history.CreateDate = DateTime.Now;
-            history.CreatedBy = User.Identity.Name;
-            db.RingFenceHistory.Add(history);
-            db.SaveChanges(User.Identity.Name);
+            RingFenceHistory history = new RingFenceHistory()
+            {
+                RingFenceID = ID,
+                Action = "Picked",
+                Division = rf.Division,
+                Store = rf.Store,
+                CreateDate = DateTime.Now,
+                CreatedBy = currentUser.NetworkID
+            };
 
+            db.RingFenceHistory.Add(history);
+            db.SaveChanges(currentUser.NetworkID);
 
             List<RDQ> rdqsToCheck = new List<RDQ>();
             foreach (RingFenceDetail det in details)
@@ -1193,17 +1193,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     DCID = det.DCID,
                     ItemID = (from a in db.ItemMasters
                               where a.MerchantSku == rf.Sku
-                              select a).FirstOrDefault().ID,
-                    CreatedBy = User.Identity.Name,
+                              select a.ID).FirstOrDefault(),
+                    CreatedBy = currentUser.NetworkID,
                     CreateDate = DateTime.Now,
-                    LastModifiedUser = User.Identity.Name
+                    LastModifiedUser = currentUser.NetworkID
                 };
+
                 SetRDQDefaults(det, rdq);
-                if ((rdq.PO != null) && (rdq.PO != "") && optionalPick)
+                if (!string.IsNullOrEmpty(rdq.PO) && optionalPick)
                 { 
                     rdq.Type = "user_opt";
                     message = "Since this was created today, it will NOT be honored if the PO is delivered today.";
                 }
+
                 rdqsToCheck.Add(rdq);
 
                 db.RingFenceDetails.Remove(det);
@@ -1218,16 +1220,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     Qty = det.Qty,
                     Action = "Picked Det",
                     CreateDate = DateTime.Now,
-                    CreatedBy = User.Identity.Name
+                    CreatedBy = currentUser.NetworkID
                 };
+
                 db.RingFenceHistory.Add(history);
-                db.SaveChanges(User.Identity.Name);
+                db.SaveChanges(currentUser.NetworkID);
             }
 
             int holdCount = CheckHolds(rf.Division, rdqsToCheck);
             if (holdCount > 0)
             {
-                message = holdCount + " on hold.  Please see ReleaseHeldRDQs for held RDQs.  ";
+                message = holdCount + " on hold.  Please see ReleaseHeldRDQs for held RDQs. ";
             }
 
             int cancelHoldCount = CheckCancelHolds(rf.Division, rdqsToCheck);
@@ -1235,13 +1238,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 message = cancelHoldCount + " rejected because of cancel inventory hold.";
             }
+
             foreach (RDQ rdq in rdqsToCheck)
             {
                 db.RDQs.Add(rdq);
             }
 
             db.RingFences.Remove(rf);
-            db.SaveChanges(User.Identity.Name);
+            db.SaveChanges(currentUser.NetworkID);
 
             return RedirectToAction("Index", new { message = message });
         }
@@ -1274,9 +1278,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             int errorCount = 0;
             int permissionCount = 0;
             int deliveredToday = 0;
-            Boolean optionalPick = false;
+            bool optionalPick = false;
             List<RDQ> rdqs = new List<RDQ>();
-            Boolean canDelete = true;
+            bool canDelete = true;
 
             foreach (RingFence rf in rfList)
             {
@@ -1293,7 +1297,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     //this is an ecomm ringfence, skip it
                     ecommCount++;
                 }
-                else if ((rf.Store == null) || (rf.Store == ""))
+                else if (string.IsNullOrEmpty(rf.Store))
                 {
                     //FLOW:  Pick a division/store
                     //show rdq's for everything on there, with a qty that they can input
@@ -1304,7 +1308,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 else
                 {
-                    if (rf.StartDate > (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == rf.Division select a.RunDate).First())
+                    if (rf.StartDate > (from a in db.ControlDates 
+                                        join b in db.InstanceDivisions 
+                                        on a.InstanceID equals b.InstanceID 
+                                        where b.Division == rf.Division 
+                                        select a.RunDate).First())
                     {
                         //startdate is the next control date, so make sure no details have POs if they do, warn them.
                         optionalPick = true;
@@ -1317,21 +1325,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         int detCount = details.Count();
                         if (!pickPOs)
                         {
-                            details = (from a in details where a.PO == "" select a).ToList();
-                            canDelete = (detCount == details.Count());
+                            details = details.Where(d => d.PO == "").ToList();
+                            canDelete = detCount == details.Count();
                             if (details.Count() > 0)
                             {
                                 countWarehouseOnly++;
                             }
                         }
 
-                        RingFenceHistory history = new RingFenceHistory();
-                        history.RingFenceID = rf.ID;
-                        history.Division = rf.Division;
-                        history.Store = rf.Store;
-                        history.Action = "Picked";
-                        history.CreateDate = DateTime.Now;
-                        history.CreatedBy = User.Identity.Name;
+                        RingFenceHistory history = new RingFenceHistory()
+                        {
+                            RingFenceID = rf.ID,
+                            Division = rf.Division,
+                            Store = rf.Store,
+                            Action = "Picked",
+                            CreateDate = DateTime.Now,
+                            CreatedBy = currentUser.NetworkID
+                        };
+
                         db.RingFenceHistory.Add(history);
 
                         foreach (RingFenceDetail det in details)
@@ -1348,13 +1359,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 DCID = det.DCID,
                                 ItemID = (from a in db.ItemMasters
                                           where a.MerchantSku == rf.Sku
-                                          select a).FirstOrDefault().ID,
-                                CreatedBy = User.Identity.Name,
+                                          select a.ID).FirstOrDefault(),
+                                CreatedBy = currentUser.NetworkID,
                                 CreateDate = DateTime.Now,
-                                LastModifiedUser = User.Identity.Name
+                                LastModifiedUser = currentUser.NetworkID
                             };
                             SetRDQDefaults(det, rdq);
-                            if ((rdq.PO != null) && (rdq.PO != "") && optionalPick)
+                            if (!string.IsNullOrEmpty(rdq.PO) && optionalPick)
                             {
                                 rdq.Type = "user_opt";
                                 deliveredToday++;
@@ -1375,7 +1386,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 Qty = det.Qty,
                                 Action = "Picked Det",
                                 CreateDate = DateTime.Now,
-                                CreatedBy = User.Identity.Name
+                                CreatedBy = currentUser.NetworkID
                             };
                             db.RingFenceHistory.Add(history);
                         }
@@ -1384,7 +1395,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         {
                             db.RingFences.Remove(rf);
                         }
-                        db.SaveChanges(User.Identity.Name);
+                        db.SaveChanges(currentUser.NetworkID);
                         count++;
                     }
                     catch (Exception ex)
@@ -1399,44 +1410,47 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (rdqs.Count() > 0)
             {
                 string div = rfList[0].Division;
-                int instance = (from a in db.InstanceDivisions where a.Division == div select a.InstanceID).First();
+                int instance = (from a in db.InstanceDivisions 
+                                where a.Division == div 
+                                select a.InstanceID).First();
                 RDQDAO rdqDAO = new RDQDAO();
                 holdCount = rdqDAO.ApplyHolds(rdqs, instance);
                 cancelholdcount = rdqDAO.ApplyCancelHolds(rdqs);
             }
 
-            string message = "Picked " + count + " Ringfences for " + key + ".  ";
+            string message = string.Format("Picked {0} Ring Fences for {1}. ", count.ToString(), key);
             if (!pickPOs)
             {
-                message = message + countWarehouseOnly + " had warehouse inventory.  ";
+                message += countWarehouseOnly + " had warehouse inventory. ";
             }
+
             if (errorCount > 0)
             {
-                message = message + errorCount + " Errors.  ";
+                message += errorCount + " Errors. ";
             }
             if (ecommCount > 0)
             {
-                message = message + ecommCount + " Ecomm Ringfences (excluded).  ";
+                message += ecommCount + " Ecomm Ringfences (excluded). ";
             }
             if (noStoreCount > 0)
             {
-                message = message + noStoreCount + " did not have store (excluded).  ";
+                message += noStoreCount + " did not have store (excluded).  ";
             }
             if (permissionCount > 0)
             {
-                message = message + permissionCount + " you do not have permissions.  ";
+                message += permissionCount + " you do not have permissions.  ";
             }
             if (deliveredToday > 0)
             {
-                message = message + deliveredToday + " created today, will NOT be honored if the PO is delivered today.  ";
+                message += deliveredToday + " created today, will NOT be honored if the PO is delivered today.  ";
             }
             if (holdCount > 0)
             {
-                message = message + holdCount + " on hold.  See ReleaseHeldRDQs to view held RDQs.  ";
+                message += holdCount + " on hold.  See ReleaseHeldRDQs to view held RDQs.  ";
             }
             if (cancelholdcount > 0)
             {
-                message = message + cancelholdcount + " rejected by cancel inventory hold.  ";
+                message += cancelholdcount + " rejected by cancel inventory hold.  ";
             }
             return message;
         }
@@ -1446,10 +1460,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             div = div.Trim();
             store = store.Trim();
 
-            List<RingFence> rfList = (from a in db.RingFences where ((a.Division==div)&&(a.Store==store)) select a).ToList();
-            rfList = rfList
-                .Where(r => r.CanPick)
-                .ToList();
+            List<RingFence> rfList = db.RingFences.Where(rf => rf.Division == div && rf.Store == store).ToList();
+            rfList = rfList.Where(r => r.CanPick)
+                           .ToList();
             string message = BulkPickRingFence(div + "-" + store, rfList, true);
 
             return RedirectToAction("IndexByStore", new { message = message });
@@ -1460,7 +1473,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             div = div.Trim();
             store = store.Trim();
 
-            List<RingFence> rfList = (from a in db.RingFences where ((a.Division == div) && (a.Store == store)) select a).ToList();
+            List<RingFence> rfList = db.RingFences.Where(rf => rf.Division == div && rf.Store == store).ToList();
             string message = BulkPickRingFence(div + "-" + store, rfList, false);
 
             return RedirectToAction("IndexByStore", new { message = message });
@@ -1540,7 +1553,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 else
                 {
-                    rf.CreatedBy = User.Identity.Name;
+                    rf.CreatedBy = currentUser.NetworkID;
                     rf.CreateDate = DateTime.Now;
 
                     if (model.EndDate != null)
@@ -1566,24 +1579,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (model.Sku != null)
             {
-                message = message + model.Sku + ".  ";
+                message += model.Sku + ". ";
             }
             else if (model.FOB != null)
             {
-                message = message + model.Div + "-" + model.Store + " " + model.FOB + ".  ";            
+                message += model.Div + "-" + model.Store + " " + model.FOB + ".  ";            
             }
             else
             {
-                message = message + model.Div + "-" + model.Store + ".  ";
+                message += model.Div + "-" + model.Store + ".  ";
             }
 
             if (ecommCount > 0)
             {
-                message = message + ecommCount + " ecomm stores (excluded).  ";
+                message += ecommCount + " ecomm stores (excluded).  ";
             }
             if (permissionCount > 0)
             {
-                message = message + permissionCount + " permission denied.  ";
+                message += permissionCount + " permission denied.  ";
             }
             return message;
         }
@@ -1602,15 +1615,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<RingFence> rfList;
 
-
-
             if ((model.FOB != null) && (model.FOB != ""))
             {
                 rfList = (from a in db.RingFences 
                           join b in db.ItemMasters on a.ItemID equals b.ID
                           join c in db.FOBDepts on b.Dept equals c.Department
                           join d in db.FOBs on c.FOBID equals d.ID
-                          where ((a.Division == model.Div) && (a.Store == model.Store) && (d.Name == model.FOB) && (d.Division == model.Div)) select a).ToList();
+                          where ((a.Division == model.Div) && (a.Store == model.Store) && (d.Name == model.FOB) && (d.Division == model.Div)) 
+                          select a).ToList();
             }
             else
             {

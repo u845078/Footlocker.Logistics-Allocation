@@ -124,14 +124,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void InitializeDivisions(BulkRDQModel model)
         {
-            //model.Instances = new List<Instance>();
-            //model.Divisions = new List<Division>();
-            //model.Departments = new List<Department>();
-            //model.StatusList = new List<string>();
-
             List<Division> divs = currentUser.GetUserDivisions(AppName);
-            var allInstances = (from a in db.Instances join b in db.InstanceDivisions on a.ID equals b.InstanceID select new { instance = a, Division = b.Division }).ToList();
-            model.Instances = (from a in allInstances join b in divs on a.Division equals b.DivCode select a.instance).Distinct().ToList();
+
+            var allInstances = (from a in db.Instances 
+                                join b in db.InstanceDivisions 
+                                on a.ID equals b.InstanceID 
+                                select new { instance = a, Division = b.Division }).ToList();
+
+            model.Instances = (from a in allInstances 
+                               join b in divs 
+                               on a.Division equals b.DivCode 
+                               select a.instance).Distinct().ToList();
 
             if (model.Instances.Any())
             {
@@ -139,21 +142,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 if (model.Instance == 0)
                     model.Instance = model.Instances.First().ID;
 
-                model.Divisions =
-                   (from a in allInstances
-                    join b in divs on a.Division equals b.DivCode
-                    where a.instance.ID == model.Instance
-                    select b).ToList();
+                model.Divisions = (from a in allInstances
+                                   join b in divs on a.Division equals b.DivCode
+                                   where a.instance.ID == model.Instance
+                                   select b).ToList();
             }
             else
             {
-                Instance instance = new Instance();
-                instance.ID = -1;
-                instance.Name = "No division permissions enabled";
-                model.Instances.Insert(0, instance);
+                model.Instances.Insert(0, new Instance() { ID = -1, Name = "No division permissions enabled" });
             }
 
-            model.StatusList = (from a in db.RDQs select a.Status).Distinct().ToList();
+            model.StatusList = (from a in db.RDQs 
+                                select a.Status).Distinct().ToList();
             model.StatusList.Sort();
             model.StatusList.Insert(0, "All");
         }
@@ -177,23 +177,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.Departments = currentUser.GetUserDepartments(AppName).Where(d => d.DivCode == model.Division).ToList();
                 if (model.Departments.Any())
                 {
-                    Department dept = new Department()
-                    {
-                        DeptNumber = "00",
-                        DepartmentName = "All departments"
-                    };
-
-                    model.Departments.Insert(0, dept);
+                    model.Departments.Insert(0, new Department() { DeptNumber = "00", DepartmentName = "All departments" });
                 }
                 else
                 {
-                    Department dept = new Department() 
-                    {
-                        DeptNumber = "-1",
-                        DepartmentName = "No department permissions enabled"
-                    };
-
-                    model.Departments.Insert(0, dept);
+                    model.Departments.Insert(0, new Department() { DeptNumber = "-1", DepartmentName = "No department permissions enabled" });
                 }
             }
         }
@@ -203,7 +191,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<RDQ> rdqsToRelease = GetRDQsForSession(model.Instance, model.Division, model.Department, model.Category, model.Sku, model.Status, model.PO, model.Store, model.RuleSetID);
 
-            rdqsToRelease = (from a in rdqsToRelease where ((a.Status.StartsWith("HOLD")) && (a.Status != "HOLD-XDC")) select a).ToList();
+            rdqsToRelease = rdqsToRelease.Where(rtr => rtr.Status.StartsWith("HOLD") && rtr.Status != "HOLD-XDC").ToList(); 
 
             ////they are releasing the RDQ, so we'll make it a user RDQ so that the hold won't apply and it will be picked the next pick day
             ////first, find the RDQ being held.
@@ -211,23 +199,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 //now update it to a user RDQ, so that it will go down with the next batch
                 //set to HOLD-REL so that it will pick on the stores next pick day
-                RDQ rdq = (from a in db.RDQs where a.ID == r.ID select a).First();
+                RDQ rdq = db.RDQs.Where(x => x.ID == r.ID).FirstOrDefault();
                 rdq.Status = "HOLD-REL";
                 rdq.CreateDate = DateTime.Now;
-                rdq.CreatedBy = User.Identity.Name;
+                rdq.CreatedBy = currentUser.NetworkID;
 
-                if ((rdq.PO != null) && (rdq.PO != "") && (rdq.PO != "N/A") && (rdq.Size.Length == 5))
-                {
-                    rdq.DestinationType = "CROSSDOCK";
-                }
-                else
-                {
-                    rdq.DestinationType = "WAREHOUSE";
-                }
+                if (!string.IsNullOrEmpty(rdq.PO) && (rdq.Size.Length == 5))                
+                    rdq.DestinationType = "CROSSDOCK";                
+                else                
+                    rdq.DestinationType = "WAREHOUSE";                
             });
 
             // Persist changes
-            db.SaveChanges(User.Identity.Name);
+            db.SaveChanges(currentUser.NetworkID);
 
             Session["searchresult"] = -1;
             InitializeDivisions(model);
@@ -444,24 +428,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
 
-                /*                using (db)
-                                {
-                                    var rdqsToRelease = db.RDQs.ToList().Where(r => groupRDQs.Any(g => g.ID == r.ID));
-
-                                    //to release back to the warehouse all we need to do is delete it
-                                    //the result will be that we no longer decrease the inventory we send to Q, 
-                                    //so it will see more available to allocate to whoever it would like
-                                    rdqsToRelease.ToList().ForEach(rdq => 
-                                        {
-                                            db.RDQs.Remove(rdq);
-                                        });
-
-                                    groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
-
-                                    // Persist changes
-                                    db.SaveChanges(User.Identity.Name);
-                                }
-                                */
                 Session["searchresultlist"] = holdRDQs;
                 // Return JSON representing Success
                 return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
@@ -703,7 +669,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     if (holdcount > 0)
                     {
-                        message += string.Format("{0} on hold.  Please go to ReleaseHeldRDQs to see held RDQs. ", holdcount);
+                        message += string.Format("{0} on hold. Please go to Release Held RDQs to see held RDQs. ", holdcount);
                     }
                     return RedirectToAction("Index", new { message = message });
                 }
@@ -734,8 +700,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 if (message == "")
                 {
                     rdq.CreateDate = DateTime.Now;
-                    rdq.CreatedBy = User.Identity.Name;
-                    rdq.LastModifiedUser = User.Identity.Name;
+                    rdq.CreatedBy = currentUser.NetworkID;
+                    rdq.LastModifiedUser = currentUser.NetworkID;
           
                     rdq.PO = "";
                     rdq.DestinationType = "WAREHOUSE";
@@ -756,7 +722,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         try
                         {
                             db.RDQs.Add(rdq);
-                            db.SaveChanges(User.Identity.Name);
+                            db.SaveChanges(currentUser.NetworkID);
                         }
                         catch (Exception e)
                         {
@@ -765,6 +731,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                 }
             }
+
             return message;
         }
 
@@ -846,7 +813,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Delete(Int64 ID)
         {
-            RDQ rdq = (from a in db.RDQs where a.ID == ID select a).First();
+            RDQ rdq = db.RDQs.Where(r => r.ID == ID).FirstOrDefault();
 
             string message = "";
             try
