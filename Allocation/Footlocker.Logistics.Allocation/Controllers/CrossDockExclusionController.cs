@@ -21,7 +21,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<CrossDockExclusion> model = (from a in db.CrossDockExclusions select a).ToList();
             List<Division> divs  = currentUser.GetUserDivisions(AppName);
-            model = (from a in model join b in divs on a.Division equals b.DivCode select a).ToList();
+            model = (from a in model 
+                     join b in divs 
+                     on a.Division equals b.DivCode 
+                     select a).ToList();
             return View(model);
         }
 

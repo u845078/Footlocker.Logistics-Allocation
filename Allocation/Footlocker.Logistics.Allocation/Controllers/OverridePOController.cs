@@ -18,11 +18,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private List<ExpeditePO> getOverridePOsForDiv(string div)
         {
-            List<ExpeditePO> results;
-
-            results = (from a in db.ExpeditePOs
-                         where a.Division == div
-                         select a).ToList();
+            List<ExpeditePO> results = db.ExpeditePOs.Where(ep => ep.Division == div).ToList(); 
 
             if (results != null)
             {
@@ -34,11 +30,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 foreach (ExpeditePO epo in results)
                 {
-                    var poDeliveryDate = (from a in poData
-                                        where a.PO == epo.PO
-                                        select a.DeliveryDate).FirstOrDefault();
+                    var poDeliveryDate = poData.Where(pd => pd.PO == epo.PO)
+                                               .Select(pd => pd.DeliveryDate)
+                                               .FirstOrDefault();
+
                     if (poDeliveryDate != DateTime.MinValue)
-                        epo.DeliveryDate = poData.Where(po => po.PO == epo.PO).FirstOrDefault().DeliveryDate;
+                        epo.DeliveryDate = poDeliveryDate;
                     else
                         epo.DeliveryDate = epo.StoredDeliveryDate;
                 }
@@ -49,11 +46,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private List<ExpeditePO> getOverridePOsForSku(string sku)
         {
-            List<ExpeditePO> results;
-
-            results = (from a in db.ExpeditePOs
-                       where a.Sku == sku
-                       select a).ToList();
+            List<ExpeditePO> results = db.ExpeditePOs.Where(ep => ep.Sku == sku).ToList();
 
             if (results != null)
             {
@@ -65,11 +58,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 foreach (ExpeditePO epo in results)
                 {
-                    var poDeliveryDate = (from a in poData
-                                          where a.PO == epo.PO
-                                          select a.DeliveryDate).FirstOrDefault();
+                    var poDeliveryDate = poData.Where(pd => pd.PO == epo.PO)
+                                               .Select(pd => pd.DeliveryDate)
+                                               .FirstOrDefault();
+
                     if (poDeliveryDate != DateTime.MinValue)
-                        epo.DeliveryDate = poData.Where(po => po.PO == epo.PO).FirstOrDefault().DeliveryDate;
+                        epo.DeliveryDate = poDeliveryDate;
                     else
                         epo.DeliveryDate = epo.StoredDeliveryDate;
                 }
@@ -81,11 +75,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private List<ExpeditePO> getOverridePOsForPO(string div, string po)
         {
             List<ExpeditePO> results;
-
-            results = (from a in db.ExpeditePOs
-                       where a.Division == div &&
-                             a.PO == po
-                       select a).ToList();
+            results = db.ExpeditePOs.Where(ep => ep.Division == div && ep.PO == po).ToList();
 
             if (results != null)
             {
@@ -97,11 +87,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 foreach (ExpeditePO epo in results)
                 {
-                    var poDeliveryDate = (from a in poData
-                                          where a.PO == epo.PO
-                                          select a.DeliveryDate).FirstOrDefault();
+                    var poDeliveryDate = poData.Where(pd => pd.PO == epo.PO)
+                                               .Select(pd => pd.DeliveryDate)
+                                               .FirstOrDefault();
+
                     if (poDeliveryDate != DateTime.MinValue)
-                        epo.DeliveryDate = poData.Where(p => p.PO == epo.PO).FirstOrDefault().DeliveryDate;
+                        epo.DeliveryDate = poDeliveryDate;
                     else
                         epo.DeliveryDate = epo.StoredDeliveryDate;
                 }
@@ -110,16 +101,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return results;
         }
 
-
         public ActionResult Index(string div, string message)
         {
             if (message != null)
             {
                 ViewData["message"] = message;
             }
-            ExpeditePOModel model = new ExpeditePOModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
-            if ((div == null) || (div == ""))
+
+            ExpeditePOModel model = new ExpeditePOModel()
+            {
+                Divisions = currentUser.GetUserDivisions(AppName)
+            };
+            
+            if (string.IsNullOrEmpty(div))
             {
                 if (model.Divisions.Count() > 0)
                 {
@@ -138,9 +132,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 ViewData["message"] = message;
             }
-            ExpeditePOModel model = new ExpeditePOModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
-            if ((div == null) || (div == ""))
+            ExpeditePOModel model = new ExpeditePOModel()
+            {
+                Divisions = currentUser.GetUserDivisions(AppName)
+            };
+
+            if (string.IsNullOrEmpty(div))
             {
                 if (model.Divisions.Count() > 0)
                 {
@@ -155,9 +152,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _Index(string div)
         {
-            ExpeditePOModel model = new ExpeditePOModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
-            if ((div == null) || (div == ""))
+            ExpeditePOModel model = new ExpeditePOModel()
+            {
+                Divisions = currentUser.GetUserDivisions(AppName)
+            };
+
+            if (string.IsNullOrEmpty(div))
             {
                 if (model.Divisions.Count() > 0)
                 {
@@ -180,9 +180,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _IndexByPO(string div)
         {
-            ExpeditePOModel model = new ExpeditePOModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
-            if ((div == null) || (div == ""))
+            ExpeditePOModel model = new ExpeditePOModel()
+            {
+                Divisions = currentUser.GetUserDivisions(AppName)
+            };
+
+            if (string.IsNullOrEmpty(div))
             {
                 if (model.Divisions.Count() > 0)
                 {
@@ -204,10 +207,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Create(string div)
         {
-            ExpeditePOModel model = new ExpeditePOModel();
-            model.NewPO = new ExpeditePO();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
-            model.NewPO.Division = div;
+            ExpeditePOModel model = new ExpeditePOModel()
+            {
+                NewPO = new ExpeditePO()
+                {
+                    Division = div
+                },
+                Divisions = currentUser.GetUserDivisions(AppName)
+            };
             return View(model);
         }
 
@@ -215,6 +222,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Create(ExpeditePOModel model)
         {
             ExistingPODAO dao = new ExistingPODAO();
+            // look in the mainframe for a PO
             model.ExistingPOs = dao.GetExistingPO(model.NewPO.Division, model.NewPO.PO);
             if (model.ExistingPOs.Count() > 0)
             {
@@ -223,17 +231,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 int skucount = 0;
                 foreach (ExistingPO po in model.ExistingPOs)
                 {
-                    if (!currentUser.HasDivDept(AppName, po.Division, po.Sku.Substring(3, 2)))
+                    string dept = po.Sku.Substring(3, 2);
+                    if (!currentUser.HasDivDept(AppName, po.Division, dept))
                     {
-                        model.Message = model.Message + "<br>You do not have permission for dept " + po.Sku.Substring(3, 2);
+                        model.Message += string.Format("<br>You do not have permission for dept {0}", dept);
                     }
-                    if (!(model.NewPO.Departments.Contains(po.Sku.Substring(3, 2))))
+
+                    if (!model.NewPO.Departments.Contains(dept))
                     {
                         if (model.NewPO.Departments.Length > 0)
                         {
                             model.NewPO.Departments += ",";
                         }
-                        model.NewPO.Departments += po.Sku.Substring(3, 2);
+                        model.NewPO.Departments += dept;
                     }
                     model.NewPO.Sku = po.Sku;
                     skucount++;
@@ -265,10 +275,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult CreateAllPOsForSku(string div)
         {
-            ExpeditePOModel model = new ExpeditePOModel();
-            model.NewPO = new ExpeditePO();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
-            model.NewPO.Division = div;
+            ExpeditePOModel model = new ExpeditePOModel()
+            {
+                NewPO = new ExpeditePO()
+                {
+                    Division = div
+                },
+                Divisions = currentUser.GetUserDivisions(AppName)
+            };
+            
             return View(model);
         }
 
@@ -280,17 +295,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.NewPO.Departments = "";
             foreach (ExistingPO po in model.ExistingPOs)
             {
-                if (!currentUser.HasDivDept(AppName, po.Division, po.Sku.Substring(3, 2)))
+                string dept = po.Sku.Substring(3, 2);
+                if (!currentUser.HasDivDept(AppName, po.Division, dept))
                 {
-                    model.Message = model.Message + "<br>You do not have permission for dept " + po.Sku.Substring(3, 2);
+                    model.Message += string.Format("<br>You do not have permission for dept {0}", dept);
                 }
-                if (!(model.NewPO.Departments.Contains(po.Sku.Substring(3, 2))))
+                if (!model.NewPO.Departments.Contains(dept))
                 {
                     if (model.NewPO.Departments.Length > 0)
                     {
                         model.NewPO.Departments += ",";
                     }
-                    model.NewPO.Departments += po.Sku.Substring(3, 2);
+                    model.NewPO.Departments += dept;
                 }
                 model.TotalRetail += po.Retail;
                 model.TotalUnits += po.Units;
@@ -308,7 +324,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     message = "Direct to store";
                 }
-                model.POs.Add(new ExpeditePO { PO = po.PO, Sku = po.Sku, OverrideDate = model.NewPO.OverrideDate, DeliveryDate = po.ExpectedDeliveryDate, CreateDate = DateTime.Now, CreatedBy = User.Identity.Name, TotalRetail = po.Retail, Division = po.Division, TotalUnits = po.Units, ErrorMessage = message });
+                model.POs.Add(new ExpeditePO
+                { 
+                    PO = po.PO, 
+                    Sku = po.Sku, 
+                    OverrideDate = model.NewPO.OverrideDate, 
+                    DeliveryDate = po.ExpectedDeliveryDate, 
+                    CreateDate = DateTime.Now, 
+                    CreatedBy = currentUser.NetworkID, 
+                    TotalRetail = po.Retail, 
+                    Division = po.Division, 
+                    TotalUnits = po.Units, 
+                    ErrorMessage = message 
+                });
             }
             model.POs = model.POs.OrderBy(o => o.DeliveryDate).ToList();
 
@@ -322,13 +350,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<ExistingPO> list = dao.GetExistingPO(div, PO);
 
             ExpeditePO po;
-            po = new ExpeditePO();
-            po.Departments = "";
+            po = new ExpeditePO()
+            {
+                Departments = ""
+            };
+            
             foreach (ExistingPO det in list)
             {
                 if (det.Sku == sku)
                 {
-                    if (!(po.Departments.Contains(det.Sku.Substring(3, 2))))
+                    if (!po.Departments.Contains(det.Sku.Substring(3, 2)))
                     {
                         if (po.Departments.Length > 0)
                         {
@@ -344,8 +375,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     po.TotalUnits += det.Units;
                 }
             }
-            var alreadyExists = (from a in db.ExpeditePOs where ((a.PO == po.PO) && (a.Division == po.Division)) select a);
-            if (alreadyExists.Count() > 0)
+            var alreadyExists = (from a in db.ExpeditePOs 
+                                 where a.PO == po.PO && 
+                                       a.Division == po.Division
+                                 select a).Count();
+            if (alreadyExists > 0)
             {
                 db.Entry(po).State = System.Data.EntityState.Modified;
             }
@@ -354,7 +388,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 db.ExpeditePOs.Add(po);
             }
             po.CreateDate = DateTime.Now;
-            po.CreatedBy = User.Identity.Name;
+            po.CreatedBy = currentUser.NetworkID;
             po.OverrideDate = overrideDate;
 
             db.SaveChanges();
@@ -372,7 +406,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             po = new ExpeditePO();
             foreach (ExistingPO det in list)
             {
-                if (!(po.Departments.Contains(po.Sku.Substring(3, 2))))
+                if (!po.Departments.Contains(po.Sku.Substring(3, 2)))
                 {
                     if (po.Departments.Length > 0)
                     {
@@ -388,7 +422,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 po.TotalUnits += det.Units;
 
             }
-            var alreadyExists = (from a in db.ExpeditePOs where ((a.PO == po.PO) && (a.Division == po.Division)) select a);
+            var alreadyExists = from a in db.ExpeditePOs
+                                where a.PO == po.PO && 
+                                      a.Division == po.Division
+                                select a;
             if (alreadyExists.Count() > 0)
             {
                 db.ExpeditePOs.Remove(alreadyExists.First());
@@ -407,12 +444,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ExpeditePO po;
             foreach (ExistingPO det in list)
             {
-                po = new ExpeditePO { DeliveryDate = det.ExpectedDeliveryDate, Sku = det.Sku, PO = det.PO, Departments = sku.Split('-')[1], Division = sku.Split('-')[0], TotalRetail = det.Retail, TotalUnits = det.Units };
+                po = new ExpeditePO 
+                { 
+                    DeliveryDate = det.ExpectedDeliveryDate, 
+                    Sku = det.Sku, 
+                    PO = det.PO, 
+                    Departments = sku.Split('-')[1], 
+                    Division = sku.Split('-')[0], 
+                    TotalRetail = det.Retail, 
+                    TotalUnits = det.Units 
+                };
                 po.OverrideDate = overrideDate;
                 po.CreateDate = DateTime.Now;
                 po.CreatedBy = User.Identity.Name;
 
-                var alreadyExists = (from a in db.ExpeditePOs where ((a.PO == po.PO) && (a.Division == po.Division)) select a);
+                var alreadyExists = from a in db.ExpeditePOs 
+                                    where a.PO == po.PO && 
+                                          a.Division == po.Division
+                                    select a;
                 if (alreadyExists.Count() > 0)
                 {
                     db.Entry(po).State = System.Data.EntityState.Modified;
@@ -503,7 +552,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 div = sku.Split('-')[0];
             }
-            List<ExpeditePO> list = (from a in db.ExpeditePOs where ((a.OverrideDate == overrideDate) && (a.Sku == sku)) select a).ToList();
+            List<ExpeditePO> list = db.ExpeditePOs.Where(ep => ep.OverrideDate == overrideDate && ep.Sku == sku).ToList();
 
             foreach (ExpeditePO det in list)
             {
@@ -526,34 +575,36 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 div = sku.Split('-')[0];
             }
-            ExpeditePO model = new ExpeditePO();
-            model.Division = div;
-            model.Sku = sku;
-            model.OverrideDate = overrideDate;
-            //so we can update only the records we want we need to store the original overrideDate, kind of a hack
-            model.DeliveryDate = overrideDate;
-            return View(model);
 
-            //return RedirectToAction("Index", new { div = div });
+            ExpeditePO model = new ExpeditePO()
+            {
+                Division = div,
+                Sku = sku,
+                OverrideDate = overrideDate,
+                //so we can update only the records we want we need to store the original overrideDate, kind of a hack
+                DeliveryDate = overrideDate
+            };
+
+            return View(model);
         }
 
         [HttpPost]
         public ActionResult EditSku(ExpeditePO model)
         {
             //note that we're matching DeliveryDate because we used that field to store the old override date
-            List<ExpeditePO> list = (from a in db.ExpeditePOs where ((a.Division == model.Division) && (a.Sku == model.Sku) && (a.OverrideDate == model.DeliveryDate)) select a).ToList();
+            List<ExpeditePO> list = db.ExpeditePOs.Where(ep => ep.Division == model.Division && 
+                                                               ep.Sku == model.Sku && 
+                                                               ep.OverrideDate == model.DeliveryDate).ToList();
 
             foreach (ExpeditePO po in list)
             {
                 po.OverrideDate = model.OverrideDate;
                 po.CreateDate = DateTime.Now;
-                po.CreatedBy = User.Identity.Name;
+                po.CreatedBy = currentUser.NetworkID;
                 db.Entry(po).State = System.Data.EntityState.Modified;
                 db.SaveChanges();
             }
             
-            //return RedirectToAction("CheckForRanges", new { div = model.Division, sku = model.Sku, po = model.PO });
-
             return RedirectToAction("Index", new { div = model.Division });
         }
 
@@ -562,10 +613,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult CreateAfterVerify(ExpeditePOModel model)
         {
             model.NewPO.CreateDate = DateTime.Now;
-            model.NewPO.CreatedBy = User.Identity.Name;
+            model.NewPO.CreatedBy = currentUser.NetworkID;
 
-            var alreadyExists = (from a in db.ExpeditePOs where ((a.PO == model.NewPO.PO) &&(a.Division == model.NewPO.Division)) select a);
-            if (alreadyExists.Count() > 0)
+            if (db.ExpeditePOs.Where(ep => ep.PO == model.NewPO.PO && ep.Division == model.NewPO.Division).Count() > 0)
             {
                 db.Entry(model.NewPO).State = System.Data.EntityState.Modified;
             }
@@ -573,13 +623,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 db.ExpeditePOs.Add(model.NewPO);
             }
-            if ((model.NewPO.Sku == null) || (model.NewPO.Sku == ""))
+
+            if (string.IsNullOrEmpty(model.NewPO.Sku))
             {
                 model.NewPO.Sku = "unknown";
             }
+
             model.NewPO.PO = model.NewPO.PO.Trim();
             db.SaveChanges();
-            //return RedirectToAction("CheckForRanges", new { div = model.NewPO.Division, sku = model.NewPO.Sku, po = model.NewPO.PO });
+            
             return RedirectToAction("Index", new { div = model.NewPO.Division });
         }
 
@@ -596,7 +648,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Edit(string div, string PO)
         {
             ExpeditePO model = getOverridePOsForPO(div, PO).First();
-                //(from a in db.ExpeditePOs where ((a.Division == div) && (a.PO == PO)) select a).First();
 
             return View(model);
         }
@@ -606,12 +657,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
 
             model.CreateDate = DateTime.Now;
-            model.CreatedBy = User.Identity.Name;
+            model.CreatedBy = currentUser.NetworkID;
             model.PO = model.PO.Trim();
 
             db.Entry(model).State = System.Data.EntityState.Modified;
             db.SaveChanges();
-            //return RedirectToAction("CheckForRanges", new { div = model.Division, sku = model.Sku, po = model.PO });
+            
             return RedirectToAction("Index", new { div = model.Division });
         }
 
@@ -766,7 +817,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 errorList = (List<ExpeditePO>)Session["errorList"];
             }
 
-
             Aspose.Excel.License license = new Aspose.Excel.License();
             //Set the license 
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
@@ -788,8 +838,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             excelDocument.Save("POOverrideErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
-
         }
-
     }
 }

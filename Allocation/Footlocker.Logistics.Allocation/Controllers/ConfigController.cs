@@ -23,7 +23,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Support,IT")]
         public ActionResult _Index()
         {
-            List<Instance> list = (from a in db.Instances select a).ToList();
+            List<Instance> list = db.Instances.ToList();
             return View(new GridModel(list));
         }
 

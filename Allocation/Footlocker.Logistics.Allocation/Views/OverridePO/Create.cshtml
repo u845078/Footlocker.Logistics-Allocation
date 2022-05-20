@@ -1,9 +1,11 @@
-﻿@model Footlocker.Logistics.Allocation.Models.ExpeditePOModel
+﻿@using Footlocker.Logistics.Allocation.Models
+@model ExpeditePOModel
 
 @{
     ViewBag.Title = "Create";
 }
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
     <fieldset>
         <legend>Override PO</legend>
@@ -31,7 +33,7 @@
             <input type="submit" value="Create" />
         </p>
         @if (ViewData["message"] != null)
-        { 
+        {
             @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
         }
     </fieldset>

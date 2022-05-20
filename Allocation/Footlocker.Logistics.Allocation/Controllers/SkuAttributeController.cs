@@ -99,71 +99,47 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     model.Message = "You are not authorized for any departments within division " + model.Division;
                 }
             }
-
-
         }
 
         private void InitializeCategories(SkuAttributeModel model)
         {
-            var query = (from a in db.Categories
-                         where a.divisionCode == model.Division &&
-                               a.departmentCode == model.Department
-                         select a).ToList();
-
-            model.Categories = new List<Categories>();
-
-            if (query.Any())
-            {
-                foreach (var rec in query)
-                {
-                    model.Categories.Add(new Categories { divisionCode = rec.divisionCode, departmentCode = rec.departmentCode, categoryCode = rec.categoryCode, CategoryName = rec.CategoryName });
-                }
-            }
+            model.Categories = db.Categories.Where(c => c.divisionCode == model.Division && c.departmentCode == model.Department).ToList();
         }
 
         private void InitializeBrands(SkuAttributeModel model)
         {
-            var query = (from a in db.BrandIDs
-                         where a.divisionCode == model.Division &&
-                               a.departmentCode == model.Department
-                         select a).ToList();
-
-            model.Brands = new List<BrandIDs>();
-
-            if (query.Any())
-            {
-                foreach (var rec in query)
-                {
-                    model.Brands.Add(new BrandIDs { divisionCode = rec.divisionCode, departmentCode = rec.departmentCode, brandIDCode = rec.brandIDCode, brandIDName = rec.brandIDName });
-                }
-            }
+            model.Brands = db.BrandIDs.Where(b => b.divisionCode == model.Division && b.departmentCode == model.Department).ToList();
         }
 
         private void InitializeAttributes(SkuAttributeModel model)
         {
             model.WeightActive = 100;
-            model.Attributes = new List<SkuAttributeDetail>();
-            model.Attributes.Add(new SkuAttributeDetail("BrandID", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("Category", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("color1", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("color2", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("color3", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("Department", true, 0));
-            model.Attributes.Add(new SkuAttributeDetail("Gender", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("LifeOfSku", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("Material", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("Size", true, 0));
-            model.Attributes.Add(new SkuAttributeDetail("SizeRange", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("Skuid1", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("Skuid2", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("Skuid3", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("Skuid4", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("Skuid5", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("TeamCode", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("VendorNumber", false, 0));
-            model.Attributes.Add(new SkuAttributeDetail("PlayerID", false, 0));
+            model.Attributes = new List<SkuAttributeDetail>
+            {
+                new SkuAttributeDetail("BrandID", false, 0),
+                new SkuAttributeDetail("Category", false, 0),
+                new SkuAttributeDetail("color1", false, 0),
+                new SkuAttributeDetail("color2", false, 0),
+                new SkuAttributeDetail("color3", false, 0),
+                new SkuAttributeDetail("Department", true, 0),
+                new SkuAttributeDetail("Gender", false, 0),
+                new SkuAttributeDetail("LifeOfSku", false, 0),
+                new SkuAttributeDetail("Material", false, 0),
+                new SkuAttributeDetail("Size", true, 0),
+                new SkuAttributeDetail("SizeRange", false, 0),
+                new SkuAttributeDetail("Skuid1", false, 0),
+                new SkuAttributeDetail("Skuid2", false, 0),
+                new SkuAttributeDetail("Skuid3", false, 0),
+                new SkuAttributeDetail("Skuid4", false, 0),
+                new SkuAttributeDetail("Skuid5", false, 0),
+                new SkuAttributeDetail("TeamCode", false, 0),
+                new SkuAttributeDetail("VendorNumber", false, 0),
+                new SkuAttributeDetail("PlayerID", false, 0)
+            };
 
-            model.Attributes = (from a in model.Attributes orderby a.SortOrder, a.AttributeType ascending select a).ToList();
+            model.Attributes = (from a in model.Attributes 
+                                orderby a.SortOrder, a.AttributeType ascending 
+                                select a).ToList();
         }
 
         [CheckPermission(Roles = "Director of Allocation,Admin,Support,Advanced Merchandiser Processes")]
@@ -188,20 +164,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (string.IsNullOrEmpty(model.Message))
             {
-                var existing = (from a in db.SkuAttributeHeaders
-                                where (
-                                        (a.Division == model.Division) &&
-                                        (a.Dept == model.Department) &&
-                                        (
-                                            (a.Category == model.Category) ||
-                                            ((a.Category == null) && (model.Category == null))
-                                        ) &&
-                                        (
-                                            (a.Brand == model.BrandID) ||
-                                            ((a.Brand == null) && (model.BrandID == null))
-                                        )
-                                    )
-                                select a);
+                var existing = from a in db.SkuAttributeHeaders
+                                where a.Division == model.Division &&
+                                      a.Dept == model.Department &&
+                                      (
+                                            a.Category == model.Category ||
+                                            (a.Category == null && model.Category == null)
+                                      ) &&
+                                      (
+                                           a.Brand == model.BrandID ||
+                                           (a.Brand == null && model.BrandID == null)
+                                      )                                    
+                                select a;
 
                 if (existing.Any())
                 {
@@ -215,14 +189,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if (!string.IsNullOrEmpty(model.BrandID) && string.IsNullOrEmpty(model.Message))
                 {
-                    var skus = (from a in db.ItemMasters
-                                    where (
-                                            (a.Div == model.Division) &&
-                                            (a.Dept == model.Department) &&
-                                            (a.Category == model.Category) &&
-                                            (a.Brand == model.BrandID)
-                                        )
-                                    select a);
+                    var skus = from a in db.ItemMasters
+                               where a.Div == model.Division &&
+                                     a.Dept == model.Department &&
+                                     a.Category == model.Category &&
+                                     a.Brand == model.BrandID                                        
+                               select a;
 
                     if (!skus.Any())
                     {
@@ -251,15 +223,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
             else
             {
                 //process create
-                SkuAttributeHeader header = new SkuAttributeHeader();
-
-                header.Division = model.Division;
-                header.Dept = model.Department;
-                header.Category = model.Category;
-                header.Brand = model.BrandID;
-                header.CreatedBy = User.Identity.Name;
-                header.CreateDate = DateTime.Now;
-                header.WeightActiveInt = model.WeightActive;
+                SkuAttributeHeader header = new SkuAttributeHeader
+                {
+                    Division = model.Division,
+                    Dept = model.Department,
+                    Category = model.Category,
+                    Brand = model.BrandID,
+                    CreatedBy = User.Identity.Name,
+                    CreateDate = DateTime.Now,
+                    WeightActiveInt = model.WeightActive
+                };
 
                 db.SkuAttributeHeaders.Add(header);
                 db.SaveChanges();
@@ -278,7 +251,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Edit(int ID)
         {
             SkuAttributeModel model = new SkuAttributeModel();
-            SkuAttributeHeader header = (from a in db.SkuAttributeHeaders where a.ID == ID select a).First();
+            SkuAttributeHeader header = db.SkuAttributeHeaders.Where(s => s.ID == ID).First();
 
             model.HeaderID = ID;
             model.Division = header.Division; 
@@ -286,8 +259,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.Category = header.Category;
             model.BrandID = header.Brand;
             model.WeightActive = header.WeightActiveInt;
-            model.Attributes = (from a in db.SkuAttributeDetails where a.HeaderID == header.ID select a).ToList();
-            model.Attributes = (from a in model.Attributes orderby a.SortOrder, a.AttributeType ascending select a).ToList();
+            model.Attributes = db.SkuAttributeDetails.Where(s => s.HeaderID == header.ID).ToList();
+            model.Attributes = (from a in model.Attributes 
+                                orderby a.SortOrder, a.AttributeType ascending 
+                                select a).ToList();
             model.Divisions = DivisionService.ListDivisions();
             model.Departments = DepartmentService.ListDepartments(model.Division);
 
@@ -326,8 +301,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         db.SaveChanges();
                     }
 
-                    SkuAttributeHeader header = (from a in db.SkuAttributeHeaders where a.ID == model.HeaderID select a).First();
-                    //SkuAttributeHeader header = (from a in db.SkuAttributeHeaders where ((a.Division == model.Division) && (a.Dept == model.Department) && ((a.Category == model.Category) || ((a.Category == null) && (model.Category == null)))) select a).First();
+                    SkuAttributeHeader header = db.SkuAttributeHeaders.Where(s => s.ID == model.HeaderID).First();
+
                     header.WeightActiveInt = model.WeightActive;
                     header.CreatedBy = User.Identity.Name;
                     header.CreateDate = DateTime.Now;
@@ -363,14 +338,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Director of Allocation,Admin,Support,Advanced Merchandiser Processes")]
         public ActionResult Delete(int ID)
         {
-            SkuAttributeHeader header = (from a in db.SkuAttributeHeaders where a.ID == ID select a).First();
+            SkuAttributeHeader header = db.SkuAttributeHeaders.Where(s => s.ID == ID).First();
 
             if (currentUser.HasDivDept(AppName, header.Division, header.Dept))
             {
                 db.SkuAttributeHeaders.Remove(header);
                 db.SaveChanges();
-                var query = (from a in db.SkuAttributeDetails where a.HeaderID == ID select a);
-                foreach (SkuAttributeDetail det in query.ToList())
+                var details = db.SkuAttributeDetails.Where(d => d.HeaderID == ID).ToList();
+                foreach (SkuAttributeDetail det in details)
                 {
                     db.SkuAttributeDetails.Remove(det);
                     db.SaveChanges();
@@ -582,8 +557,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     string message = "The attribute type, " + attributeType + " has an invalid supplied value.";
                     errorsFound = string.Format("Row #{0}: {1}\n", row, message);
                     return errorsFound;
-                }
-                
+                }                
             }
 
             header.SkuAttributeDetails.Add(detail);
@@ -932,6 +906,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             string checkroles = "Director of Allocation,Admin,Support,Advanced Merchandiser Processes";
             string[] roles = checkroles.Split(new char[] { ',' });
+            
+
             bool ok = WebSecurityService.UserHasRole(UserName, "Allocation", roles);
             return ok;
         }

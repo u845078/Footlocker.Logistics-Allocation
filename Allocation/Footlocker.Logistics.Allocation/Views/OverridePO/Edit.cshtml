@@ -1,26 +1,28 @@
-﻿@model Footlocker.Logistics.Allocation.Models.ExpeditePO
+﻿@using Footlocker.Logistics.Allocation.Models
+@model ExpeditePO
 
 @{
     ViewBag.Title = "Edit";
 }
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
 
     <fieldset>
         <legend>Override PO</legend>
         <br />
         <div>
-        @Html.DisplayFor(model => model.Division)
-        @Html.HiddenFor(model => model.Division)
-        @Html.DisplayFor(model => model.PO)
-        @Html.HiddenFor(model => model.PO)
-        @Html.HiddenFor(model => model.Sku)
-        @Html.HiddenFor(model => model.Departments)
+            @Html.DisplayFor(model => model.Division)
+            @Html.HiddenFor(model => model.Division)
+            @Html.DisplayFor(model => model.PO)
+            @Html.HiddenFor(model => model.PO)
+            @Html.HiddenFor(model => model.Sku)
+            @Html.HiddenFor(model => model.Departments)
         </div>
 
         <div class="editor-label">
             <b>@Html.LabelFor(model => model.DeliveryDate)</b>
-        @Html.HiddenFor(model => model.DeliveryDate)
+            @Html.HiddenFor(model => model.DeliveryDate)
         </div>
         <div class="editor-field">
             @Html.DisplayFor(model => model.DeliveryDate)
@@ -41,7 +43,7 @@
 }
 
 <div>
-    @Html.ActionLink("Back to List", "Index",null, new { @class="t-button"})
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
 </div>
 
 @section Scripts {

@@ -1109,7 +1109,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             rdq.Type = "user";
             rdq.Status = "WEB PICK";
-            if ((det.PO != null) && (det.PO != "") && (det.PO != "N/A"))
+            if (!string.IsNullOrEmpty(det.PO))
             {
                 rdq.DestinationType = "CROSSDOCK";
                 rdq.Status = "HOLD-XDC";
