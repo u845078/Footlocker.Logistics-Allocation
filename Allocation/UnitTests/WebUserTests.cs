@@ -141,5 +141,19 @@ namespace AllocationTests
             Assert.IsTrue(testUser.HasUserRole("Allocation", "EPick"));
             Assert.IsFalse(testUser.HasUserRole("Allocation", "Director"));
         }
+
+        [TestMethod]
+        public void UserRoleList2Test()
+        {
+            List<string> rolesToFind = new List<string>() { "IT", "ABC" };
+            WebUser testUser = new WebUser("CORP", "u695130");
+            Assert.IsTrue(testUser.HasUserRole("Allocation", rolesToFind));
+
+            rolesToFind = new List<string>() { "NOT", "FOUND" };
+            Assert.IsFalse(testUser.HasUserRole("Allocation", rolesToFind));
+
+            rolesToFind = new List<string>() { "IT", "Support", "EPick" };
+            Assert.IsTrue(testUser.HasUserRole("Allocation", rolesToFind));
+        }
     }
 }

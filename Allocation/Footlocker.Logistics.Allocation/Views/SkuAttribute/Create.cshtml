@@ -1,5 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.SkuAttributeModel
-@using Footlocker.Logistics.Allocation.Models
+﻿@model SkuAttributeModel
 
 @{
     ViewBag.Title = "Create";
@@ -116,21 +115,23 @@
 
 @using (Html.BeginForm("DivisionSelected", "SkuAttribute"))
 {
-<div class="editor-field">
-    @Html.LabelFor(model => model.Division)
-    <br/>
-    @Html.DropDownListFor(model => model.Division, new SelectList(Model.Divisions, "DivCode", "DivisionName"), new { onchange = "this.form.submit();" })
-</div>
+    <div class="editor-field">
+        @Html.LabelFor(model => model.Division)
+        <br />
+        @Html.DropDownList("Division", Model.DivisionList, new { onchange = "this.form.submit();" })<br />
+        @Html.ValidationMessageFor(model => model.Division)
+    </div>
 }
 
 @using (Html.BeginForm("DepartmentSelected", "SkuAttribute"))
 {
     @Html.HiddenFor(model => model.Division)
-<div class="editor-field">
-    @Html.LabelFor(model => model.Department)
-    <br/>
-    @Html.DropDownListFor(model => model.Department, new SelectList(Model.Departments, "DeptNumber", "DisplayName"), new { onchange = "this.form.submit();" })
-</div>
+    <div class="editor-field">
+        @Html.LabelFor(model => model.Department)
+        <br />
+        @Html.DropDownList("Department", Model.DepartmentList, new { onchange = "this.form.submit();" })<br />
+        @Html.ValidationMessageFor(model => model.Department)
+    </div>
 }
 
 @using (Html.BeginForm("Create", "SkuAttribute"))
@@ -139,13 +140,13 @@
     @Html.HiddenFor(model => model.Department)
 
 <div class="editor-field">
-    @Html.LabelFor(model => model.Category) [*** Optional ***] <br/>
-    @Html.DropDownListFor(model => model.Category, new SelectList(Model.Categories, "categoryCode", "categoryDisplay"), "", new { onchange = "checkAttribute(1);" })
-
+    @Html.LabelFor(model => model.Category) [*** Optional ***] <br />
+    @Html.DropDownList("Category", Model.CategoryList, new { onchange = "checkAttribute(1);" })
+    @Html.ValidationMessageFor(model => model.Category)
 </div>
 <div class="editor-field">
-    @Html.LabelFor(model => model.BrandID) [*** Optional ***] <br/>
-    @Html.DropDownListFor(model => model.BrandID, new SelectList(Model.Brands, "brandIDCode", "brandIDDisplay"), "", new { onchange = "checkAttribute(3);" })
+    @Html.LabelFor(model => model.BrandID) [*** Optional ***] <br />
+    @Html.DropDownList("BrandID", Model.BrandList, new { onchange = "checkAttribute(3);" })
 </div>
 <div class="editor-field">
     <div class="editor-field">
@@ -156,17 +157,16 @@
     </div>
 </div>
 <br />
+    @Html.ValidationSummary(true)
+    <br />
+
     if (Model.Message != null)
     { 
-    @Html.Raw("<font color='red'>" + Model.Message + "</font>")
+        @Html.Raw("<font color='red'>" + Model.Message + "</font>")
     }
 <table>
 @for (var count = 0; count < Model.Attributes.Count(); count++)
 {
-
-
-    //@foreach (SkuAttribute item in Model.Attributes)
-    //{ 
     <tr>
     <td>
         @Html.DisplayFor(model => Model.Attributes[count].AttributeType)
@@ -175,25 +175,16 @@
     <td>
         @Html.LabelFor(model => Model.Attributes[count].Mandatory)
         @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory, new { onclick = "return enableCheckbox(this," + count + ");" })
-
-@*        @if (Model.Attributes[count].AttributeType == "Department")
-        {
-           @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory, new { disabled = true })
-        }
-        else
-        {
-            @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory, new { onclick = "mandatoryScreenUpdate(this," + count + ");" })
-        }
-*@    </td>
+    </td>
     <td>
         @Html.LabelFor(model => Model.Attributes[count].Weight)
         @if (Model.Attributes[count].Mandatory)
         {
-        @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { disabled = "disabled", style = "width: 3em;", onblur = "updateSum();" })
+            @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { disabled = "disabled", style = "width: 3em;", onblur = "updateSum();" })
         }
         else
         {           
-        @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { style = "width: 3em;", onblur = "updateSum();" })
+            @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { style = "width: 3em;", onblur = "updateSum();" })
         }
     </td>
     </tr>

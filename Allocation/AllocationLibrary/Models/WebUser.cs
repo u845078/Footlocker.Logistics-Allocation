@@ -35,6 +35,11 @@ namespace Footlocker.Logistics.Allocation.Models
         private List<Department> UserDepartments { get; set; }
         private List<string> UserRoles { get; set; }
 
+        public bool HasUserRole(string app, List<string> roles)
+        {
+            return roles.Intersect(GetUserRoles(app)).Count() > 0;
+        }
+
         /// <summary>
         /// Checks to see if a user has a specific role
         /// </summary>

@@ -7,6 +7,7 @@ using System.Web.Security;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Common;
+using Footlocker.Logistics.Allocation.DAO;
 using Telerik.Web.Mvc;
 using Aspose.Excel;
 using System.IO;
@@ -17,21 +18,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
 {
     public class SkuAttributeController : AppController
     {
-        Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        AllocationContext db = new AllocationContext();
+        readonly string editRoles = "Director of Allocation,Admin,Support,Advanced Merchandiser Processes";
 
-        public ActionResult Index(bool? showMessage)
+        public ActionResult Index()
         {
-            ViewData["hasEditRole"] = HasEditRole();
+            ViewBag.hasEditRole = currentUser.HasUserRole(AppName, editRoles.Split(',').ToList());
 
-            if (showMessage != null)
+            if (TempData["ModelState"] is ModelStateDictionary previousModelState)
             {
-                ViewData["message"] = "You are not authorized for this division/department";
+                foreach (KeyValuePair<string, ModelState> kvp in previousModelState)
+                    if (!ModelState.ContainsKey(kvp.Key))
+                        ModelState.Add(kvp.Key, kvp.Value);
             }
+
             return View();
         }
 
         [GridAction]
-        public ActionResult _Index(GridCommand settings)
+        public ActionResult _Index()
         {
             List<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders.AsEnumerable()
                                                 join d in currentUser.GetUserDivisions(AppName)
@@ -39,6 +44,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                        new { Division = d.DivCode }
                                                 orderby a.Division, a.Dept, a.Category
                                                 select a).ToList();
+
+            Dictionary<string, string> names = new Dictionary<string, string>();
+            var users = (from a in headers
+                         select a.CreatedBy).Distinct();
+            foreach (string userID in users)
+            {
+                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+            }
+            foreach (var item in headers)
+            {
+                item.CreatedBy = names[item.CreatedBy];
+            }
+
             return View(new GridModel(headers));
         }
 
@@ -68,47 +86,56 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void InitializeDivisions(SkuAttributeModel model)
         {
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            var userDivisions = currentUser.GetUserDivisions(AppName)
+                .OrderBy(d => d.DivCode)
+                .Select(d => new SelectListItem 
+                            { 
+                                Text = d.DisplayName, 
+                                Value = d.DivCode,
+                                Selected = d.DivCode == model.Division
+                            });
+
+            model.DivisionList = new SelectList(userDivisions, "Value", "Text");
             if (string.IsNullOrEmpty(model.Division))
             {
-                //default to first one in the list
-                if (model.Divisions.Any())
-                {
-                    model.Division = model.Divisions.First().DivCode;
-                }
+                if (userDivisions.Any())
+                    model.Division = userDivisions.First().Value;
                 else
-                {
-                    model.Message = "You are not authorized for any division";
-                }
+                    ModelState.AddModelError("Division", "You are not authorized for any division");
             }
         }
 
         private void InitializeDepartments(SkuAttributeModel model, bool reset)
         {
-            model.Departments = currentUser.GetUserDepartments(AppName).Where(d => d.DivCode == model.Division).ToList();
+            var userDepts = currentUser.GetUserDepartments(AppName).Where(d => d.DivCode == model.Division)
+                                                                   .Select(d => new SelectListItem
+                                                                   {
+                                                                       Text = d.DisplayName,
+                                                                       Value = d.DeptNumber,
+                                                                       Selected = d.DeptNumber == model.Department
+                                                                   });
+            model.DepartmentList = new SelectList(userDepts, "Value", "Text");
 
             if (reset || string.IsNullOrEmpty(model.Department))
             {
                 //default to first one in the list
-                if (model.Departments.Any())
-                {
-                    model.Department = model.Departments.First().DeptNumber;
-                }
+                if (userDepts.Any())
+                    model.Department = userDepts.First().Value;
                 else
-                {
-                    model.Message = "You are not authorized for any departments within division " + model.Division;
-                }
+                    ModelState.AddModelError("Department", string.Format("You are not authorized for any departments within division {0}", model.Division));
             }
         }
 
         private void InitializeCategories(SkuAttributeModel model)
         {
-            model.Categories = db.Categories.Where(c => c.divisionCode == model.Division && c.departmentCode == model.Department).ToList();
+            model.CategoryList = new SelectList(db.Categories.Where(c => c.divisionCode == model.Division &&
+                                                                         c.departmentCode == model.Department), "categoryCode", "CategoryDisplay");
         }
 
         private void InitializeBrands(SkuAttributeModel model)
         {
-            model.Brands = db.BrandIDs.Where(b => b.divisionCode == model.Division && b.departmentCode == model.Department).ToList();
+            model.BrandList = new SelectList(db.BrandIDs.Where(b => b.divisionCode == model.Division &&
+                                                                    b.departmentCode == model.Department), "brandIDCode", "brandIDDisplay");
         }
 
         private void InitializeAttributes(SkuAttributeModel model)
@@ -143,7 +170,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [CheckPermission(Roles = "Director of Allocation,Admin,Support,Advanced Merchandiser Processes")]
-        public ActionResult Create(string div)
+        public ActionResult Create()
         {
             SkuAttributeModel model = new SkuAttributeModel();
 
@@ -162,29 +189,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
             InitializeDivisions(model);
             InitializeDepartments(model, false);
 
-            if (string.IsNullOrEmpty(model.Message))
+            //if (string.IsNullOrEmpty(model.Message))
+            if (ModelState.IsValid)
             {
                 var existing = from a in db.SkuAttributeHeaders
                                 where a.Division == model.Division &&
                                       a.Dept == model.Department &&
-                                      (
-                                            a.Category == model.Category ||
-                                            (a.Category == null && model.Category == null)
-                                      ) &&
-                                      (
-                                           a.Brand == model.BrandID ||
-                                           (a.Brand == null && model.BrandID == null)
-                                      )                                    
+                                      (a.Category == model.Category ||
+                                       (a.Category == null && model.Category == null)) &&
+                                      (a.Brand == model.BrandID ||
+                                       (a.Brand == null && model.BrandID == null))                                    
                                 select a;
 
                 if (existing.Any())
                 {
-                    model.Message = "This Department/Category/BrandID is already setup, please use go Back to List and use Edit.";
+                    ModelState.AddModelError("", "This Department/Category/BrandID is already setup, please use go Back to List and use Edit.");
                 }
 
                 if (!string.IsNullOrEmpty(model.BrandID) && string.IsNullOrEmpty(model.Category) && string.IsNullOrEmpty(model.Message))
                 {
-                    model.Message = "Category is required when a BrandID is selected";
+                    ModelState.AddModelError("Category", "Category is required when a BrandID is selected");
+                    //model.Message = "Category is required when a BrandID is selected";
                 }
 
                 if (!string.IsNullOrEmpty(model.BrandID) && string.IsNullOrEmpty(model.Message))
@@ -198,21 +223,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     if (!skus.Any())
                     {
-                        model.Message = "This Department/Category/BrandID selection doesn't match any skus.";
+                        ModelState.AddModelError("", "This Department/Category/BrandID selection doesn't match any skus.");
+                        //model.Message = "This Department/Category/BrandID selection doesn't match any skus.";
                     }
                 }
 
-                if (string.IsNullOrEmpty(model.Message))
-                {
+                //if (string.IsNullOrEmpty(model.Message))
+                //{
                     int total = model.Attributes.Sum(m => m.WeightInt);
                     if (total != 0 && total != 100)
                     {
-                        model.Message = "Total must equal 100, it was " + total;
+                        ModelState.AddModelError("", string.Format("Total must equal 100, it was {0}", total));
+                        //model.Message = string.Format("Total must equal 100, it was {0}", total);
                     }
-                }
+                //}
             }
 
-            if (!string.IsNullOrEmpty(model.Message))
+            //if (!string.IsNullOrEmpty(model.Message))
+            if (!ModelState.IsValid)
             {
                 //has errors
                 InitializeCategories(model);
@@ -229,11 +257,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     Dept = model.Department,
                     Category = model.Category,
                     Brand = model.BrandID,
-                    CreatedBy = User.Identity.Name,
+                    CreatedBy = currentUser.NetworkID,
                     CreateDate = DateTime.Now,
                     WeightActiveInt = model.WeightActive
                 };
-
+                
                 db.SkuAttributeHeaders.Add(header);
                 db.SaveChanges();
 
@@ -250,35 +278,53 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Edit(int ID)
         {
-            SkuAttributeModel model = new SkuAttributeModel();
             SkuAttributeHeader header = db.SkuAttributeHeaders.Where(s => s.ID == ID).First();
+            var divisions = DivisionService.ListDivisions()
+                .OrderBy(d => d.DivCode)
+                .Select(d => new SelectListItem
+                {
+                    Text = d.DisplayName,
+                    Value = d.DivCode,
+                    Selected = d.DivCode == header.Division
+                });
 
-            model.HeaderID = ID;
-            model.Division = header.Division; 
-            model.Department = header.Dept;
-            model.Category = header.Category;
-            model.BrandID = header.Brand;
-            model.WeightActive = header.WeightActiveInt;
-            model.Attributes = db.SkuAttributeDetails.Where(s => s.HeaderID == header.ID).ToList();
+            var depts = DepartmentService.ListDepartments(header.Division).Select(d => new SelectListItem
+                                                                                       {
+                                                                                           Text = d.DisplayName,
+                                                                                           Value = d.DeptNumber,
+                                                                                           Selected = d.DeptNumber == header.Dept
+                                                                                       });
+
+            SkuAttributeModel model = new SkuAttributeModel()
+            {
+                HeaderID = ID,
+                Division = header.Division,
+                Department = header.Dept,
+                Category = header.Category,
+                BrandID = header.Brand,
+                WeightActive = header.WeightActiveInt,
+                DivisionList = new SelectList(divisions, "Value", "Text"),
+                DepartmentList = new SelectList(depts, "Value", "Text"),
+                Attributes = db.SkuAttributeDetails.Where(s => s.HeaderID == header.ID).ToList()
+            };
+
             model.Attributes = (from a in model.Attributes 
                                 orderby a.SortOrder, a.AttributeType ascending 
                                 select a).ToList();
-            model.Divisions = DivisionService.ListDivisions();
-            model.Departments = DepartmentService.ListDepartments(model.Division);
 
             InitializeCategories(model);
             InitializeBrands(model);
-
+            
             if (currentUser.HasDivDept(AppName, model.Division, model.Department))
             {
-                //check edit role
-                ViewData["hasEditRole"] = HasEditRole();
+                //check edit role    
+                ViewBag.hasEditRole = currentUser.HasUserRole(AppName, editRoles.Split(',').ToList());
             }
             else
             {
                 //no authorization to division/department
-                ViewData["hasEditRole"] = false;
-                model.Message = "You are not authorized for this division/department";
+                ViewBag.hasEditRole = false;
+                ModelState.AddModelError("", "You are not authorized for this division/department");
             }
 
             return View(model);
@@ -287,7 +333,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Edit(SkuAttributeModel model)
         {
-            ViewData["hasEditRole"] = true;
+            ViewBag.hasEditRole = true;
 
             if (currentUser.HasDivDept(AppName, model.Division, model.Department))
             {
@@ -298,35 +344,37 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     foreach (SkuAttributeDetail det in model.Attributes)
                     {
                         db.Entry(det).State = System.Data.EntityState.Modified;
-                        db.SaveChanges();
                     }
 
                     SkuAttributeHeader header = db.SkuAttributeHeaders.Where(s => s.ID == model.HeaderID).First();
 
                     header.WeightActiveInt = model.WeightActive;
-                    header.CreatedBy = User.Identity.Name;
+                    header.CreatedBy = currentUser.NetworkID;
                     header.CreateDate = DateTime.Now;
                     db.SaveChanges();
                 }
                 else
                 {
-                    model.Message = "Total must equal 100, it was " + total;
+                    ModelState.AddModelError("", string.Format("Total must equal 100, it was {0}", total));
                 }
             }
             else
             {
-                model.Message = "You are not authorized for this division/department";
-                ViewData["hasEditRole"] = false;
+                //model.Message = "You are not authorized for this division/department";
+                ModelState.AddModelError("", "You are not authorized for this division/department");
+                ViewBag.hasEditRole = false;
+                //ViewData["hasEditRole"] = false;
             }
 
-            if (string.IsNullOrEmpty(model.Message))
+            //if (string.IsNullOrEmpty(model.Message))
+            if (ModelState.IsValid)
             {
                 return RedirectToAction("Index");
             }
             else
             {
-                model.Divisions = DivisionService.ListDivisions();
-                model.Departments = DepartmentService.ListDepartments(model.Division);
+                model.DivisionList = new SelectList(DivisionService.ListDivisions(), "divCode", "DisplayName");
+                model.DepartmentList = new SelectList(DepartmentService.ListDepartments(model.Division), "DeptNumber", "DisplayName");
 
                 InitializeCategories(model);
                 InitializeBrands(model);
@@ -335,7 +383,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-        [CheckPermission(Roles = "Director of Allocation,Admin,Support,Advanced Merchandiser Processes")]
+        [CheckPermission(Roles = "Director of Allocation,Admin,Support,Advanced Merchandiser Processes")]        
         public ActionResult Delete(int ID)
         {
             SkuAttributeHeader header = db.SkuAttributeHeaders.Where(s => s.ID == ID).First();
@@ -343,7 +391,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (currentUser.HasDivDept(AppName, header.Division, header.Dept))
             {
                 db.SkuAttributeHeaders.Remove(header);
-                db.SaveChanges();
+                //db.SaveChanges();
                 var details = db.SkuAttributeDetails.Where(d => d.HeaderID == ID).ToList();
                 foreach (SkuAttributeDetail det in details)
                 {
@@ -355,7 +403,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                return RedirectToAction("Index", new {showMessage = true});
+                ModelState.AddModelError("", "You are not authorized for this division/department");
+
+                TempData["ModelState"] = ModelState;
+                return RedirectToAction("Index");
             }
         }
 
@@ -901,15 +952,5 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         #endregion
-
-        private bool HasEditRole()
-        {
-            string checkroles = "Director of Allocation,Admin,Support,Advanced Merchandiser Processes";
-            string[] roles = checkroles.Split(new char[] { ',' });
-            
-
-            bool ok = WebSecurityService.UserHasRole(UserName, "Allocation", roles);
-            return ok;
-        }
     }
 }

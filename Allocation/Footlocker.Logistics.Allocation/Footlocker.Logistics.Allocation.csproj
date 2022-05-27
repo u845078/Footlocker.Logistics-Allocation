@@ -516,7 +516,9 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\Web.config" />
+    <Content Include="Views\Web.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="packages.config" />
     <Content Include="Content\Templates\BulkRangeTemplate.xls" />
     <None Include="Content\Templates\ARConstraintsUploadTemplate.xls">
