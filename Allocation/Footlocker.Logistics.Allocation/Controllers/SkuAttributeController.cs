@@ -25,7 +25,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ViewBag.hasEditRole = currentUser.HasUserRole(AppName, editRoles.Split(',').ToList());
 
-            if (TempData["ModelState"] is ModelStateDictionary previousModelState)
+            ModelStateDictionary previousModelState = TempData["ModelState"] as ModelStateDictionary;
+
+            if (previousModelState != null)
             {
                 foreach (KeyValuePair<string, ModelState> kvp in previousModelState)
                     if (!ModelState.ContainsKey(kvp.Key))
