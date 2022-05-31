@@ -191,7 +191,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             InitializeDivisions(model);
             InitializeDepartments(model, false);
 
-            //if (string.IsNullOrEmpty(model.Message))
             if (ModelState.IsValid)
             {
                 var existing = from a in db.SkuAttributeHeaders
@@ -208,13 +207,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     ModelState.AddModelError("", "This Department/Category/BrandID is already setup, please use go Back to List and use Edit.");
                 }
 
-                if (!string.IsNullOrEmpty(model.BrandID) && string.IsNullOrEmpty(model.Category) && string.IsNullOrEmpty(model.Message))
+                if (!string.IsNullOrEmpty(model.BrandID) && string.IsNullOrEmpty(model.Category))
                 {
                     ModelState.AddModelError("Category", "Category is required when a BrandID is selected");
-                    //model.Message = "Category is required when a BrandID is selected";
                 }
 
-                if (!string.IsNullOrEmpty(model.BrandID) && string.IsNullOrEmpty(model.Message))
+                if (!string.IsNullOrEmpty(model.BrandID))
                 {
                     var skus = from a in db.ItemMasters
                                where a.Div == model.Division &&
@@ -226,22 +224,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     if (!skus.Any())
                     {
                         ModelState.AddModelError("", "This Department/Category/BrandID selection doesn't match any skus.");
-                        //model.Message = "This Department/Category/BrandID selection doesn't match any skus.";
                     }
                 }
 
-                //if (string.IsNullOrEmpty(model.Message))
-                //{
-                    int total = model.Attributes.Sum(m => m.WeightInt);
-                    if (total != 0 && total != 100)
-                    {
-                        ModelState.AddModelError("", string.Format("Total must equal 100, it was {0}", total));
-                        //model.Message = string.Format("Total must equal 100, it was {0}", total);
-                    }
-                //}
+                int total = model.Attributes.Sum(m => m.WeightInt);
+                if (total != 0 && total != 100)
+                {
+                    ModelState.AddModelError("", string.Format("Total must equal 100, it was {0}", total));
+                }
             }
 
-            //if (!string.IsNullOrEmpty(model.Message))
             if (!ModelState.IsValid)
             {
                 //has errors
@@ -362,13 +354,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                //model.Message = "You are not authorized for this division/department";
                 ModelState.AddModelError("", "You are not authorized for this division/department");
                 ViewBag.hasEditRole = false;
-                //ViewData["hasEditRole"] = false;
             }
 
-            //if (string.IsNullOrEmpty(model.Message))
             if (ModelState.IsValid)
             {
                 return RedirectToAction("Index");

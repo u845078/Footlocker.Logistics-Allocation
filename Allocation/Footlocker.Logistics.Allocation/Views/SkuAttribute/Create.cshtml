@@ -141,12 +141,12 @@
 
 <div class="editor-field">
     @Html.LabelFor(model => model.Category) [*** Optional ***] <br />
-    @Html.DropDownList("Category", Model.CategoryList, new { onchange = "checkAttribute(1);" })
+    @Html.DropDownList("Category", Model.CategoryList, string.Empty, new { onchange = "checkAttribute(1);" })
     @Html.ValidationMessageFor(model => model.Category)
 </div>
 <div class="editor-field">
     @Html.LabelFor(model => model.BrandID) [*** Optional ***] <br />
-    @Html.DropDownList("BrandID", Model.BrandList, new { onchange = "checkAttribute(3);" })
+    @Html.DropDownList("BrandID", Model.BrandList, string.Empty, new { onchange = "checkAttribute(3);" })
 </div>
 <div class="editor-field">
     <div class="editor-field">
