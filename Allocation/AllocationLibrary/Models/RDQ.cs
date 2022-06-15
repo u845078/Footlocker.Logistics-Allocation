@@ -56,34 +56,34 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
 
-        public Int64 ID { get; set; }
+        public long ID { get; set; }
         [RegularExpression(@"^\d{2}$", ErrorMessage = "Division must be in the format ##")]
-        public String Division { get; set; }
+        public string Division { get; set; }
 
         [Required]
         [RegularExpression(@"^(\d{2}|\d{5})$", ErrorMessage = "Store number must be in the format ##### or ## for warehouses")]
         [Display(Name ="Store or Warehouse Code")]
-        public String Store { get; set; }
+        public string Store { get; set; }
 
         [ForeignKey("DistributionCenter")]
-        public Int32? DCID { get; set; }
+        public int? DCID { get; set; }
         [NotMapped]
         [Display(Name="Warehouse")]
-        public String WarehouseName { get; set; }
-        public String PO { get; set; }
-        public Int64? ItemID { get; set; }
-        public String Type { get; set; }
+        public string WarehouseName { get; set; }
+        public string PO { get; set; }
+        public long? ItemID { get; set; }
+        public string Type { get; set; }
         [RegularExpression(@"^\d{2}-\d{2}-\d{5}-\d{2}$", ErrorMessage = "Sku must be in the format ##-##-#####-##")]
-        public String Sku { get; set; }
+        public string Sku { get; set; }
         [Display(Name="Size/Caselot")]
         [RegularExpression(@"^\d{3}(?:\d{2})?$", ErrorMessage = "Size must be 3 or 5 digits")]
-        public String Size { get; set; }
-        public Int32 Qty { get; set; }
-        public Int32? TargetQty { get; set; }
-        public Int32? ForecastQty { get; set; }
-        public Int32? NeedQty { get; set; }
+        public string Size { get; set; }
+        public int Qty { get; set; }
+        public int? TargetQty { get; set; }
+        public int? ForecastQty { get; set; }
+        public int? NeedQty { get; set; }
         [NotMapped]
-        public Int32 UserRequestedQty 
+        public int UserRequestedQty 
         {
             get 
             {
@@ -116,18 +116,17 @@ namespace Footlocker.Logistics.Allocation.Models
             set
             {
                 _userRequestedQty = value;
-            }
-        
+            }        
         }
-        public String CreatedBy { get; set; }
+        public string CreatedBy { get; set; }
 
         public string LastModifiedUser { get; set; }
         public DateTime? CreateDate { get; set; }
-        public String DestinationType { get; set; }
-        public String Status { get; set; }
+        public string DestinationType { get; set; }
+        public string Status { get; set; }
 
         [NotMapped]
-        public String Pick
+        public string Pick
         {
             get
             {
@@ -151,9 +150,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public virtual DistributionCenter DistributionCenter { get; set; }
 
         [NotMapped]
-        public Boolean Release { get; set; }
-
-        //public virtual List<ItemPack> ItemPack { get; set; }
+        public bool Release { get; set; }
 
         private int _unitQty;
         [NotMapped]
@@ -161,13 +158,10 @@ namespace Footlocker.Logistics.Allocation.Models
         {
             get
             {
-                //if ((Size.Length > 3)&&(ItemPack != null))
-                //{
-                //    return (Qty * ItemPack[0].TotalQty);
-                //}
                 return _unitQty;
             }
-            set {
+            set 
+            {
                 _unitQty = value;
             }
         }
@@ -186,14 +180,14 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [ForeignKey("RDQRejectedReason")]
         [Column("RDQRejectReasonCode")]
-        public Int32? RDQRejectedReasonCode { get; set; }
+        public int? RDQRejectedReasonCode { get; set; }
 
         public virtual RDQRejectReasonCode RDQRejectedReason { get; set; }
 
         public DateTime? TransmitControlDate { get; set; }
 
         [NotMapped]
-        public Boolean CanPick
+        public bool CanPick
         {
             get
             {

@@ -14,8 +14,8 @@ namespace Footlocker.Logistics.Allocation.Models
         public List<Division> Divisions { get; set; }
         public List<DistributionCenter> DCs { get; set; }
         public string Message { get; set; }
-        [Display(Name="Allow pick even though inventory will go negative")]
-        public Boolean AllowPickAnyway { get; set; }
+        //[Display(Name="Allow pick even though inventory will go negative")]
+        //public Boolean AllowPickAnyway { get; set; }
         public List<SelectListItem> PickOptions { get; set; }
     }
 }

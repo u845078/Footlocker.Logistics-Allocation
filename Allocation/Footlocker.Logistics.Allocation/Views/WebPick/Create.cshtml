@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.WebPickModel
+﻿@model WebPickModel
 
 @{
     ViewBag.Title = "Create";
@@ -10,14 +10,6 @@
     @Html.ValidationSummary(true)
 
     <fieldset>
-@*        @if (Model.AllowPickAnyway)
-        {
-            <div class="editor-field">
-                @Html.CheckBoxFor(model => model.AllowPickAnyway)
-                @Html.LabelFor(model => model.AllowPickAnyway)
-            </div>
-        }*@
-
         <div class="editor-label">
             @Html.LabelFor(model => model.RDQ.Division)
         </div>
@@ -29,7 +21,7 @@
             @Html.LabelFor(model => model.RDQ.Store)
         </div>
         <div class="editor-field">
-            @Html.EditorFor(model => model.RDQ.Store)
+            @Html.TextBoxFor(model => model.RDQ.Store, new { maxlength = "5" })
             @Html.ValidationMessageFor(model => model.RDQ.Store)
         </div>
 
@@ -45,7 +37,7 @@
             @Html.LabelFor(model => model.RDQ.Sku)
         </div>
         <div class="editor-field">
-            @Html.EditorFor(model => model.RDQ.Sku)
+            @Html.TextBoxFor(model => model.RDQ.Sku, new { maxlength = "14" })
             @Html.ValidationMessageFor(model => model.RDQ.Sku)
         </div>
 
@@ -53,7 +45,7 @@
             @Html.LabelFor(model => model.RDQ.Size)
         </div>
         <div class="editor-field">
-            @Html.EditorFor(model => model.RDQ.Size)
+            @Html.TextBoxFor(model => model.RDQ.Size, new { maxlength = "5" })
             @Html.ValidationMessageFor(model => model.RDQ.Size)
         </div>
 
@@ -70,7 +62,6 @@
         </div>
         <div class="editor-field">
             @Html.DropDownListFor(model => model.RDQ.Status, Model.PickOptions)
-            @*Html.DropDownListFor(model => model.RDQ.Status, new List<SelectListItem> { new SelectListItem { Text = "Store's next pick day", Value = "WEB PICK" }, new SelectListItem { Text = "Pick right away", Value = "E-PICK" } }) *@
             @Html.ValidationMessageFor(model => model.RDQ.Status)
         </div>
 

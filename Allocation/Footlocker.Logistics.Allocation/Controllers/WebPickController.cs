@@ -7,6 +7,7 @@ using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Common;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Models.Services;
+using Footlocker.Logistics.Allocation.DAO;
 using System.IO;
 using Aspose.Excel;
 using Telerik.Web.Mvc;
@@ -22,23 +23,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     "Director of Allocation", "Support" };
         //
         // GET: /WebPick/
-        Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        AllocationContext db = new AllocationContext();
 
         public ActionResult Index(string message)
         {
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
-            List<RDQ> list = (from a in db.RDQs
-                              where a.Type == "user"
-                              select a).ToList();
+            List<string> divs = currentUser.GetUserDivList(AppName);
+            List<RDQ> list = db.RDQs.Where(r => r.Type == "user").ToList();
+
             list = (from a in list
                     join b in divs 
-                      on a.Division equals b.DivCode
+                      on a.Division equals b
                     select a).ToList();
 
             if (list.Count > 0)
             {
-                List<string> uniqueNames = (from l in list
-                                            where l.CreatedBy.Contains("CORP")
+                List<string> uniqueNames = (from l in list                                            
                                             select l.CreatedBy).Distinct().ToList();
                 Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
 
@@ -53,7 +52,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
-            ViewData["message"] = message;
+            ViewBag.Message = message;            
 
             return View(list);
         }
@@ -86,15 +85,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 if (model.RuleSetID < 1)
                 {
                     //get a new ruleset
-                    RuleSet rs = new RuleSet();
-                    rs.Type = "rdq";
-                    rs.CreateDate = DateTime.Now;
-                    rs.CreatedBy = UserName;
+                    RuleSet rs = new RuleSet
+                    {
+                        Type = "rdq",
+                        CreateDate = DateTime.Now,
+                        CreatedBy = currentUser.NetworkID
+                    };
+
                     db.RuleSets.Add(rs);
                     db.SaveChanges();
 
                     model.RuleSetID = rs.RuleSetID;
-
                 }
 
                 ViewData["ruleSetID"] = model.RuleSetID;
@@ -238,38 +239,36 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View("BulkAdmin", model);
         }
 
-
-
         [GridAction]
         public ActionResult _BulkRDQs(int instance, string div, string department, string category, string sku, string status, string po, string store, Int64 ruleset)
         {
             List<RDQ> model = GetRDQsForSession(instance, div, department, category, sku, status, po, store, ruleset);
 
-            var rdqGroups =
-            from rdq in model
-            group rdq by new
-            {
-                Division = rdq.Division,
-                Store = rdq.Store,
-                WarehouseName = rdq.WarehouseName,
-                Category = rdq.Category,
-                ItemID = rdq.ItemID,
-                Sku = rdq.Sku,
-                Status = rdq.Status
-            } into g
-            select new RDQGroup()
-            {
-                Division = g.Key.Division,
-                Store = g.Key.Store,
-                WarehouseName = g.Key.WarehouseName,
-                Category = g.Key.Category,
-                ItemID = Convert.ToInt64(g.Key.ItemID),
-                Sku = g.Key.Sku,
-                IsBin = g.Where(r => r.Size.Length > 3).Any() ? false : true,
-                Qty = g.Sum(r => r.Qty),
-                UnitQty = g.Sum(r => r.UnitQty),
-                Status = g.Key.Status
-            };
+            var rdqGroups = from rdq in model
+                            group rdq by new
+                            {
+                                Division = rdq.Division,
+                                Store = rdq.Store,
+                                WarehouseName = rdq.WarehouseName,
+                                Category = rdq.Category,
+                                ItemID = rdq.ItemID,
+                                Sku = rdq.Sku,
+                                Status = rdq.Status
+                            } into g
+                            select new RDQGroup()
+                            {
+                                Division = g.Key.Division,
+                                Store = g.Key.Store,
+                                WarehouseName = g.Key.WarehouseName,
+                                Category = g.Key.Category,
+                                ItemID = Convert.ToInt64(g.Key.ItemID),
+                                Sku = g.Key.Sku,
+                                IsBin = g.Where(r => r.Size.Length > 3).Any() ? false : true,
+                                Qty = g.Sum(r => r.Qty),
+                                UnitQty = g.Sum(r => r.UnitQty),
+                                Status = g.Key.Status
+                            };
+
             return View(new GridModel(rdqGroups.OrderBy(g => g.Division)
                     .ThenBy(g => g.Store)
                     .ThenBy(g => g.WarehouseName)
@@ -284,12 +283,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<RDQ> model = (List<RDQ>)Session["searchresultlist"];
 
-            model = (from a in model where ((a.Division == div)
-                         &&(a.Store == store)
-                         &&(a.WarehouseName == warehousename)
-                         &&(a.Sku == sku)
-                         &&(a.Status == status)
-                         ) select a).ToList();
+            model = (from a in model 
+                     where a.Division == div && 
+                           a.Store == store &&
+                           a.WarehouseName == warehousename &&
+                           a.Sku == sku &&
+                           a.Status == status
+                     select a).ToList();
+
             return View(new GridModel(model.ToList()));
         }
 
@@ -312,19 +313,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     List<Department> depts = currentUser.GetUserDepartments(AppName).Where(d => d.DivCode == div).ToList();
 
                     var templist = (from a in db.RDQs
-                            join b in db.InstanceDivisions on a.Division equals b.Division
-                            join c in db.ItemMasters on a.ItemID equals c.ID
-							join p in db.ItemPacks on new { ItemID = (long)a.ItemID, Size = a.Size } equals new { ItemID = p.ItemID, Size = p.Name } into itempacks
-							from p in itempacks.DefaultIfEmpty()
-					where ((b.InstanceID == instance)
-                            && (c.Div == div)
-                            && ((c.Category == category) || (category == null))
-                            && ((a.Sku == sku) || (sku == null))
-                            && ((a.PO == po) || (po == null))
-                            && ((a.Store == store) || (store == null))
-                            && ((a.Status == status) || (status == "All"))
-                            )
-					select new { rdq = a, dept = c.Dept, UnitQty = p == null ? a.Qty : p.TotalQty * a.Qty } ).ToList();
+                                    join b in db.InstanceDivisions on a.Division equals b.Division
+                                    join c in db.ItemMasters on a.ItemID equals c.ID
+							        join p in db.ItemPacks on new { ItemID = (long)a.ItemID, Size = a.Size } equals new { ItemID = p.ItemID, Size = p.Name } into itempacks
+							        from p in itempacks.DefaultIfEmpty()
+					                where (b.InstanceID == instance) && 
+                                           (c.Div == div)
+                                            && ((c.Category == category) || (category == null))
+                                            && ((a.Sku == sku) || (sku == null))
+                                            && ((a.PO == po) || (po == null))
+                                            && ((a.Store == store) || (store == null))
+                                            && ((a.Status == status) || (status == "All"))                                          
+					                select new { rdq = a, dept = c.Dept, UnitQty = p == null ? a.Qty : p.TotalQty * a.Qty } ).ToList();
 
 					//update unitqty
 					foreach (var item in templist)
@@ -383,25 +383,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _BulkPick([Bind(Prefix = "updated")]IEnumerable<RDQ> updated)
         {
-            int instanceid = 0;
-            Int64 itemid = 0;
             RDQ updateRDQ;
             foreach (RDQ r in updated)
             {
                 if (r.Release)
                 {
                     //need to pick this
-                    updateRDQ = (from a in db.RDQs where a.ID == r.ID select a).First();
+                    updateRDQ = db.RDQs.Where(a => a.ID == r.ID).FirstOrDefault();
                     updateRDQ.Status = "HOLD-REL";
                 }
             }
-            db.SaveChanges(UserName);
+
+            db.SaveChanges(currentUser.NetworkID);
 
             List<Division> divs = currentUser.GetUserDivisions(AppName);
-            List<RDQ> list = (from a in db.RDQs select a).ToList();
-            list = (from a in list join b in divs on a.Division equals b.DivCode select a).ToList();
-            return View(new GridModel(list));
+            List<RDQ> list = (from a in db.RDQs 
+                              join b in divs 
+                                on a.Division equals b.DivCode 
+                              select a).ToList();
 
+            return View(new GridModel(list));
         }
 
         [HttpPost]
@@ -410,7 +411,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // Get all RDQs of specified SKU for specified hold
             var dao = new RDQDAO();
             if ((Session["searchresult"] != null) &&
-                ((Int32)Session["searchresult"] > 0))
+                ((int)Session["searchresult"] > 0))
             {
                 var holdRDQs = (List<RDQ>)Session["searchresultlist"];
                 var groupRDQs = holdRDQs.Where(rdq =>
@@ -424,7 +425,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     .ToList();
 
                 //performance was really bad via entity framework, we'll just run a quick stored proc and update records in memory
-                dao.DeleteRDQs(groupRDQs, UserName);
+                dao.DeleteRDQs(groupRDQs, currentUser.NetworkID);
 
                 groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
 
@@ -445,7 +446,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //FLLogger log = new FLLogger("c:\\log\\alloc_timing.log");
             //log.Log("starting releaseRDQGroup", FLLogger.eLogMessageType.eInfo);
             if ((Session["searchresult"] != null) &&
-                ((Int32)Session["searchresult"] > 0))
+                ((int)Session["searchresult"] > 0))
             {
                 var holdRDQs = (List<RDQ>)Session["searchresultlist"];
                 //log.Log("pulled list from session", FLLogger.eLogMessageType.eInfo);
@@ -485,7 +486,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 Session["searchresult"] = -1;
                 return new JsonResult() { Data = new JsonResultData(ActionResultCode.SystemError) };
             }
-
         }
 
         [HttpPost]
@@ -494,15 +494,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // Get all RDQs of specified SKU for specified hold
             var dao = new RDQDAO();
             if ((Session["searchresult"] != null) &&
-                ((Int32)Session["searchresult"] > 0))
+                ((int)Session["searchresult"] > 0))
             {
                 var holdRDQs = (List<RDQ>)Session["searchresultlist"];
-                RDQ del = (from a in holdRDQs where a.ID == id select a).First();
+                RDQ del = holdRDQs.Where(hr => hr.ID == id).FirstOrDefault();
                 holdRDQs.Remove(del);
 
                 del = (from a in db.RDQs where a.ID == id select a).First();
                 db.RDQs.Remove(del);
-                db.SaveChanges(UserName);
+                db.SaveChanges(currentUser.NetworkID);
                 Session["searchresultlist"] = holdRDQs;
                 // Return JSON representing Success
                 return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
@@ -517,16 +517,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult ReleaseRDQ(Int64 id)
         {
-            //FLLogger log = new FLLogger("c:\\log\\alloc_timing.log");
-            //log.Log("starting releaseRDQGroup", FLLogger.eLogMessageType.eInfo);
             if ((Session["searchresult"] != null) &&
-                ((Int32)Session["searchresult"] > 0))
+                ((int)Session["searchresult"] > 0))
             {
                 var holdRDQs = (List<RDQ>)Session["searchresultlist"];
-                RDQ del = (from a in holdRDQs where a.ID == id select a).First();
+                RDQ del = holdRDQs.Where(hr => hr.ID == id).FirstOrDefault();
                 del.Status = "HOLD-REL";
                 db.Entry(del).State = System.Data.EntityState.Modified;
-                db.SaveChanges(UserName);
+                db.SaveChanges(currentUser.NetworkID);
 
                 Session["searchresultlist"] = holdRDQs;
                 // Return JSON representing Success
@@ -541,10 +539,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult AuditIndex()
         {
-            AuditRDQModel model = new AuditRDQModel();
-            model.StartDate = DateTime.Now.AddDays(-7);
-            model.EndDate = DateTime.Now;
-            model.list = (from a in db.AuditRDQs where ((a.PickDate >= model.StartDate) && (a.PickDate <= model.EndDate)) select a).ToList();
+            AuditRDQModel model = new AuditRDQModel
+            {
+                StartDate = DateTime.Now.AddDays(-7),
+                EndDate = DateTime.Now
+            };
+
+            model.list = db.AuditRDQs.Where(ar => ar.PickDate >= model.StartDate && ar.PickDate <= model.EndDate).ToList();
+
             return View(model);
         }
 
@@ -560,7 +562,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             DateTime start = Convert.ToDateTime(startdate);
             DateTime end = Convert.ToDateTime(enddate);
-            List<AuditRDQ> list = (from a in db.AuditRDQs where ((a.PickDate >= start) && (a.PickDate <= end)) select a).ToList();
+            List<AuditRDQ> list = (from a in db.AuditRDQs where (a.PickDate >= start) && (a.PickDate <= end) select a).ToList();
 
             List<DistributionCenter> dcs = (from a in db.DistributionCenters select a).ToList();
             foreach (AuditRDQ a in list)
@@ -583,8 +585,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             model.Divisions = currentUser.GetUserDivisions(AppName);
             model.DCs = (from a in db.DistributionCenters
-                         where (a.Type == "BOTH" || 
-                                a.Type == "BIN")
+                         where a.Type == "BOTH" || 
+                               a.Type == "BIN"
                          select a).ToList();
 
             model.PickOptions = new List<SelectListItem>
@@ -615,21 +617,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             ItemDAO itemDAO = new ItemDAO();
 
-            if (!itemDAO.DoValidSizesExist(model.RDQ.Sku, model.RDQ.Size))
-            {
-                model.Message = "Size does not exist for this sku";
-            }
-            else if (model.RDQ.Qty <= 0)
-            {
-                model.Message = "Qty must be greater than zero.";
-            }
-            else if (model.RDQ.Status == "E-PICK")
+            if (!itemDAO.DoValidSizesExist(model.RDQ.Sku, model.RDQ.Size))            
+                ModelState.AddModelError("RDQ.Size", "Size does not exist for this sku");
+
+            if (model.RDQ.Qty <= 0)
+                ModelState.AddModelError("RDQ.Qty", "Qty must be greater than zero.");
+
+            if (model.RDQ.Status == "E-PICK")
             {
                 if (db.DistributionCenters.Where(dc => dc.ID == model.RDQ.DCID && dc.TransmitRDQsToKafka).Count() == 0)
-                    model.Message = "This DC is not accepting E-Picks from Allocation yet.";
+                    ModelState.AddModelError("RDQ.Status", "This DC is not accepting E-Picks from Allocation yet.");
             }
             
-            if (string.IsNullOrEmpty(model.Message))
+            if (string.IsNullOrEmpty(model.Message) && ModelState.IsValid)
             {
                 int instance = (from a in db.InstanceDivisions
                                 where a.Division == model.RDQ.Division
@@ -654,9 +654,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 if (string.IsNullOrEmpty(message))
                 {
                     //call to apply holds
-                    List<RDQ> list = new List<RDQ>();
-
-                    list.Add(model.RDQ);
+                    List<RDQ> list = new List<RDQ>
+                    {
+                        model.RDQ
+                    };
 
                     RDQDAO rdqDAO = new RDQDAO();
                     int holdcount = rdqDAO.ApplyHolds(list, instance);
@@ -671,7 +672,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         message += string.Format("{0} on hold. Please go to Release Held RDQs to see held RDQs. ", holdcount);
                     }
-                    return RedirectToAction("Index", new { message = message });
+                    return RedirectToAction("Index", new { message });
                 }
 
                 model.Message = message;
@@ -768,18 +769,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
             
             if (rdq.Division != rdq.Sku.Substring(0, 2))
             {
-                message = "Division must be same for sku and store " + rdq.Division + " " + rdq.Sku.Substring(0, 2);
+                message = string.Format("Division must be same for sku and store {0} {1}", rdq.Division, rdq.Sku.Substring(0, 2));
             }
             else
             {
                 if (rdq.Store.Length == 5)
                 {
                     if ((from a in db.vValidStores
-                         where ((a.Division == rdq.Division) &&
-                                (a.Store == rdq.Store))
+                         where a.Division == rdq.Division &&
+                               a.Store == rdq.Store
                          select a).Count() == 0)
                     {
-                        message = rdq.Division + "-" + rdq.Store + " is not a valid store.";
+                        message = string.Format("{0}-{1} is not a valid store.", rdq.Division, rdq.Store);
                     }
                 }
                 else if (rdq.Store.Length == 2)
@@ -788,12 +789,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          where d.MFCode == rdq.Store
                          select d).Count() == 0)
                     {
-                        message = rdq.Store + " is not a valid warehouse code.";
+                        message = string.Format("{0} is not a valid warehouse code.", rdq.Store);
                     }
                 }
                 else
                 {
-                    message = rdq.Store + " is not a valid store or warehouse code.";
+                    message = string.Format("{0} is not a valid store or warehouse code.", rdq.Store);
                 }
             }
 
@@ -801,17 +802,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 if (validateInventory)
                 {
-                    Int32 qtyAvailable = InventoryAvailableToPick(rdq);
+                    int qtyAvailable = InventoryAvailableToPick(rdq);
                     if (qtyAvailable < rdq.Qty)
                     {
-                        message = "Not enough inventory.  Amount available (for size) is " + qtyAvailable;
+                        message = string.Format("Not enough inventory. Amount available (for size) is {0}", qtyAvailable);
                     }
                 }
             }
             return message;
         }
 
-        public ActionResult Delete(Int64 ID)
+        public ActionResult Delete(long ID)
         {
             RDQ rdq = db.RDQs.Where(r => r.ID == ID).FirstOrDefault();
 
@@ -819,7 +820,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             try
             {
                 db.RDQs.Remove(rdq);
-                db.SaveChanges(User.Identity.Name);
+                db.SaveChanges(currentUser.NetworkID);
             }
             catch (Exception ex)
             {
@@ -1914,7 +1915,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             }
                         }
 
-                        //message = CreateRDQ(rdq, ref pickAnyway);
                         if (message == "")
                         {
                             message = CreateRDQ(rdq, validateInventory);
@@ -2052,9 +2052,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             col++;
             mySheet.Cells[0, col].PutValue("Message");
             mySheet.Cells[0, col].Style.Font.IsBold = true;
-            //col++;
-            //mySheet.Cells[0, col].PutValue("AllowNegative (TRUE/FALSE)");
-            //mySheet.Cells[0, col].Style.Font.IsBold = true;
 
             List<RDQ> errors = (List<RDQ>)Session["errorList"];
             List<string> errorMessages = (List<string>)Session["errorMessageList"];
