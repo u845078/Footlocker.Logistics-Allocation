@@ -70,6 +70,8 @@ namespace Footlocker.Logistics.Allocation.Models
         [NotMapped]
         [Display(Name="Warehouse")]
         public string WarehouseName { get; set; }
+
+        [RegularExpression(@"^\d+$", ErrorMessage = "PO must be numeric only")]
         public string PO { get; set; }
         public long? ItemID { get; set; }
         public string Type { get; set; }
@@ -138,6 +140,8 @@ namespace Footlocker.Logistics.Allocation.Models
                         return "Store's next pick day";
                     case "E-PICK":
                         return "Pick right away";
+                    case "PICK-XDC":
+                        return "Crossdock Pick";
                 }
                 return "unknown";
             }

@@ -562,12 +562,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             DateTime start = Convert.ToDateTime(startdate);
             DateTime end = Convert.ToDateTime(enddate);
-            List<AuditRDQ> list = (from a in db.AuditRDQs where (a.PickDate >= start) && (a.PickDate <= end) select a).ToList();
+            List<AuditRDQ> list = db.AuditRDQs.Where(ar => ar.PickDate >= start && ar.PickDate <= end).ToList();
 
-            List<DistributionCenter> dcs = (from a in db.DistributionCenters select a).ToList();
+            List<DistributionCenter> dcs = db.DistributionCenters.ToList();
             foreach (AuditRDQ a in list)
             {
-                a.WarehouseName = (from d in dcs where d.ID == a.DCID select d.Name).FirstOrDefault();
+                a.WarehouseName = dcs.Where(d => d.ID == a.DCID).FirstOrDefault().Name;
             }
             return View(new GridModel(list));
         }
@@ -584,9 +584,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private void InitializeCreate(WebPickModel model)
         {
             model.Divisions = currentUser.GetUserDivisions(AppName);
-            model.DCs = (from a in db.DistributionCenters
-                         where a.Type == "BOTH" || 
-                               a.Type == "BIN"
+            model.DCs = (from a in db.DistributionCenters                        
                          select a).ToList();
 
             model.PickOptions = new List<SelectListItem>
@@ -628,6 +626,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 if (db.DistributionCenters.Where(dc => dc.ID == model.RDQ.DCID && dc.TransmitRDQsToKafka).Count() == 0)
                     ModelState.AddModelError("RDQ.Status", "This DC is not accepting E-Picks from Allocation yet.");
             }
+
+            if (!(model.RDQ.Store.Length == 5 || model.RDQ.Store.Length == 2))
+                ModelState.AddModelError("RDQ.Store", string.Format("{0} is not a valid store or warehouse code.", model.RDQ.Store));
             
             if (string.IsNullOrEmpty(model.Message) && ModelState.IsValid)
             {
@@ -639,17 +640,34 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                         where cd.InstanceID == instance
                                         select cd.RunDate).FirstOrDefault();
 
-                if (model.RDQ.Status == "E-PICK")
+                if (!string.IsNullOrEmpty(model.RDQ.PO))
                 {
-                    model.RDQ.TransmitControlDate = controlDate;
-
-                    if (model.RDQ.Size.Length == 3)
-                        model.RDQ.RecordType = "1";
+                    if (model.RDQ.Status == "E-PICK")
+                        ModelState.AddModelError("RDQ.Status", "You cannot do an E-Pick with a PO");
                     else
-                        model.RDQ.RecordType = "4";
+                    {
+                        message = CreateUserCrossdockRDQ(model.RDQ);
+                    }
                 }
-                    
-                message = CreateRDQ(model.RDQ, model.RDQ.Status == "WEB PICK");
+                else
+                {
+                    if (model.RDQ.Status == "E-PICK")
+                    {
+                        if (!string.IsNullOrEmpty(model.RDQ.PO))
+                            ModelState.AddModelError("RDQ.Status", "You cannot do an E-Pick with a PO");
+                        else
+                        {
+                            model.RDQ.TransmitControlDate = controlDate;
+
+                            if (model.RDQ.Size.Length == 3)
+                                model.RDQ.RecordType = "1";
+                            else
+                                model.RDQ.RecordType = "4";
+                        }
+                    }
+
+                    message = CreateRDQ(model.RDQ, model.RDQ.Status == "WEB PICK");                    
+                }
 
                 if (string.IsNullOrEmpty(message))
                 {
@@ -680,6 +698,110 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             InitializeCreate(model);
             return View(model);
+        }
+
+        private string CreateUserCrossdockRDQ(RDQ rdq)
+        {
+            string message = "";
+
+            if (TryUpdateModel(rdq, "RDQ"))
+            {
+                if (rdq.Division != rdq.Sku.Substring(0, 2))
+                {
+                    message = string.Format("Division must be same for sku and store {0} {1}", rdq.Division, rdq.Sku.Substring(0, 2));
+                }
+                else
+                {
+                    if (rdq.Store.Length == 5)
+                    {
+                        if (db.vValidStores.Where(vs => vs.Division == rdq.Division && vs.Store == rdq.Store).Count() == 0)
+                        {
+                            message = string.Format("{0}-{1} is not a valid store.", rdq.Division, rdq.Store);
+                        }
+                    }
+                    else if (rdq.Store.Length == 2)
+                    {                       
+                        if (db.DistributionCenters.Where(dc => dc.MFCode == rdq.Store).Count() == 0)
+                        {
+                            message = string.Format("{0} is not a valid warehouse code.", rdq.Store);
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(message))
+                    {
+                        rdq.DistributionCenter = db.DistributionCenters.Where(d => d.ID == rdq.DCID).FirstOrDefault();
+                        if (rdq.DistributionCenter.Type == "BIN")
+                            message = "You provided a Distribution Center that can't do crossdock orders";
+                    }
+                }
+
+                if (message == "")
+                {
+                    List<LegacyFutureInventory> futureInventories = db.LegacyFutureInventory.Where(lfi => lfi.InventoryID == rdq.PO + "-" + rdq.Division).ToList();
+
+                    if (futureInventories.Count > 0)
+                    {
+                        LegacyFutureInventory futureInv = futureInventories.Where(fi => fi.Sku == rdq.Sku && fi.Store == rdq.DistributionCenter.MFCode && fi.Size == rdq.Size).FirstOrDefault();
+
+                        if (futureInv != null)
+                        {
+                            if (futureInv.ProductNodeType == "PRODUCT_PACK")
+                            {
+                                int inventoryReductionQty = 0;
+
+                                InventoryReductions reductions = db.InventoryReductions.Where(ir => ir.PO == rdq.PO && ir.Sku == rdq.Sku && ir.Size == rdq.Size).FirstOrDefault();
+                                if (reductions != null)
+                                    inventoryReductionQty = reductions.Qty;
+
+                                if (rdq.Qty > futureInv.StockQty - inventoryReductionQty)
+                                {
+                                    message = string.Format("Not enough inventory. Amount available (for size) is {0}", futureInv.StockQty - inventoryReductionQty);
+                                }
+                            }
+                            else
+                                message = "Future inventory was found, but it does not look crossdockable";
+                        }
+                        else
+                            message = "Did not find any future inventory for this specific SKU/Size/DC";
+                    }
+                    else
+                        message = "There are no Future Inventory records set up for this PO. Try again tomorrow if the PO was just created";
+                }
+
+                if (message == "")
+                {
+                    rdq.CreateDate = DateTime.Now;
+                    rdq.CreatedBy = currentUser.NetworkID;
+                    rdq.LastModifiedUser = currentUser.NetworkID;
+                    rdq.Status = "PICK-XDC";
+
+                    rdq.DestinationType = "CROSSDOCK";
+                    rdq.Type = "user";
+                    try
+                    {
+                        rdq.ItemID = db.ItemMasters.Where(im => im.MerchantSku == rdq.Sku).First().ID;
+                    }
+                    catch
+                    {
+                        message = "invalid sku";
+                    }
+
+                    if (rdq.ItemID > 0)
+                    {
+                        try
+                        {
+                            db.RDQs.Add(rdq);
+                            db.SaveChanges(currentUser.NetworkID);
+                        }
+                        catch (Exception e)
+                        {
+                            message = e.Message;
+                        }
+                    }
+                }
+            }
+
+            return message;
         }
 
         /// <summary>
@@ -736,7 +858,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return message;
         }
 
-        private Int32 InventoryAvailableToPick(RDQ rdq)
+        private int InventoryAvailableToPick(RDQ rdq)
         {
             List<WarehouseInventory> whInventory;
             int qtyAvailable;
