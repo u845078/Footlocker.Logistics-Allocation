@@ -295,12 +295,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
 
-        private List<RDQ> GetRDQsForSession(int instance, string div, string department, string category, string sku, string status, string po, string store, Int64 ruleset)
+        private List<RDQ> GetRDQsForSession(int instance, string div, string department, string category, string sku, string status, string po, string store, long ruleset)
         {
             List<RDQ> model;
 
             if ((Session["searchresult"] != null) &&
-                ((Int32)Session["searchresult"] > 0))
+                ((int)Session["searchresult"] > 0))
             {
                 model = (List<RDQ>)Session["searchresultlist"];
             }
@@ -646,7 +646,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         ModelState.AddModelError("RDQ.Status", "You cannot do an E-Pick with a PO");
                     else
                     {
-                        message = CreateUserCrossdockRDQ(model.RDQ);
+                        message = CreateFutureUserRDQ(model.RDQ);
                     }
                 }
                 else
@@ -700,7 +700,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        private string CreateUserCrossdockRDQ(RDQ rdq)
+        private string CreateFutureUserRDQ(RDQ rdq)
         {
             string message = "";
 
@@ -730,8 +730,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     if (string.IsNullOrEmpty(message))
                     {
                         rdq.DistributionCenter = db.DistributionCenters.Where(d => d.ID == rdq.DCID).FirstOrDefault();
-                        if (rdq.DistributionCenter.Type == "BIN")
-                            message = "You provided a Distribution Center that can't do crossdock orders";
+
+                        if (rdq.Size.Length == 3)
+                        {
+                            if (rdq.DistributionCenter.Type == "CROSSDOCK")
+                                message = "You provided a Distribution Center that only does crossdock orders and you used a bin size";
+                        }
                     }
                 }
 
@@ -745,7 +749,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                         if (futureInv != null)
                         {
-                            if (futureInv.ProductNodeType == "PRODUCT_PACK")
+                            if (rdq.Size.Length == 5 && futureInv.ProductNodeType != "PRODUCT_PACK")
+                                message = "Future inventory was found, but it does not look crossdockable";
+                            else
                             {
                                 int inventoryReductionQty = 0;
 
@@ -758,8 +764,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     message = string.Format("Not enough inventory. Amount available (for size) is {0}", futureInv.StockQty - inventoryReductionQty);
                                 }
                             }
-                            else
-                                message = "Future inventory was found, but it does not look crossdockable";
                         }
                         else
                             message = "Did not find any future inventory for this specific SKU/Size/DC";
@@ -773,9 +777,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     rdq.CreateDate = DateTime.Now;
                     rdq.CreatedBy = currentUser.NetworkID;
                     rdq.LastModifiedUser = currentUser.NetworkID;
-                    rdq.Status = "PICK-XDC";
 
-                    rdq.DestinationType = "CROSSDOCK";
+                    if (rdq.Size.Length == 5)
+                    {
+                        rdq.Status = "PICK-XDC";
+                        rdq.DestinationType = "CROSSDOCK";
+                    }
+                    else
+                    {
+                        rdq.Status = "WEB-PICK";
+                        rdq.DestinationType = "WAREHOUSE";
+                    }
+
                     rdq.Type = "user";
                     try
                     {
@@ -965,7 +978,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                    mySheet.Cells[row, 3].Value != null ||
                    mySheet.Cells[row, 4].Value != null ||
                    mySheet.Cells[row, 5].Value != null ||
-                   mySheet.Cells[row, 6].Value != null;
+                   mySheet.Cells[row, 6].Value != null ||
+                   mySheet.Cells[row, 7].Value != null ||
+                   mySheet.Cells[row, 8].Value != null;
         }
 
         private void ValidateParsedRDQs(List<RDQ> parsedRDQs, List<RDQ> validRDQs, List<Tuple<RDQ, string>> errorList, 
@@ -988,11 +1003,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                               where dc.TransmitRDQsToKafka
                                               select dc.MFCode).ToList();
 
-            //var invalidDivStoreCombo = parsedRDQs.Where(pr => !db.vValidStores.Any(vs => vs.Division.Equals(pr.Division) && vs.Store.Equals(pr.Store))).ToList();
             parsedRDQs.Where(pr => invalidDivStoreList.Contains(new { pr.Division, pr.Store }))
                       .ToList()
-                      .ForEach(r => SetErrorMessageNew(errorList, r
-                          , string.Format("The division and store combination {0}-{1} is not an existing or valid combination.", r.Division, r.Store)));
+                      .ForEach(r => SetErrorMessageNew(errorList, r,
+                          string.Format("The division and store combination {0}-{1} is not an existing or valid combination.", r.Division, r.Store)));
 
             parsedRDQs.Where(pr => invalidWarehouseList.Contains(new { pr.Store }))
                       .ToList()
@@ -1100,11 +1114,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // Can only do E-picks for warehouses supporting Kafka feed
             var invalidRDQKafkaEpickList = parsedRDQs.Where(pr => (pr.Status == "E-PICK") &&
                                                                    !kafkaWarehouseList.Contains(pr.DC)).ToList();
-            invalidRDQKafkaEpickList.ForEach(r => SetErrorMessageNew(errorList, r,
-                "This DC does not yet support E-Picks from Allocation."));
+            invalidRDQKafkaEpickList.ForEach(r => SetErrorMessageNew(errorList, r, "This DC does not yet support E-Picks from Allocation."));
 
-            invalidRDQRFStoreEpickList.ForEach(r => SetErrorMessageNew(errorList, r,
-                "You can't supply a ring fence store for an E-Pick. It can only go against the DC."));
+            invalidRDQRFStoreEpickList.ForEach(r => SetErrorMessageNew(errorList, r, "You can't supply a ring fence store for an E-Pick. It can only go against the DC."));
 
             // retreive parsed rdqs that are not in any of the lists above
             var validSuppliedRDQs = parsedRDQs.Where(pr => !invalidRDQBothSuppliedList.Any(ir => ir.Equals(pr)) && 
@@ -1114,16 +1126,36 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             // validate distribution center id
             List<string> uniqueDCList = validSuppliedRDQs.Select(pr => pr.DC).Where(dc => !string.IsNullOrEmpty(dc)).Distinct().ToList();
-            var invalidDCList = uniqueDCList.Where(dc => !db.DistributionCenters.Any(dist => dist.MFCode.Equals(dc) && !dist.Type.Equals("CROSSDOCK"))).ToList();
+            var invalidDCList = uniqueDCList.Where(dc => !db.DistributionCenters.Any(dist => dist.MFCode.Equals(dc))).ToList();
             parsedRDQs.Where(pr => invalidDCList.Contains(pr.DC))
                 .ToList()
-                .ForEach(r => SetErrorMessageNew(errorList, r, "DC is invalid or only supports crossdocking."));
+                .ForEach(r => SetErrorMessageNew(errorList, r, "DC is invalid."));
+
+            List<DistributionCenter> dcList = db.DistributionCenters.ToList();
+
+            // make sure DC is okay for PO scenario
+            var invalidDCRDQList = (from pr in parsedRDQs
+                                   join dc in dcList 
+                                     on pr.DCID equals dc.ID
+                                   where string.IsNullOrEmpty(pr.PO) &&
+                                         pr.Size.Length == 3 &&
+                                         dc.Type == "CROSSDOCK"
+                                   select pr.ID).ToList();
+            parsedRDQs.Where(pr => invalidDCRDQList.Contains(pr.ID))
+                .ToList()
+                .ForEach(r => SetErrorMessageNew(errorList, r, "A crossdock-only DC was used for bin product"));
 
             // validate the inventory for dc rdqs.  This is the final validation for dc rdqs, 
             // so if it is valid, add the rdq to the validrdqs list for later processing
             var dcRDQs = validSuppliedRDQs.Where(sr => !invalidDCList.Contains(sr.DC) &&
                                                        !string.IsNullOrEmpty(sr.DC) &&
-                                                       !invalidSkusList.Contains(sr.Sku)).ToList();
+                                                       !invalidSkusList.Contains(sr.Sku) &&
+                                                       string.IsNullOrEmpty(sr.PO)).ToList();
+
+            var futureRDQs = validSuppliedRDQs.Where(sr => !invalidDCList.Contains(sr.DC) &&
+                                                       !string.IsNullOrEmpty(sr.DC) &&
+                                                       !invalidSkusList.Contains(sr.Sku) &&
+                                                       !string.IsNullOrEmpty(sr.PO)).ToList();
 
             // populate dcid and add all remaining dcRDQs to validRDQs
             List<string> uniqueDCs = dcRDQs.Select(r => r.DC).Distinct().ToList();
@@ -1138,7 +1170,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
-            this.ValidateAvailableQuantityForDCRDQs(dcRDQs, validRDQs, errorList);
+            ValidateAvailableQuantityForDCRDQs(dcRDQs, validRDQs, errorList);
+            ValidateFutureQuantityForDCRDQs(futureRDQs, validRDQs, errorList);
 
             // -------------------------------------------------------------------- Ringfence rdq validation --------------------------------------------------------------------
 
@@ -1243,9 +1276,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 Sku = Convert.ToString(mySheet.Cells[row, 1].Value).Trim(),
                 Size = Convert.ToString(mySheet.Cells[row, 2].Value).Trim(),
-                Qty = Convert.ToInt32(mySheet.Cells[row, 3].Value),
-                DC = Convert.ToString(mySheet.Cells[row, 5].Value).Trim(),
-                RingFencePickStore = Convert.ToString(mySheet.Cells[row, 6].Value).Trim()
+                PO = Convert.ToString(mySheet.Cells[row, 3].Value).Trim(),
+                Qty = Convert.ToInt32(mySheet.Cells[row, 4].Value),
+                DC = Convert.ToString(mySheet.Cells[row, 6].Value).Trim(),
+                RingFencePickStore = Convert.ToString(mySheet.Cells[row, 7].Value).Trim()
             };
 
             returnValue.DC = (string.IsNullOrEmpty(returnValue.DC)) ? "" : returnValue.DC.PadLeft(2, '0');
@@ -1260,11 +1294,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 returnValue.Store = Convert.ToString(mySheet.Cells[row, 0].Value).Trim().PadLeft(5, '0');
             else
             {
-                if (!string.IsNullOrEmpty(Convert.ToString(mySheet.Cells[row, 4].Value).Trim()))
-                    returnValue.Store = Convert.ToString(mySheet.Cells[row, 4].Value).Trim().PadLeft(2, '0');
+                if (!string.IsNullOrEmpty(Convert.ToString(mySheet.Cells[row, 5].Value).Trim()))
+                    returnValue.Store = Convert.ToString(mySheet.Cells[row, 5].Value).Trim().PadLeft(2, '0');
             }
 
-            if (Convert.ToString(mySheet.Cells[row, 7].Value).Trim() == "Y")
+            if (Convert.ToString(mySheet.Cells[row, 8].Value).Trim() == "Y")
                 returnValue.Status = "E-PICK";
             else
                 returnValue.Status = "WEB PICK";
@@ -1405,11 +1439,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 (Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Store")) &&
                 (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("SKU")) &&
                 (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Size")) &&
-                (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Quantity")) &&
-                (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("To Warehouse")) &&
-                (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Pick from DC")) &&
-                (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Pick from Ring Fence Store")) &&
-                (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Pick Right Away?"));
+                (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("PO")) &&
+                (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Quantity")) &&
+                (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("To Warehouse")) &&
+                (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Pick from DC")) &&
+                (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Pick from Ring Fence Store")) &&
+                (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Pick Right Away?"));
         }
 
         public ActionResult SaveOptimized(IEnumerable<HttpPostedFileBase> attachments)
@@ -1451,7 +1486,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         if (parsedRDQs.Count > 0)
                         {
                             // file level validations - duplicates, only one division, permission for division
-                            if (!this.ValidateFile(parsedRDQs, errorList, out message))
+                            if (!ValidateFile(parsedRDQs, errorList, out message))
                             {
                                 return Content(message);
                             }
@@ -1478,10 +1513,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                                 // reduce ring fence quantities for the ring fence rdqs
                                 ringFenceRDQs = validRDQs.Where(vr => !string.IsNullOrEmpty(vr.RingFencePickStore)).ToList();
-                                this.ReduceRingFenceQuantities(ringFenceRDQs, errorList);
+                                ReduceRingFenceQuantities(ringFenceRDQs, errorList);
 
                                 // populate necessary properties of RDQs to save to db
-                                this.PopulateRDQProps(validRDQs, controlDate);
+                                PopulateRDQProps(validRDQs, controlDate);
                                 //validRDQs.ForEach(r => db.RDQs.Add(r));
                                 RDQDAO rdqDAO = new RDQDAO();
                                 rdqDAO.InsertRDQs(validRDQs, currentUser.NetworkID);
@@ -1572,7 +1607,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
                     }
 
-                    string userName = User.Identity.Name.Split('\\')[1];
                     // 2) check to see if user has permission for this division
                     if (!currentUser.HasDivision(AppName, division)) 
                     {
@@ -1583,14 +1617,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         // 3) check to see if the parsedRDQs has any duplicates. I don't return false
                         //    for this case because I just remove duplicates and move on with processing
-                        parsedRDQs.GroupBy(pr => new { pr.Store, pr.Sku, pr.Size, pr.Qty, pr.DC, pr.RingFencePickStore, pr.Status })
+                        parsedRDQs.GroupBy(pr => new { pr.Store, pr.Sku, pr.Size, pr.PO, pr.Qty, pr.DC, pr.RingFencePickStore, pr.Status })
                                   .Where(pr => pr.Count() > 1)
                                   .Select(pr => new { DuplicateRDQs = pr.ToList(), Counter = pr.Count() })
                                   .ToList().ForEach(r =>
                                   {
                                       // set error message for first duplicate and the amount of times it was found in the file
-                                      SetErrorMessageNew(errorList, r.DuplicateRDQs.FirstOrDefault(), string.Format(
-                                          "The following row of data was duplicated in the spreadsheet {0} times.  Please provide unique rows of data.", r.Counter));
+                                      SetErrorMessageNew(errorList, r.DuplicateRDQs.FirstOrDefault(), 
+                                          string.Format("The following row of data was duplicated in the spreadsheet {0} times.  Please provide unique rows of data.", r.Counter));
                                       // delete all instances of the duplications from the parsedRDQs list
                                       r.DuplicateRDQs.ForEach(dr => parsedRDQs.Remove(dr));
                                   });
@@ -1685,6 +1719,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 mySheet.Cells[0, col].PutValue("Size Caselot (### or #####)");
                 mySheet.Cells[0, col].Style.Font.IsBold = true;
                 col++;
+                mySheet.Cells[0, col].PutValue("PO (#)");
+                mySheet.Cells[0, col].Style.Font.IsBold = true;
+                col++;
                 mySheet.Cells[0, col].PutValue("Quantity (#)");
                 mySheet.Cells[0, col].Style.Font.IsBold = true;
                 col++;
@@ -1724,6 +1761,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         col++;
                         mySheet.Cells[row, col].PutValue(error.Item1.Size);
                         col++;
+                        mySheet.Cells[row, col].PutValue(error.Item1.PO);
+                        col++;
                         mySheet.Cells[row, col].PutValue(error.Item1.Qty);
                         col++;
                         // if the DC is not populated and the Distribution Center object is populated and this is a DC RDQ
@@ -1744,7 +1783,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         row++;
                     }
 
-                    for (int i = 0; i < 9; i++)
+                    for (int i = 0; i < 10; i++)
                     {
                         mySheet.AutoFitColumn(i);
                     }
@@ -1757,7 +1796,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 // if this message is hit that means there was an exception while processing that was not accounted for
                 // check the log to see what the exception was
                 var message = "An unexpected error has occured.  Please try again or contact an administrator.";
-                return RedirectToAction("ExcelUpload", new { message = message });
+                return RedirectToAction("ExcelUpload", new { message });
             }
 
             return View();
@@ -1874,12 +1913,78 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             , string.Format("Not enough inventory available for all sizes.  Available inventory: {0}", r.Item2));
                         dcRDQs.Remove(rtd);
                     });
-
                 }
-
 
                 validRDQs.AddRange(dcRDQs);
             }
+        }
+
+        /// <summary>
+        /// Validate the inventory for the future rdqs, or RDQs with a PO.  If it is invalid,
+        /// it will remove the rdq from dcRDQs and add it to the error list.
+        /// otherwise it will add the rdq to the validRDQs list.
+        /// </summary>
+        /// <param name="futureRDQs">valid PO rdqs that do not have an invalid sku</param>
+        /// <param name="validRDQs">the list of valid rdqs to generate at the end of the process</param>
+        /// <param name="errorList">error list to display problems for the uploaded rdqs</param>
+        private void ValidateFutureQuantityForDCRDQs(List<RDQ> futureRDQs, List<RDQ> validRDQs, List<Tuple<RDQ, string>> errorList)
+        {
+            var uniqueCombos = futureRDQs.Select(fr => new { fr.Division, fr.Sku, fr.Size, fr.DC, fr.PO })
+                .Distinct()
+                .ToList();            
+
+            //if (uniqueCombos.Count > 0)
+            //{
+            //    List<LegacyFutureInventory> futureInventory = db.LegacyFutureInventory.Where(lfi => )
+
+
+            //    WarehouseInventoryDAO warehouseInventoryDAO = new WarehouseInventoryDAO(null, null);
+            //    List<WarehouseInventoryDAO.WarehouseInventoryLookup> warehouseInventoryLookups = new List<WarehouseInventoryDAO.WarehouseInventoryLookup>();
+            //    foreach (var uc in uniqueCombos)
+            //    {
+            //        warehouseInventoryLookups.Add(new WarehouseInventoryDAO.WarehouseInventoryLookup
+            //        {
+            //            SKU = uc.Item1,
+            //            Size = uc.Item2,
+            //            DCCode = uc.Item3,
+            //            OnHandQuantity = 0
+            //        });
+            //    }
+            //    List<WarehouseInventory> details = warehouseInventoryDAO.GetSQLWarehouseInventory(warehouseInventoryLookups);
+            //    //    // retrieve all available quantity for the specified combinations in one mf call
+            //    RingFenceDAO rfDAO = new RingFenceDAO();
+            //    details = rfDAO.ReduceAvailableInventory(details);
+
+            //    // rdqs that cannot be satisfied by current whse avail quantity
+            //    var dcRDQsGroupedBySize = dcRDQs
+            //        .Where(r => r.Status == "WEB PICK")
+            //      .GroupBy(r => new { Division = r.Division, Sku = r.Sku, Size = r.Size, DC = r.DCID.Value.ToString() }).ToList()
+            //      .Select(r => new { Division = r.Key.Division, Sku = r.Key.Sku, Size = r.Key.Size, DC = r.Key.DC, Quantity = r.Sum(s => s.Qty) }).ToList();
+
+            //    var invalidRDQsAndAvailableQty = (from r in dcRDQsGroupedBySize
+            //                                      join d in details on new { Sku = r.Sku, Size = r.Size, DC = r.DC }
+            //                                                     equals new { Sku = d.Sku, Size = d.size, DC = d.DistributionCenterID }
+            //                                      where r.Quantity > d.quantity
+            //                                      select Tuple.Create(r, d.quantity)).ToList();
+
+            //    foreach (var r in invalidRDQsAndAvailableQty)
+            //    {
+            //        var dcRDQsToDelete = dcRDQs.Where(ir => ir.Division.Equals(r.Item1.Division) &&
+            //                               ir.Sku.Equals(r.Item1.Sku) &&
+            //                               ir.Size.Equals(r.Item1.Size) &&
+            //                               ir.DCID.Value.ToString().Equals(r.Item1.DC) &&
+            //                               ir.Status.Equals("WEB PICK")).ToList();
+
+            //        dcRDQsToDelete.ForEach(rtd =>
+            //        {
+            //            SetErrorMessageNew(errorList, rtd
+            //                , string.Format("Not enough inventory available for all sizes.  Available inventory: {0}", r.Item2));
+            //            dcRDQs.Remove(rtd);
+            //        });
+            //    }
+
+            //    validRDQs.AddRange(futureRDQs);
+            //}
         }
 
         /// <summary>
@@ -1887,241 +1992,238 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// </summary>
         /// <param name="attachments"></param>
         /// <returns></returns>
-        public ActionResult Save(IEnumerable<HttpPostedFileBase> attachments)
-        {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-            string Division = "";
-            bool validateInventory = true;
-            int row = 1;
-            List<RDQ> rdqErrors = new List<RDQ>();
-            List<RDQ> rdqGood = new List<RDQ>();
-            List<string> errorMessages = new List<string>();
+        //public ActionResult Save(IEnumerable<HttpPostedFileBase> attachments)
+        //{
+        //    Aspose.Excel.License license = new Aspose.Excel.License();
+        //    //Set the license 
+        //    license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+        //    string Division = "";
+        //    bool validateInventory = true;
+        //    int row = 1;
+        //    List<RDQ> rdqErrors = new List<RDQ>();
+        //    List<RDQ> rdqGood = new List<RDQ>();
+        //    List<string> errorMessages = new List<string>();
 
-            foreach (HttpPostedFileBase file in attachments)
-            {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-                string mainDivision = "";
+        //    foreach (HttpPostedFileBase file in attachments)
+        //    {
+        //        //Instantiate a Workbook object that represents an Excel file
+        //        Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+        //        Byte[] data1 = new Byte[file.InputStream.Length];
+        //        file.InputStream.Read(data1, 0, data1.Length);
+        //        file.InputStream.Close();
+        //        MemoryStream memoryStream1 = new MemoryStream(data1);
+        //        workbook.Open(memoryStream1);
+        //        Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+        //        string mainDivision = "";
 
-                if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Store")) &&
-                    (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("SKU")) &&
-                    (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Size")) &&
-                    (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Quantity")) &&
-                    (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Pick from DC")) &&
-                    (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Ring Fence Store"))
-                    )
-                {
-                    if (mySheet.Cells[row, 1].Value != null)
-                    {
-                        Division = (Convert.ToString(mySheet.Cells[row, 1].Value)).Substring(0, 2);
-                        mainDivision = Division;
+        //        if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Store")) &&
+        //            (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("SKU")) &&
+        //            (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Size")) &&
+        //            (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Quantity")) &&
+        //            (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Pick from DC")) &&
+        //            (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Ring Fence Store"))
+        //            )
+        //        {
+        //            if (mySheet.Cells[row, 1].Value != null)
+        //            {
+        //                Division = (Convert.ToString(mySheet.Cells[row, 1].Value)).Substring(0, 2);
+        //                mainDivision = Division;
 
-                        if (!currentUser.HasDivision(AppName, Division))
-                        {
-                            return Content("You do not have permission to update this division.");
-                        }
-                    }
-                    // Validate records and create lists of OK and not OK RDQs
-                    RDQ rdq;
-                    while (mySheet.Cells[row, 0].Value != null)
-                    {
-                        Division = (Convert.ToString(mySheet.Cells[row, 1].Value)).Substring(0, 2);
+        //                if (!currentUser.HasDivision(AppName, Division))
+        //                {
+        //                    return Content("You do not have permission to update this division.");
+        //                }
+        //            }
+        //            // Validate records and create lists of OK and not OK RDQs
+        //            RDQ rdq;
+        //            while (mySheet.Cells[row, 0].Value != null)
+        //            {
+        //                Division = (Convert.ToString(mySheet.Cells[row, 1].Value)).Substring(0, 2);
 
-                        if (!(Division.Equals(mainDivision)))
-                        {
-                            return Content("Spreadsheet must be for one division only.");
-                        }
+        //                if (!(Division.Equals(mainDivision)))
+        //                {
+        //                    return Content("Spreadsheet must be for one division only.");
+        //                }
 
-                        //create RDQ
-                        rdq = new RDQ();
-                        rdq.Division = Division;
-                        rdq.Store = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(5, '0');
-                        rdq.Sku = Convert.ToString(mySheet.Cells[row, 1].Value);
-                        rdq.Size = Convert.ToString(mySheet.Cells[row, 2].Value).PadLeft(3, '0');
-                        rdq.Qty = Convert.ToInt32(mySheet.Cells[row, 3].Value);                        
-                        rdq.Status = "WEB PICK";
-                        string dc = Convert.ToString(mySheet.Cells[row, 4].Value).PadLeft(2, '0');
-                        string ringFenceStore = Convert.ToString(mySheet.Cells[row, 5].Value).PadLeft(5, '0');
+        //                //create RDQ
+        //                rdq = new RDQ();
+        //                rdq.Division = Division;
+        //                rdq.Store = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(5, '0');
+        //                rdq.Sku = Convert.ToString(mySheet.Cells[row, 1].Value);
+        //                rdq.Size = Convert.ToString(mySheet.Cells[row, 2].Value).PadLeft(3, '0');
+        //                rdq.Qty = Convert.ToInt32(mySheet.Cells[row, 3].Value);                        
+        //                rdq.Status = "WEB PICK";
+        //                string dc = Convert.ToString(mySheet.Cells[row, 4].Value).PadLeft(2, '0');
+        //                string ringFenceStore = Convert.ToString(mySheet.Cells[row, 5].Value).PadLeft(5, '0');
 
-                        string message = "";
+        //                string message = "";
 
-                        if ((dc == "00") && (ringFenceStore == "00000"))
-                        {
-                            message = "You must supply either a DC or a Ring Fence Store to pick from";
-                        }
-                        else if ((dc != "00") && (ringFenceStore != "00000"))
-                        {
-                            rdq.RingFencePickStore = ringFenceStore;
-                            rdq.DC = dc;
-                            message = "You can't supply both a DC and a Ring Fence Store to pick from. It must be one or the other.";
-                        }
-                        else
-                        {
-                            if (dc != "00")
-                            {
-                                rdq.DC = dc;
-                                rdq.RingFencePickStore = string.Empty;
-                                validateInventory = true;
+        //                if ((dc == "00") && (ringFenceStore == "00000"))
+        //                {
+        //                    message = "You must supply either a DC or a Ring Fence Store to pick from";
+        //                }
+        //                else if ((dc != "00") && (ringFenceStore != "00000"))
+        //                {
+        //                    rdq.RingFencePickStore = ringFenceStore;
+        //                    rdq.DC = dc;
+        //                    message = "You can't supply both a DC and a Ring Fence Store to pick from. It must be one or the other.";
+        //                }
+        //                else
+        //                {
+        //                    if (dc != "00")
+        //                    {
+        //                        rdq.DC = dc;
+        //                        rdq.RingFencePickStore = string.Empty;
+        //                        validateInventory = true;
 
-                                var dcQuery = from a in db.DistributionCenters
-                                              where a.MFCode == dc &&
-                                                    a.Type != "CROSSDOCK"
-                                              select a.ID;
+        //                        var dcQuery = from a in db.DistributionCenters
+        //                                      where a.MFCode == dc &&
+        //                                            a.Type != "CROSSDOCK"
+        //                                      select a.ID;
 
-                                if (dcQuery.Count() == 0)
-                                {
-                                    message = "DC is invalid or only supports crossdocking.  ";
-                                }
-                                else
-                                {
-                                    rdq.DCID = dcQuery.First();
-                                }
-                            }
-                            else
-                            {
-                                rdq.DC = string.Empty;
-                                rdq.RingFencePickStore = ringFenceStore;
-                                validateInventory = false;
+        //                        if (dcQuery.Count() == 0)
+        //                        {
+        //                            message = "DC is invalid or only supports crossdocking.  ";
+        //                        }
+        //                        else
+        //                        {
+        //                            rdq.DCID = dcQuery.First();
+        //                        }
+        //                    }
+        //                    else
+        //                    {
+        //                        rdq.DC = string.Empty;
+        //                        rdq.RingFencePickStore = ringFenceStore;
+        //                        validateInventory = false;
 
-                                var ringFence = (from r in db.RingFences
-                                                 where r.Sku == rdq.Sku &&
-                                                       r.Division == rdq.Division &&
-                                                       r.Store == ringFenceStore &&
-                                                       (r.EndDate == null ||
-                                                       r.EndDate >= DateTime.Now)
-                                                 select r).ToList();
+        //                        var ringFence = (from r in db.RingFences
+        //                                         where r.Sku == rdq.Sku &&
+        //                                               r.Division == rdq.Division &&
+        //                                               r.Store == ringFenceStore &&
+        //                                               (r.EndDate == null ||
+        //                                               r.EndDate >= DateTime.Now)
+        //                                         select r).ToList();
 
-                                if (ringFence.Count() == 0)
-                                {
-                                    message = "No ring fences for the SKU and pick store were found. ";
-                                }
-                                else
-                                {
-                                    var ringFenceDetails = (from r in ringFence
-                                                            from rfd in r.ringFenceDetails                                                                  
-                                                            where rfd.Size == rdq.Size &&
-                                                                  rfd.ActiveInd == "1" &&
-                                                                  rfd.ringFenceStatusCode == "4" &&
-                                                                  rfd.PO == ""
-                                                            orderby rfd.RingFenceID
-                                                            select rfd).ToList();
-                                                                                    
-                                    if (ringFenceDetails.Count() == 0)
-                                    {
-                                        message = "No active warehouse ring fences were found for the requested size, SKU, and store";
-                                    }
-                                    else
-                                    {
-                                        if (ringFenceDetails.Where(d => d.Qty >= rdq.Qty).Count() == 0)
-                                        {
+        //                        if (ringFence.Count() == 0)
+        //                        {
+        //                            message = "No ring fences for the SKU and pick store were found. ";
+        //                        }
+        //                        else
+        //                        {
+        //                            var ringFenceDetails = (from r in ringFence
+        //                                                    from rfd in r.ringFenceDetails                                                                  
+        //                                                    where rfd.Size == rdq.Size &&
+        //                                                          rfd.ActiveInd == "1" &&
+        //                                                          rfd.ringFenceStatusCode == "4" &&
+        //                                                          rfd.PO == ""
+        //                                                    orderby rfd.RingFenceID
+        //                                                    select rfd).ToList();
 
-                                            int maxAmount = (from rfd in ringFenceDetails
-                                                             select rfd.Qty).Max();
+        //                            if (ringFenceDetails.Count() == 0)
+        //                            {
+        //                                message = "No active warehouse ring fences were found for the requested size, SKU, and store";
+        //                            }
+        //                            else
+        //                            {
+        //                                if (ringFenceDetails.Where(d => d.Qty >= rdq.Qty).Count() == 0)
+        //                                {
 
-                                            message = "The ring fenced quantity cannot satisfy the requested distribution. Amount available for size is " + maxAmount.ToString();
-                                        }
-                                        else
-                                        {
-                                            rdq.DCID = ringFenceDetails[0].DCID;
-                                        }
-                                    }
-                                }
-                            }
-                        }
+        //                                    int maxAmount = (from rfd in ringFenceDetails
+        //                                                     select rfd.Qty).Max();
 
-                        if (message == "")
-                        {
-                            message = CreateRDQ(rdq, validateInventory);
-                        }
-                        //    .Replace("(noringfence)", "  If you would like to pick anyway, put TRUE in AllowNegative column and reupload")
-                        //    .Replace("(ringfence)", "  Since this item is ringfenced, you cannot pick it.");
+        //                                    message = "The ring fenced quantity cannot satisfy the requested distribution. Amount available for size is " + maxAmount.ToString();
+        //                                }
+        //                                else
+        //                                {
+        //                                    rdq.DCID = ringFenceDetails[0].DCID;
+        //                                }
+        //                            }
+        //                        }
+        //                    }
+        //                }
 
-                        if (message != "")
-                        {
-                            rdqErrors.Add(rdq);
-                            //message = message;
-                            errorMessages.Add(message);
-                        }
-                        else
-                        {
-                            if (ringFenceStore != "00000")
-                            {
-                                var ringFenceQuery = from rf in db.RingFences
-                                                     join rfd in db.RingFenceDetails
-                                                      on rf.ID equals rfd.RingFenceID
-                                                     where rf.Sku == rdq.Sku &&
-                                                           rf.Division == rdq.Division &&
-                                                           rf.Store == ringFenceStore &&
-                                                           rfd.Size == rdq.Size &&
-                                                           rfd.ActiveInd == "1" &&
-                                                           rfd.Qty >= rdq.Qty &&
-                                                           rfd.ringFenceStatusCode == "4" &&
-                                                           (rf.EndDate == null ||
-                                                           rf.EndDate >= DateTime.Now)                                                    
-                                                     orderby rfd.RingFenceID
-                                                     select rfd;
-                                var ringFenceDetailRec = ringFenceQuery.FirstOrDefault();
+        //                if (message == "")
+        //                {
+        //                    message = CreateRDQ(rdq, validateInventory);
+        //                }
 
-                                ringFenceDetailRec.Qty = ringFenceDetailRec.Qty - rdq.Qty;
+        //                if (message != "")
+        //                {
+        //                    rdqErrors.Add(rdq);
+        //                    errorMessages.Add(message);
+        //                }
+        //                else
+        //                {
+        //                    if (ringFenceStore != "00000")
+        //                    {
+        //                        var ringFenceQuery = from rf in db.RingFences
+        //                                             join rfd in db.RingFenceDetails
+        //                                              on rf.ID equals rfd.RingFenceID
+        //                                             where rf.Sku == rdq.Sku &&
+        //                                                   rf.Division == rdq.Division &&
+        //                                                   rf.Store == ringFenceStore &&
+        //                                                   rfd.Size == rdq.Size &&
+        //                                                   rfd.ActiveInd == "1" &&
+        //                                                   rfd.Qty >= rdq.Qty &&
+        //                                                   rfd.ringFenceStatusCode == "4" &&
+        //                                                   (rf.EndDate == null ||
+        //                                                   rf.EndDate >= DateTime.Now)                                                    
+        //                                             orderby rfd.RingFenceID
+        //                                             select rfd;
+        //                        var ringFenceDetailRec = ringFenceQuery.FirstOrDefault();
 
-                                if (ringFenceDetailRec.Qty == 0)
-                                {
-                                    db.RingFenceDetails.Remove(ringFenceDetailRec);
-                                }
-                            }
-                            rdqGood.Add(rdq);
-                            db.SaveChanges(User.Identity.Name);
-                        }
+        //                        ringFenceDetailRec.Qty = ringFenceDetailRec.Qty - rdq.Qty;
 
-                        row++;
-                    }
-                }
-                else
-                {
-                    return Content("Incorrect header, please use template.");
-                }
-            }
+        //                        if (ringFenceDetailRec.Qty == 0)
+        //                        {
+        //                            db.RingFenceDetails.Remove(ringFenceDetailRec);
+        //                        }
+        //                    }
+        //                    rdqGood.Add(rdq);
+        //                    db.SaveChanges(User.Identity.Name);
+        //                }
 
-            if (rdqGood.Count > 0)
-            {
-                int instance = (from a in db.InstanceDivisions
-                                where a.Division == Division
-                                select a.InstanceID).First();
-                RDQDAO rdqDAO = new RDQDAO();
-                int holdcount = rdqDAO.ApplyHolds(rdqGood, instance);
+        //                row++;
+        //            }
+        //        }
+        //        else
+        //        {
+        //            return Content("Incorrect header, please use template.");
+        //        }
+        //    }
 
-                if (holdcount > 0)
-                {
-                    errorMessages.Add(holdcount + " on hold.  Please go to Release Held RDQs to view held RDQs.");
-                }
+        //    if (rdqGood.Count > 0)
+        //    {
+        //        int instance = (from a in db.InstanceDivisions
+        //                        where a.Division == Division
+        //                        select a.InstanceID).First();
+        //        RDQDAO rdqDAO = new RDQDAO();
+        //        int holdcount = rdqDAO.ApplyHolds(rdqGood, instance);
 
-                int cancelholdcount = rdqDAO.ApplyCancelHolds(rdqGood);
+        //        if (holdcount > 0)
+        //        {
+        //            errorMessages.Add(holdcount + " on hold.  Please go to Release Held RDQs to view held RDQs.");
+        //        }
 
-                if (cancelholdcount > 0)
-                {
-                    errorMessages.Add(cancelholdcount + " rejected by cancel inventory hold.  ");
-                }
-            }
+        //        int cancelholdcount = rdqDAO.ApplyCancelHolds(rdqGood);
 
-            if (errorMessages.Count > 0)
-            {
-                Session["errorList"] = rdqErrors;
-                Session["errorMessageList"] = errorMessages;
-                return Content(rdqErrors.Count() + " Errors on spreadsheet (" + (row - rdqErrors.Count() - 1) + " successfully uploaded)");
-            }
-            else
-            {
-                return Content("");
-            }
-        }
+        //        if (cancelholdcount > 0)
+        //        {
+        //            errorMessages.Add(cancelholdcount + " rejected by cancel inventory hold.  ");
+        //        }
+        //    }
+
+        //    if (errorMessages.Count > 0)
+        //    {
+        //        Session["errorList"] = rdqErrors;
+        //        Session["errorMessageList"] = errorMessages;
+        //        return Content(rdqErrors.Count() + " Errors on spreadsheet (" + (row - rdqErrors.Count() - 1) + " successfully uploaded)");
+        //    }
+        //    else
+        //    {
+        //        return Content("");
+        //    }
+        //}
 
         public ActionResult ExcelTemplate()
         {
@@ -2142,82 +2244,82 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
-        public ActionResult GetErrors()
-        {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+        //public ActionResult GetErrors()
+        //{
+        //    Aspose.Excel.License license = new Aspose.Excel.License();
+        //    //Set the license 
+        //    license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
-            Excel excelDocument = new Excel();
-            Worksheet mySheet = excelDocument.Worksheets[0];
-            int col = 0;
-            mySheet.Cells[0, col].PutValue("Store (#####)");
-            mySheet.Cells[0, col].Style.Font.IsBold = true;
-            col++;
-            mySheet.Cells[0, col].PutValue("Warehouse (##)");
-            mySheet.Cells[0, col].Style.Font.IsBold = true;
-            col++;
-            mySheet.Cells[0, col].PutValue("SKU (##-##-#####-##)");
-            mySheet.Cells[0, col].Style.Font.IsBold = true;
-            col++;
-            mySheet.Cells[0, col].PutValue("Size Caselot (### or #####)");
-            mySheet.Cells[0, col].Style.Font.IsBold = true;
-            col++;
-            mySheet.Cells[0, col].PutValue("Quantity (#)");
-            mySheet.Cells[0, col].Style.Font.IsBold = true;
-            col++;
-            mySheet.Cells[0, col].PutValue("Pick from DC (##)");
-            mySheet.Cells[0, col].Style.Font.IsBold = true;
-            col++;
-            mySheet.Cells[0, col].PutValue("Pick from Ring Fence Store (#####)");
-            mySheet.Cells[0, col].Style.Font.IsBold = true;
-            col++;
-            mySheet.Cells[0, col].PutValue("Message");
-            mySheet.Cells[0, col].Style.Font.IsBold = true;
+        //    Excel excelDocument = new Excel();
+        //    Worksheet mySheet = excelDocument.Worksheets[0];
+        //    int col = 0;
+        //    mySheet.Cells[0, col].PutValue("Store (#####)");
+        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
+        //    col++;
+        //    mySheet.Cells[0, col].PutValue("Warehouse (##)");
+        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
+        //    col++;
+        //    mySheet.Cells[0, col].PutValue("SKU (##-##-#####-##)");
+        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
+        //    col++;
+        //    mySheet.Cells[0, col].PutValue("Size Caselot (### or #####)");
+        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
+        //    col++;
+        //    mySheet.Cells[0, col].PutValue("Quantity (#)");
+        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
+        //    col++;
+        //    mySheet.Cells[0, col].PutValue("Pick from DC (##)");
+        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
+        //    col++;
+        //    mySheet.Cells[0, col].PutValue("Pick from Ring Fence Store (#####)");
+        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
+        //    col++;
+        //    mySheet.Cells[0, col].PutValue("Message");
+        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
 
-            List<RDQ> errors = (List<RDQ>)Session["errorList"];
-            List<string> errorMessages = (List<string>)Session["errorMessageList"];
-            int row = 1;           
-            if (errors != null)
-            {
-                foreach (RDQ rdq in errors)
-                {
-                    col = 0;
-                    if (rdq.Store.Length == 5)
-                        mySheet.Cells[row, col].PutValue(rdq.Store);
-                    else
-                        mySheet.Cells[row, col].PutValue("");
+        //    List<RDQ> errors = (List<RDQ>)Session["errorList"];
+        //    List<string> errorMessages = (List<string>)Session["errorMessageList"];
+        //    int row = 1;           
+        //    if (errors != null)
+        //    {
+        //        foreach (RDQ rdq in errors)
+        //        {
+        //            col = 0;
+        //            if (rdq.Store.Length == 5)
+        //                mySheet.Cells[row, col].PutValue(rdq.Store);
+        //            else
+        //                mySheet.Cells[row, col].PutValue("");
 
-                    if (rdq.Store.Length == 2)
-                        mySheet.Cells[row, col].PutValue(rdq.Store);
-                    else
-                        mySheet.Cells[row, col].PutValue("");
+        //            if (rdq.Store.Length == 2)
+        //                mySheet.Cells[row, col].PutValue(rdq.Store);
+        //            else
+        //                mySheet.Cells[row, col].PutValue("");
 
-                    col++;
-                    mySheet.Cells[row, col].PutValue(rdq.Sku);
-                    col++;
-                    mySheet.Cells[row, col].PutValue(rdq.Size);
-                    col++;
-                    mySheet.Cells[row, col].PutValue(rdq.Qty);
-                    col++;
-                    mySheet.Cells[row, col].PutValue(rdq.DC);
-                    col++;
-                    mySheet.Cells[row, col].PutValue(rdq.RingFencePickStore);
-                    col++;
-                    mySheet.Cells[row, col].PutValue(errorMessages[row - 1]);
+        //            col++;
+        //            mySheet.Cells[row, col].PutValue(rdq.Sku);
+        //            col++;
+        //            mySheet.Cells[row, col].PutValue(rdq.Size);
+        //            col++;
+        //            mySheet.Cells[row, col].PutValue(rdq.Qty);
+        //            col++;
+        //            mySheet.Cells[row, col].PutValue(rdq.DC);
+        //            col++;
+        //            mySheet.Cells[row, col].PutValue(rdq.RingFencePickStore);
+        //            col++;
+        //            mySheet.Cells[row, col].PutValue(errorMessages[row - 1]);
 
-                    row++;
-                }
-            }
-            else
-            {
-                col = 0;
-                mySheet.Cells[row, col].PutValue("Session timed out");
-            }
+        //            row++;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        col = 0;
+        //        mySheet.Cells[row, col].PutValue("Session timed out");
+        //    }
 
-            excelDocument.Save("WebPicks.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
-            return View();
-        }
+        //    excelDocument.Save("WebPicks.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+        //    return View();
+        //}
 
     }
 }
