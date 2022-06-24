@@ -669,7 +669,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     message = CreateRDQ(model.RDQ, model.RDQ.Status == "WEB PICK");                    
                 }
 
-                if (string.IsNullOrEmpty(message))
+                if (string.IsNullOrEmpty(message) && ModelState.IsValid)
                 {
                     //call to apply holds
                     List<RDQ> list = new List<RDQ>
@@ -703,6 +703,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private string CreateFutureUserRDQ(RDQ rdq)
         {
             string message = "";
+            bool webPick = false;
 
             if (TryUpdateModel(rdq, "RDQ"))
             {
@@ -749,8 +750,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                         if (futureInv != null)
                         {
+                            // if not product pack, just make it a future RDQ - no error
                             if (rdq.Size.Length == 5 && futureInv.ProductNodeType != "PRODUCT_PACK")
-                                message = "Future inventory was found, but it does not look crossdockable";
+                                webPick = true;
                             else
                             {
                                 int inventoryReductionQty = 0;
@@ -778,14 +780,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     rdq.CreatedBy = currentUser.NetworkID;
                     rdq.LastModifiedUser = currentUser.NetworkID;
 
-                    if (rdq.Size.Length == 5)
+                    if (rdq.Size.Length == 5 && !webPick)
                     {
                         rdq.Status = "PICK-XDC";
                         rdq.DestinationType = "CROSSDOCK";
                     }
                     else
                     {
-                        rdq.Status = "WEB-PICK";
+                        rdq.Status = "WEB PICK";
                         rdq.DestinationType = "WAREHOUSE";
                     }
 
@@ -1127,23 +1129,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // validate distribution center id
             List<string> uniqueDCList = validSuppliedRDQs.Select(pr => pr.DC).Where(dc => !string.IsNullOrEmpty(dc)).Distinct().ToList();
             var invalidDCList = uniqueDCList.Where(dc => !db.DistributionCenters.Any(dist => dist.MFCode.Equals(dc))).ToList();
-            parsedRDQs.Where(pr => invalidDCList.Contains(pr.DC))
+            validSuppliedRDQs.Where(pr => invalidDCList.Contains(pr.DC))
                 .ToList()
                 .ForEach(r => SetErrorMessageNew(errorList, r, "DC is invalid."));
 
             List<DistributionCenter> dcList = db.DistributionCenters.ToList();
 
             // make sure DC is okay for PO scenario
-            var invalidDCRDQList = (from pr in parsedRDQs
-                                   join dc in dcList 
-                                     on pr.DCID equals dc.ID
-                                   where string.IsNullOrEmpty(pr.PO) &&
-                                         pr.Size.Length == 3 &&
+            var invalidDCRDQList = (from pr in validSuppliedRDQs
+                                    join dc in dcList 
+                                     on pr.DC equals dc.MFCode
+                                   where pr.Size.Length == 3 &&
                                          dc.Type == "CROSSDOCK"
-                                   select pr.ID).ToList();
-            parsedRDQs.Where(pr => invalidDCRDQList.Contains(pr.ID))
+                                   select pr).ToList();
+
+            validSuppliedRDQs.Where(pr => invalidDCRDQList.Any(ir => ir.Equals(pr)))
                 .ToList()
                 .ForEach(r => SetErrorMessageNew(errorList, r, "A crossdock-only DC was used for bin product"));
+
+            errorList.ForEach(er => validSuppliedRDQs.Remove(er.Item1));
 
             // validate the inventory for dc rdqs.  This is the final validation for dc rdqs, 
             // so if it is valid, add the rdq to the validrdqs list for later processing
@@ -1524,7 +1528,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 db.SaveChanges("");
 
                                 // once the rdqs are saved to the db, apply holds and cancel holds
-                                this.ApplyHoldAndCancelHolds(validRDQs, errorList, instanceID, divCode, uniqueItems, uniqueSkus);
+                                ApplyHoldAndCancelHolds(validRDQs, errorList, instanceID, divCode, uniqueItems, uniqueSkus);
                             }
                         }
 
@@ -1541,7 +1545,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                     catch (Exception ex)
                     {
-                        message = String.Format("Upload failed: One or more columns has unexpected missing or invalid data. <br /> System error message: {0}", ex.GetBaseException().Message);
+                        message = string.Format("Upload failed: One or more columns has unexpected missing or invalid data. <br /> System error message: {0}", ex.GetBaseException().Message);
                         FLLogger logger = new FLLogger("C:\\Log\\allocation");
                         logger.Log(ex.Message + ": " + ex.StackTrace, FLLogger.eLogMessageType.eError);
                         // clear out error list
@@ -1642,18 +1646,32 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void PopulateRDQProps(List<RDQ> validRDQs, DateTime controlDate)
         {
+            List<LegacyFutureInventory> futureInventory = new List<LegacyFutureInventory>();
+
             //unique skus
             var uniqueSkus = validRDQs.Select(r => r.Sku).Distinct().ToList();
             var uniqueItemMaster = db.ItemMasters.Where(im => uniqueSkus.Contains(im.MerchantSku)).Select(im => new { ItemID = im.ID, Sku = im.MerchantSku }).ToList();
+            var uniqueFutureCombo = validRDQs.Where(r => !string.IsNullOrEmpty(r.PO)).Select(fr => new { fr.Division, fr.Sku, fr.Size, fr.DC, fr.PO, PODiv = fr.PO + "-" + fr.Division })
+                                           .Distinct()
+                                           .ToList();
+
+            foreach (var uc in uniqueFutureCombo)
+            {
+                futureInventory.AddRange(db.LegacyFutureInventory.Where(lfi => lfi.Division == uc.Division &&
+                                                                               lfi.Sku == uc.Sku &&
+                                                                               lfi.Size == uc.Size &&
+                                                                               lfi.InventoryID == uc.PODiv &&
+                                                                               lfi.LocNodeType == "WAREHOUSE")
+                                                                 .ToList());
+            }
+
             foreach (var r in validRDQs)
             {
-                r.CreatedBy = User.Identity.Name;
-                r.LastModifiedUser = User.Identity.Name;
+                r.CreatedBy = currentUser.NetworkID;
+                r.LastModifiedUser = currentUser.NetworkID;
                 r.CreateDate = DateTime.Now;
-                r.PO = "";
-                r.DestinationType = "WAREHOUSE";
-                r.Type = "user";
                 r.ItemID = uniqueItemMaster.Where(uim => uim.Sku.Equals(r.Sku)).Select(uim => uim.ItemID).FirstOrDefault();
+                r.Type = "user";                
 
                 if (r.Status == "E-PICK")
                 {
@@ -1662,6 +1680,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         r.RecordType = "1";
                     else
                         r.RecordType = "4";
+                }
+
+                if (!string.IsNullOrEmpty(r.PO))
+                {
+                    LegacyFutureInventory futureInv = futureInventory.Where(fi => fi.PO == r.PO && fi.Sku == r.Sku && fi.Size == r.Size).FirstOrDefault();
+
+                    if (futureInv.ProductNodeType == "PRODUCT_PACK")
+                    {
+                        r.DestinationType = "CROSSDOCK";
+                        r.Status = "PICK-XDC";
+                    }
+                    else
+                        r.DestinationType = "WAREHOUSE";
+                }
+                else
+                {
+                    r.PO = "";
+                    r.DestinationType = "WAREHOUSE";
                 }
             }
         }
@@ -1755,7 +1791,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         else
                             mySheet.Cells[row, col].PutValue("");
 
-                        //mySheet.Cells[row, col].PutValue(error.Item1.Store);
                         col++;
                         mySheet.Cells[row, col].PutValue(error.Item1.Sku);
                         col++;
@@ -1929,62 +1964,100 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <param name="errorList">error list to display problems for the uploaded rdqs</param>
         private void ValidateFutureQuantityForDCRDQs(List<RDQ> futureRDQs, List<RDQ> validRDQs, List<Tuple<RDQ, string>> errorList)
         {
-            var uniqueCombos = futureRDQs.Select(fr => new { fr.Division, fr.Sku, fr.Size, fr.DC, fr.PO })
+            List<RDQ> invalidRDQs = new List<RDQ>();
+
+            var uniqueCombos = futureRDQs.Select(fr => new { fr.Division, fr.Sku, fr.Size, fr.DC, fr.PO, PODiv = fr.PO + "-" + fr.Division })
                 .Distinct()
-                .ToList();            
+                .ToList();                        
 
-            //if (uniqueCombos.Count > 0)
-            //{
-            //    List<LegacyFutureInventory> futureInventory = db.LegacyFutureInventory.Where(lfi => )
+            if (uniqueCombos.Count > 0)
+            {
+                // Look for situations where the PO is not found
+                var invalidPO = uniqueCombos.Where(uc => !db.LegacyFutureInventory.Any(lfi => lfi.InventoryID.Equals(uc.PODiv))).ToList();
+                
+                foreach (var ip in invalidPO)
+                {
+                    invalidRDQs.AddRange(futureRDQs.Where(fr => fr.Division == ip.Division &&
+                                                          fr.Sku == ip.Sku &&
+                                                          fr.Size == ip.Size &&
+                                                          fr.DC == ip.DC &&
+                                                          fr.PO == ip.PO).ToList());
+                    uniqueCombos.Remove(ip);
+                }
 
+                invalidRDQs.ForEach(r => SetErrorMessageNew(errorList, r, "PO was not found in Future Inventory. If it was created today, try again tomorrow."));
+                invalidRDQs.ForEach(r => futureRDQs.Remove(r));                
+                invalidRDQs.Clear();
+                invalidPO.Clear();
 
-            //    WarehouseInventoryDAO warehouseInventoryDAO = new WarehouseInventoryDAO(null, null);
-            //    List<WarehouseInventoryDAO.WarehouseInventoryLookup> warehouseInventoryLookups = new List<WarehouseInventoryDAO.WarehouseInventoryLookup>();
-            //    foreach (var uc in uniqueCombos)
-            //    {
-            //        warehouseInventoryLookups.Add(new WarehouseInventoryDAO.WarehouseInventoryLookup
-            //        {
-            //            SKU = uc.Item1,
-            //            Size = uc.Item2,
-            //            DCCode = uc.Item3,
-            //            OnHandQuantity = 0
-            //        });
-            //    }
-            //    List<WarehouseInventory> details = warehouseInventoryDAO.GetSQLWarehouseInventory(warehouseInventoryLookups);
-            //    //    // retrieve all available quantity for the specified combinations in one mf call
-            //    RingFenceDAO rfDAO = new RingFenceDAO();
-            //    details = rfDAO.ReduceAvailableInventory(details);
+                invalidPO = uniqueCombos.Where(uc => !db.LegacyFutureInventory.Any(lfi => lfi.Division.Equals(uc.Division) &&
+                                                                                          lfi.Sku.Equals(uc.Sku) &&
+                                                                                          lfi.Size.Equals(uc.Size) &&
+                                                                                          lfi.Store.Equals(uc.DC) &&
+                                                                                          lfi.InventoryID.Equals(uc.PODiv))).ToList();
 
-            //    // rdqs that cannot be satisfied by current whse avail quantity
-            //    var dcRDQsGroupedBySize = dcRDQs
-            //        .Where(r => r.Status == "WEB PICK")
-            //      .GroupBy(r => new { Division = r.Division, Sku = r.Sku, Size = r.Size, DC = r.DCID.Value.ToString() }).ToList()
-            //      .Select(r => new { Division = r.Key.Division, Sku = r.Key.Sku, Size = r.Key.Size, DC = r.Key.DC, Quantity = r.Sum(s => s.Qty) }).ToList();
+                foreach (var ip in invalidPO)
+                {
+                    invalidRDQs.AddRange(futureRDQs.Where(fr => fr.Division == ip.Division &&
+                                                          fr.Sku == ip.Sku &&
+                                                          fr.Size == ip.Size &&
+                                                          fr.DC == ip.DC &&
+                                                          fr.PO == ip.PO).ToList());
+                    uniqueCombos.Remove(ip);
+                }
 
-            //    var invalidRDQsAndAvailableQty = (from r in dcRDQsGroupedBySize
-            //                                      join d in details on new { Sku = r.Sku, Size = r.Size, DC = r.DC }
-            //                                                     equals new { Sku = d.Sku, Size = d.size, DC = d.DistributionCenterID }
-            //                                      where r.Quantity > d.quantity
-            //                                      select Tuple.Create(r, d.quantity)).ToList();
+                invalidRDQs.ForEach(r => SetErrorMessageNew(errorList, r, "Did not find any future inventory for this specific SKU/Size/DC"));
+                invalidRDQs.ForEach(r => futureRDQs.Remove(r));
+                invalidRDQs.Clear();
+                invalidPO.Clear();
 
-            //    foreach (var r in invalidRDQsAndAvailableQty)
-            //    {
-            //        var dcRDQsToDelete = dcRDQs.Where(ir => ir.Division.Equals(r.Item1.Division) &&
-            //                               ir.Sku.Equals(r.Item1.Sku) &&
-            //                               ir.Size.Equals(r.Item1.Size) &&
-            //                               ir.DCID.Value.ToString().Equals(r.Item1.DC) &&
-            //                               ir.Status.Equals("WEB PICK")).ToList();
+                // Look for situations where the exact key is not found
+                List<LegacyFutureInventory> futureInventory = new List<LegacyFutureInventory>();
 
-            //        dcRDQsToDelete.ForEach(rtd =>
-            //        {
-            //            SetErrorMessageNew(errorList, rtd
-            //                , string.Format("Not enough inventory available for all sizes.  Available inventory: {0}", r.Item2));
-            //            dcRDQs.Remove(rtd);
-            //        });
-            //    }
+                foreach (var uc in uniqueCombos)
+                {
+                    futureInventory.AddRange(db.LegacyFutureInventory.Where(lfi => lfi.Division == uc.Division &&
+                                                                                   lfi.Sku == uc.Sku &&
+                                                                                   lfi.Size == uc.Size &&
+                                                                                   lfi.InventoryID == uc.PODiv &&
+                                                                                   lfi.LocNodeType == "WAREHOUSE")
+                                                                     .ToList());
+                }
 
-            //    validRDQs.AddRange(futureRDQs);
-            //}
+                foreach (LegacyFutureInventory fi in futureInventory)
+                {
+                    InventoryReductions inventoryReductions = db.InventoryReductions.Where(ir => ir.PO == fi.PO && ir.Sku == fi.Sku && ir.Size == fi.Size).FirstOrDefault();
+
+                    if (inventoryReductions != null)
+                        fi.StockQty -= inventoryReductions.Qty;
+                }
+
+                // Look for cases where RDQ quantity > reduced future inventory
+                foreach (RDQ r in futureRDQs)
+                {
+                    int futureQty = 0;
+                    LegacyFutureInventory futureInvRec = futureInventory.Where(fi => fi.PO == r.PO && fi.Sku == r.Sku && fi.Size == r.Size).FirstOrDefault();
+                    
+                    if (futureInvRec != null)
+                        futureQty = futureInvRec.StockQty;
+                    else
+                        futureQty = 0;
+
+                    if (r.Qty > futureQty)
+                        invalidRDQs.Add(r);
+                    else
+                    {
+                        // in this case, there is enough future inventory, but we are going to reduce future inventory to claim this RDQ
+                        futureInvRec.StockQty -= r.Qty;
+                    }
+                }
+
+                invalidRDQs.ForEach(r => SetErrorMessageNew(errorList, r, "Inventory requested is greater than remaining inventory"));
+                invalidRDQs.ForEach(r => futureRDQs.Remove(r));
+                invalidRDQs.Clear();
+
+                validRDQs.AddRange(futureRDQs);
+            }
         }
 
         /// <summary>

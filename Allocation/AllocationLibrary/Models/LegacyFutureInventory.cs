@@ -51,5 +51,16 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Sku { get; set; }
         public string Size { get; set; }
 
+        [NotMapped]
+        public string PO
+        { 
+            get
+            {
+                if (InventoryType == "PO")
+                    return InventoryID.Split('-')[0];
+                else
+                    return string.Empty;
+            } 
+        }
     }
 }
