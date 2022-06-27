@@ -1149,22 +1149,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             errorList.ForEach(er => validSuppliedRDQs.Remove(er.Item1));
 
-            // validate the inventory for dc rdqs.  This is the final validation for dc rdqs, 
-            // so if it is valid, add the rdq to the validrdqs list for later processing
-            var dcRDQs = validSuppliedRDQs.Where(sr => !invalidDCList.Contains(sr.DC) &&
-                                                       !string.IsNullOrEmpty(sr.DC) &&
-                                                       !invalidSkusList.Contains(sr.Sku) &&
-                                                       string.IsNullOrEmpty(sr.PO)).ToList();
-
-            var futureRDQs = validSuppliedRDQs.Where(sr => !invalidDCList.Contains(sr.DC) &&
-                                                       !string.IsNullOrEmpty(sr.DC) &&
-                                                       !invalidSkusList.Contains(sr.Sku) &&
-                                                       !string.IsNullOrEmpty(sr.PO)).ToList();
-
             // populate dcid and add all remaining dcRDQs to validRDQs
-            List<string> uniqueDCs = dcRDQs.Select(r => r.DC).Distinct().ToList();
+            List<string> uniqueDCs = validSuppliedRDQs.Select(r => r.DC).Distinct().ToList();
             var dcs = db.DistributionCenters.Where(dist => uniqueDCs.Contains(dist.MFCode)).ToList();
-            foreach (var r in dcRDQs)
+            foreach (var r in validSuppliedRDQs)
             {
                 // retrieve specific dc
                 var dc = dcs.Where(d => d.MFCode.Equals(r.DC)).FirstOrDefault();
@@ -1173,6 +1161,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     r.DCID = dc.ID;
                 }
             }
+
+            // validate the inventory for dc rdqs.  This is the final validation for dc rdqs, 
+            // so if it is valid, add the rdq to the validrdqs list for later processing
+            var dcRDQs = validSuppliedRDQs.Where(sr => !invalidDCList.Contains(sr.DC) &&
+                                                       !string.IsNullOrEmpty(sr.DC) &&
+                                                       !invalidSkusList.Contains(sr.Sku) &&
+                                                       string.IsNullOrEmpty(sr.PO)).ToList();
+
+            var futureRDQs = validSuppliedRDQs.Where(sr => !invalidDCList.Contains(sr.DC) &&
+                                                           !string.IsNullOrEmpty(sr.DC) &&
+                                                           !invalidSkusList.Contains(sr.Sku) &&
+                                                           !string.IsNullOrEmpty(sr.PO)).ToList();
 
             ValidateAvailableQuantityForDCRDQs(dcRDQs, validRDQs, errorList);
             ValidateFutureQuantityForDCRDQs(futureRDQs, validRDQs, errorList);
@@ -1315,127 +1315,127 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return (existingErrorMessage.Equals(string.Empty)) ? newErrorMessage : existingErrorMessage + @"<br />" + newErrorMessage;
         }
 
-        private string IsValidUploadedRDQ(RDQ rdq)
-        {
-            string errorMessage = string.Empty;
+        //private string IsValidUploadedRDQ(RDQ rdq)
+        //{
+        //    string errorMessage = string.Empty;
 
-            // 1) division/store combination is valid
-            var validDivStoreCombo = db.vValidStores.Any(vs => vs.Division.Equals(rdq.Division) && vs.Store.Equals(rdq.Store));
-            if (!validDivStoreCombo)
-            {
-                string divStoreErrorMessage = string.Format(
-                    "The division and store combination {0}-{1} is not an existing or valid combination."
-                    , rdq.Division
-                    , rdq.Store);
-                errorMessage = SetErrorMessage(errorMessage, divStoreErrorMessage);
-            }
+        //    // 1) division/store combination is valid
+        //    var validDivStoreCombo = db.vValidStores.Any(vs => vs.Division.Equals(rdq.Division) && vs.Store.Equals(rdq.Store));
+        //    if (!validDivStoreCombo)
+        //    {
+        //        string divStoreErrorMessage = string.Format(
+        //            "The division and store combination {0}-{1} is not an existing or valid combination."
+        //            , rdq.Division
+        //            , rdq.Store);
+        //        errorMessage = SetErrorMessage(errorMessage, divStoreErrorMessage);
+        //    }
 
-            // 2) sku provided is valid
-            ItemMaster validSku = db.ItemMasters.Where(im => im.MerchantSku.Equals(rdq.Sku)).FirstOrDefault();
-            if (validSku != null)
-            {
-                // check to see if sku division is equal to store division
-                if (!rdq.Division.Equals(validSku.Div))
-                {
-                    string divSkuStoreErrorMessage = string.Format(
-                        "The division for both the sku and store must be the same.  Sku Division: {0}, Store Division: {1}"
-                        , validSku.Div
-                        , rdq.Division);
-                    errorMessage = SetErrorMessage(errorMessage, divSkuStoreErrorMessage);
-                }
-            }
-            else
-            {
-                errorMessage = SetErrorMessage(errorMessage, string.Format("Sku {0} is invalid", rdq.Sku));
-            }
+        //    // 2) sku provided is valid
+        //    ItemMaster validSku = db.ItemMasters.Where(im => im.MerchantSku.Equals(rdq.Sku)).FirstOrDefault();
+        //    if (validSku != null)
+        //    {
+        //        // check to see if sku division is equal to store division
+        //        if (!rdq.Division.Equals(validSku.Div))
+        //        {
+        //            string divSkuStoreErrorMessage = string.Format(
+        //                "The division for both the sku and store must be the same.  Sku Division: {0}, Store Division: {1}"
+        //                , validSku.Div
+        //                , rdq.Division);
+        //            errorMessage = SetErrorMessage(errorMessage, divSkuStoreErrorMessage);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        errorMessage = SetErrorMessage(errorMessage, string.Format("Sku {0} is invalid", rdq.Sku));
+        //    }
 
-            // 3) check to see if there was a supplied DC or RingFence
-            if ((rdq.DC.Equals(string.Empty) || rdq.DC == null) && (rdq.RingFencePickStore.Equals(string.Empty) || rdq.RingFencePickStore == null))
-            {
-                errorMessage = SetErrorMessage(errorMessage, "You must supply either a DC or a Ring Fence Store to pick from.");
-            }
-            else if (!(rdq.DC.Equals(string.Empty) || rdq.DC == null) && !(rdq.RingFencePickStore.Equals(string.Empty) || rdq.RingFencePickStore == null))
-            {
-                errorMessage = SetErrorMessage(errorMessage, "You can't supply both a DC and a RingFence Store to pick from.  It must be one or the other.");
-            }
-            else
-            {
-                // must be dc, validate dc
-                if (!(rdq.DC.Equals(string.Empty) || rdq.DC == null))
-                {
-                    rdq.RingFencePickStore = string.Empty;
-                    int? distributionCenterID = db.DistributionCenters.Where(dc => dc.MFCode.Equals(rdq.DC) && !dc.Type.Equals("CROSSDOCK")).Select(dc => dc.ID).FirstOrDefault();
-                    if (distributionCenterID != null)
-                    {
-                        rdq.DCID = distributionCenterID;
-                    }
-                    else
-                    {
-                        errorMessage = SetErrorMessage(errorMessage, "DC is invalid or only supports crossdocking.");
-                    }
+        //    // 3) check to see if there was a supplied DC or RingFence
+        //    if ((rdq.DC.Equals(string.Empty) || rdq.DC == null) && (rdq.RingFencePickStore.Equals(string.Empty) || rdq.RingFencePickStore == null))
+        //    {
+        //        errorMessage = SetErrorMessage(errorMessage, "You must supply either a DC or a Ring Fence Store to pick from.");
+        //    }
+        //    else if (!(rdq.DC.Equals(string.Empty) || rdq.DC == null) && !(rdq.RingFencePickStore.Equals(string.Empty) || rdq.RingFencePickStore == null))
+        //    {
+        //        errorMessage = SetErrorMessage(errorMessage, "You can't supply both a DC and a RingFence Store to pick from.  It must be one or the other.");
+        //    }
+        //    else
+        //    {
+        //        // must be dc, validate dc
+        //        if (!string.IsNullOrEmpty(rdq.DC))
+        //        {
+        //            rdq.RingFencePickStore = string.Empty;
+        //            int? distributionCenterID = db.DistributionCenters.Where(dc => dc.MFCode.Equals(rdq.DC) && !dc.Type.Equals("CROSSDOCK")).Select(dc => dc.ID).FirstOrDefault();
+        //            if (distributionCenterID != null)
+        //            {
+        //                rdq.DCID = distributionCenterID;
+        //            }
+        //            else
+        //            {
+        //                errorMessage = SetErrorMessage(errorMessage, "DC is invalid or only supports crossdocking.");
+        //            }
 
-                }
-                // must be ringfence, validate ringfence
-                else
-                {
-                    // validate ringfencestore
-                    validDivStoreCombo = db.vValidStores.Any(vs => vs.Division.Equals(rdq.Division) && vs.Store.Equals(rdq.RingFencePickStore));
-                    if (!validDivStoreCombo)
-                    {
-                        string divStoreErrorMessage = string.Format(
-                            "The division and ring fence store combination {0}-{1} is not an existing or valid combination."
-                            , rdq.Division
-                            , rdq.RingFencePickStore);
-                        errorMessage = SetErrorMessage(errorMessage, divStoreErrorMessage);
-                    }
+        //        }
+        //        // must be ringfence, validate ringfence
+        //        else
+        //        {
+        //            // validate ringfencestore
+        //            validDivStoreCombo = db.vValidStores.Any(vs => vs.Division.Equals(rdq.Division) && vs.Store.Equals(rdq.RingFencePickStore));
+        //            if (!validDivStoreCombo)
+        //            {
+        //                string divStoreErrorMessage = string.Format(
+        //                    "The division and ring fence store combination {0}-{1} is not an existing or valid combination."
+        //                    , rdq.Division
+        //                    , rdq.RingFencePickStore);
+        //                errorMessage = SetErrorMessage(errorMessage, divStoreErrorMessage);
+        //            }
 
-                    rdq.DC = string.Empty;
-                    long? ringFenceID = db.RingFences.Where(rf =>
-                                                        rf.Sku.Equals(rdq.Sku) &&
-                                                        rf.Division.Equals(rdq.Division) &&
-                                                        rf.Store.Equals(rdq.RingFencePickStore) &&
-                                                        (rf.EndDate == null || rf.EndDate >= DateTime.Now))
-                                                     .Select(rf => rf.ID).FirstOrDefault();
+        //            rdq.DC = string.Empty;
+        //            long? ringFenceID = db.RingFences.Where(rf =>
+        //                                                rf.Sku.Equals(rdq.Sku) &&
+        //                                                rf.Division.Equals(rdq.Division) &&
+        //                                                rf.Store.Equals(rdq.RingFencePickStore) &&
+        //                                                (rf.EndDate == null || rf.EndDate >= DateTime.Now))
+        //                                             .Select(rf => rf.ID).FirstOrDefault();
 
-                    if (ringFenceID != null)
-                    {
-                        List<RingFenceDetail> ringFenceDetails = new List<RingFenceDetail>();
-                        ringFenceDetails = db.RingFenceDetails.Where(rfd =>
-                                                                rfd.RingFenceID.Equals(ringFenceID ?? 0) &&
-                                                                rfd.Size.Equals(rdq.Size) &&
-                                                                rfd.ActiveInd.Equals("1") &&
-                                                                rfd.ringFenceStatusCode.Equals("4") &&
-                                                                rfd.PO.Equals(string.Empty))
-                                                              .OrderBy(rfd => rfd.RingFenceID)
-                                                              .ToList();
-                        if (ringFenceDetails.Any())
-                        {
-                            if (ringFenceDetails.Any(rfd => rfd.Qty >= rdq.Qty))
-                            {
-                                int maxAmount = (ringFenceDetails.Max(rfd => rfd.Qty));
-                                string qtyErrorMessage = string.Format("The ring fenced quantity cannot satisfy the requested distribution.  Amount available for size is {0}", maxAmount);
-                                errorMessage = SetErrorMessage(errorMessage, qtyErrorMessage);
-                            }
-                            else
-                            {
-                                rdq.DCID = ringFenceDetails.First().DCID;
-                            }
-                        }
-                        else
-                        {
-                            errorMessage = SetErrorMessage(errorMessage, "No active warehouse ring fences were found for the requested size, sku, and store.");
-                        }
-                    }
-                    else
-                    {
-                        errorMessage = SetErrorMessage(errorMessage, "No ring fences for the SKU and pick store were found");
-                    }
-                }
-            }
+        //            if (ringFenceID != null)
+        //            {
+        //                List<RingFenceDetail> ringFenceDetails = new List<RingFenceDetail>();
+        //                ringFenceDetails = db.RingFenceDetails.Where(rfd =>
+        //                                                        rfd.RingFenceID.Equals(ringFenceID ?? 0) &&
+        //                                                        rfd.Size.Equals(rdq.Size) &&
+        //                                                        rfd.ActiveInd.Equals("1") &&
+        //                                                        rfd.ringFenceStatusCode.Equals("4") &&
+        //                                                        rfd.PO.Equals(string.Empty))
+        //                                                      .OrderBy(rfd => rfd.RingFenceID)
+        //                                                      .ToList();
+        //                if (ringFenceDetails.Any())
+        //                {
+        //                    if (ringFenceDetails.Any(rfd => rfd.Qty >= rdq.Qty))
+        //                    {
+        //                        int maxAmount = (ringFenceDetails.Max(rfd => rfd.Qty));
+        //                        string qtyErrorMessage = string.Format("The ring fenced quantity cannot satisfy the requested distribution.  Amount available for size is {0}", maxAmount);
+        //                        errorMessage = SetErrorMessage(errorMessage, qtyErrorMessage);
+        //                    }
+        //                    else
+        //                    {
+        //                        rdq.DCID = ringFenceDetails.First().DCID;
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    errorMessage = SetErrorMessage(errorMessage, "No active warehouse ring fences were found for the requested size, sku, and store.");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                errorMessage = SetErrorMessage(errorMessage, "No ring fences for the SKU and pick store were found");
+        //            }
+        //        }
+        //    }
 
 
-            return errorMessage;
-        }
+        //    return errorMessage;
+        //}
 
         private bool HasValidHeaderRow(Worksheet mySheet)
         {
@@ -1692,7 +1692,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         r.Status = "PICK-XDC";
                     }
                     else
+                    {
                         r.DestinationType = "WAREHOUSE";
+                    }                        
                 }
                 else
                 {
