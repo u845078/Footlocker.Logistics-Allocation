@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.Hold>
+﻿@model IEnumerable<Hold>
 
 @{
     ViewBag.Title = "Holds";
@@ -40,7 +40,7 @@
     }
 
 </script>
-    @if ((ViewData["message"] != "") && (ViewData["message"] != null))
+    @if (ViewData["message"] != null)
     { 
         <font color="Red">
         @Html.Raw(Convert.ToString(ViewData["message"]))
@@ -65,82 +65,7 @@
                         </ul>
 <div class="t-content t-state-active" id="tabstrip-1" role="tabpanel" aria-expanded="true" style="display: block; opacity: 1;">
 <br />
-@*<table>
-    <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.Division)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Store)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Level)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Value)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.StartDate)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.EndDate)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.HoldType)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Comments)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CreatedBy)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CreateDate)
-        </th>
-        <th></th>
-    </tr>
 
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Division)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Store)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Level)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Value)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.StartDate)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.EndDate)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.HoldType)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Comments)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CreatedBy)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CreateDate)
-        </td>
-        <td>
-            @Html.ActionLink("Edit", "Edit", new { id=item.ID }) | 
-            @Html.ActionLink("Release", "Delete", new { id=item.ID }) 
-        </td>
-    </tr>
-}
-
-</table>
-*@
 @(Html.Telerik().Grid(Model)
         .Name("HoldGrid")
         .Columns(columns =>
@@ -196,7 +121,6 @@
         })
         .DataBinding(dataBinding =>
         {
-            //dataBinding.Server().Select("Index", "OverridePO");
             dataBinding.Ajax().Select("_Index", "Hold");
         })
         .Sortable(sorting => sorting.Enabled(true))

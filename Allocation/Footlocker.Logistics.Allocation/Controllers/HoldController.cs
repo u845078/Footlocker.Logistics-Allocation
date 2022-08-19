@@ -74,7 +74,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             return ok;
-
         }
 
         public ActionResult Index(string duration, string message)
@@ -128,6 +127,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     join d in divs on a.Division equals d.DivCode
                     where ((a.Duration == duration) || (duration == "All"))
                     select a).ToList();
+
+            if (list.Count > 0)
+            {
+                List<string> uniqueNames = (from l in list
+                                            select l.CreatedBy).Distinct().ToList();
+                Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+
+                foreach (var item in uniqueNames)
+                {
+                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                }
+
+                foreach (var item in fullNamePairs)
+                {
+                    list.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+                }
+            }
             //TODO:  Do we want dept level security on holds???
 
             return View(new GridModel(list));
@@ -146,6 +162,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     join d in divs on a.Division equals d.DivCode
                     where ((a.Duration == duration) || (duration == "All"))
                     select a).ToList();
+
+            if (list.Count > 0)
+            {
+                List<string> uniqueNames = (from l in list
+                                            select l.CreatedBy).Distinct().ToList();
+                Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+
+                foreach (var item in uniqueNames)
+                {
+                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                }
+
+                foreach (var item in fullNamePairs)
+                {
+                    list.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+                }
+            }
+
             //TODO:  Do we want dept level security on holds???
 
             List<HoldByProductModel> finalList = list.GroupBy(x => new { x.Division, x.Level, x.Value, x.HoldType })
@@ -166,6 +200,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     join d in divs on a.Division equals d.DivCode
                     where ((a.Duration == duration) || (duration == "All"))
                     select a).ToList();
+
+            if (list.Count > 0)
+            {
+                List<string> uniqueNames = (from l in list
+                                            select l.CreatedBy).Distinct().ToList();
+                Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+
+                foreach (var item in uniqueNames)
+                {
+                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                }
+
+                foreach (var item in fullNamePairs)
+                {
+                    list.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+                }
+            }
             //TODO:  Do we want dept level security on holds???
 
             List<HoldByStoreModel> finalList = list.GroupBy(x => new { x.Division, x.Store, x.HoldType })

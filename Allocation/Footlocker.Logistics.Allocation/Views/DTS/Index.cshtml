@@ -17,8 +17,8 @@
         .Name("DTSGrid")
         .Columns(columns =>
         {
-            columns.Bound(o => o.Sku).Width(175);
-            columns.Bound(o => o.ItemMaster.Description).Width(150);
+            columns.Bound(o => o.Sku).Width(150);
+            columns.Bound(o => o.ItemMaster.Description).Width(200);
             columns.Bound(o => o.Vendor).Width(50);
             columns.Bound(o => o.StartDate);
             columns.Bound(o => o.EndDate);
@@ -29,23 +29,21 @@
             columns.Command(commands =>
             {
                 commands
-                .Custom("Edit")
-                .Text("Edit")
-                .DataRouteValues(route => { route.Add(o => o.Sku).RouteKey("Sku"); })
-                .Ajax(false)
-                .Action("Edit", "DTS");
+                    .Custom("Edit")
+                    .Text("Edit")
+                    .DataRouteValues(route => { route.Add(o => o.Sku).RouteKey("Sku"); })
+                    .Ajax(false)
+                    .Action("Edit", "DTS");
                 commands
-                .Custom("Delete")
-                .Text("Delete")
-                .DataRouteValues(route => { route.Add(o => o.Sku).RouteKey("Sku"); })
-                .Ajax(false)
-                .Action("Delete", "DTS").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
-            }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
+                    .Custom("Delete")
+                    .Text("Delete")
+                    .DataRouteValues(route => { route.Add(o => o.Sku).RouteKey("Sku"); })
+                    .Ajax(false)
+                    .Action("Delete", "DTS").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(200);
         })
         .DataBinding(dataBinding => dataBinding.Server()
                 .Select("Index", "DTS"))
-            //.DataBinding(dataBinding => dataBinding.Ajax()
-            //        .Select("_Index", "DTS"))
         .Sortable(sorting => sorting.Enabled(true))
         .Pageable(paging => paging.Enabled(true))
         .Filterable(filtering => filtering.Enabled(true))

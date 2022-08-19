@@ -19,9 +19,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Index(string message)
         {
             List<DirectToStoreSku> model;
-            List<DirectToStoreSku> allDTS = (from a in db.DirectToStoreSkus select a).ToList();
+            List<DirectToStoreSku> allDTS = db.DirectToStoreSkus.ToList();
 
-            model = (from a in allDTS join b in currentUser.GetUserDepartments(AppName) on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } select a).ToList();
+            model = (from a in allDTS 
+                     join b in currentUser.GetUserDepartments(AppName) 
+                     on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } 
+                     select a).ToList();
+
+            if (model.Count > 0)
+            {
+                List<string> uniqueNames = (from l in model
+                                            select l.CreatedBy).Distinct().ToList();
+                Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+
+                foreach (var item in uniqueNames)
+                {
+                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                }
+
+                foreach (var item in fullNamePairs)
+                {
+                    model.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+                }
+            }
+
             ViewData["message"] = message;
             return View(model);
         }
@@ -31,9 +52,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<DTSConstraintModel> model;
 
-            List<DTSConstraintModel> allDTS = (from a in db.DTSConstraintModels select a).ToList();
+            List<DTSConstraintModel> allDTS = db.DTSConstraintModels.ToList();
 
-            model = (from a in allDTS join b in currentUser.GetUserDepartments(AppName) on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } select a).ToList();
+            model = (from a in allDTS 
+                     join b in currentUser.GetUserDepartments(AppName) 
+                     on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } 
+                     select a).ToList();
 
             return View(model);
         }
@@ -87,30 +111,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     // Set timestamp
                     update.CreateDate = DateTime.Now;
-                    update.CreatedBy = User.Identity.Name;
+                    update.CreatedBy = currentUser.NetworkID;
 
                 }
                 // Persist constraint changes
                 db.SaveChanges();
             }
 
-            //DirectToStoreDAO dao = new DirectToStoreDAO();
-            //List<DirectToStoreConstraint> model;
-            //List<DirectToStoreConstraint> allDTS = dao.GetDTSConstraintsOneSize();
-
-            //model = (from a in allDTS join b in this.Departments() on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } orderby a.Sku select a).ToList();
             return View(new GridModel(new List<DirectToStoreConstraint>()));
         }
 
 
         [GridAction]
-        //[CheckPermission(Roles = "Head Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support")]
         public ActionResult _Index()
         {
             List<DirectToStoreSku> model;
             List<DirectToStoreSku> allDTS = (from a in db.DirectToStoreSkus.Include("ItemMaster")
                                              select a).ToList();
-            model = (from a in allDTS join b in currentUser.GetUserDepartments(AppName) on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } select a).ToList();
+            model = (from a in allDTS 
+                     join b in currentUser.GetUserDepartments(AppName) 
+                     on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } 
+                     select a).ToList();
             GridModel gridList = new GridModel(model);
             
             return View(gridList);
@@ -122,16 +143,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<DirectToStoreSku> model;
             List<DirectToStoreSku> allDTS = (from a in db.DirectToStoreSkus select a).ToList();
-            model = (from a in allDTS join b in currentUser.GetUserDepartments(AppName) on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } select a).ToList();
+            model = (from a in allDTS 
+                     join b in currentUser.GetUserDepartments(AppName) 
+                     on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } 
+                     select a).ToList();
             return View(new GridModel(model));
         }
 
         [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult Create()
         {
-            DirectToStoreSku model = new DirectToStoreSku();
-            model.StartDate = DateTime.Now;
-            model.VendorPackQty = 1;
+            DirectToStoreSku model = new DirectToStoreSku()
+            {
+                StartDate = DateTime.Now,
+                VendorPackQty = 1
+            };
             return View(model);
         }
 
@@ -139,15 +165,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult Create(DirectToStoreSku model)
         {
-
             model.CreateDate = DateTime.Now;
             model.CreatedBy = currentUser.NetworkID;
             if (currentUser.HasDivDept(AppName, model.Sku.Substring(0, 2), model.Sku.Substring(3, 2)))
             {
-                ItemMaster item = (from a in db.ItemMasters
-                                   where a.MerchantSku == model.Sku &&
-                                         a.Deleted == 0
-                                   select a).FirstOrDefault();
+                ItemMaster item = db.ItemMasters.Where(im => im.MerchantSku == model.Sku && im.Deleted == 0).FirstOrDefault();
 
                 if (item != null)
                 {
@@ -195,9 +217,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                     else
                     {
-                        ViewData["message"] = "You must add Vendor " + item.Vendor + " to a Vendor Group before creating Direct To Store Skus for them.";
-                        return View(model);
-                        
+                        ViewData["message"] = string.Format("You must add Vendor {0} to a Vendor Group before creating Direct To Store Skus for them.", item.Vendor);
+                        return View(model);                        
                     }
                 }
                 else
@@ -220,11 +241,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             Session["SkuSetup"] = null; 
         }
 
-
         [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult Edit(string Sku)
         {
-            DirectToStoreSku model = (from a in db.DirectToStoreSkus where a.Sku == Sku select a).First();
+            DirectToStoreSku model = db.DirectToStoreSkus.Where(dts => dts.Sku == Sku).FirstOrDefault();
             DirectToStoreDAO dao = new DirectToStoreDAO();
             model.Vendors = dao.GetVendors(Sku);
             return View(model);
@@ -239,19 +259,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (currentUser.HasDivDept(AppName, model.Sku.Substring(0, 2), model.Sku.Substring(3, 2)))
             {
-                ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == model.Sku select a).FirstOrDefault();
+                ItemMaster item = db.ItemMasters.Where(im => im.MerchantSku == model.Sku).FirstOrDefault();
 
                 if (item != null)
                 {
                     model.CreateDate = DateTime.Now;
-                    model.CreatedBy = User.Identity.Name;
+                    model.CreatedBy = currentUser.NetworkID;
                     model.ItemID = item.ID;
                     
-                    //model.Vendor = item.Vendor;
                     DirectToStoreDAO dao = new DirectToStoreDAO();
                     if (dao.IsVendorValidForSku(model.Vendor, model.Sku))
                     {
-                        if ((from a in db.VendorGroupDetails where a.VendorNumber == model.Vendor select a).Count() > 0)
+                        if (db.VendorGroupDetails.Where(vgd => vgd.VendorNumber == model.Vendor).Count() > 0)
                         {
                             db.Entry(model).State = System.Data.EntityState.Modified;
                             db.SaveChanges();
@@ -260,9 +279,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
                         else
                         {
-                            ViewData["message"] = "You must add Vendor " + item.Vendor + " to a Vendor Group before creating Direct To Store Skus for them.";
+                            ViewData["message"] = string.Format("You must add Vendor {0} to a Vendor Group before creating Direct To Store Skus for them.", item.Vendor);
                             return View(model);
-
                         } 
                     }
                     else
@@ -305,37 +323,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 string message = "You are not authorized to delete DTS skus for this division.";
                 return RedirectToAction("Index", new { message = message });
             }
-
         }
 
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult Details(string Sku)
         {
-            string temp = Sku;
-            //List<DirectToStoreConstraint> model = (from a in db.DirectToStoreConstraints where (a.Sku == temp) select a).ToList();
             //TODO add a record for each size of this sku
             SizeDAO dao = new SizeDAO();
             List<string> sizes = dao.GetSizes(Sku);
-            ////var notSetList = (from a in sizes where 
-            //var notSetList = sizes.Where(p => !model.Any(p2 => p2.Size == p));
-            //    //(from a in model join b in sizes on a.Size equals b select b);
-            //DirectToStoreConstraint item;
-            //foreach (string size in notSetList)
-            //{
-            //    item = new DirectToStoreConstraint();
-            //    item.StartDate = DateTime.Now.AddDays(1);
-            //    item.Size = size;
-            //    item.Sku = Sku;
-            //    item.MaxQty = 99999;
-            //    model.Add(item);
-            //}
 
             if (sizes.Count == 0)
             {
                 ViewData["message"] = "This sku is not ranged yet.";
             }
             ViewData["Sku"] = Sku;
-            //model = model.OrderBy(p => p.Size).ToList();
             return View();
         }
 
@@ -355,7 +356,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<string> sizes = dao.GetSizes(Sku);
             //var notSetList = (from a in sizes where 
             var notSetList = sizes.Where(p => !model.Any(p2 => p2.Size == p));
-            //(from a in model join b in sizes on a.Size equals b select b);
             DirectToStoreConstraint item;
             DateTime controlDate = (from a in db.InstanceDivisions join b in db.ControlDates on a.InstanceID equals b.InstanceID where a.Division == Sku.Substring(0, 2) select b.RunDate).First();
 
