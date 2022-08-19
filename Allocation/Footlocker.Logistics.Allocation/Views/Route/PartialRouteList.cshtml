@@ -12,31 +12,29 @@
             columns.Command(commands =>
             {
                 commands
-                .Custom("DCs")
-                .Text("DCs")
-                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("routeID"); })
-                .Ajax(false)
-                .Action("RouteDC", "Route");
+                    .Custom("DCs")
+                    .Text("DCs")
+                    .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("routeID"); route.Add(r => r.InstanceID).RouteKey("instanceID"); })
+                    .Ajax(false)
+                    .Action("RouteDC", "Route");
                 commands
-                .Custom("Details")
-                .Text("Details")
-                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
-                .Ajax(false)
-                .Action("EditRoute", "Route");
+                    .Custom("Details")
+                    .Text("Details")
+                    .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                    .Ajax(false)
+                    .Action("EditRoute", "Route");
                 commands
-                .Custom("Delete")
-                .Text("Delete")
-                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
-                .Ajax(false)
-                .Action("Delete", "Route").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+                    .Custom("Delete")
+                    .Text("Delete")
+                    .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                    .Ajax(false)
+                    .Action("Delete", "Route").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
             }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
         })
-            .DataBinding(dataBinding =>
-            {
-                dataBinding.Server();
-                //dataBinding.Ajax().Select("_RefreshBTSGrid", "StoreBTS").Enabled(true);
-            })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Server();
+        })
         .Sortable()
         .Pageable()
         .Filterable()) 
-

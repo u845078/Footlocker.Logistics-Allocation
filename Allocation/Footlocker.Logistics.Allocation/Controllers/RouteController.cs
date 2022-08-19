@@ -26,18 +26,31 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RouteModel model = new RouteModel
             {
                 InstanceID = instanceID,
-                AvailableInstances = (from a in db.Instances
-                                      select a).ToList(),
-                Routes = (from a in db.Routes
-                          where a.InstanceID == instanceID
-                          select a).ToList()
+                AvailableInstances = new SelectList(db.Instances.ToList(), "ID", "Name", instanceID),
+                Routes = db.Routes.Where(r => r.InstanceID == instanceID).ToList()
             };
+
+            if (model.Routes.Count > 0)
+            {
+                List<string> uniqueNames = (from l in model.Routes
+                                            select l.CreatedBy).Distinct().ToList();
+                Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+
+                foreach (var item in uniqueNames)
+                {
+                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                }
+
+                foreach (var item in fullNamePairs)
+                {
+                    model.Routes.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+                }
+            }
             return View(model);
         }
 
         public ActionResult DownnloadRoutes(int instanceID)
         {
-
             Aspose.Excel.License license = new Aspose.Excel.License();
             //Set the license 
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
@@ -45,7 +58,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             Excel excelDocument = new Excel();
             Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
 
-            List<Route> list = (from a in db.Routes where a.InstanceID == instanceID select a).ToList();
+            List<Route> list = db.Routes.Where(r => r.InstanceID == instanceID).ToList();
 
             int row = 1;
             mySheet.Cells[0, 0].PutValue("Route");
@@ -76,20 +89,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             excelDocument.Save("Routes.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
-
         }
 
         public ActionResult Create(int instanceID)
         {
-            Route r = new Route();
-            r.InstanceID = instanceID;
+            Route r = new Route()
+            {
+                InstanceID = instanceID
+            };
+            
             return View(r);
         }
 
         [HttpPost]
         public ActionResult Create(Route model)
         {
-            model.CreatedBy = User.Identity.Name;
+            model.CreatedBy = currentUser.NetworkID;
             model.CreateDate = DateTime.Now;
 
             db.Routes.Add(model);
@@ -99,13 +114,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Delete(int ID)
         {
-            List<RouteDistributionCenter> dcs = (from a in db.RouteDistributionCenters where a.RouteID == ID select a).ToList();
+            List<RouteDistributionCenter> dcs = db.RouteDistributionCenters.Where(rdc => rdc.RouteID == ID).ToList();
             foreach (RouteDistributionCenter dc in dcs)
             {
-                db.RouteDistributionCenters.Remove(dc);
-                db.SaveChanges();
+                db.RouteDistributionCenters.Remove(dc);                
             }
-            Route det = (from a in db.Routes where (a.ID == ID) select a).First();
+
+            Route det = db.Routes.Where(r => r.ID == ID).FirstOrDefault();
 
             db.Routes.Remove(det);
             db.SaveChanges();
@@ -115,17 +130,28 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult EditRoute(int ID)
         {
-            EditRouteModel model = new EditRouteModel();
-            model.Route = (from a in db.Routes where a.ID == ID select a).First();
-            List<DistributionCenter> temp = (from a in db.DistributionCenters join b in db.InstanceDistributionCenters on a.ID equals b.DCID where b.InstanceID == model.Route.InstanceID select a).ToList();
+            EditRouteModel model = new EditRouteModel()
+            {
+                Route = db.Routes.Where(r => r.ID == ID).FirstOrDefault(),
+                DCs = new List<DistributionCenterModel>()
+            };
+
+            List<DistributionCenter> temp = (from a in db.DistributionCenters 
+                                             join b in db.InstanceDistributionCenters 
+                                             on a.ID equals b.DCID 
+                                             where b.InstanceID == model.Route.InstanceID 
+                                             select a).ToList();
 
             DistributionCenterModel dcmodel;
-            model.DCs = new List<DistributionCenterModel>();
+            
             foreach (DistributionCenter dc in temp)
             {
-                dcmodel = new DistributionCenterModel();
-                dcmodel.DC = dc;
-                dcmodel.Zones = (from a in db.RouteDetails where ((a.DCID == dc.ID) && (a.RouteID == ID)) select a).Count();
+                dcmodel = new DistributionCenterModel()
+                {
+                    DC = dc,
+                    Zones = db.RouteDetails.Where(rd => rd.DCID == dc.ID && rd.RouteID == ID).Count()
+                };
+                                
                 model.DCs.Add(dcmodel);
             }
             return View(model);
@@ -134,11 +160,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult EditRouteZones(int dcID, int routeID)
         {
             EditRouteZonesModel model = new EditRouteZonesModel();
-            model.Route = (from a in db.Routes where a.ID == routeID select a).First();
-            model.DC = (from a in db.DistributionCenters where a.ID == dcID select a).First(); 
-            model.RouteDetails = (from b in db.RouteDetails where ((b.RouteID == routeID) && (b.DCID == dcID)) select b).ToList();
-            model.CurrentZones = (from b in db.RouteDetails join a in db.NetworkZones on b.ZoneID equals a.ID where ((b.RouteID == routeID) && (b.DCID == dcID)) select a).ToList();
-            model.AvailableZones = (from a in db.NetworkZones join lt in db.NetworkLeadTimes on a.LeadTimeID equals lt.ID where ((lt.InstanceID == model.Route.InstanceID)&&(!(from b in db.RouteDetails where ((b.ZoneID == a.ID)&&(b.RouteID == routeID) && (b.DCID == dcID)) select b).Any())) select a).ToList();
+            model.Route = db.Routes.Where(r => r.ID == routeID).FirstOrDefault();
+            model.DC = db.DistributionCenters.Where(dc => dc.ID == dcID).FirstOrDefault();
+            model.RouteDetails = db.RouteDetails.Where(rd => rd.RouteID == routeID && rd.DCID == dcID).ToList();
+            
+            model.CurrentZones = (from b in db.RouteDetails 
+                                  join a in db.NetworkZones 
+                                  on b.ZoneID equals a.ID 
+                                  where ((b.RouteID == routeID) && (b.DCID == dcID)) 
+                                  select a).ToList();
+
+            model.AvailableZones = (from a in db.NetworkZones 
+                                    join lt in db.NetworkLeadTimes 
+                                    on a.LeadTimeID equals lt.ID 
+                                    where ((lt.InstanceID == model.Route.InstanceID) && 
+                                           (!(from b in db.RouteDetails 
+                                              where ((b.ZoneID == a.ID) && (b.RouteID == routeID) && (b.DCID == dcID)) 
+                                              select b).Any())) 
+                                    select a).ToList();
                                                                   
             return View(model);
         }
@@ -315,34 +354,43 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
 
-        public ActionResult RouteDC(int routeID)
+        public ActionResult RouteDC(int routeID, int instanceID)
         {
-            RouteDCModel model = new RouteDCModel();
-            model.Route = (from a in db.Routes 
-                           where a.ID == routeID 
-                           select a).First();
+            RouteDCModel model = new RouteDCModel()
+            {
+                Route = db.Routes.Where(r => r.ID == routeID).First(),
+                instanceID = instanceID
+            };
+            
             model.AssignedDCs = (from a in db.DistributionCenters 
                                  join b in db.RouteDistributionCenters 
                                  on a.ID equals b.DCID 
                                  where b.RouteID == routeID 
                                  select a).ToList();
-            model.RemainingDCs = (from a in db.DistributionCenters 
-                                  select a).ToList();
+
+            model.RemainingDCs = (from dc in db.DistributionCenters
+                                  join b in db.InstanceDistributionCenters
+                                  on dc.ID equals b.DCID
+                                  where b.InstanceID == instanceID
+                                  select dc).ToList();
+            
+            foreach (DistributionCenter dc in model.AssignedDCs)
+            {
+                model.RemainingDCs.Remove(dc);
+            }
 
             return View(model);
         }
 
-        public ActionResult AddDCToRoute(int routeID, int DCID)
+        public ActionResult AddDCToRoute(int routeID, int DCID, int instanceID)
         {
-            if ((from a in db.RouteDistributionCenters 
-                 where ((a.RouteID == routeID) && (a.DCID == DCID)) 
-                 select a).Count() == 0)
+            if (db.RouteDistributionCenters.Where(rdc => rdc.RouteID == routeID && rdc.DCID == DCID).Count() == 0)
             {
                 RouteDistributionCenter rdc = new RouteDistributionCenter()
                 {
                     RouteID = routeID,
                     DCID = DCID,
-                    CreatedBy = User.Identity.Name,
+                    CreatedBy = currentUser.NetworkID,
                     CreateDate = DateTime.Now
                 };
 
@@ -350,10 +398,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 db.SaveChanges();
             }
 
-            return RedirectToAction("RouteDC", new { routeID = routeID });
+            return RedirectToAction("RouteDC", new { routeID, instanceID });
         }
 
-        public ActionResult DeleteDCFromRoute(int routeID, int DCID)
+        public ActionResult DeleteDCFromRoute(int routeID, int DCID, int instanceID)
         {
             var query = (from a in db.RouteDistributionCenters 
                          where ((a.RouteID == routeID) && (a.DCID == DCID)) 
@@ -366,7 +414,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 db.SaveChanges();
             }
 
-            return RedirectToAction("RouteDC", new { routeID = routeID });
+            return RedirectToAction("RouteDC", new { routeID, instanceID });
         }
 
         public ActionResult StoreLeadTimes(string div)
@@ -947,7 +995,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             return div;
         }
-
 
         public void ReassignStartDates(StoreLeadTime lt)
         {

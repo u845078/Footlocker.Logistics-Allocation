@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.RouteModel
+﻿@model RouteModel
 
 @{
     ViewBag.Title = "Index";
@@ -11,7 +11,7 @@
 </script>
 <div class="editor-label">
     @Html.LabelFor(model => model.InstanceID)&nbsp;
-    @Html.DropDownListFor(model => model.InstanceID, new SelectList(Model.AvailableInstances, "ID", "Name"), new { onchange = "autopostback(this);" })
+    @Html.DropDownListFor(model => model.InstanceID, Model.AvailableInstances, new { onchange = "autopostback(this);" })
     @Html.ValidationMessageFor(model => model.InstanceID)
 </div>
 @Html.ActionLink("Create New", "Create", new { instanceID = Model.InstanceID }, new { @class = "t-button" })

@@ -21,17 +21,16 @@ Assigned DCs:<br />
             columns.Command(commands =>
             {
                 commands
-                .Custom("Delete")
-                .Text("Delete")
-                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("dcID"); })
-                .Ajax(false)
-                .Action("DeleteDCFromRoute", "Route").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+                    .Custom("Delete")
+                    .Text("Delete")
+                    .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("dcID"); route.Add(r => r.InstanceID).RouteKey("instanceID"); })
+                    .Ajax(false)
+                    .Action("DeleteDCFromRoute", "Route").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
             }).HtmlAttributes(new { style = "text-align: left" });
         })
             .DataBinding(dataBinding =>
             {
                 dataBinding.Server();
-                //dataBinding.Ajax().Select("_RefreshBTSGrid", "StoreBTS").Enabled(true);
             })
         .Sortable()
         .Pageable()
@@ -47,17 +46,16 @@ Available DCs:<br />
             columns.Command(commands =>
             {
                 commands
-                .Custom("Add")
-                .Text("Add")
-                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("dcID"); })
-                .Ajax(false)
-                .Action("AddDCToRoute", "Route");
+                    .Custom("Add")
+                    .Text("Add")
+                    .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("dcID"); route.Add(r => r.InstanceID).RouteKey("instanceID"); })
+                    .Ajax(false)
+                    .Action("AddDCToRoute", "Route");
             }).HtmlAttributes(new { style = "text-align: left" });
         })
             .DataBinding(dataBinding =>
             {
                 dataBinding.Server();
-                //dataBinding.Ajax().Select("_RefreshBTSGrid", "StoreBTS").Enabled(true);
             })
         .Sortable()
         .Pageable()

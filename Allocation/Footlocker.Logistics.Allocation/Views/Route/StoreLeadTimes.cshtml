@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.StoreLeadTimeModel
+﻿@model StoreLeadTimeModel
 
 @{
     ViewBag.Title = "StoreLeadTimes";
@@ -20,8 +20,7 @@
 @{
     int unassigned = (from a in Model.StoreZones where a.ZoneName == "<unassigned>" select a).Count();
     
-    @Html.Raw("<font color='red'>" + unassigned + " unassigned stores.</font><br>")
-     
+    @Html.Raw("<font color='red'>" + unassigned + " unassigned stores.</font><br>")     
 }
 
 @(Html.Telerik().Grid(Model.StoreZones)
@@ -54,4 +53,3 @@
 )
 <br />
 @Html.ActionLink("Download Excel", "DownnloadStoreLeadTimes", new { div = Model.Division }, new { @class = "t-button" })
-
