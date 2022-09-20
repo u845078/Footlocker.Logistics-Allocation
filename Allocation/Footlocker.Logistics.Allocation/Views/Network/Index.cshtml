@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.NetworkLeadTimeModel
+﻿@model NetworkLeadTimeModel
 
 @{
     ViewBag.Title = "Index";
@@ -10,18 +10,14 @@
     }
 </script>
 <h1>Zones</h1>
-@using (Html.BeginForm("CreateLeadTime","Network",FormMethod.Post)) {
+@using (Html.BeginForm("CreateLeadTime", "Network", FormMethod.Post)) {
     @Html.ValidationSummary(true)
 
     <fieldset>
         <div class="editor-label">
             @Html.LabelFor(model => model.InstanceID)&nbsp;
-            @Html.DropDownListFor(model => model.InstanceID, new SelectList(Model.AvailableInstances, "ID", "Name"), new { onchange = "autopostback(this);" })
-            @Html.ValidationMessageFor(model => model.InstanceID)
+            @Html.DropDownListFor(model => model.InstanceID, Model.AvailableInstances, "Select", new { onchange = "autopostback(this);" })
         </div>
-
-
-
     </fieldset>
 }
 

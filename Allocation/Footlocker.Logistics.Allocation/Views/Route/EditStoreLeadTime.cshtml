@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.EditStoreLeadTimeModel
+﻿@model EditStoreLeadTimeModel
 
 @{
     ViewBag.Title = "EditStoreLeadTime";
@@ -25,18 +25,10 @@
 {
 <table>
     <tr>
-        <th>
-            Warehouse
-        </th>
-        <th>
-            Lead Time
-        </th>
-        <th>
-            Rank
-        </th>
-        <th>
-            Active
-        </th>
+        <th>Warehouse</th>
+        <th>Lead Time</th>
+        <th>Rank</th>
+        <th>Active</th>
     </tr>
 
 @for (var count = 0; count < Model.LeadTimes.Count(); count++)

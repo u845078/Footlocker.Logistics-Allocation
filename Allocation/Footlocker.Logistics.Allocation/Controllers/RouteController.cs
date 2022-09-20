@@ -203,8 +203,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         public ActionResult DeleteRouteZone(int dcID, int routeID, int zoneID)
-        {
-            RouteDetail det = (from a in db.RouteDetails where ((a.DCID == dcID)&&(a.RouteID==routeID)&&(a.ZoneID==zoneID)) select a).First();
+        {            
+            RouteDetail det = db.RouteDetails.Where(rd => rd.DCID == dcID && rd.RouteID == routeID && rd.ZoneID == zoneID).FirstOrDefault();
 
             db.RouteDetails.Remove(det);
             db.SaveChanges();
@@ -330,9 +330,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult CreateDC(DistributionCenterModel model)
         {
             model.DC.CreateDate = DateTime.Now;
-            model.DC.CreatedBy = User.Identity.Name;
+            model.DC.CreatedBy = currentUser.NetworkID;
             model.DC.LastModifiedDate = DateTime.Now;
-            model.DC.LastModifiedUser = User.Identity.Name;
+            model.DC.LastModifiedUser = currentUser.NetworkID;
 
             db.DistributionCenters.Add(model.DC);
             db.SaveChanges();
@@ -403,14 +403,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult DeleteDCFromRoute(int routeID, int DCID, int instanceID)
         {
-            var query = (from a in db.RouteDistributionCenters 
-                         where ((a.RouteID == routeID) && (a.DCID == DCID)) 
-                         select a);
-            if (query.Count() > 0)
+            RouteDistributionCenter routeDistributionCenter = db.RouteDistributionCenters.Where(rdc => rdc.RouteID == routeID && rdc.DCID == DCID).FirstOrDefault();
+            
+            if (routeDistributionCenter != null)
             {
-                RouteDistributionCenter rdc = query.First();
-
-                db.RouteDistributionCenters.Remove(rdc);
+                db.RouteDistributionCenters.Remove(routeDistributionCenter);
                 db.SaveChanges();
             }
 
@@ -433,27 +430,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.Division = div;
             model.StoreZones = new List<StoreZoneModel>();
 
-            var query1 = (from a in db.vValidStores
+            var query1 = from a in db.vValidStores
                           join b in db.NetworkZoneStores 
                             on new { a.Division, a.Store } equals new { b.Division, b.Store } into gj
                           from subset in gj.DefaultIfEmpty()
                           where a.Division == div
-                          select new { a.Division, a.Store, a.State, a.Mall, a.City, subset.ZoneID });
+                          select new { a.Division, a.Store, a.State, a.Mall, a.City, subset.ZoneID };
 
-            var query2 = (from c in query1
+            var query2 = from c in query1
                           join d in db.NetworkZones 
                              on c.ZoneID equals d.ID into g2
                           from subset2 in g2.DefaultIfEmpty()
                           orderby subset2.Name
                           select new { c.Division, c.Store, c.State, c.Mall, c.City,
-                              ZoneName = (subset2 == null ? "<unassigned>" : subset2.Name) });
+                              ZoneName = subset2 == null ? "<unassigned>" : subset2.Name };
 
-            var query3 = (from e in query2
+            var query3 = from e in query2
                           join f in db.MinihubStores
                             on new { e.Division, e.Store } equals new { f.Division, f.Store } into oj
                           from f in oj.DefaultIfEmpty()
                           select new { e.Division, e.Store, e.State, e.Mall, e.City, e.ZoneName,
-                                       MinihubStore = (f == null ? false : true) });
+                                       MinihubStore = f != null };
 
             foreach (var item in query3.ToList())
             {
@@ -468,13 +465,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     IsMinihubStore = item.MinihubStore
                 };
 
-                Boolean ecommwarehouse = false;
+                bool ecommwarehouse = false;
 
-                if ((m.Store == "00900") && (m.Division == "31"))
-                {
-                    //alshaya
-                    ecommwarehouse = true;
-                }
                 if ((m.Store == "00800") && (m.Division == "31"))
                 {
                     //ecomm all countries
@@ -489,7 +481,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-
         public ActionResult DownnloadStoreLeadTimes(string div)
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -498,9 +489,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             Excel excelDocument = new Excel();
             Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
-            int instanceID = (from a in db.InstanceDivisions where a.Division == div select a.InstanceID).FirstOrDefault();
+            int instanceID = (from a in db.InstanceDivisions 
+                              where a.Division == div 
+                              select a.InstanceID).FirstOrDefault();
 
-            List<NetworkZone> list = (from a in db.NetworkZones join b in db.NetworkZoneStores on a.ID equals b.ZoneID join c in db.InstanceDivisions on b.Division equals c.Division where c.InstanceID == instanceID select a).Distinct().ToList();
+            List<NetworkZone> list = (from a in db.NetworkZones 
+                                      join b in db.NetworkZoneStores 
+                                        on a.ID equals b.ZoneID 
+                                      join c in db.InstanceDivisions 
+                                        on b.Division equals c.Division 
+                                      where c.InstanceID == instanceID 
+                                      select a).Distinct().ToList();
             List<NetworkZoneStore> storeList;
 
             int row = 1;
@@ -508,14 +507,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
             mySheet.Cells[0, 1].PutValue("Division");
             mySheet.Cells[0, 2].PutValue("Store");
             int col = 3;
-            List<Int32> DCs = new List<int>();
-            List<DistributionCenter> dcList = (from a in db.DistributionCenters select a).ToList();
+            List<int> DCs = new List<int>();
+            List<DistributionCenter> dcList = db.DistributionCenters.ToList();
+
             foreach (DistributionCenter dc in dcList)
             {
                 DCs.Add(dc.ID);
                 mySheet.Cells[0, col].PutValue(dc.Name);
                 col++;
             }
+
             int rankcol = col-1;
             for (int i = 1; i <= 5; i++)
             {
@@ -525,7 +526,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             foreach (NetworkZone z in list)
             {
-                storeList = (from a in db.NetworkZoneStores where a.ZoneID == z.ID select a).ToList();
+                storeList = db.NetworkZoneStores.Where(nzs => nzs.ZoneID == z.ID).ToList();
 
                 foreach (NetworkZoneStore s in storeList)
                 {
@@ -541,9 +542,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             mySheet.Cells[row, col].PutValue(slt.LeadTime);
                             if ((slt.Rank <= 5)&&(slt.Active))
                             {
-                                mySheet.Cells[row, rankcol + slt.Rank].PutValue(
-                                    (from a in dcList where a.ID == slt.DCID select a.Name).FirstOrDefault()
-                                    );
+                                mySheet.Cells[row, rankcol + slt.Rank].PutValue((from a in dcList 
+                                                                                 where a.ID == slt.DCID 
+                                                                                 select a.Name).FirstOrDefault());
                             }
                         }
 
@@ -554,53 +555,44 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             excelDocument.Save("StoreLeadTimes.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
-
         }
 
 
         public ActionResult EditStoreLeadTime(string div, string store)
         {
-            var query = (from a in db.StoreLeadTimes
-                         where ((a.Division == div) && (a.Store == store))
-                         select a);
+            List<StoreLeadTime> list = db.StoreLeadTimes.Where(slt => slt.Division == div && slt.Store == store).ToList();
             EditStoreLeadTimeModel model = new EditStoreLeadTimeModel();
-
-            List<StoreLeadTime> list = new List<StoreLeadTime>();
+            
             ViewData["Store"] = store;
             StoreLeadTime lt;
             int rank = 1;
-            if (query.Count() == 0)
+            if (list.Count() == 0)
             {
                 list = new List<StoreLeadTime>();
                 foreach (DistributionCenter dc in (from a in db.DistributionCenters
                                                    join b in db.InstanceDistributionCenters
                                                    on a.ID equals b.DCID
-                                                   join c in db.InstanceDivisions                                                                                                       
+                                                   join c in db.InstanceDivisions                                                                                                 
                                                    on b.InstanceID equals c.InstanceID
                                                    where c.Division == div
                                                    select a).ToList())
                 {
-                    lt = new StoreLeadTime();
-                    lt.DCID = dc.ID;
-                    lt.Division = div;
-                    lt.Store = store;
-                    lt.Active = true;
-                    lt.Rank = rank;
+                    lt = new StoreLeadTime()
+                    {
+                        DCID = dc.ID,
+                        Division = div,
+                        Store = store,
+                        Active = true,
+                        Rank = rank
+                    };
+                    
                     list.Add(lt);
                     rank++;
                 }
             }
             else
             {
-                list = query.ToList();
                 rank = list.Count() + 1;
-                var datar = (from a in db.DistributionCenters
-                             join b in db.InstanceDistributionCenters
-                             on a.InstanceID equals b.InstanceID
-                             join c in db.InstanceDivisions
-                             on b.InstanceID equals c.InstanceID
-                             where c.Division == div
-                             select a).ToList();
 
                 foreach (DistributionCenter dc in (from a in db.DistributionCenters
                                                    join b in db.InstanceDistributionCenters
@@ -610,17 +602,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                    where c.Division == div
                                                    select a).ToList())
                 {
-                    if ((from a in list
-                         where a.DCID == dc.ID
-                         select a).Count() == 0)
+                    if (list.Where(l => l.DCID == dc.ID).Count() == 0)
                     {
-                        lt = new StoreLeadTime();
-                        lt.DCID = dc.ID;
-                        lt.Division = div;
-                        lt.Store = store;
-                        lt.Active = false;
-                        lt.Rank = rank;
-                        lt.LeadTime = 5;
+                        lt = new StoreLeadTime()
+                        {
+                            DCID = dc.ID,
+                            Division = div,
+                            Store = store,
+                            Active = false,
+                            Rank = rank,
+                            LeadTime = 5
+                        };
+
                         list.Add(lt);
                         rank++;
                     }
@@ -635,10 +628,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                  where a.ID == slt.DCID
                                  select a.Name).First();
             }
-            //model.Warehouses = (from a in db.DistributionCenters select a).ToList();
-            model.Store = (from a in db.StoreLookups
-                           where ((a.Store == store) && (a.Division == div))
-                           select a).First();
+
+            model.Store = db.StoreLookups.Where(sl => sl.Store == store && sl.Division == div).First();
 
             return View(model);
         }
@@ -646,11 +637,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult EditStoreLeadTime(EditStoreLeadTimeModel model)
         {
-
             string div = UpdateStoreLeadTimesForModel(model);
 
             return RedirectToAction("StoreLeadTimes", new { div = div });
-            //return View(model);
         }
 
         [HttpGet]
@@ -900,29 +889,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 div = model.LeadTimes[0].Division;
                 store = model.LeadTimes[0].Store;
                 //delete stores current zone assignment
-                var deleteQuery = (from a in db.NetworkZoneStores 
-                                   where a.Division == div && 
-                                         a.Store == store 
-                                   select a);
+                List<NetworkZoneStore> networkZoneStores = db.NetworkZoneStores.Where(nzs => nzs.Division == div && nzs.Store == store).ToList();
 
-                if (deleteQuery.Count() > 0)
+                if (networkZoneStores.Count() > 0)
                 {
-                    NetworkZoneStore nzs = deleteQuery.First();
+                    NetworkZoneStore nzs = networkZoneStores.First();
                     int tz = nzs.ZoneID;
 
                     db.NetworkZoneStores.Remove(nzs);
-                    db.SaveChanges();
+                    //db.SaveChanges();
 
-                    var deleteQuery2 = (from a in db.NetworkZoneStores 
-                                        where a.ZoneID == tz 
-                                        select a);
+                    List<NetworkZoneStore> remainingZones = db.NetworkZoneStores.Where(nz => nz.ZoneID == tz).ToList();
 
-                    if (deleteQuery2.Count() == 0)
+                    if (remainingZones.Count() == 0)
                     {
                         //delete the zone if it's empty now
-                        NetworkZone delNZ = (from a in db.NetworkZones 
-                                             where a.ID == tz 
-                                             select a).First();
+                        NetworkZone delNZ = db.NetworkZones.Where(n => n.ID == tz).FirstOrDefault();
                         db.NetworkZones.Remove(delNZ);
                         db.SaveChanges();
                     }
@@ -932,26 +914,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //save
             foreach (StoreLeadTime lt in model.LeadTimes)
             {
-                var query = (from a in db.StoreLeadTimes where ((a.Division == lt.Division) && (a.Store == lt.Store) && (a.DCID == lt.DCID)) select a);
-                if (query.Count() == 0)
+                List<StoreLeadTime> storeLeadTimes = db.StoreLeadTimes.Where(slt => slt.Division == lt.Division && 
+                                                                                    slt.Store == lt.Store &&
+                                                                                    slt.DCID == lt.DCID).ToList(); 
+                if (storeLeadTimes.Count() == 0)
                 {
-                    lt.CreatedBy = User.Identity.Name;
+                    lt.CreatedBy = currentUser.NetworkID;
                     lt.CreateDate = DateTime.Now;
-                    db.StoreLeadTimes.Add(lt);
-                    db.SaveChanges();
+                    db.StoreLeadTimes.Add(lt);                    
                 }
                 else
                 {
-                    StoreLeadTime oldLT = query.First();
+                    StoreLeadTime oldLT = storeLeadTimes.First();
                     oldLT.LeadTime = lt.LeadTime;
                     oldLT.Rank = lt.Rank;
                     oldLT.Active = lt.Active;
-                    oldLT.CreatedBy = User.Identity.Name;
-                    oldLT.CreateDate = DateTime.Now;
-
-                    db.SaveChanges();
+                    oldLT.CreatedBy = currentUser.NetworkID;
+                    oldLT.CreateDate = DateTime.Now;                    
                 }
             }
+            db.SaveChanges();
 
             if (model.LeadTimes.Count > 0)
             {
@@ -961,37 +943,47 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //find new zone and save
 
             NetworkZoneStoreDAO dao = new NetworkZoneStoreDAO();
-
             int zoneid = dao.GetZoneForStore(div, store);
             NetworkZoneStore zonestore;
             if (zoneid > 0)
             {
                 //save it
-                zonestore = new NetworkZoneStore();
-                zonestore.Division = div;
-                zonestore.Store = store;
-                zonestore.ZoneID = zoneid;
+                zonestore = new NetworkZoneStore()
+                {
+                    Division = div,
+                    Store = store,
+                    ZoneID = zoneid
+                };
                 db.NetworkZoneStores.Add(zonestore);
                 db.SaveChanges();
             }
             else
             {
                 //create new zone
-                NetworkZone zone = new NetworkZone();
-                zone.Name = "Zone " + store;
-                zone.LeadTimeID = (from a in db.InstanceDivisions join b in db.NetworkLeadTimes on a.InstanceID equals b.InstanceID where (a.Division == div)  select b.ID).First();
-                zone.CreateDate = DateTime.Now;
-                zone.CreatedBy = User.Identity.Name;
-                db.NetworkZones.Add(zone);
-                db.SaveChanges();
+                NetworkZone zone = new NetworkZone()
+                {
+                    Name = string.Format("Zone {0}", store),
+                    CreateDate = DateTime.Now,
+                    CreatedBy = currentUser.NetworkID
+                };
 
-                zonestore = new NetworkZoneStore();
-                zonestore.Division = div;
-                zonestore.Store = store;
-                zonestore.ZoneID = zone.ID;
+                zone.LeadTimeID = (from a in db.InstanceDivisions 
+                                   join b in db.NetworkLeadTimes 
+                                     on a.InstanceID equals b.InstanceID 
+                                   where a.Division == div  
+                                   select b.ID).First();
+
+                db.NetworkZones.Add(zone);
+
+                zonestore = new NetworkZoneStore()
+                {
+                    Division = div,
+                    Store = store,
+                    ZoneID = zone.ID
+                };
+
                 db.NetworkZoneStores.Add(zonestore);
                 db.SaveChanges();
-
             }
             return div;
         }
@@ -1228,7 +1220,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     slt.Rank = i + 1;
                     slt.Active = true;
                     slt.CreateDate = DateTime.Now;
-                    slt.CreatedBy = User.Identity.Name;
+                    slt.CreatedBy = currentUser.NetworkID;
 
                     newLeadtimes.Add(slt);
                 }
@@ -1266,7 +1258,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                   where (a.Division == division) 
                                   select b.ID).First(),
                     CreateDate = DateTime.Now,
-                    CreatedBy = User.Identity.Name
+                    CreatedBy = currentUser.NetworkID
                 };
 
                 // see if there are any zones already out there that have the name of the new zone
@@ -1282,7 +1274,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                            select nzs.Store).FirstOrDefault();
 
                     netZone.Name = "Zone " + newZoneStore;
-                    netZone.CreatedBy = User.Identity.Name;
+                    netZone.CreatedBy = currentUser.NetworkID;
                     netZone.CreateDate = DateTime.Now;
                     db.Entry(netZone).State = EntityState.Modified;
                 }
@@ -1328,261 +1320,259 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }            
         }
 
-        public ActionResult UploadRanks()
-        {
-            return View();
-        }
-
-
+        //public ActionResult UploadRanks()
+        //{
+        //    return View();
+        //}
 
         /// <summary>
         /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
         /// </summary>
         /// <param name="attachments"></param>
         /// <returns></returns>
-        [CheckPermission(Roles = "Admin,Support")]
-        public ActionResult SaveRanks(IEnumerable<HttpPostedFileBase> attachments)
-        {
-            Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+        //[CheckPermission(Roles = "Admin,Support")]
+        //public ActionResult SaveRanks(IEnumerable<HttpPostedFileBase> attachments)
+        //{
+        //    Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        //    Aspose.Excel.License license = new Aspose.Excel.License();
+        //    //Set the license 
+        //    license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
             
-            foreach (HttpPostedFileBase file in attachments)
-            {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+        //    foreach (HttpPostedFileBase file in attachments)
+        //    {
+        //        //Instantiate a Workbook object that represents an Excel file
+        //        Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+        //        Byte[] data1 = new Byte[file.InputStream.Length];
+        //        file.InputStream.Read(data1, 0, data1.Length);
+        //        file.InputStream.Close();
+        //        MemoryStream memoryStream1 = new MemoryStream(data1);
+        //        workbook.Open(memoryStream1);
+        //        Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
 
-                List<int> ErrorRows = new List<int>();
-                int row = 1;
-                string store;
-                string div;
-                int wc, ch, jc, jv, ed, te;
+        //        List<int> ErrorRows = new List<int>();
+        //        int row = 1;
+        //        string store;
+        //        string div;
+        //        int wc, ch, jc, jv, ed, te;
 
-                DateTime createdate = DateTime.Now;
-                while (mySheet.Cells[row, 0].Value != null)
-                {
-                    try
-                    {
-                        store = Convert.ToString(mySheet.Cells[row, 2].Value).PadLeft(5,'0');
-                        div = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(2, '0');
-                        jc = GetRank(mySheet, row, 3);
-                        jv = GetRank(mySheet, row, 7);
-                        te = GetRank(mySheet, row, 8);
-                        ed = GetRank(mySheet, row, 5);
-                        ch = GetRank(mySheet, row, 4);
-                        wc = GetRank(mySheet, row, 6);
-                        EditStoreLeadTimeModel model = new EditStoreLeadTimeModel();
-                        model.LeadTimes = new List<StoreLeadTime>();
+        //        DateTime createdate = DateTime.Now;
+        //        while (mySheet.Cells[row, 0].Value != null)
+        //        {
+        //            try
+        //            {
+        //                store = Convert.ToString(mySheet.Cells[row, 2].Value).PadLeft(5,'0');
+        //                div = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(2, '0');
+        //                jc = GetRank(mySheet, row, 3);
+        //                jv = GetRank(mySheet, row, 7);
+        //                te = GetRank(mySheet, row, 8);
+        //                ed = GetRank(mySheet, row, 5);
+        //                ch = GetRank(mySheet, row, 4);
+        //                wc = GetRank(mySheet, row, 6);
+        //                EditStoreLeadTimeModel model = new EditStoreLeadTimeModel();
+        //                model.LeadTimes = new List<StoreLeadTime>();
 
-                        List<StoreLeadTime> newlist = new List<StoreLeadTime>();
-                        var query = (from a in db.StoreLeadTimes where ((a.Store == store) && (a.Division == div)) select a);
-                        StoreLeadTime s;
-                        var subquery = (from a in query where a.DCID == 1 select a);
+        //                List<StoreLeadTime> newlist = new List<StoreLeadTime>();
+        //                var query = (from a in db.StoreLeadTimes where ((a.Store == store) && (a.Division == div)) select a);
+        //                StoreLeadTime s;
+        //                var subquery = (from a in query where a.DCID == 1 select a);
 
-                        for (int dcid = 1; dcid < 7; dcid++)
-                        {
-                            subquery = (from a in query where a.DCID == dcid select a);
+        //                for (int dcid = 1; dcid < 7; dcid++)
+        //                {
+        //                    subquery = (from a in query where a.DCID == dcid select a);
 
-                            if (subquery.Count() > 0)
-                            {
-                                s = subquery.First();
-                            }
-                            else
-                            {
-                                s = new StoreLeadTime();
-                                s.Division = div;
-                                s.Store = store;
-                                s.DCID = dcid;
-                                newlist.Add(s);
-                            }
-                            switch (dcid)
-                            {
-                                case 1:
-                                    s.Rank = jc;
-                                    break;
-                                case 2:
-                                    s.Rank = ch;
-                                    break;
-                                case 3:
-                                    s.Rank = ed;
-                                    break;
-                                case 4:
-                                    s.Rank = wc;
-                                    break;
-                                case 5:
-                                    s.Rank = jv;
-                                    break;
-                                case 6:
-                                    s.Rank = te;
-                                    break;
-                            }
-                            s.Active = (s.Rank > 0);
-                            s.CreateDate = createdate;
-                            s.CreatedBy = User.Identity.Name;
-                            model.LeadTimes.Add(s);
-                        }
-                        UpdateStoreLeadTimesForModelNoStartDateUpdating(model);
-                        //for now, don't create any new ones since we don't know the lead times
-                        //foreach (StoreLeadTime slt in newlist)
-                        //{
-                        //    db.StoreLeadTimes.Add(slt);
-                        //}
-                    }
-                    catch (Exception ex)
-                    {
-                        ErrorRows.Add(row);
-                    }
+        //                    if (subquery.Count() > 0)
+        //                    {
+        //                        s = subquery.First();
+        //                    }
+        //                    else
+        //                    {
+        //                        s = new StoreLeadTime();
+        //                        s.Division = div;
+        //                        s.Store = store;
+        //                        s.DCID = dcid;
+        //                        newlist.Add(s);
+        //                    }
+        //                    switch (dcid)
+        //                    {
+        //                        case 1:
+        //                            s.Rank = jc;
+        //                            break;
+        //                        case 2:
+        //                            s.Rank = ch;
+        //                            break;
+        //                        case 3:
+        //                            s.Rank = ed;
+        //                            break;
+        //                        case 4:
+        //                            s.Rank = wc;
+        //                            break;
+        //                        case 5:
+        //                            s.Rank = jv;
+        //                            break;
+        //                        case 6:
+        //                            s.Rank = te;
+        //                            break;
+        //                    }
+        //                    s.Active = (s.Rank > 0);
+        //                    s.CreateDate = createdate;
+        //                    s.CreatedBy = User.Identity.Name;
+        //                    model.LeadTimes.Add(s);
+        //                }
+        //                UpdateStoreLeadTimesForModelNoStartDateUpdating(model);
+        //                //for now, don't create any new ones since we don't know the lead times
+        //                //foreach (StoreLeadTime slt in newlist)
+        //                //{
+        //                //    db.StoreLeadTimes.Add(slt);
+        //                //}
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                ErrorRows.Add(row);
+        //            }
 
-                    //db.SaveChanges(UserName);
+        //            //db.SaveChanges(UserName);
 
-                    row++;
-                }
-            }
+        //            row++;
+        //        }
+        //    }
 
-            return Content("");
-        }
+        //    return Content("");
+        //}
 
-        private int GetRank(Aspose.Excel.Worksheet mySheet, int row, int col)
-        {
-            int rank;
-            try
-            {
-                rank = Convert.ToInt32(mySheet.Cells[row, col].Value);
-            }
-            catch (Exception ex)
-            {
-                rank = -1;
-            }
-            return rank;
-        }
+        //private int GetRank(Aspose.Excel.Worksheet mySheet, int row, int col)
+        //{
+        //    int rank;
+        //    try
+        //    {
+        //        rank = Convert.ToInt32(mySheet.Cells[row, col].Value);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        rank = -1;
+        //    }
+        //    return rank;
+        //}
 
         /// <summary>
         /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
         /// </summary>
         /// <param name="attachments"></param>
         /// <returns></returns>
-        [CheckPermission(Roles = "Admin,Support")]
-        public ActionResult SaveLeadTimes(IEnumerable<HttpPostedFileBase> leadTimeAttachments)
-        {
-            Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+        //[CheckPermission(Roles = "Admin,Support")]
+        //public ActionResult SaveLeadTimes(IEnumerable<HttpPostedFileBase> leadTimeAttachments)
+        //{
+        //    Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        //    Aspose.Excel.License license = new Aspose.Excel.License();
+        //    //Set the license 
+        //    license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
-            foreach (HttpPostedFileBase file in leadTimeAttachments)
-            {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+        //    foreach (HttpPostedFileBase file in leadTimeAttachments)
+        //    {
+        //        //Instantiate a Workbook object that represents an Excel file
+        //        Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+        //        Byte[] data1 = new Byte[file.InputStream.Length];
+        //        file.InputStream.Read(data1, 0, data1.Length);
+        //        file.InputStream.Close();
+        //        MemoryStream memoryStream1 = new MemoryStream(data1);
+        //        workbook.Open(memoryStream1);
+        //        Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
 
-                List<int> ErrorRows = new List<int>();
-                int row = 1;
-                string store;
-                string div;
-                int wc, ch, jc, jv, ed, te, he;
+        //        List<int> ErrorRows = new List<int>();
+        //        int row = 1;
+        //        string store;
+        //        string div;
+        //        int wc, ch, jc, jv, ed, te, he;
 
-                DateTime createdate = DateTime.Now;
-                while (mySheet.Cells[row, 0].Value != null)
-                {
-                    try
-                    {
-                        store = Convert.ToString(mySheet.Cells[row, 2].Value).PadLeft(5, '0');
-                        div = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(2, '0');
-                        jc = GetRank(mySheet, row, 3);
-                        jv = GetRank(mySheet, row, 7);
-                        te = GetRank(mySheet, row, 8);
-                        ed = GetRank(mySheet, row, 5);
-                        ch = GetRank(mySheet, row, 4);
-                        wc = GetRank(mySheet, row, 6);
-                        he = GetRank(mySheet, row, 9);
-                        EditStoreLeadTimeModel model = new EditStoreLeadTimeModel();
-                        model.LeadTimes = new List<StoreLeadTime>();
+        //        DateTime createdate = DateTime.Now;
+        //        while (mySheet.Cells[row, 0].Value != null)
+        //        {
+        //            try
+        //            {
+        //                store = Convert.ToString(mySheet.Cells[row, 2].Value).PadLeft(5, '0');
+        //                div = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(2, '0');
+        //                jc = GetRank(mySheet, row, 3);
+        //                jv = GetRank(mySheet, row, 7);
+        //                te = GetRank(mySheet, row, 8);
+        //                ed = GetRank(mySheet, row, 5);
+        //                ch = GetRank(mySheet, row, 4);
+        //                wc = GetRank(mySheet, row, 6);
+        //                he = GetRank(mySheet, row, 9);
+        //                EditStoreLeadTimeModel model = new EditStoreLeadTimeModel();
+        //                model.LeadTimes = new List<StoreLeadTime>();
 
-                        List<StoreLeadTime> newlist = new List<StoreLeadTime>();
-                        var query = (from a in db.StoreLeadTimes where ((a.Store == store) && (a.Division == div)) select a);
-                        StoreLeadTime s;
-                        var subquery = (from a in query where a.DCID == 1 select a);
+        //                List<StoreLeadTime> newlist = new List<StoreLeadTime>();
+        //                var query = (from a in db.StoreLeadTimes where ((a.Store == store) && (a.Division == div)) select a);
+        //                StoreLeadTime s;
+        //                var subquery = (from a in query where a.DCID == 1 select a);
 
-                        for (int dcid = 1; dcid < 8; dcid++)
-                        {
-                            subquery = (from a in query where a.DCID == dcid select a);
+        //                for (int dcid = 1; dcid < 8; dcid++)
+        //                {
+        //                    subquery = (from a in query where a.DCID == dcid select a);
 
-                            if (subquery.Count() > 0)
-                            {
-                                s = subquery.First();
-                            }
-                            else
-                            {
-                                s = new StoreLeadTime();
-                                s.Division = div;
-                                s.Store = store;
-                                s.DCID = dcid;
-                                newlist.Add(s);
-                            }
-                            switch (dcid)
-                            {
-                                case 1:
-                                    s.LeadTime = jc;
-                                    break;
-                                case 2:
-                                    s.LeadTime = ch;
-                                    break;
-                                case 3:
-                                    s.LeadTime = ed;
-                                    break;
-                                case 4:
-                                    s.LeadTime = wc;
-                                    break;
-                                case 5:
-                                    s.LeadTime = jv;
-                                    break;
-                                case 6:
-                                    s.LeadTime = te;
-                                    break;
-                                case 7:
-                                    s.LeadTime = he;
-                                    break;
-                            }
-                            s.Active = (s.LeadTime > 0);
-                            s.CreateDate = createdate;
-                            s.CreatedBy = User.Identity.Name;
-                            if (s.Active)
-                            {
-                                model.LeadTimes.Add(s);
-                            }
-                        }
-                        UpdateStoreLeadTimesForModel(model);
-                        //for now, don't create any new ones since we don't know the lead times
-                        //foreach (StoreLeadTime slt in newlist)
-                        //{
-                        //    db.StoreLeadTimes.Add(slt);
-                        //}
-                    }
-                    catch (Exception ex)
-                    {
-                        ErrorRows.Add(row);
-                    }
+        //                    if (subquery.Count() > 0)
+        //                    {
+        //                        s = subquery.First();
+        //                    }
+        //                    else
+        //                    {
+        //                        s = new StoreLeadTime();
+        //                        s.Division = div;
+        //                        s.Store = store;
+        //                        s.DCID = dcid;
+        //                        newlist.Add(s);
+        //                    }
+        //                    switch (dcid)
+        //                    {
+        //                        case 1:
+        //                            s.LeadTime = jc;
+        //                            break;
+        //                        case 2:
+        //                            s.LeadTime = ch;
+        //                            break;
+        //                        case 3:
+        //                            s.LeadTime = ed;
+        //                            break;
+        //                        case 4:
+        //                            s.LeadTime = wc;
+        //                            break;
+        //                        case 5:
+        //                            s.LeadTime = jv;
+        //                            break;
+        //                        case 6:
+        //                            s.LeadTime = te;
+        //                            break;
+        //                        case 7:
+        //                            s.LeadTime = he;
+        //                            break;
+        //                    }
+        //                    s.Active = (s.LeadTime > 0);
+        //                    s.CreateDate = createdate;
+        //                    s.CreatedBy = User.Identity.Name;
+        //                    if (s.Active)
+        //                    {
+        //                        model.LeadTimes.Add(s);
+        //                    }
+        //                }
+        //                UpdateStoreLeadTimesForModel(model);
+        //                //for now, don't create any new ones since we don't know the lead times
+        //                //foreach (StoreLeadTime slt in newlist)
+        //                //{
+        //                //    db.StoreLeadTimes.Add(slt);
+        //                //}
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                ErrorRows.Add(row);
+        //            }
 
-                    //db.SaveChanges(UserName);
+        //            //db.SaveChanges(UserName);
 
-                    row++;
-                }
-            }
+        //            row++;
+        //        }
+        //    }
 
-            return Content("");
-        }
+        //    return Content("");
+        //}
 
         #endregion
 

@@ -24,12 +24,12 @@ namespace Footlocker.Logistics.Allocation.Services
         {
             DbCommand SQLCommand;
             string SQL = "dbo.[GetZoneForStore]";
-            Microsoft.Practices.EnterpriseLibrary.Data.Database _database = Footlocker.Common.DatabaseService.GetSqlDatabase("AllocationContext");
-            SQLCommand = Footlocker.Common.DatabaseService.GetStoredProcCommand(_database, SQL);
+            Database _database = DatabaseService.GetSqlDatabase("AllocationContext");
+            SQLCommand = DatabaseService.GetStoredProcCommand(_database, SQL);
             _database.AddInParameter(SQLCommand, "@div", DbType.String, div);
             _database.AddInParameter(SQLCommand, "@store", DbType.String, store);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _database.ExecuteDataSet(SQLCommand);
 
             if (data.Tables.Count > 0)
@@ -41,7 +41,6 @@ namespace Footlocker.Logistics.Allocation.Services
             }
 
             return -1;
-
         }
 
         public NetworkZoneStore GetNearestStore(string div, string store)

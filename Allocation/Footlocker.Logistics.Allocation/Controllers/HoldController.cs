@@ -94,7 +94,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult IndexByProduct(string duration, string message)
         {
-            if ((duration == null) || (duration == ""))
+            if (string.IsNullOrEmpty(duration))
             {
                 duration = "All";
             }
@@ -201,22 +201,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     where ((a.Duration == duration) || (duration == "All"))
                     select a).ToList();
 
-            if (list.Count > 0)
-            {
-                List<string> uniqueNames = (from l in list
-                                            select l.CreatedBy).Distinct().ToList();
-                Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
-
-                foreach (var item in uniqueNames)
-                {
-                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
-                }
-
-                foreach (var item in fullNamePairs)
-                {
-                    list.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
-                }
-            }
             //TODO:  Do we want dept level security on holds???
 
             List<HoldByStoreModel> finalList = list.GroupBy(x => new { x.Division, x.Store, x.HoldType })
@@ -245,6 +229,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     select a).ToList();
             //TODO:  Do we want dept level security on holds???
 
+            if (list.Count > 0)
+            {
+                List<string> uniqueNames = (from l in list
+                                            select l.CreatedBy).Distinct().ToList();
+                Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+
+                foreach (var item in uniqueNames)
+                {
+                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                }
+
+                foreach (var item in fullNamePairs)
+                {
+                    list.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+                }
+            }
+
             return View(new GridModel(list));
         }
 
@@ -258,12 +259,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<Division> divs = currentUser.GetUserDivisions(AppName);
             List<Hold> list = db.Holds.ToList();
             list = (from a in list
-                    join d in divs on a.Division equals d.DivCode
-                    where (((a.Duration == duration) || (duration == "All"))
-                    && (a.Division == div)
-                    && (a.Store == store || string.IsNullOrEmpty(a.Store))
-                    && (a.HoldType == holdType))
+                    join d in divs 
+                    on a.Division equals d.DivCode
+                    where (a.Duration == duration || duration == "All") && 
+                          (a.Division == div) &&
+                       (a.HoldType == holdType) &&
+                          (a.Store == store || string.IsNullOrEmpty(a.Store))                 
                     select a).ToList();
+
+            if (list.Count > 0)
+            {
+                List<string> uniqueNames = (from l in list
+                                            select l.CreatedBy).Distinct().ToList();
+                Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+
+                foreach (var item in uniqueNames)
+                {
+                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                }
+
+                foreach (var item in fullNamePairs)
+                {
+                    list.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+                }
+            }
 
             return View(new GridModel(list));
         }

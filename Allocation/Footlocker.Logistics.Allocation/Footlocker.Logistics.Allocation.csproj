@@ -725,7 +725,6 @@
     <Content Include="Views\StoreBTS\Search.cshtml" />
     <Content Include="Views\StoreBTS\ShowDetail.cshtml" />
     <Content Include="Views\StoreSeasonality\ShowDetail.cshtml" />
-    <Content Include="Views\Network\IndexOld.cshtml" />
     <Content Include="Views\DTS\Index.cshtml" />
     <Content Include="Views\DTS\Create.cshtml" />
     <Content Include="Views\DTS\Edit.cshtml" />

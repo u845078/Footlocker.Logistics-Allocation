@@ -191,6 +191,5 @@ namespace Footlocker.Logistics.Allocation.Services
 
             _database.ExecuteNonQuery(SQLCommand);
         }
-
     }
 }
