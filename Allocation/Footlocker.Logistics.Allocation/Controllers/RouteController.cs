@@ -418,15 +418,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             StoreLeadTimeModel model = new StoreLeadTimeModel()
             {
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = currentUser.GetUserDivisions(AppName),
+                CanUploadData = currentUser.HasUserRole(AppName, "IT")
             };
-
-            model.CanUploadData = currentUser.HasUserRole(AppName, "IT");
-
+            
             if ((div == null) && (model.Divisions.Count > 0))
             {
                 div = model.Divisions[0].DivCode;
             }
+
             model.Division = div;
             model.StoreZones = new List<StoreZoneModel>();
 
@@ -786,98 +786,98 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
-        private string UpdateStoreLeadTimesForModelNoStartDateUpdating(EditStoreLeadTimeModel model)
-        {
-            string div = "";
-            string store = "";
+        //private string UpdateStoreLeadTimesForModelNoStartDateUpdating(EditStoreLeadTimeModel model)
+        //{
+        //    string div = "";
+        //    string store = "";
 
-            if (model.LeadTimes.Count > 0)
-            {
-                div = model.LeadTimes[0].Division;
-                store = model.LeadTimes[0].Store;
-                //delete stores current zone assignment
-                var deleteQuery = (from a in db.NetworkZoneStores where ((a.Division == div) && (a.Store == store)) select a);
+        //    if (model.LeadTimes.Count > 0)
+        //    {
+        //        div = model.LeadTimes[0].Division;
+        //        store = model.LeadTimes[0].Store;
+        //        //delete stores current zone assignment
+        //        var deleteQuery = (from a in db.NetworkZoneStores where ((a.Division == div) && (a.Store == store)) select a);
 
-                if (deleteQuery.Count() > 0)
-                {
-                    NetworkZoneStore nzs = deleteQuery.First();
-                    int tz = nzs.ZoneID;
+        //        if (deleteQuery.Count() > 0)
+        //        {
+        //            NetworkZoneStore nzs = deleteQuery.First();
+        //            int tz = nzs.ZoneID;
 
-                    db.NetworkZoneStores.Remove(nzs);
-                    db.SaveChanges();
+        //            db.NetworkZoneStores.Remove(nzs);
+        //            db.SaveChanges();
 
-                    var deleteQuery2 = (from a in db.NetworkZoneStores where a.ZoneID == tz select a);
-                    if (deleteQuery2.Count() == 0)
-                    {
-                        //delete the zone if it's empty now
-                        NetworkZone delNZ = (from a in db.NetworkZones where a.ID == tz select a).First();
-                        db.NetworkZones.Remove(delNZ);
-                        db.SaveChanges();
-                    }
-                }
-            }
+        //            var deleteQuery2 = (from a in db.NetworkZoneStores where a.ZoneID == tz select a);
+        //            if (deleteQuery2.Count() == 0)
+        //            {
+        //                //delete the zone if it's empty now
+        //                NetworkZone delNZ = (from a in db.NetworkZones where a.ID == tz select a).First();
+        //                db.NetworkZones.Remove(delNZ);
+        //                db.SaveChanges();
+        //            }
+        //        }
+        //    }
 
-            //save
-            foreach (StoreLeadTime lt in model.LeadTimes)
-            {
-                var query = (from a in db.StoreLeadTimes where ((a.Division == lt.Division) && (a.Store == lt.Store) && (a.DCID == lt.DCID)) select a);
-                if (query.Count() == 0)
-                {
-                    lt.CreatedBy = User.Identity.Name;
-                    lt.CreateDate = DateTime.Now;
-                    db.StoreLeadTimes.Add(lt);
-                    db.SaveChanges();
-                }
-                else
-                {
-                    StoreLeadTime oldLT = query.First();
-                    oldLT.LeadTime = lt.LeadTime;
-                    oldLT.Rank = lt.Rank;
-                    oldLT.Active = lt.Active;
-                    oldLT.CreatedBy = User.Identity.Name;
-                    oldLT.CreateDate = DateTime.Now;
+        //    //save
+        //    foreach (StoreLeadTime lt in model.LeadTimes)
+        //    {
+        //        var query = (from a in db.StoreLeadTimes where ((a.Division == lt.Division) && (a.Store == lt.Store) && (a.DCID == lt.DCID)) select a);
+        //        if (query.Count() == 0)
+        //        {
+        //            lt.CreatedBy = User.Identity.Name;
+        //            lt.CreateDate = DateTime.Now;
+        //            db.StoreLeadTimes.Add(lt);
+        //            db.SaveChanges();
+        //        }
+        //        else
+        //        {
+        //            StoreLeadTime oldLT = query.First();
+        //            oldLT.LeadTime = lt.LeadTime;
+        //            oldLT.Rank = lt.Rank;
+        //            oldLT.Active = lt.Active;
+        //            oldLT.CreatedBy = User.Identity.Name;
+        //            oldLT.CreateDate = DateTime.Now;
 
-                    db.SaveChanges();
-                }
-            }
+        //            db.SaveChanges();
+        //        }
+        //    }
 
-            //find new zone and save
+        //    //find new zone and save
 
-            NetworkZoneStoreDAO dao = new NetworkZoneStoreDAO();
+        //    NetworkZoneStoreDAO dao = new NetworkZoneStoreDAO();
 
-            int zoneid = dao.GetZoneForStore(div, store);
-            NetworkZoneStore zonestore;
-            if (zoneid > 0)
-            {
-                //save it
-                zonestore = new NetworkZoneStore();
-                zonestore.Division = div;
-                zonestore.Store = store;
-                zonestore.ZoneID = zoneid;
-                db.NetworkZoneStores.Add(zonestore);
-                db.SaveChanges();
-            }
-            else
-            {
-                //create new zone
-                NetworkZone zone = new NetworkZone();
-                zone.Name = "Zone " + store;
-                zone.LeadTimeID = (from a in db.InstanceDivisions join b in db.NetworkLeadTimes on a.InstanceID equals b.InstanceID where (a.Division == div) select b.ID).First();
-                zone.CreateDate = DateTime.Now;
-                zone.CreatedBy = User.Identity.Name;
-                db.NetworkZones.Add(zone);
-                db.SaveChanges();
+        //    int zoneid = dao.GetZoneForStore(div, store);
+        //    NetworkZoneStore zonestore;
+        //    if (zoneid > 0)
+        //    {
+        //        //save it
+        //        zonestore = new NetworkZoneStore();
+        //        zonestore.Division = div;
+        //        zonestore.Store = store;
+        //        zonestore.ZoneID = zoneid;
+        //        db.NetworkZoneStores.Add(zonestore);
+        //        db.SaveChanges();
+        //    }
+        //    else
+        //    {
+        //        //create new zone
+        //        NetworkZone zone = new NetworkZone();
+        //        zone.Name = "Zone " + store;
+        //        zone.LeadTimeID = (from a in db.InstanceDivisions join b in db.NetworkLeadTimes on a.InstanceID equals b.InstanceID where (a.Division == div) select b.ID).First();
+        //        zone.CreateDate = DateTime.Now;
+        //        zone.CreatedBy = User.Identity.Name;
+        //        db.NetworkZones.Add(zone);
+        //        db.SaveChanges();
 
-                zonestore = new NetworkZoneStore();
-                zonestore.Division = div;
-                zonestore.Store = store;
-                zonestore.ZoneID = zone.ID;
-                db.NetworkZoneStores.Add(zonestore);
-                db.SaveChanges();
+        //        zonestore = new NetworkZoneStore();
+        //        zonestore.Division = div;
+        //        zonestore.Store = store;
+        //        zonestore.ZoneID = zone.ID;
+        //        db.NetworkZoneStores.Add(zonestore);
+        //        db.SaveChanges();
 
-            }
-            return div;
-        }
+        //    }
+        //    return div;
+        //}
 
         private string UpdateStoreLeadTimesForModel(EditStoreLeadTimeModel model)
         {
@@ -974,6 +974,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                    select b.ID).First();
 
                 db.NetworkZones.Add(zone);
+                // save to generate ID
+                db.SaveChanges();
 
                 zonestore = new NetworkZoneStore()
                 {
