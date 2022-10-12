@@ -2,6 +2,7 @@
 using System;
 using Footlocker.Logistics.Allocation.Models;
 using System.Data;
+using System.Xml;
 using System.Collections.Generic;
 using Footlocker.Common;
 using Footlocker.Logistics.Allocation.Services;
