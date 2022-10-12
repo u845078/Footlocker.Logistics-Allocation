@@ -16,7 +16,6 @@ using Footlocker.Logistics.Allocation.Common;
 using System.Web.Script.Serialization;
 using Footlocker.Common.Entities;
 using Telerik.Web.Mvc.Infrastructure;
-using static Footlocker.Logistics.Allocation.Models.QuantumInstance;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
