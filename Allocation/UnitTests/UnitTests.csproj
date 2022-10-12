@@ -55,9 +55,11 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
     <Reference Include="System.DirectoryServices" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RDQFactoryTests.cs" />
     <Compile Include="WebUserTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

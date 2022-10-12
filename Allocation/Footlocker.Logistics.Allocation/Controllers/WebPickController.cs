@@ -11,8 +11,12 @@ using Footlocker.Logistics.Allocation.DAO;
 using System.IO;
 using Aspose.Excel;
 using Telerik.Web.Mvc;
+using System.Data;
 using Footlocker.Logistics.Allocation.Common;
 using System.Web.Script.Serialization;
+using Footlocker.Common.Entities;
+using Telerik.Web.Mvc.Infrastructure;
+using static Footlocker.Logistics.Allocation.Models.QuantumInstance;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -62,11 +66,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             BulkRDQModel model = new BulkRDQModel();
 
             InitializeDivisions(model);
-            InitializeDepartmets(model, false);
+            InitializeDepartments(model, false);
             ViewData["message"] = message;
             ViewData["ruleSetID"] = model.RuleSetID;
             ViewData["ruleType"] = "rdq";
-            Session["searchresult"] = -1;
+            model.SearchResult = false;
 
             return View(model);
         }
@@ -77,7 +81,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ViewData["ruleSetID"] = model.RuleSetID;
             ViewData["ruleType"] = "rdq";
             InitializeDivisions(model);
-            InitializeDepartmets(model, false);
+            InitializeDepartments(model, false);
             model.HaveResults = true;
 
             if (model.ShowStoreSelector == "yes")
@@ -101,8 +105,45 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ViewData["ruleSetID"] = model.RuleSetID;
                 return View(model);
             }
+            model.SearchResult = false;
 
-            Session["searchresult"] = -1;
+            // This isn't working right now based on the old Telerik grids we use. Maybe eventual upgrades will make this better
+
+            //model.RDQResults = GetRDQsForSession(model.Instance, model.Division, model.Department, model.Category, model.Sku, model.Status, 
+            //    model.PO, model.Store, model.RuleSetID);
+
+            //var rdqGroups = from rdq in model.RDQResults
+            //                group rdq by new
+            //                {
+            //                    Division = rdq.Division,
+            //                    Store = rdq.Store,
+            //                    WarehouseName = rdq.WarehouseName,
+            //                    Category = rdq.Category,
+            //                    ItemID = rdq.ItemID,
+            //                    Sku = rdq.Sku,
+            //                    Status = rdq.Status
+            //                } into g
+            //                select new RDQGroup()
+            //                {
+            //                    Division = g.Key.Division,
+            //                    Store = g.Key.Store,
+            //                    WarehouseName = g.Key.WarehouseName,
+            //                    Category = g.Key.Category,
+            //                    ItemID = Convert.ToInt64(g.Key.ItemID),
+            //                    Sku = g.Key.Sku,
+            //                    IsBin = g.Where(r => r.Size.Length > 3).Any() ? false : true,
+            //                    Qty = g.Sum(r => r.Qty),
+            //                    UnitQty = g.Sum(r => r.UnitQty),
+            //                    Status = g.Key.Status
+            //                };
+
+            //model.RDQGroups = rdqGroups.OrderBy(g => g.Division)
+            //        .ThenBy(g => g.Store)
+            //        .ThenBy(g => g.WarehouseName)
+            //        .ThenBy(g => g.Category)
+            //        .ThenBy(g => g.Sku)
+            //        .ThenBy(g => g.Status)
+            //        .ToList();
 
             return View(model);
         }
@@ -111,7 +152,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult RefreshDivisions(BulkRDQModel model)
         {
             InitializeDivisions(model);
-            InitializeDepartmets(model, true);
+            InitializeDepartments(model, true);
             return View("BulkAdmin", model);
         }
 
@@ -119,13 +160,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult RefreshDepartments(BulkRDQModel model)
         {
             InitializeDivisions(model);
-            InitializeDepartmets(model, false);
+            InitializeDepartments(model, false);
             return View("BulkAdmin", model);
         }
 
         private void InitializeDivisions(BulkRDQModel model)
         {
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
 
             var allInstances = (from a in db.Instances 
                                 join b in db.InstanceDivisions 
@@ -159,7 +200,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.StatusList.Insert(0, "All");
         }
 
-        private void InitializeDepartmets(BulkRDQModel model, bool resetDivision)
+        private void InitializeDepartments(BulkRDQModel model, bool resetDivision)
         {
             if (model.Divisions.Any())
             {
@@ -191,7 +232,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult ReleaseAll(BulkRDQModel model)
         {
             List<RDQ> rdqsToRelease = GetRDQsForSession(model.Instance, model.Division, model.Department, model.Category, model.Sku, model.Status, model.PO, model.Store, model.RuleSetID);
-
+           
             rdqsToRelease = rdqsToRelease.Where(rtr => rtr.Status.StartsWith("HOLD") && rtr.Status != "HOLD-XDC").ToList(); 
 
             ////they are releasing the RDQ, so we'll make it a user RDQ so that the hold won't apply and it will be picked the next pick day
@@ -214,9 +255,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // Persist changes
             db.SaveChanges(currentUser.NetworkID);
 
-            Session["searchresult"] = -1;
+            model.SearchResult = false;
             InitializeDivisions(model);
-            InitializeDepartmets(model, false);
+            InitializeDepartments(model, false);
             return View("BulkAdmin", model);
         }
 
@@ -226,25 +267,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RDQ> rdqsToRelease = GetRDQsForSession(model.Instance, model.Division, model.Department, model.Category, model.Sku, model.Status, model.PO, model.Store, model.RuleSetID);
             rdqsToRelease.ToList().ForEach(r => 
                 {
-                    RDQ rdq = (from a in db.RDQs where a.ID == r.ID select a).First();
+                    RDQ rdq = db.RDQs.Where(rr => rr.ID == r.ID).First();
                     db.RDQs.Remove(rdq);                    
                 });
 
             // Persist changes
-            db.SaveChanges(User.Identity.Name);
+            db.SaveChanges(currentUser.NetworkID);
 
-            Session["searchresult"] = -1;
+            model.SearchResult = false;
             InitializeDivisions(model);
-            InitializeDepartmets(model, false);
+            InitializeDepartments(model, false);
             return View("BulkAdmin", model);
         }
 
         [GridAction]
-        public ActionResult _BulkRDQs(int instance, string div, string department, string category, string sku, string status, string po, string store, Int64 ruleset)
+        public ActionResult _BulkRDQs(int instanceID, string div, string department, string category, string sku, string status, string po, string store, long ruleset)
         {
-            List<RDQ> model = GetRDQsForSession(instance, div, department, category, sku, status, po, store, ruleset);
+            List<RDQ> rdqList = GetRDQsForSession(instanceID, div, department, category, sku, status, po, store, ruleset);
 
-            var rdqGroups = from rdq in model
+            var rdqGroups = from rdq in rdqList
                             group rdq by new
                             {
                                 Division = rdq.Division,
@@ -257,6 +298,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             } into g
                             select new RDQGroup()
                             {
+                                InstanceID = instanceID,
                                 Division = g.Key.Division,
                                 Store = g.Key.Store,
                                 WarehouseName = g.Key.WarehouseName,
@@ -269,114 +311,80 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 Status = g.Key.Status
                             };
 
-            return View(new GridModel(rdqGroups.OrderBy(g => g.Division)
+            List<RDQGroup> rdqGroupList = rdqGroups.OrderBy(g => g.Division)
                     .ThenBy(g => g.Store)
                     .ThenBy(g => g.WarehouseName)
                     .ThenBy(g => g.Category)
                     .ThenBy(g => g.Sku)
                     .ThenBy(g => g.Status)
-                    .ToList()));
+                    .ToList();
+
+            return View(new GridModel(rdqGroupList));
         }
 
         [GridAction]
-        public ActionResult _RDQDetails(string div, string store, string warehousename, string sku, string status)
+        public ActionResult _RDQDetails(int instanceID, string div, string store, string warehousename, string sku, string status)
         {
-            List<RDQ> model = (List<RDQ>)Session["searchresultlist"];
+            RDQDAO rdqDAO = new RDQDAO();
+            List<RDQ> rdqList = rdqDAO.GetHeldRDQs(instanceID, div, "00", "", sku, "", "", status);
 
-            model = (from a in model 
-                     where a.Division == div && 
-                           a.Store == store &&
-                           a.WarehouseName == warehousename &&
-                           a.Sku == sku &&
-                           a.Status == status
-                     select a).ToList();
+            rdqList = rdqList.Where(rl => rl.Store == store && rl.WarehouseName == warehousename).ToList();
 
-            return View(new GridModel(model.ToList()));
+            List<string> uniqueNames = (from l in rdqList
+                                        select l.CreatedBy).Distinct().ToList();
+            Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+
+            foreach (var item in uniqueNames)
+            {
+                fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+            }
+
+            foreach (var item in fullNamePairs)
+            {
+                rdqList.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+            }
+
+            return View(new GridModel(rdqList));
         }
 
 
         private List<RDQ> GetRDQsForSession(int instance, string div, string department, string category, string sku, string status, string po, string store, long ruleset)
         {
-            List<RDQ> model;
+            List<RDQ> rdqList = new List<RDQ>();
+            RDQDAO rdqDAO = new RDQDAO();
 
-            if ((Session["searchresult"] != null) &&
-                ((int)Session["searchresult"] > 0))
+            // if it's all departments
+            if (department == "00")
             {
-                model = (List<RDQ>)Session["searchresultlist"];
-            }
+                // get the list of user departments
+                //List<Department> depts = currentUser.GetUserDepartments(AppName).Where(d => d.DivCode == div).ToList();
+                List<string> depts = currentUser.GetUserDivDept(AppName).Where(d => d.StartsWith(string.Format("{0}-", div))).ToList();
+
+                rdqList = rdqDAO.GetHeldRDQs(instance, div, department, category, sku, po, store, status);
+
+                foreach (RDQ rdq in rdqList)
+                {
+                    if (!currentUser.HasDivDept(AppName, div, rdq.Department))                        
+                        rdqList.Remove(rdq);                                          
+                }
+			}
             else
             {
-                List<RDQ> list = new List<RDQ>();
+                // user supplied a department
+                rdqList = rdqDAO.GetHeldRDQs(instance, div, department, category, sku, po, store, status);
+			}
 
-                if (department == "00")
-                {
-                    List<Department> depts = currentUser.GetUserDepartments(AppName).Where(d => d.DivCode == div).ToList();
-
-                    var templist = (from a in db.RDQs
-                                    join b in db.InstanceDivisions on a.Division equals b.Division
-                                    join c in db.ItemMasters on a.ItemID equals c.ID
-							        join p in db.ItemPacks on new { ItemID = (long)a.ItemID, Size = a.Size } equals new { ItemID = p.ItemID, Size = p.Name } into itempacks
-							        from p in itempacks.DefaultIfEmpty()
-					                where (b.InstanceID == instance) && 
-                                           (c.Div == div)
-                                            && ((c.Category == category) || (category == null))
-                                            && ((a.Sku == sku) || (sku == null))
-                                            && ((a.PO == po) || (po == null))
-                                            && ((a.Store == store) || (store == null))
-                                            && ((a.Status == status) || (status == "All"))                                          
-					                select new { rdq = a, dept = c.Dept, UnitQty = p == null ? a.Qty : p.TotalQty * a.Qty } ).ToList();
-
-					//update unitqty
-					foreach (var item in templist)
-					{
-						item.rdq.UnitQty = item.UnitQty;
-					}
-
-					//filter by valid departments
-					list = (from a in templist
-							join d in depts on a.dept equals d.DeptNumber
-							select a.rdq).ToList();
-				}
-                else
-                {
-					var templist = (from a in db.RDQs
-                            join b in db.InstanceDivisions on a.Division equals b.Division
-                            join c in db.ItemMasters on a.ItemID equals c.ID
-							join p in db.ItemPacks on new { ItemID = (long)a.ItemID, Size = a.Size } equals new { ItemID = p.ItemID, Size = p.Name } into itempacks
-							from p in itempacks.DefaultIfEmpty()
-							where ((b.InstanceID == instance)
-                            && (c.Div == div)
-                            && (c.Dept == department)
-                            && ((c.Category == category) || (category == null))
-                            && ((a.Sku == sku) || (sku == null))
-                            && ((a.PO == po) || (po == null))
-                            && ((a.Store == store) || (store == null))
-                            && ((a.Status == status) || (status == "All"))
-                            )
-							select new { rdq = a, UnitQty = p == null ? a.Qty : p.TotalQty * a.Qty }).ToList();
-
-					//update unitqty
-					foreach (var item in templist)
-					{
-						item.rdq.UnitQty = item.UnitQty;
-					}
-
-					list = templist.Select(m => m.rdq).ToList();
-				}
-
-				RuleDAO dao = new RuleDAO();
-                if (ruleset > 0)
-                {
-                    List<StoreLookup> stores = dao.GetStoresInRuleSet(ruleset);
-                    list = (from a in list join b in stores on new { a.Division, a.Store } equals new { b.Division, b.Store } select a).ToList();
-                }
-
-				model = list.Select(x => new RDQ(x)).ToList();
-
-				Session["searchresult"] = 1;
-                Session["searchresultlist"] = model;
+			RuleDAO dao = new RuleDAO();
+            if (ruleset > 0)
+            {
+                List<StoreLookup> stores = dao.GetStoresInRuleSet(ruleset);
+                rdqList = (from a in rdqList 
+                            join b in stores 
+                                on new { a.Division, a.Store } equals new { b.Division, b.Store } 
+                            select a).ToList();
             }
-            return model;
+
+            return rdqList;
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
@@ -396,7 +404,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             db.SaveChanges(currentUser.NetworkID);
 
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
             List<RDQ> list = (from a in db.RDQs 
                               join b in divs 
                                 on a.Division equals b.DivCode 
@@ -409,132 +417,63 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult ReleaseRDQGroupToWarehouse(RDQGroup rdqGroup)
         {
             // Get all RDQs of specified SKU for specified hold
-            var dao = new RDQDAO();
-            if ((Session["searchresult"] != null) &&
-                ((int)Session["searchresult"] > 0))
-            {
-                var holdRDQs = (List<RDQ>)Session["searchresultlist"];
-                var groupRDQs = holdRDQs.Where(rdq =>
-                    rdq.Division == rdqGroup.Division
-                    && rdq.Store == rdqGroup.Store
-                    && rdq.WarehouseName == rdqGroup.WarehouseName
-                    && rdq.Category == rdqGroup.Category
-                    && rdq.Sku == rdqGroup.Sku
-                    && rdq.Status == rdqGroup.Status
-                    )
-                    .ToList();
+            var rdqDAO = new RDQDAO();
+            List<RDQ> holdRDQs = rdqDAO.GetHeldRDQs(rdqGroup.InstanceID, rdqGroup.Division, "00", "", rdqGroup.Sku, "", rdqGroup.Store, rdqGroup.Status);
 
-                //performance was really bad via entity framework, we'll just run a quick stored proc and update records in memory
-                dao.DeleteRDQs(groupRDQs, currentUser.NetworkID);
+            //performance was really bad via entity framework, we'll just run a quick stored proc and update records in memory
+            rdqDAO.DeleteRDQs(holdRDQs, currentUser.NetworkID);
 
-                groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
-
-                Session["searchresultlist"] = holdRDQs;
-                // Return JSON representing Success
-                return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
-            }
-            else
-            {
-                Session["searchresult"] = -1;
-                return new JsonResult() { Data = new JsonResultData(ActionResultCode.SystemError) };
-            }
+            // Return JSON representing Success
+            return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
         }
 
         [HttpPost]
         public ActionResult ReleaseRDQGroup(RDQGroup rdqGroup, string status)
         {
-            //FLLogger log = new FLLogger("c:\\log\\alloc_timing.log");
-            //log.Log("starting releaseRDQGroup", FLLogger.eLogMessageType.eInfo);
-            if ((Session["searchresult"] != null) &&
-                ((int)Session["searchresult"] > 0))
+            var rdqDAO = new RDQDAO();
+            List<RDQ> holdRDQs = rdqDAO.GetHeldRDQs(rdqGroup.InstanceID, rdqGroup.Division, "00", "", rdqGroup.Sku, "", rdqGroup.Store, rdqGroup.Status);
+
+            var groupRDQs = holdRDQs.Where(rdq => rdq.WarehouseName == rdqGroup.WarehouseName).ToList();
+
+            //performance was really bad via entity framework, we'll just run a quick stored proc and update records in memory
+            rdqDAO.ReleaseRDQs(groupRDQs, currentUser.NetworkID);
+
+            if (status == "All")
             {
-                var holdRDQs = (List<RDQ>)Session["searchresultlist"];
-                //log.Log("pulled list from session", FLLogger.eLogMessageType.eInfo);
-                var groupRDQs = holdRDQs.Where(rdq =>
-                    rdq.Division == rdqGroup.Division
-                    && rdq.Store == rdqGroup.Store
-                    && rdq.WarehouseName == rdqGroup.WarehouseName
-                    && rdq.Category == rdqGroup.Category
-                    && rdq.Sku == rdqGroup.Sku
-                    && rdq.Status == rdqGroup.Status
-                    )
-                    .ToList();
-                //log.Log("pulled list of RDQs in group", FLLogger.eLogMessageType.eInfo);
-
-                //performance was really bad via entity framework, we'll just run a quick stored proc and update records in memory
-                RDQDAO dao = new RDQDAO();
-                dao.ReleaseRDQs(groupRDQs, UserName);
-                //log.Log("updated list in db", FLLogger.eLogMessageType.eInfo);
-
-                if (status == "All")
-                {
-                    groupRDQs.ForEach(rdq => { rdq.Status = "HOLD-REL"; });
-                }
-                else
-                {
-                    groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
-                }
-                //log.Log("updated list in session", FLLogger.eLogMessageType.eInfo);
-
-                Session["searchresultlist"] = holdRDQs;
-                //log.Log("finished", FLLogger.eLogMessageType.eInfo);
-                // Return JSON representing Success
-                return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
+                groupRDQs.ForEach(rdq => { rdq.Status = "HOLD-REL"; });
             }
             else
             {
-                Session["searchresult"] = -1;
-                return new JsonResult() { Data = new JsonResultData(ActionResultCode.SystemError) };
+                groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
             }
+           
+            // Return JSON representing Success
+            return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
         }
 
         [HttpPost]
-        public ActionResult ReleaseRDQToWarehouse(Int64 id)
+        public ActionResult ReleaseRDQToWarehouse(long id)
         {
-            // Get all RDQs of specified SKU for specified hold
-            var dao = new RDQDAO();
-            if ((Session["searchresult"] != null) &&
-                ((int)Session["searchresult"] > 0))
-            {
-                var holdRDQs = (List<RDQ>)Session["searchresultlist"];
-                RDQ del = holdRDQs.Where(hr => hr.ID == id).FirstOrDefault();
-                holdRDQs.Remove(del);
+            // Get all RDQs of specified SKU for specified hold            
+            RDQ deleteRDQ = db.RDQs.Where(r => r.ID == id).FirstOrDefault();
+            db.RDQs.Remove(deleteRDQ);
+            db.SaveChanges(currentUser.NetworkID);
 
-                del = (from a in db.RDQs where a.ID == id select a).First();
-                db.RDQs.Remove(del);
-                db.SaveChanges(currentUser.NetworkID);
-                Session["searchresultlist"] = holdRDQs;
-                // Return JSON representing Success
-                return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
-            }
-            else
-            {
-                Session["searchresult"] = -1;
-                return new JsonResult() { Data = new JsonResultData(ActionResultCode.SystemError) };
-            }
+            // Return JSON representing Success
+            return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
         }
 
         [HttpPost]
-        public ActionResult ReleaseRDQ(Int64 id)
+        public ActionResult ReleaseRDQ(long id)
         {
-            if ((Session["searchresult"] != null) &&
-                ((int)Session["searchresult"] > 0))
-            {
-                var holdRDQs = (List<RDQ>)Session["searchresultlist"];
-                RDQ del = holdRDQs.Where(hr => hr.ID == id).FirstOrDefault();
-                del.Status = "HOLD-REL";
-                db.Entry(del).State = System.Data.EntityState.Modified;
-                db.SaveChanges(currentUser.NetworkID);
+            RDQ releaseRDQ = db.RDQs.Where(r => r.ID == id).FirstOrDefault();
+            releaseRDQ.Status = "HOLD-REL";
+            db.Entry(releaseRDQ).State = EntityState.Modified;  
+            
+            db.SaveChanges(currentUser.NetworkID);
 
-                Session["searchresultlist"] = holdRDQs;
-                // Return JSON representing Success
-                return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
-            }
-            else
-            {
-                Session["searchresult"] = -1;
-                return new JsonResult() { Data = new JsonResultData(ActionResultCode.SystemError) };
-            }
+            // Return JSON representing Success
+            return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
         }
 
         public ActionResult AuditIndex()
@@ -1315,128 +1254,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return (existingErrorMessage.Equals(string.Empty)) ? newErrorMessage : existingErrorMessage + @"<br />" + newErrorMessage;
         }
 
-        //private string IsValidUploadedRDQ(RDQ rdq)
-        //{
-        //    string errorMessage = string.Empty;
-
-        //    // 1) division/store combination is valid
-        //    var validDivStoreCombo = db.vValidStores.Any(vs => vs.Division.Equals(rdq.Division) && vs.Store.Equals(rdq.Store));
-        //    if (!validDivStoreCombo)
-        //    {
-        //        string divStoreErrorMessage = string.Format(
-        //            "The division and store combination {0}-{1} is not an existing or valid combination."
-        //            , rdq.Division
-        //            , rdq.Store);
-        //        errorMessage = SetErrorMessage(errorMessage, divStoreErrorMessage);
-        //    }
-
-        //    // 2) sku provided is valid
-        //    ItemMaster validSku = db.ItemMasters.Where(im => im.MerchantSku.Equals(rdq.Sku)).FirstOrDefault();
-        //    if (validSku != null)
-        //    {
-        //        // check to see if sku division is equal to store division
-        //        if (!rdq.Division.Equals(validSku.Div))
-        //        {
-        //            string divSkuStoreErrorMessage = string.Format(
-        //                "The division for both the sku and store must be the same.  Sku Division: {0}, Store Division: {1}"
-        //                , validSku.Div
-        //                , rdq.Division);
-        //            errorMessage = SetErrorMessage(errorMessage, divSkuStoreErrorMessage);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        errorMessage = SetErrorMessage(errorMessage, string.Format("Sku {0} is invalid", rdq.Sku));
-        //    }
-
-        //    // 3) check to see if there was a supplied DC or RingFence
-        //    if ((rdq.DC.Equals(string.Empty) || rdq.DC == null) && (rdq.RingFencePickStore.Equals(string.Empty) || rdq.RingFencePickStore == null))
-        //    {
-        //        errorMessage = SetErrorMessage(errorMessage, "You must supply either a DC or a Ring Fence Store to pick from.");
-        //    }
-        //    else if (!(rdq.DC.Equals(string.Empty) || rdq.DC == null) && !(rdq.RingFencePickStore.Equals(string.Empty) || rdq.RingFencePickStore == null))
-        //    {
-        //        errorMessage = SetErrorMessage(errorMessage, "You can't supply both a DC and a RingFence Store to pick from.  It must be one or the other.");
-        //    }
-        //    else
-        //    {
-        //        // must be dc, validate dc
-        //        if (!string.IsNullOrEmpty(rdq.DC))
-        //        {
-        //            rdq.RingFencePickStore = string.Empty;
-        //            int? distributionCenterID = db.DistributionCenters.Where(dc => dc.MFCode.Equals(rdq.DC) && !dc.Type.Equals("CROSSDOCK")).Select(dc => dc.ID).FirstOrDefault();
-        //            if (distributionCenterID != null)
-        //            {
-        //                rdq.DCID = distributionCenterID;
-        //            }
-        //            else
-        //            {
-        //                errorMessage = SetErrorMessage(errorMessage, "DC is invalid or only supports crossdocking.");
-        //            }
-
-        //        }
-        //        // must be ringfence, validate ringfence
-        //        else
-        //        {
-        //            // validate ringfencestore
-        //            validDivStoreCombo = db.vValidStores.Any(vs => vs.Division.Equals(rdq.Division) && vs.Store.Equals(rdq.RingFencePickStore));
-        //            if (!validDivStoreCombo)
-        //            {
-        //                string divStoreErrorMessage = string.Format(
-        //                    "The division and ring fence store combination {0}-{1} is not an existing or valid combination."
-        //                    , rdq.Division
-        //                    , rdq.RingFencePickStore);
-        //                errorMessage = SetErrorMessage(errorMessage, divStoreErrorMessage);
-        //            }
-
-        //            rdq.DC = string.Empty;
-        //            long? ringFenceID = db.RingFences.Where(rf =>
-        //                                                rf.Sku.Equals(rdq.Sku) &&
-        //                                                rf.Division.Equals(rdq.Division) &&
-        //                                                rf.Store.Equals(rdq.RingFencePickStore) &&
-        //                                                (rf.EndDate == null || rf.EndDate >= DateTime.Now))
-        //                                             .Select(rf => rf.ID).FirstOrDefault();
-
-        //            if (ringFenceID != null)
-        //            {
-        //                List<RingFenceDetail> ringFenceDetails = new List<RingFenceDetail>();
-        //                ringFenceDetails = db.RingFenceDetails.Where(rfd =>
-        //                                                        rfd.RingFenceID.Equals(ringFenceID ?? 0) &&
-        //                                                        rfd.Size.Equals(rdq.Size) &&
-        //                                                        rfd.ActiveInd.Equals("1") &&
-        //                                                        rfd.ringFenceStatusCode.Equals("4") &&
-        //                                                        rfd.PO.Equals(string.Empty))
-        //                                                      .OrderBy(rfd => rfd.RingFenceID)
-        //                                                      .ToList();
-        //                if (ringFenceDetails.Any())
-        //                {
-        //                    if (ringFenceDetails.Any(rfd => rfd.Qty >= rdq.Qty))
-        //                    {
-        //                        int maxAmount = (ringFenceDetails.Max(rfd => rfd.Qty));
-        //                        string qtyErrorMessage = string.Format("The ring fenced quantity cannot satisfy the requested distribution.  Amount available for size is {0}", maxAmount);
-        //                        errorMessage = SetErrorMessage(errorMessage, qtyErrorMessage);
-        //                    }
-        //                    else
-        //                    {
-        //                        rdq.DCID = ringFenceDetails.First().DCID;
-        //                    }
-        //                }
-        //                else
-        //                {
-        //                    errorMessage = SetErrorMessage(errorMessage, "No active warehouse ring fences were found for the requested size, sku, and store.");
-        //                }
-        //            }
-        //            else
-        //            {
-        //                errorMessage = SetErrorMessage(errorMessage, "No ring fences for the SKU and pick store were found");
-        //            }
-        //        }
-        //    }
-
-
-        //    return errorMessage;
-        //}
-
         private bool HasValidHeaderRow(Worksheet mySheet)
         {
             return
@@ -1521,7 +1338,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                                 // populate necessary properties of RDQs to save to db
                                 PopulateRDQProps(validRDQs, controlDate);
-                                //validRDQs.ForEach(r => db.RDQs.Add(r));
+
                                 RDQDAO rdqDAO = new RDQDAO();
                                 rdqDAO.InsertRDQs(validRDQs, currentUser.NetworkID);
 
@@ -2018,7 +1835,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 foreach (var uc in uniqueCombos)
                 {
-                    futureInventory.AddRange(db.LegacyFutureInventory.Where(lfi => lfi.Division == uc.Division &&
+                    futureInventory.AddRange(db.LegacyFutureInventory.AsNoTracking()
+                                                                     .Where(lfi => lfi.Division == uc.Division &&
                                                                                    lfi.Sku == uc.Sku &&
                                                                                    lfi.Size == uc.Size &&
                                                                                    lfi.InventoryID == uc.PODiv &&
@@ -2062,244 +1880,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-        /// <summary>
-        /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
-        /// </summary>
-        /// <param name="attachments"></param>
-        /// <returns></returns>
-        //public ActionResult Save(IEnumerable<HttpPostedFileBase> attachments)
-        //{
-        //    Aspose.Excel.License license = new Aspose.Excel.License();
-        //    //Set the license 
-        //    license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-        //    string Division = "";
-        //    bool validateInventory = true;
-        //    int row = 1;
-        //    List<RDQ> rdqErrors = new List<RDQ>();
-        //    List<RDQ> rdqGood = new List<RDQ>();
-        //    List<string> errorMessages = new List<string>();
-
-        //    foreach (HttpPostedFileBase file in attachments)
-        //    {
-        //        //Instantiate a Workbook object that represents an Excel file
-        //        Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-        //        Byte[] data1 = new Byte[file.InputStream.Length];
-        //        file.InputStream.Read(data1, 0, data1.Length);
-        //        file.InputStream.Close();
-        //        MemoryStream memoryStream1 = new MemoryStream(data1);
-        //        workbook.Open(memoryStream1);
-        //        Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-        //        string mainDivision = "";
-
-        //        if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Store")) &&
-        //            (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("SKU")) &&
-        //            (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Size")) &&
-        //            (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Quantity")) &&
-        //            (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Pick from DC")) &&
-        //            (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Ring Fence Store"))
-        //            )
-        //        {
-        //            if (mySheet.Cells[row, 1].Value != null)
-        //            {
-        //                Division = (Convert.ToString(mySheet.Cells[row, 1].Value)).Substring(0, 2);
-        //                mainDivision = Division;
-
-        //                if (!currentUser.HasDivision(AppName, Division))
-        //                {
-        //                    return Content("You do not have permission to update this division.");
-        //                }
-        //            }
-        //            // Validate records and create lists of OK and not OK RDQs
-        //            RDQ rdq;
-        //            while (mySheet.Cells[row, 0].Value != null)
-        //            {
-        //                Division = (Convert.ToString(mySheet.Cells[row, 1].Value)).Substring(0, 2);
-
-        //                if (!(Division.Equals(mainDivision)))
-        //                {
-        //                    return Content("Spreadsheet must be for one division only.");
-        //                }
-
-        //                //create RDQ
-        //                rdq = new RDQ();
-        //                rdq.Division = Division;
-        //                rdq.Store = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(5, '0');
-        //                rdq.Sku = Convert.ToString(mySheet.Cells[row, 1].Value);
-        //                rdq.Size = Convert.ToString(mySheet.Cells[row, 2].Value).PadLeft(3, '0');
-        //                rdq.Qty = Convert.ToInt32(mySheet.Cells[row, 3].Value);                        
-        //                rdq.Status = "WEB PICK";
-        //                string dc = Convert.ToString(mySheet.Cells[row, 4].Value).PadLeft(2, '0');
-        //                string ringFenceStore = Convert.ToString(mySheet.Cells[row, 5].Value).PadLeft(5, '0');
-
-        //                string message = "";
-
-        //                if ((dc == "00") && (ringFenceStore == "00000"))
-        //                {
-        //                    message = "You must supply either a DC or a Ring Fence Store to pick from";
-        //                }
-        //                else if ((dc != "00") && (ringFenceStore != "00000"))
-        //                {
-        //                    rdq.RingFencePickStore = ringFenceStore;
-        //                    rdq.DC = dc;
-        //                    message = "You can't supply both a DC and a Ring Fence Store to pick from. It must be one or the other.";
-        //                }
-        //                else
-        //                {
-        //                    if (dc != "00")
-        //                    {
-        //                        rdq.DC = dc;
-        //                        rdq.RingFencePickStore = string.Empty;
-        //                        validateInventory = true;
-
-        //                        var dcQuery = from a in db.DistributionCenters
-        //                                      where a.MFCode == dc &&
-        //                                            a.Type != "CROSSDOCK"
-        //                                      select a.ID;
-
-        //                        if (dcQuery.Count() == 0)
-        //                        {
-        //                            message = "DC is invalid or only supports crossdocking.  ";
-        //                        }
-        //                        else
-        //                        {
-        //                            rdq.DCID = dcQuery.First();
-        //                        }
-        //                    }
-        //                    else
-        //                    {
-        //                        rdq.DC = string.Empty;
-        //                        rdq.RingFencePickStore = ringFenceStore;
-        //                        validateInventory = false;
-
-        //                        var ringFence = (from r in db.RingFences
-        //                                         where r.Sku == rdq.Sku &&
-        //                                               r.Division == rdq.Division &&
-        //                                               r.Store == ringFenceStore &&
-        //                                               (r.EndDate == null ||
-        //                                               r.EndDate >= DateTime.Now)
-        //                                         select r).ToList();
-
-        //                        if (ringFence.Count() == 0)
-        //                        {
-        //                            message = "No ring fences for the SKU and pick store were found. ";
-        //                        }
-        //                        else
-        //                        {
-        //                            var ringFenceDetails = (from r in ringFence
-        //                                                    from rfd in r.ringFenceDetails                                                                  
-        //                                                    where rfd.Size == rdq.Size &&
-        //                                                          rfd.ActiveInd == "1" &&
-        //                                                          rfd.ringFenceStatusCode == "4" &&
-        //                                                          rfd.PO == ""
-        //                                                    orderby rfd.RingFenceID
-        //                                                    select rfd).ToList();
-
-        //                            if (ringFenceDetails.Count() == 0)
-        //                            {
-        //                                message = "No active warehouse ring fences were found for the requested size, SKU, and store";
-        //                            }
-        //                            else
-        //                            {
-        //                                if (ringFenceDetails.Where(d => d.Qty >= rdq.Qty).Count() == 0)
-        //                                {
-
-        //                                    int maxAmount = (from rfd in ringFenceDetails
-        //                                                     select rfd.Qty).Max();
-
-        //                                    message = "The ring fenced quantity cannot satisfy the requested distribution. Amount available for size is " + maxAmount.ToString();
-        //                                }
-        //                                else
-        //                                {
-        //                                    rdq.DCID = ringFenceDetails[0].DCID;
-        //                                }
-        //                            }
-        //                        }
-        //                    }
-        //                }
-
-        //                if (message == "")
-        //                {
-        //                    message = CreateRDQ(rdq, validateInventory);
-        //                }
-
-        //                if (message != "")
-        //                {
-        //                    rdqErrors.Add(rdq);
-        //                    errorMessages.Add(message);
-        //                }
-        //                else
-        //                {
-        //                    if (ringFenceStore != "00000")
-        //                    {
-        //                        var ringFenceQuery = from rf in db.RingFences
-        //                                             join rfd in db.RingFenceDetails
-        //                                              on rf.ID equals rfd.RingFenceID
-        //                                             where rf.Sku == rdq.Sku &&
-        //                                                   rf.Division == rdq.Division &&
-        //                                                   rf.Store == ringFenceStore &&
-        //                                                   rfd.Size == rdq.Size &&
-        //                                                   rfd.ActiveInd == "1" &&
-        //                                                   rfd.Qty >= rdq.Qty &&
-        //                                                   rfd.ringFenceStatusCode == "4" &&
-        //                                                   (rf.EndDate == null ||
-        //                                                   rf.EndDate >= DateTime.Now)                                                    
-        //                                             orderby rfd.RingFenceID
-        //                                             select rfd;
-        //                        var ringFenceDetailRec = ringFenceQuery.FirstOrDefault();
-
-        //                        ringFenceDetailRec.Qty = ringFenceDetailRec.Qty - rdq.Qty;
-
-        //                        if (ringFenceDetailRec.Qty == 0)
-        //                        {
-        //                            db.RingFenceDetails.Remove(ringFenceDetailRec);
-        //                        }
-        //                    }
-        //                    rdqGood.Add(rdq);
-        //                    db.SaveChanges(User.Identity.Name);
-        //                }
-
-        //                row++;
-        //            }
-        //        }
-        //        else
-        //        {
-        //            return Content("Incorrect header, please use template.");
-        //        }
-        //    }
-
-        //    if (rdqGood.Count > 0)
-        //    {
-        //        int instance = (from a in db.InstanceDivisions
-        //                        where a.Division == Division
-        //                        select a.InstanceID).First();
-        //        RDQDAO rdqDAO = new RDQDAO();
-        //        int holdcount = rdqDAO.ApplyHolds(rdqGood, instance);
-
-        //        if (holdcount > 0)
-        //        {
-        //            errorMessages.Add(holdcount + " on hold.  Please go to Release Held RDQs to view held RDQs.");
-        //        }
-
-        //        int cancelholdcount = rdqDAO.ApplyCancelHolds(rdqGood);
-
-        //        if (cancelholdcount > 0)
-        //        {
-        //            errorMessages.Add(cancelholdcount + " rejected by cancel inventory hold.  ");
-        //        }
-        //    }
-
-        //    if (errorMessages.Count > 0)
-        //    {
-        //        Session["errorList"] = rdqErrors;
-        //        Session["errorMessageList"] = errorMessages;
-        //        return Content(rdqErrors.Count() + " Errors on spreadsheet (" + (row - rdqErrors.Count() - 1) + " successfully uploaded)");
-        //    }
-        //    else
-        //    {
-        //        return Content("");
-        //    }
-        //}
-
         public ActionResult ExcelTemplate()
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -2318,83 +1898,5 @@ namespace Footlocker.Logistics.Allocation.Controllers
             excelDocument.Save("WebPickUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
-
-        //public ActionResult GetErrors()
-        //{
-        //    Aspose.Excel.License license = new Aspose.Excel.License();
-        //    //Set the license 
-        //    license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-        //    Excel excelDocument = new Excel();
-        //    Worksheet mySheet = excelDocument.Worksheets[0];
-        //    int col = 0;
-        //    mySheet.Cells[0, col].PutValue("Store (#####)");
-        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
-        //    col++;
-        //    mySheet.Cells[0, col].PutValue("Warehouse (##)");
-        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
-        //    col++;
-        //    mySheet.Cells[0, col].PutValue("SKU (##-##-#####-##)");
-        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
-        //    col++;
-        //    mySheet.Cells[0, col].PutValue("Size Caselot (### or #####)");
-        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
-        //    col++;
-        //    mySheet.Cells[0, col].PutValue("Quantity (#)");
-        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
-        //    col++;
-        //    mySheet.Cells[0, col].PutValue("Pick from DC (##)");
-        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
-        //    col++;
-        //    mySheet.Cells[0, col].PutValue("Pick from Ring Fence Store (#####)");
-        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
-        //    col++;
-        //    mySheet.Cells[0, col].PutValue("Message");
-        //    mySheet.Cells[0, col].Style.Font.IsBold = true;
-
-        //    List<RDQ> errors = (List<RDQ>)Session["errorList"];
-        //    List<string> errorMessages = (List<string>)Session["errorMessageList"];
-        //    int row = 1;           
-        //    if (errors != null)
-        //    {
-        //        foreach (RDQ rdq in errors)
-        //        {
-        //            col = 0;
-        //            if (rdq.Store.Length == 5)
-        //                mySheet.Cells[row, col].PutValue(rdq.Store);
-        //            else
-        //                mySheet.Cells[row, col].PutValue("");
-
-        //            if (rdq.Store.Length == 2)
-        //                mySheet.Cells[row, col].PutValue(rdq.Store);
-        //            else
-        //                mySheet.Cells[row, col].PutValue("");
-
-        //            col++;
-        //            mySheet.Cells[row, col].PutValue(rdq.Sku);
-        //            col++;
-        //            mySheet.Cells[row, col].PutValue(rdq.Size);
-        //            col++;
-        //            mySheet.Cells[row, col].PutValue(rdq.Qty);
-        //            col++;
-        //            mySheet.Cells[row, col].PutValue(rdq.DC);
-        //            col++;
-        //            mySheet.Cells[row, col].PutValue(rdq.RingFencePickStore);
-        //            col++;
-        //            mySheet.Cells[row, col].PutValue(errorMessages[row - 1]);
-
-        //            row++;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        col = 0;
-        //        mySheet.Cells[row, col].PutValue("Session timed out");
-        //    }
-
-        //    excelDocument.Save("WebPicks.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
-        //    return View();
-        //}
-
     }
 }

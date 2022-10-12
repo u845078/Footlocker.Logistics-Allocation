@@ -1,34 +1,34 @@
-﻿@model Footlocker.Logistics.Allocation.Models.BulkRDQModel
+﻿@model BulkRDQModel
 @{
     ViewBag.Title = "Pending RDQs";
 }
 
 <h2>Pending RDQs</h2>
 @if (Model.ShowStoreSelector == "yes")
-{ 
-<div id="ruletab" style="margin-left:100px;margin-right:200px;" class="fieldset">
-    @Html.Partial(@Url.Content("~/Views/Rule/RuleFilter.cshtml"), Model.RuleModel, ViewData)
-    <br />
-</div>
+{
+    <div id="ruletab" style="margin-left:100px;margin-right:200px;" class="fieldset">
+        @Html.Partial(@Url.Content("~/Views/Rule/RuleFilter.cshtml"), Model.RuleModel, ViewData)
+        <br />
+    </div>
     @Html.Raw("<div id=\"maintab\" style=\"display:none;\">")
 }
 
-    <fieldset>
-        <legend>RDQ Filter Criteria</legend>
+<fieldset>
+    <legend>RDQ Filter Criteria</legend>
 
-@using (Html.BeginForm("RefreshDivisions", "WebPick"))
-{
+    @using (Html.BeginForm("RefreshDivisions", "WebPick"))
+    {
         <div class="editor-label">
             @Html.LabelFor(model => model.Instance)
         </div>
-        <div class="editor-field">       
+        <div class="editor-field">
             @Html.DropDownListFor(model => model.Instance, new SelectList(Model.Instances, "ID", "Name"), new { onchange = "this.form.submit()" })
             @Html.ValidationMessageFor(model => model.Instance)
         </div>
-}
+    }
 
-@using (Html.BeginForm("RefreshDepartments", "WebPick"))
-{
+    @using (Html.BeginForm("RefreshDepartments", "WebPick"))
+    {
         @Html.HiddenFor(model => model.Instance)
 
         <div class="editor-label">
@@ -38,10 +38,10 @@
             @Html.DropDownListFor(model => model.Division, new SelectList(Model.Divisions, "DivCode", "DisplayName"), new { onchange = "this.form.submit()" })
             @Html.ValidationMessageFor(model => model.Division)
         </div>
-}
+    }
 
-@using (Html.BeginForm("BulkAdmin", "WebPick", FormMethod.Post, new { id = "BulkAdminForm" }))
-{
+    @using (Html.BeginForm("BulkAdmin", "WebPick", FormMethod.Post, new { id = "BulkAdminForm" }))
+    {
         @Html.HiddenFor(model => model.Instance)
         @Html.HiddenFor(model => model.Division)
 
@@ -61,101 +61,95 @@
             @Html.ValidationMessageFor(model => model.Store)
             @Html.HiddenFor(model => model.ShowStoreSelector)
 
-            <span id="pickedStores">@if (Model.RuleSetID > 0)
-                                    { 
-                                        @Html.Raw("(Stores are specified)")
-                                    }
-                                        </span>
-            <input type="button" value="Select Stores" class="t-button" onclick="return showStoreSelector()"/>
-        </div>
+            <span id="pickedStores">
+                @if (Model.RuleSetID > 0)
+                {
+                    @Html.Raw("(Stores are specified)")
+                }
+        </span>
+        <input type="button" value="Select Stores" class="t-button" onclick="return showStoreSelector()" />
+    </div>
 
-@*        <div class="editor-label">
-            @Html.LabelFor(model => model.Department)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Department)
-            @Html.ValidationMessageFor(model => model.Department)
-        </div>
-*@
-        <div class="editor-label">
-            @Html.LabelFor(model => model.Category)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Category)
-            @Html.ValidationMessageFor(model => model.Category)
-        </div>
+    <div class="editor-label">
+        @Html.LabelFor(model => model.Category)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(model => model.Category)
+        @Html.ValidationMessageFor(model => model.Category)
+    </div>
 
-        <div class="editor-label">
-            @Html.LabelFor(model => model.Sku)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Sku)
-            @Html.ValidationMessageFor(model => model.Sku)
-        </div>
+    <div class="editor-label">
+        @Html.LabelFor(model => model.Sku)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(model => model.Sku)
+        @Html.ValidationMessageFor(model => model.Sku)
+    </div>
 
-        <div class="editor-label">
-            @Html.LabelFor(model => model.PO)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.PO)
-            @Html.ValidationMessageFor(model => model.PO)
-        </div>
+    <div class="editor-label">
+        @Html.LabelFor(model => model.PO)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(model => model.PO)
+        @Html.ValidationMessageFor(model => model.PO)
+    </div>
 
-        <div class="editor-label">
-            @Html.LabelFor(model => model.Status)
-        </div>
-        <div class="editor-field">       
-            @Html.DropDownListFor(model => model.Status, new SelectList(Model.StatusList))
-            @Html.ValidationMessageFor(model => model.Status)
-        </div>
+    <div class="editor-label">
+        @Html.LabelFor(model => model.Status)
+    </div>
+    <div class="editor-field">
+        @Html.DropDownListFor(model => model.Status, new SelectList(Model.StatusList))
+        @Html.ValidationMessageFor(model => model.Status)
+    </div>
 
-        @Html.HiddenFor(model => model.RuleSetID)
+    @Html.HiddenFor(model => model.RuleSetID)
 
-        <p>
-            <input type="submit" value="Submit" class="t-button" />
-        </p>
-}
-@if (Model.HaveResults)
-{
-    @Html.Raw("<table><tr><td colspan=2>Release All To:</td></tr><tr><td>")
-    using (Html.BeginForm("ReleaseAll", "WebPick"))
-    {
-                @Html.HiddenFor(model => model.Instance)
-                @Html.HiddenFor(model => model.Division)
-                @Html.HiddenFor(model => model.Department)
-                @Html.HiddenFor(model => model.Category)
-                @Html.HiddenFor(model => model.Sku)
-                @Html.HiddenFor(model => model.PO)
-                @Html.HiddenFor(model => model.Status)
-                @Html.HiddenFor(model => model.RuleSetID)
-
-
-                <input type="submit" value="Specified Store" onclick="return confirm('Are you sure you want to pick ALL the RDQs below?');" class="t-button" />
-    }
-    @Html.Raw("</td><td>")  
-    using (Html.BeginForm("ReleaseAllToWarehouse", "WebPick"))
-    {
-                @Html.HiddenFor(model => model.Instance)
-                @Html.HiddenFor(model => model.Division)
-                @Html.HiddenFor(model => model.Department)
-                @Html.HiddenFor(model => model.Category)
-                @Html.HiddenFor(model => model.Sku)
-                @Html.HiddenFor(model => model.PO)
-                @Html.HiddenFor(model => model.Status)
-                @Html.HiddenFor(model => model.RuleSetID)
-
-
-                <input type="submit" value="Warehouse" onclick="return confirm('Are you sure you want to release ALL RDQs below to warehouse available?');" class="t-button" />
-    }
-    @Html.Raw("</td></tr></table>")   
+    <p>
+        <input type="submit" value="Submit" class="t-button" />
+    </p>
 }
 
-    </fieldset>
+    @if (Model.HaveResults)
+    {
+        @Html.Raw("<table><tr><td colspan=2>Release All To:</td></tr><tr><td>")
+        using (Html.BeginForm("ReleaseAll", "WebPick"))
+        {
+            @Html.HiddenFor(model => model.Instance)
+            @Html.HiddenFor(model => model.Division)
+            @Html.HiddenFor(model => model.Department)
+            @Html.HiddenFor(model => model.Category)
+            @Html.HiddenFor(model => model.Sku)
+            @Html.HiddenFor(model => model.PO)
+            @Html.HiddenFor(model => model.Status)
+            @Html.HiddenFor(model => model.RuleSetID)
+
+            <input type="submit" value="Specified Store" onclick="return confirm('Are you sure you want to pick ALL the RDQs below?');" class="t-button" />
+        }
+
+        @Html.Raw("</td><td>")
+        using (Html.BeginForm("ReleaseAllToWarehouse", "WebPick"))
+        {
+            @Html.HiddenFor(model => model.Instance)
+            @Html.HiddenFor(model => model.Division)
+            @Html.HiddenFor(model => model.Department)
+            @Html.HiddenFor(model => model.Category)
+            @Html.HiddenFor(model => model.Sku)
+            @Html.HiddenFor(model => model.PO)
+            @Html.HiddenFor(model => model.Status)
+            @Html.HiddenFor(model => model.RuleSetID)
+
+            <input type="submit" value="Warehouse" onclick="return confirm('Are you sure you want to release ALL RDQs below to warehouse available?');" class="t-button" />
+        }
+
+        @Html.Raw("</td></tr></table>")
+    }
+</fieldset>
+
 <font color="red">@Html.Raw(ViewData["message"])</font>
 @if (Model.HaveResults)
 {
     @Html.Raw("Selected RDQs:<br>")
-    
+
     @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQGroup>()
     .Name("RDQGrid")
     .Columns(columns =>
@@ -170,19 +164,19 @@
                    .ClientFooterTemplate("Filtered Qty: <#= Sum #>");
         columns.Bound(o => o.UnitQty).Aggregate(aggreages => aggreages.Sum())
                    .ClientFooterTemplate("Filtered UnitQty: <#= Sum #>");
-        columns.Template(@<text> 
+        columns.Template(@<text>
                         @Html.Raw("<a class=\"t-button\" href='javascript:ReleaseRDQGroup(item);'>This Store</a>")
                         @Html.Raw("<a class=\"t-button\" href='javascript:ReleaseRDQGroupToWarehouse(item);'>Warehouse</a>")
             </text>)
         .ClientTemplate(
             "<# if (CanPick) { #>"
-                + "<a class=\"t-button\" href='javascript:ReleaseRDQGroup({ Division: \"<#= Division #>\", Store: \"<#= Store #>\", WarehouseName: \"<#= WarehouseName #>\", Category: \"<#= Category #>\", ItemID: <#= ItemID #>, Sku: \"<#= Sku #>\", Status: \"<#= Status #>\"  });'>This Store</a>"
+                + "<a class=\"t-button\" href='javascript:ReleaseRDQGroup({ InstanceID: \"<#= InstanceID #>\", Division: \"<#= Division #>\", Store: \"<#= Store #>\", WarehouseName: \"<#= WarehouseName #>\", Category: \"<#= Category #>\", ItemID: <#= ItemID #>, Sku: \"<#= Sku #>\", Status: \"<#= Status #>\"  });'>This Store</a>"
             + "<# } #>"
-            + "<a class=\"t-button\" href='javascript:ReleaseRDQGroupToWarehouse({ Division: \"<#= Division #>\", Store: \"<#= Store #>\", WarehouseName: \"<#= WarehouseName #>\", Category: \"<#= Category #>\", ItemID: <#= ItemID #>, Sku: \"<#= Sku #>\", Status: \"<#= Status #>\" });'>Warehouse</a>").Title("Detail Release");
+            + "<a class=\"t-button\" href='javascript:ReleaseRDQGroupToWarehouse({ InstanceID: \"<#= InstanceID #>\", Division: \"<#= Division #>\", Store: \"<#= Store #>\", WarehouseName: \"<#= WarehouseName #>\", Category: \"<#= Category #>\", ItemID: <#= ItemID #>, Sku: \"<#= Sku #>\", Status: \"<#= Status #>\" });'>Warehouse</a>").Title("Detail Release");
     })
     .DataBinding(dataBinding =>
     {
-        dataBinding.Ajax().Select("_BulkRDQs", "WebPick", new { instance = Model.Instance, div = Model.Division, department = Model.Department, category = Model.Category, sku = Model.Sku, status = Model.Status, po = Model.PO, store = Model.Store, ruleset = Model.RuleSetID }).Enabled(true);
+        dataBinding.Ajax().Select("_BulkRDQs", "WebPick", new { instanceID = Model.Instance, div = Model.Division, department = Model.Department, category = Model.Category, sku = Model.Sku, status = Model.Status, po = Model.PO, store = Model.Store, ruleset = Model.RuleSetID }).Enabled(true);
     })
     .ClientEvents(events => events.OnRowDataBound("onRowDataBound"))
     .Scrollable(scrolling => scrolling.Enabled(false))
@@ -210,7 +204,7 @@
                         .Title("Detail Release").Width(200);
                 })
                 .DataBinding(dataBinding => dataBinding.Ajax()
-                .Select("_RDQDetails", "WebPick", new { div = "<#= Division #>", store = "<#= Store #>", warehousename = "<#= WarehouseName #>", sku = "<#= Sku #>", status = "<#= Status #>" }))
+                .Select("_RDQDetails", "WebPick", new { instanceID = "<#= InstanceID #>", div = "<#= Division #>", store = "<#= Store #>", warehousename = "<#= WarehouseName #>", sku = "<#= Sku #>", status = "<#= Status #>" }))
                 .Pageable()
                 .Sortable()
                 .Footer(true)
@@ -222,42 +216,40 @@
 }
 
 @if (Model.ShowStoreSelector == "yes")
-{ 
+{
     @Html.Raw("</div>")
 }
 
-    <script type="text/javascript">
-        function showStoreSelector() {
+<script type="text/javascript">
+    function showStoreSelector() {
+        $("#ShowStoreSelector").val("yes");
+        $('#Hold_Store').hide();
+        $('form#BulkAdminForm').submit();
+    }
 
-            //document.getElementById("ShowStoreSelector").value = 'yes';
-            $("#ShowStoreSelector").val("yes");
-            $('#Hold_Store').hide();           
-            $('form#BulkAdminForm').submit();
-            //return true;
+    function hideStoreSelector() {
+        $("#ShowStoreSelector").val("no");
+        $('#RuleSetID').val($('#RuleToAdd_RuleSetID').val());
+
+        $('#ruletab').hide();
+        $('#Hold_Store').hide();
+        $('#maintab').show();
+    }
+
+    function saveChanges() {
+        $('#RDQs').data('tGrid').submitChanges();
+    }
+
+    function onRowDataBound(e) {
+        var isHoldRel = e.dataItem.Status === 'HOLD-REL';
+        if (isHoldRel) {
+            e.row.style.color = "blue";
         }
+    }
+</script>
 
-        function hideStoreSelector() {
-            $("#ShowStoreSelector").val("no");
-            $('#RuleSetID').val($('#RuleToAdd_RuleSetID').val());
+<script type="text/javascript">
 
-            $('#ruletab').hide();
-            $('#Hold_Store').hide();
-            $('#maintab').show();
-        }
-
-        function saveChanges() {
-            $('#RDQs').data('tGrid').submitChanges();
-        }
-
-        function onRowDataBound(e) {
-            var isHoldRel = e.dataItem.Status === 'HOLD-REL';
-            if (isHoldRel) {
-                e.row.style.color = "blue";
-            }
-        }
-    </script>
-
-    <script type="text/javascript">    
 
     function ReleaseRDQGroup(rdqGroup) {
         //make a call to server
@@ -340,5 +332,4 @@
             }
         });
     }
-
 </script>

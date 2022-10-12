@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.CreateConfigParamModel
+﻿@model CreateConfigParamModel
 
 @{
     ViewBag.Title = "Instance Configurations";
@@ -45,20 +45,15 @@
             },
             success: function (result) {
                 $('#description').empty().append(result.Data);
-
-                //alert(result.Data);
             }
         });
     }
 </script>
 
-
-
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.Instance>()
+@(Html.Telerik().Grid<Instance>()
         .Name("Configs")
         .Columns(columns =>
         {
-            //columns.Bound(o => o.ID);
             columns.Bound(o => o.Name);
             columns.Template(@<text> 
                 <a class='t-button' href="@Url.Content("~/Config/Create?instanceid=" + @item.ID)">Add Param</a>
@@ -77,14 +72,11 @@
         .Filterable(filtering => filtering.Enabled(true))
         .Groupable(grouping => grouping.Enabled(false))
         .Footer(true)
-        //.ClientEvents(events => events.OnRowDataBound("headers_onRowDataBound"))
         .DetailView(ordersDetailView => ordersDetailView.ClientTemplate(
                     Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.Config>()
                         .Name("Config2" + "_<#= ID #>")
                             .Columns(columns =>
                             {
-                                //columns.Bound(o => o.Division).Width(50);
-                                //columns.Bound(o => o.Store).Width(50);
                                 columns.Bound(o => o.InstanceID);
                                 columns.Template(@<text> 
                                     <a onclick="showDescription">@item.ParamID</a>
@@ -112,4 +104,3 @@
                         .ToHtmlString()                                               
                         ))
 )
-

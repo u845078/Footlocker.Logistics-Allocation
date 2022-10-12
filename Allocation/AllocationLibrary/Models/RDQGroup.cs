@@ -13,7 +13,7 @@ namespace Footlocker.Logistics.Allocation.Models
         #endregion
 
         #region Public Proprties
-
+        public int InstanceID { get; set; }
         public string Division { get; set; }
         public string Store { get; set; }
         public string WarehouseName { get; set; }
@@ -25,13 +25,14 @@ namespace Footlocker.Logistics.Allocation.Models
         public int? UnitQty { get; set; }
         public string Status { get; set; }
 
-        public Boolean CanPick
+        public bool CanPick
         {
             get 
             {
                 if (Status == null)
                     return true;
-                return ((Status.StartsWith("HOLD"))&&(Status != "HOLD-XDC"));
+
+                return Status.StartsWith("HOLD") && (Status != "HOLD-XDC");
             }
         }
 

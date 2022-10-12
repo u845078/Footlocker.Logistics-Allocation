@@ -10,17 +10,17 @@ namespace Footlocker.Logistics.Allocation.Models
     {
         public int Instance { get; set; }
         public List<Instance> Instances { get; set; }
-        public String Store { get; set; }
+        public string Store { get; set; }
         public string Division { get; set; }
         public List<Division> Divisions { get; set; }
-        public String Department { get; set; }
+        public string Department { get; set; }
         public List<Department> Departments { get; set; }
-        public String Category { get; set; }
-        public String Sku { get; set; }
-        public String PO { get; set; }
-        public String Status { get; set; }
-        public List<String> StatusList { get; set; }
-        public Boolean HaveResults { get; set; }
+        public string Category { get; set; }
+        public string Sku { get; set; }
+        public string PO { get; set; }
+        public string Status { get; set; }
+        public List<string> StatusList { get; set; }
+        public bool HaveResults { get; set; }
         public string ShowStoreSelector { get; set; }
         private RuleModel _ruleModel;
 
@@ -30,6 +30,9 @@ namespace Footlocker.Logistics.Allocation.Models
             set { _ruleModel = value; }
         }
 
-        public List<RDQ> Results { get; set; }
+        public bool SearchResult { get; set; }
+
+        public List<RDQ> RDQResults { get; set; }
+        public List<RDQGroup> RDQGroups { get; set; }
     }
 }

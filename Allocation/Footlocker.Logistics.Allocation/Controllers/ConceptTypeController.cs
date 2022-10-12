@@ -218,15 +218,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult Grid_Index()
         {
-            //// Get all accessible concept types (of users security divisions)
-            //var accessibleDivCodes = Divisions().Select(d => d.DivCode);
-            //var conceptTypes = 
-            //    db.ConceptTypeDivisions
-            //        .Where(ctd => accessibleDivCodes.Contains(ctd.Division))
-            //        .Include("ConceptType")
-            //        .Select(ctd => ctd.ConceptType)
-            //        .Distinct();
-
             // Get all concepts
             var conceptTypes = db.ConceptTypes.Include("Divisions");
 

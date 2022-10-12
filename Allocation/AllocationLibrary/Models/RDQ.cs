@@ -79,6 +79,10 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Sku { get; set; }
         [Display(Name="Size/Caselot")]
         [RegularExpression(@"^\d{3}(?:\d{2})?$", ErrorMessage = "Size must be 3 or 5 digits")]
+
+        [NotMapped]
+        public string Department { get; set; }
+
         public string Size { get; set; }
         public int Qty { get; set; }
         public int? TargetQty { get; set; }
@@ -107,6 +111,10 @@ namespace Footlocker.Logistics.Allocation.Models
                 catch { }
             }
         }
+
+        [NotMapped]
+        public int InstanceID { get; set; }
+
         private string _userRequestedQty;
         [Column("UserRequestedQty")]
         public string UserRequestedQtyString 
@@ -197,7 +205,8 @@ namespace Footlocker.Logistics.Allocation.Models
             {
                 if (Status == null)
                     return true;
-                return ((Status.StartsWith("HOLD")) && (Status != "HOLD-XDC"));
+
+                return Status.StartsWith("HOLD") && (Status != "HOLD-XDC");
             }
         }
     }

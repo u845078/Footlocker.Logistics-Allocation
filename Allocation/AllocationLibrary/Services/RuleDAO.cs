@@ -458,11 +458,15 @@ namespace Footlocker.Logistics.Allocation.Services
         }
 
 
-        public List<StoreLookup> GetStoresInRuleSet(Int64 ruleSetID)
+        public List<StoreLookup> GetStoresInRuleSet(long ruleSetID)
         {
-            var results = (from a in db.StoreLookups join b in db.RuleSelectedStores on new { div = a.Division, store = a.Store } equals new { div = b.Division, store = b.Store } where (b.RuleSetID == ruleSetID) select a);
+            List<StoreLookup> results = (from a in db.StoreLookups 
+                                         join b in db.RuleSelectedStores 
+                                           on new { div = a.Division, store = a.Store } equals new { div = b.Division, store = b.Store } 
+                                         where b.RuleSetID == ruleSetID
+                                         select a).ToList();
 
-            return results.ToList(); 
+            return results; 
         }
 
         public List<StoreLookup> GetValidStoresInRuleSet(Int64 ruleSetID)

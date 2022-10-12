@@ -25,6 +25,37 @@ namespace Footlocker.Logistics.Allocation.Services
         }
 
 
+        public List<RDQ> GetHeldRDQs(int instance, string division, string department, string category, string sku,
+            string po, string store, string status)
+        {
+            List<RDQ> rdqList = new List<RDQ>();
+
+            DbCommand SQLCommand;
+            string SQL = "dbo.[GetHeldRDQs]";
+
+            SQLCommand = _database.GetStoredProcCommand(SQL);
+            _database.AddInParameter(SQLCommand, "@instanceID", DbType.Int32, instance);
+            _database.AddInParameter(SQLCommand, "@division", DbType.String, division);
+            _database.AddInParameter(SQLCommand, "@department", DbType.String, department);
+            _database.AddInParameter(SQLCommand, "@category", DbType.String, category);
+            _database.AddInParameter(SQLCommand, "@sku", DbType.String, sku);
+            _database.AddInParameter(SQLCommand, "@po", DbType.String, po);
+            _database.AddInParameter(SQLCommand, "@store", DbType.String, store);
+            _database.AddInParameter(SQLCommand, "@status", DbType.String, status);
+
+            DataSet data = _database.ExecuteDataSet(SQLCommand);
+
+            if (data.Tables.Count > 0)
+            {
+                foreach (DataRow dr in data.Tables[0].Rows)
+                {
+                    rdqList.Add(RDQFactory.CreateFromHeldRDQRow(dr));
+                }
+            }
+
+            return rdqList;
+        }
+
         public List<RDQ> GetRDQsForHolds(string div, string level, string value)
         {
             List<RDQ> _que;
@@ -41,13 +72,11 @@ namespace Footlocker.Logistics.Allocation.Services
             DataSet data = new DataSet();
             data = _database.ExecuteDataSet(SQLCommand);
 
-            RDQFactory factory = new RDQFactory();
-
             if (data.Tables.Count > 0)
             {
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    _que.Add(factory.Create(dr));
+                    _que.Add(RDQFactory.Create(dr));
                 }
             }
             return _que;
@@ -68,13 +97,11 @@ namespace Footlocker.Logistics.Allocation.Services
             DataSet data = new DataSet();
             data = _database.ExecuteDataSet(SQLCommand);
 
-            RDQFactory factory = new RDQFactory();
-
             if (data.Tables.Count > 0)
             {
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    _que.Add(factory.Create(dr));
+                    _que.Add(RDQFactory.Create(dr));
                 }
             }
             return _que;
@@ -92,16 +119,14 @@ namespace Footlocker.Logistics.Allocation.Services
             SQLCommand = _database.GetStoredProcCommand(SQL);
             _database.AddInParameter(SQLCommand, "@ID", DbType.String, holdID);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _database.ExecuteDataSet(SQLCommand);
-
-            RDQFactory factory = new RDQFactory();
 
             if (data.Tables.Count > 0)
             {
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    _que.Add(factory.Create(dr));
+                    _que.Add(RDQFactory.Create(dr));
                 }
             }
             return _que;
@@ -126,13 +151,11 @@ namespace Footlocker.Logistics.Allocation.Services
             DataSet data = new DataSet();
             data = _database.ExecuteDataSet(SQLCommand);
 
-            RDQFactory factory = new RDQFactory();
-
             if (data.Tables.Count > 0)
             {
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    _que.Add(factory.Create(dr));
+                    _que.Add(RDQFactory.Create(dr));
                 }
             }
             return _que;
@@ -143,65 +166,65 @@ namespace Footlocker.Logistics.Allocation.Services
         /// </summary>
         /// <param name="holds"></param>
         /// <returns></returns>
-        public List<RDQ> GetUniqueRDQsForHold(List<Hold> holds)
-        {
-            List<RDQ> _que;
-            _que = new List<RDQ>();
+        //public List<RDQ> GetUniqueRDQsForHold(List<Hold> holds)
+        //{
+        //    List<RDQ> _que;
+        //    _que = new List<RDQ>();
 
-            DbCommand SQLCommand;
-            string SQL = "dbo.[getUniqueRDQsForHoldXml]";
+        //    DbCommand SQLCommand;
+        //    string SQL = "dbo.[getUniqueRDQsForHoldXml]";
 
-            string holdXml = Hold.ToXml(holds);
+        //    string holdXml = Hold.ToXml(holds);
 
-            SQLCommand = _database.GetStoredProcCommand(SQL);
-            _database.AddInParameter(SQLCommand, "@Xml", DbType.Xml, holdXml);
+        //    SQLCommand = _database.GetStoredProcCommand(SQL);
+        //    _database.AddInParameter(SQLCommand, "@Xml", DbType.Xml, holdXml);
 
-            DataSet data = new DataSet();
-            SQLCommand.CommandTimeout = 0;
-            data = _database.ExecuteDataSet(SQLCommand);
+        //    DataSet data = new DataSet();
+        //    SQLCommand.CommandTimeout = 0;
+        //    data = _database.ExecuteDataSet(SQLCommand);
 
-            RDQFactory factory = new RDQFactory();
+        //    RDQFactory factory = new RDQFactory();
 
-            if (data.Tables.Count > 0)
-            {
-                foreach (DataRow dr in data.Tables[0].Rows)
-                {
-                    _que.Add(factory.Create(dr));
-                }
-            }
-            return _que;
-        }
+        //    if (data.Tables.Count > 0)
+        //    {
+        //        foreach (DataRow dr in data.Tables[0].Rows)
+        //        {
+        //            _que.Add(factory.Create(dr));
+        //        }
+        //    }
+        //    return _que;
+        //}
 
         /// <summary>
         /// Gets RDQs that are for this hold only, not including ones that are also on hold for another reason
         /// </summary>
         /// <param name="holdID"></param>
         /// <returns></returns>
-        public List<RDQ> GetEcommRDQs(int instance)
-        {
-            List<RDQ> _que;
-            _que = new List<RDQ>();
+        //public List<RDQ> GetEcommRDQs(int instance)
+        //{
+        //    List<RDQ> _que;
+        //    _que = new List<RDQ>();
 
-            DbCommand SQLCommand;
-            string SQL = "dbo.[getEcommRDQs]";
+        //    DbCommand SQLCommand;
+        //    string SQL = "dbo.[getEcommRDQs]";
 
-            SQLCommand = _database.GetStoredProcCommand(SQL);
-            _database.AddInParameter(SQLCommand, "@instanceID", DbType.Int32, instance);
+        //    SQLCommand = _database.GetStoredProcCommand(SQL);
+        //    _database.AddInParameter(SQLCommand, "@instanceID", DbType.Int32, instance);
 
-            DataSet data = new DataSet();
-            data = _database.ExecuteDataSet(SQLCommand);
+        //    DataSet data = new DataSet();
+        //    data = _database.ExecuteDataSet(SQLCommand);
 
-            RDQFactory factory = new RDQFactory();
+        //    RDQFactory factory = new RDQFactory();
 
-            if (data.Tables.Count > 0)
-            {
-                foreach (DataRow dr in data.Tables[0].Rows)
-                {
-                    _que.Add(factory.Create(dr));
-                }
-            }
-            return _que;
-        }
+        //    if (data.Tables.Count > 0)
+        //    {
+        //        foreach (DataRow dr in data.Tables[0].Rows)
+        //        {
+        //            _que.Add(factory.Create(dr));
+        //        }
+        //    }
+        //    return _que;
+        //}
 
         
         public void DeleteCrossdockRDQs(string div, string store)
@@ -267,16 +290,14 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.AddInParameter(SQLCommand, "@instanceID", DbType.String, instance);
             _database.AddInParameter(SQLCommand, "@date", DbType.String, controldate);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _database.ExecuteDataSet(SQLCommand);
-
-            RDQFactory factory = new RDQFactory();
 
             if (data.Tables.Count > 0)
             {
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    _que.Add(factory.CreateFinal(dr));
+                    _que.Add(RDQFactory.CreateFinal(dr));
                 }
             }
             return _que;
@@ -294,16 +315,14 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.AddInParameter(SQLCommand, "@sku", DbType.String, sku);
             _database.AddInParameter(SQLCommand, "@date", DbType.String, controldate);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _database.ExecuteDataSet(SQLCommand);
-
-            RDQFactory factory = new RDQFactory();
 
             if (data.Tables.Count > 0)
             {
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    _que.Add(factory.CreateFinal(dr));
+                    _que.Add(RDQFactory.CreateFinal(dr));
                 }
             }
             return _que;
