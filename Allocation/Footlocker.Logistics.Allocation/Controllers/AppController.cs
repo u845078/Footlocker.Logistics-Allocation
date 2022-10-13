@@ -29,10 +29,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             try
             {
-                string lookupUserID = fullUserID.Replace("CORP/", "");
-                fullName = (from au in flCommon.ApplicationUsers
-                            where au.UserName == lookupUserID
-                            select au.FullName).Distinct().FirstOrDefault();
+                if (!fullUserID.Contains(" "))
+                {
+                    string lookupUserID = fullUserID.Replace("CORP/", "");
+                    fullName = (from au in flCommon.ApplicationUsers
+                                where au.UserName == lookupUserID
+                                select au.FullName).Distinct().FirstOrDefault();
+                }
+                else
+                    fullName = string.Empty;
 
                 if (string.IsNullOrEmpty(fullName))
                     return fullUserID;
