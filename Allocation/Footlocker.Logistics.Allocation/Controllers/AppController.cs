@@ -26,7 +26,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public string getFullUserNameFromDatabase(string fullUserID)
         {
-            string fullName = "";
+            string fullName = string.Empty;
 
             try
             {
@@ -40,11 +40,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     where au.UserName == lookupUserID
                                     select au.FullName).Distinct().FirstOrDefault();
                     }
-                    else
-                        fullName = string.Empty;
                 }
-                else
-                    fullName = string.Empty;
 
                 if (string.IsNullOrEmpty(fullName))
                     return fullUserID;
@@ -55,6 +51,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 return fullUserID;
             }
+        }
+
+        public List<ApplicationUser> GetAllUserNamesFromDatabase()
+        {
+            return flCommon.ApplicationUsers.ToList();
         }
 
         public string UserName
