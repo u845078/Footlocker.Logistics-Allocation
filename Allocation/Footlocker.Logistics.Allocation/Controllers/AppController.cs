@@ -8,6 +8,7 @@ using Telerik.Web.Mvc;
 using System.DirectoryServices;
 using System.Web.Routing;
 using Footlocker.Logistics.Allocation.Models;
+using System.ComponentModel;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -29,12 +30,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             try
             {
-                if (!fullUserID.Contains(" "))
+                if (!fullUserID.Contains(" ") && !string.IsNullOrEmpty(fullUserID))
                 {
                     string lookupUserID = fullUserID.Replace("CORP/", "");
-                    fullName = (from au in flCommon.ApplicationUsers
-                                where au.UserName == lookupUserID
-                                select au.FullName).Distinct().FirstOrDefault();
+
+                    if (lookupUserID.Substring(0, 1) == "u")
+                    {
+                        fullName = (from au in flCommon.ApplicationUsers
+                                    where au.UserName == lookupUserID
+                                    select au.FullName).Distinct().FirstOrDefault();
+                    }
+                    else
+                        fullName = string.Empty;
                 }
                 else
                     fullName = string.Empty;
