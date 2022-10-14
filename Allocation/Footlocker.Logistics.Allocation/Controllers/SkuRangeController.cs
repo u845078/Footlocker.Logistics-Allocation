@@ -33,7 +33,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         #region ActionResults
 
-        #region "Sku Range Plan (list of sku's)
+        #region "Sku Range Plan (list of skus)
 
         public ActionResult Index(string message)
         {
@@ -136,96 +136,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(p);
         }
 
-        private string ValidateSKU(string SKU)
-        {
-            string result = "";
-
-            Regex regexSku = new Regex(@"^\d{2}-\d{2}-\d{5}-\d{2}$");
-            if (!regexSku.IsMatch(SKU))
-            {
-                result = "Invalid Sku, format should be ##-##-#####-##";
-                return result;
-            }
-
-            if (db.RangePlans.Any(a => a.Sku == SKU))
-            {
-                result = "Range Plan Already Exists for this Sku";
-                return result;
-            }
-
-            if (db.Renumbers.Any(a => a.OldSKU.Substring(0, 12) == SKU.Substring(0, 12)))
-            {
-                result = "This SKU has been renumbered and should not be used.";
-                return result;
-            }
-
-            if (!currentUser.HasDivDept(AppName, SKU.Substring(0, 2), SKU.Substring(3, 2)))
-            {
-                result = "You do not have permission for this division/department.";
-                return result;
-            }
-
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
-
-            if ((from d in divs
-                 where d.DivCode == SKU.Substring(0, 2)
-                 select d).Count() == 0)
-            {
-                result = "You do not have permission to create a range plan for this division";
-                return result;
-            }
-
-            return result;
-        }
-
-        private long RetreiveOrCreateItemID(string SKU)
-        {
-            var itemlist = db.ItemMasters.Where(im => im.MerchantSku == SKU).ToList();
-
-            if (itemlist.Count() > 0)
-            {
-                return itemlist.First().ID;
-            }
-            else
-            {
-                Footlocker.Logistics.Allocation.Services.ItemDAO dao = new ItemDAO();
-                string div = SKU.Substring(0, 2);
-                int instance = (from a in db.InstanceDivisions
-                                where a.Division == div
-                                select a.InstanceID).First();
-                try
-                {
-                    dao.CreateItemMaster(SKU, instance);
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-
-                return (from a in db.ItemMasters
-                        where a.MerchantSku == SKU
-                        select a.ID).First();
-            }
-        }
-
         [HttpPost]
         public ActionResult CreateRangePlan(RangePlan p)
         {
             p.CreatedBy = currentUser.NetworkID;
             p.CreateDate = DateTime.Now;
-
             p.UpdatedBy = currentUser.NetworkID;
             p.UpdateDate = DateTime.Now;
 
-            string validationMessage;
+            string skuErrors = ValidateSKU(p.Sku);
 
-            validationMessage = ValidateSKU(p.Sku);
+            if (!string.IsNullOrEmpty(skuErrors))
+                ModelState.AddModelError("Sku", skuErrors);
 
-            if (!string.IsNullOrEmpty(validationMessage))
-            {
-                ViewData["message"] = validationMessage;
+            if (!ModelState.IsValid)
                 return View(p);
-            }
 
             try
             {
@@ -245,6 +170,59 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("EditStores", new { planID = p.Id });
         }
 
+        private string ValidateSKU(string SKU)
+        {
+            Regex regexSku = new Regex(@"^\d{2}-\d{2}-\d{5}-\d{2}$");
+            if (!regexSku.IsMatch(SKU))            
+                return "Invalid Sku, format should be ##-##-#####-##";            
+
+            if (db.RangePlans.Any(a => a.Sku == SKU))
+                return "Range Plan Already Exists for this Sku";
+
+            if (db.Renumbers.Any(a => a.OldSKU.Substring(0, 12) == SKU.Substring(0, 12)))
+                return "This SKU has been renumbered and should not be used.";
+
+            if (!currentUser.HasDivDept(AppName, SKU.Substring(0, 2), SKU.Substring(3, 2)))
+                return "You do not have permission for this division/department.";
+
+            List<Division> divs = currentUser.GetUserDivisions(AppName);
+
+            if (!divs.Any(d => d.DivCode == SKU.Substring(0, 2)))            
+                return "You do not have permission to create a range plan for this division";
+
+            return "";
+        }
+
+        private long RetreiveOrCreateItemID(string SKU)
+        {
+            var itemlist = db.ItemMasters.Where(im => im.MerchantSku == SKU).ToList();
+
+            if (itemlist.Count() > 0)
+            {
+                return itemlist.First().ID;
+            }
+            else
+            {
+                ItemDAO dao = new ItemDAO();
+                string div = SKU.Substring(0, 2);
+                int instance = (from a in db.InstanceDivisions
+                                where a.Division == div
+                                select a.InstanceID).First();
+                try
+                {
+                    dao.CreateItemMaster(SKU, instance);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+
+                return (from a in db.ItemMasters
+                        where a.MerchantSku == SKU
+                        select a.ID).First();
+            }
+        }
+
         public ActionResult CopyRangePlan()
         {
             return View();
@@ -254,47 +232,44 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult CopyRangePlan(CopyRangePlanModel model)
         {
             RangePlan fromPlan = null;
-            if (model.FromSku != "")
+            if (!string.IsNullOrEmpty(model.FromSku))
             {
-                var fromQuery = (from a in db.RangePlans
-                                 where a.Sku == model.FromSku
-                                 select a);
-                if (fromQuery.Count() == 0)
+                List<RangePlan> rpList = db.RangePlans.Where(rp => rp.Sku == model.FromSku).ToList();
+                if (rpList.Count() == 0)
                 {
-                    model.Message = "From Sku is not ranged.";
+                    ModelState.AddModelError("FromSKU", "From Sku is not ranged.");
                     return View(model);
                 }
-                fromPlan = fromQuery.First();
+
+                fromPlan = rpList.First();
             }
-            else if (model.FromDescription != "")
+            else if (!string.IsNullOrEmpty(model.FromDescription))
             {
-                fromPlan = (from a in db.RangePlans
-                            where a.Description == model.FromDescription
-                            select a).First();
+                fromPlan = db.RangePlans.Where(rp => rp.Description == model.FromDescription).FirstOrDefault();
             }
             else
             {
-                model.Message = "You must specify either a SKU or Store Range Description.";
+                ModelState.AddModelError("", "You must specify either a SKU or Store Range Description.");
                 return View(model);
             }
 
             if (model.FromSku.Substring(0, 2) != model.ToSku.Substring(0, 2))
             {
-                model.Message = "You can only copy from a sku in the same division.";
+                ModelState.AddModelError("FromSKU", "You can only copy from a sku in the same division.");
                 return View(model);
             }
 
             //verify the sizes match on old/new sku
-            List<String> ToSizes = (from a in db.Sizes
+            List<string> ToSizes = (from a in db.Sizes
                                     where a.Sku == model.ToSku
                                     select a.Size).OrderBy(p => p).ToList();
-            List<String> FromSizes = (from a in db.Sizes
+            List<string> FromSizes = (from a in db.Sizes
                                       where a.Sku == model.FromSku
                                       select a.Size).OrderBy(p => p).ToList();
 
             if (ToSizes.Count != FromSizes.Count)
             {
-                model.Message = "These skus have different sizes, cannot copy";
+                ModelState.AddModelError("", "These skus have different sizes, cannot copy");
                 return View(model);
             }
 
@@ -302,7 +277,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 if (ToSizes[i] != FromSizes[i])
                 {
-                    model.Message = "These skus have different sizes, cannot copy";
+                    ModelState.AddModelError("", "These skus have different sizes, cannot copy");
                     return View(model);
                 }
             }
@@ -312,26 +287,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
             validationMessage = ValidateSKU(model.ToSku);
             if (!string.IsNullOrEmpty(validationMessage))
             {
-                model.Message = validationMessage;
+                ModelState.AddModelError("ToSku", validationMessage);
                 return View(model);
             }
 
             //create new skurange
             try
             {
-                RangePlan newPlan = new RangePlan();
-                newPlan.Sku = model.ToSku;
-                newPlan.Description = model.ToDescription + "";
-                if (newPlan.Description.Length == 0)
+                RangePlan newPlan = new RangePlan()
+                {
+                    Sku = model.ToSku,
+                    Description = model.ToDescription,
+                    CreateDate = DateTime.Now,
+                    CreatedBy = currentUser.NetworkID,
+                    UpdateDate = DateTime.Now,
+                    UpdatedBy = currentUser.NetworkID,
+                    PlanType = fromPlan.PlanType,
+                    StoreCount = 0
+                };
+
+                if (string.IsNullOrEmpty(newPlan.Description))
                 {
                     newPlan.Description = model.ToSku;
                 }
-                newPlan.CreateDate = DateTime.Now;
-                newPlan.CreatedBy = currentUser.NetworkID;
-                newPlan.UpdateDate = DateTime.Now;
-                newPlan.UpdatedBy = currentUser.NetworkID;
-                newPlan.PlanType = fromPlan.PlanType;
-                newPlan.StoreCount = 0;
 
                 try
                 {
@@ -344,124 +322,131 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 db.RangePlans.Add(newPlan);
-                db.SaveChanges(UserName);
+                db.SaveChanges(currentUser.NetworkID);
 
                 List<long> OldRuleSets = new List<long>();
                 List<long> NewRuleSets = new List<long>();
                 //copy ruleset
-                List<RuleSet> rsFromList = (from a in db.RuleSets
-                                            where a.PlanID == fromPlan.Id
-                                            select a).ToList();
+                List<RuleSet> rsFromList = db.RuleSets.Where(rs => rs.PlanID == fromPlan.Id).ToList();
+
                 foreach (RuleSet rsFrom in rsFromList)
                 {
-                    RuleSet rs = new RuleSet();
-                    rs.PlanID = newPlan.Id;
-                    rs.Type = rsFrom.Type;
-                    rs.CreatedBy = currentUser.NetworkID;
-                    rs.CreateDate = DateTime.Now;
+                    RuleSet rs = new RuleSet()
+                    {
+                        PlanID = newPlan.Id,
+                        Type = rsFrom.Type,
+                        CreatedBy = currentUser.NetworkID,
+                        CreateDate = DateTime.Now
+                    };
+   
                     db.RuleSets.Add(rs);
                     db.SaveChanges();
 
                     OldRuleSets.Add(rsFrom.RuleSetID);
                     NewRuleSets.Add(rs.RuleSetID);
 
-                    List<RuleSelectedStore> stores = (from a in db.RuleSelectedStores
-                                                      where a.RuleSetID == rsFrom.RuleSetID
-                                                      select a).ToList();
+                    List<RuleSelectedStore> stores = db.RuleSelectedStores.Where(rss => rss.RuleSetID == rsFrom.RuleSetID).ToList();
                     foreach (RuleSelectedStore storeFrom in stores)
                     {
-                        RuleSelectedStore store = new RuleSelectedStore();
-                        store.Division = storeFrom.Division;
-                        store.Store = storeFrom.Store;
-                        store.RuleSetID = rs.RuleSetID;
-                        store.CreatedBy = currentUser.NetworkID;
-                        store.CreateDate = DateTime.Now;
+                        RuleSelectedStore store = new RuleSelectedStore()
+                        {
+                            Division = storeFrom.Division,
+                            Store = storeFrom.Store,
+                            RuleSetID = rs.RuleSetID,
+                            CreatedBy = currentUser.NetworkID,
+                            CreateDate = DateTime.Now
+                        };
+
                         db.RuleSelectedStores.Add(store);
                     }
                     db.SaveChanges();
 
-                    List<Rule> rules = (from a in db.Rules where a.RuleSetID == rsFrom.RuleSetID select a).ToList();
+                    List<Rule> rules = db.Rules.Where(r => r.RuleSetID == rsFrom.RuleSetID).ToList();
                     foreach (Rule fromRule in rules)
                     {
-                        Rule rule = new Rule();
-                        rule.RuleSetID = rs.RuleSetID;
-                        rule.Field = fromRule.Field;
-                        rule.Compare = fromRule.Compare;
-                        rule.Value = fromRule.Value;
-                        rule.Sort = fromRule.Sort;
+                        Rule rule = new Rule()
+                        {
+                            RuleSetID = rs.RuleSetID,
+                            Field = fromRule.Field,
+                            Compare = fromRule.Compare,
+                            Value = fromRule.Value,
+                            Sort = fromRule.Sort
+                        };
+
                         db.Rules.Add(rule);
                     }
                     db.SaveChanges();
                 }
 
                 //copy deliverygroup
-                List<DeliveryGroup> dgList = (from a in db.DeliveryGroups
-                                              where a.PlanID == fromPlan.Id
-                                              select a).ToList();
+                List<DeliveryGroup> dgList = db.DeliveryGroups.Where(dg => dg.PlanID == fromPlan.Id).ToList();
                 foreach (DeliveryGroup dg in dgList)
                 {
-                    DeliveryGroup dgNew = new DeliveryGroup();
-                    dgNew.PlanID = newPlan.Id;
-                    dgNew.StoreCount = dg.StoreCount;
-                    dgNew.StartDate = dg.StartDate;
-                    dgNew.EndDate = dg.EndDate;
-                    dgNew.Name = dg.Name;
-                    dgNew.MinEndDays = dg.MinEndDays;
-                    dgNew.RuleSetID = NewRuleSets[OldRuleSets.IndexOf(dg.RuleSetID)];
+                    DeliveryGroup dgNew = new DeliveryGroup()
+                    {
+                        PlanID = newPlan.Id,
+                        StoreCount = dg.StoreCount,
+                        StartDate = dg.StartDate,
+                        EndDate = dg.EndDate,
+                        Name = dg.Name,
+                        MinEndDays = dg.MinEndDays,
+                        RuleSetID = NewRuleSets[OldRuleSets.IndexOf(dg.RuleSetID)]
+                    };
+
                     db.DeliveryGroups.Add(dgNew);
                 }
-                db.SaveChanges(UserName);
+                db.SaveChanges(currentUser.NetworkID);
 
                 //copy details
-                List<RangePlanDetail> details = (from a in db.RangePlanDetails
-                                                 where a.ID == fromPlan.Id
-                                                 select a).ToList();
+                List<RangePlanDetail> details = db.RangePlanDetails.Where(rpd => rpd.ID == fromPlan.Id).ToList();
                 foreach (RangePlanDetail fromDet in details)
                 {
-                    RangePlanDetail det = new RangePlanDetail();
-                    det.ID = newPlan.Id;
-                    det.CreateDate = DateTime.Now;
-                    det.CreatedBy = currentUser.NetworkID;
-                    det.Division = fromDet.Division;
-                    det.EndDate = fromDet.EndDate;
-                    det.StartDate = fromDet.StartDate;
-                    det.Store = fromDet.Store;
+                    RangePlanDetail det = new RangePlanDetail() 
+                    {
+                        ID = newPlan.Id,
+                        CreateDate = DateTime.Now,
+                        CreatedBy = currentUser.NetworkID,
+                        Division = fromDet.Division,
+                        EndDate = fromDet.EndDate,
+                        StartDate = fromDet.StartDate,
+                        Store = fromDet.Store
+                    };
+
                     db.RangePlanDetails.Add(det);
                 }
                 db.SaveChanges();
 
                 //copy presentation qtys
                 //TODO:  Verify size exists for new sku
-                List<SizeObj> sizes = (from a in db.Sizes
-                                       where a.Sku == newPlan.Sku
-                                       select a).ToList();
-                List<SizeAllocation> list = (from a in db.SizeAllocations
-                                             where a.PlanID == fromPlan.Id
-                                             select a).ToList();
+                List<SizeObj> sizes = db.Sizes.Where(s => s.Sku == newPlan.Sku).ToList();
+                List<SizeAllocation> list = db.SizeAllocations.Where(sa => sa.PlanID == fromPlan.Id).ToList();
+
                 foreach (SizeAllocation saFrom in list)
                 {
-                    if ((from a in sizes
-                         where a.Size == saFrom.Size
-                         select a).Count() > 0)
+                    if (sizes.Where(s => s.Size == saFrom.Size).Count() > 0)
                     {
-                        SizeAllocation sa = new SizeAllocation();
-                        sa.PlanID = newPlan.Id;
-                        sa.Days = saFrom.Days;
-                        sa.Division = saFrom.Division;
-                        sa.EndDate = saFrom.EndDate;
-                        sa.InitialDemand = saFrom.InitialDemand;
-                        sa.Max = saFrom.Max;
-                        sa.Min = saFrom.Min;
-                        sa.Range = saFrom.Range;
-                        sa.Size = saFrom.Size;
-                        sa.StartDate = saFrom.StartDate;
-                        sa.Store = saFrom.Store;
-                        sa.MinEndDays = saFrom.MinEndDays;
+                        SizeAllocation sa = new SizeAllocation() 
+                        {
+                            PlanID = newPlan.Id,
+                            Days = saFrom.Days,
+                            Division = saFrom.Division,
+                            EndDate = saFrom.EndDate,
+                            InitialDemand = saFrom.InitialDemand,
+                            Max = saFrom.Max,
+                            Min = saFrom.Min,
+                            Range = saFrom.Range,
+                            Size = saFrom.Size,
+                            StartDate = saFrom.StartDate,
+                            Store = saFrom.Store,
+                            MinEndDays = saFrom.MinEndDays
+                        };
+
                         db.SizeAllocations.Add(sa);
                     }
                 }
-                db.SaveChanges(UserName);
-                return RedirectToAction("Index", new { message = "Copied from " + model.FromSku + " to " + model.ToSku });
+
+                db.SaveChanges(currentUser.NetworkID);
+                return RedirectToAction("Index", new { message = string.Format("Copied from {0} to {1}", model.FromSku, model.ToSku) });
             }
             catch (Exception ex)
             {
@@ -470,9 +455,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 //so if there is an error, we'll just delete the new range and show an error message.
                 try
                 {
-                    RangePlan plan = (from a in db.RangePlans
-                                      where a.Sku == model.ToSku
-                                      select a).First();
+                    RangePlan plan = db.RangePlans.Where(rp => rp.Sku == model.ToSku).First();
                     db.RangePlans.Remove(plan);
                     db.SaveChanges();
                 }
@@ -486,7 +469,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult _AutoCompleteSku(string text)
         {
-            IQueryable<String> results;
+            IQueryable<string> results;
             results = (from a in db.RangePlans 
                        where a.Sku.StartsWith(text) 
                        select a.Sku).Distinct();
@@ -496,8 +479,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult _AutoCompleteDescription(string text)
         {
-            IQueryable<String> results;
-            results = (from a in db.RangePlans where a.Description.StartsWith(text) select (a.Description + " (" + a.Sku + ")")).Distinct();
+            IQueryable<string> results;
+            results = (from a in db.RangePlans 
+                       where a.Description.StartsWith(text) 
+                       select (a.Description + " (" + a.Sku + ")")).Distinct();
             return new JsonResult { Data = results.ToList() };
         }
 
@@ -507,9 +492,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult SaveSkuRange(SizeAllocationModel model)
         {
-            RangePlan p = (from a in db.RangePlans 
-                           where a.Id == model.Plan.Id 
-                           select a).First();
+            RangePlan p = db.RangePlans.Where(rp => rp.Id == model.Plan.Id).First();
 
             p.StartDate = model.Plan.StartDate;
             p.EndDate = model.Plan.EndDate;
@@ -539,10 +522,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             try
             {
-                RuleSet r = (from a in db.RuleSets
-                             where a.PlanID == planID &&
-                                   a.Type == "SizeAlc"
-                             select a).First();
+                RuleSet r = db.RuleSets.Where(rs => rs.PlanID == planID && rs.Type == "SizeAlc").First();
                 //check spreadsheet upload
                 stores = (new RuleDAO()).GetStoresInRuleSet(r.RuleSetID);
                 if (stores.Count() == 0)

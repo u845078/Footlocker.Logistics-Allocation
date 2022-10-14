@@ -1,7 +1,7 @@
-﻿@model Footlocker.Logistics.Allocation.Models.CopyRangePlanModel
+﻿@model CopyRangePlanModel
 
 @{
-    ViewBag.Title = "CopyRangePlan";
+    ViewBag.Title = "Copy Range Plan";
 }
 
 <h2>CopyRangePlan</h2>
@@ -23,7 +23,7 @@
     @Html.ValidationSummary(true)
 
     <fieldset>
-        <legend>CopyRangePlanModel</legend>
+        <legend>Copy Range Plan Details</legend>
         <div class="editor-label">
             @Html.LabelFor(model => model.PlanType)
         </div>
@@ -36,51 +36,51 @@
             @Html.LabelFor(model => model.FromSku)
         </div>
         <div class="editor-field">
-        @Html.HiddenFor(model => model.FromSku)
-                @(Html.Telerik().AutoComplete()
-                    .Name("AjaxSku")
-                    .AutoFill(true)
-                    .DataBinding(binding => binding.Ajax()
-                                                   .Select("_AutoCompleteSku", "SkuRange")
-                                                   .Delay(400)
-                                                   .Cache(true)
-                    )
-                    .Filterable(filtering =>
-                    {
-                        filtering.FilterMode((AutoCompleteFilterMode)Enum.Parse(typeof(AutoCompleteFilterMode),
-                            "StartsWith"));
-                        filtering.MinimumChars(1);
-                    })
-                    .Multiple(multi => multi.Enabled(false))
-                    .HighlightFirstMatch(true)
-                    .ClientEvents(events => events.OnChange("changeSkuValue"))
-
+            @Html.HiddenFor(model => model.FromSku)
+            @(Html.Telerik().AutoComplete()
+                .Name("AjaxSku")
+                .AutoFill(true)
+                .DataBinding(binding => binding.Ajax()
+                                                .Select("_AutoCompleteSku", "SkuRange")
+                                                .Delay(400)
+                                                .Cache(true)
                 )
+                .Filterable(filtering =>
+                {
+                    filtering.FilterMode((AutoCompleteFilterMode)Enum.Parse(typeof(AutoCompleteFilterMode),
+                        "StartsWith"));
+                    filtering.MinimumChars(1);
+                })
+                .Multiple(multi => multi.Enabled(false))
+                .HighlightFirstMatch(true)
+                .ClientEvents(events => events.OnChange("changeSkuValue"))
+            )
+            @Html.ValidationMessageFor(model => model.FromSku)
         </div>
 
         <div class="editor-label">
             @Html.LabelFor(model => model.FromDescription)
         </div>
         <div class="editor-field">
-        @Html.HiddenFor(model => model.FromDescription)
-                @(Html.Telerik().AutoComplete()
-                    .Name("AjaxDescription")
-                    .AutoFill(true)
-                    .DataBinding(binding => binding.Ajax()
-                    .Select("_AutoCompleteDescription", "SkuRange")
-                    .Delay(400)
-                    .Cache(true)
-                    )
-                    .Filterable(filtering =>
-                    {
-                        filtering.FilterMode((AutoCompleteFilterMode)Enum.Parse(typeof(AutoCompleteFilterMode),
-                            "StartsWith"));
-                        filtering.MinimumChars(1);
-                    })
-                    .Multiple(multi => multi.Enabled(false))
-                    .HighlightFirstMatch(true)
-                    .ClientEvents(events => events.OnChange("changeDescValue"))
+            @Html.HiddenFor(model => model.FromDescription)
+            @(Html.Telerik().AutoComplete()
+                .Name("AjaxDescription")
+                .AutoFill(true)
+                .DataBinding(binding => binding.Ajax()
+                .Select("_AutoCompleteDescription", "SkuRange")
+                .Delay(400)
+                .Cache(true)
                 )
+                .Filterable(filtering =>
+                {
+                    filtering.FilterMode((AutoCompleteFilterMode)Enum.Parse(typeof(AutoCompleteFilterMode),
+                        "StartsWith"));
+                    filtering.MinimumChars(1);
+                })
+                .Multiple(multi => multi.Enabled(false))
+                .HighlightFirstMatch(true)
+                .ClientEvents(events => events.OnChange("changeDescValue"))
+            )
         </div>
 
         <div class="editor-label">
