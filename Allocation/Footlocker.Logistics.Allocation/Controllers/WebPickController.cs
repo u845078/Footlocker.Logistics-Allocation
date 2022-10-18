@@ -230,30 +230,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult ReleaseAll(BulkRDQModel model)
         {
+            RDQDAO rdqDAO = new RDQDAO();
             List<RDQ> rdqsToRelease = GetRDQsForSession(model.Instance, model.Division, model.Department, model.Category, model.Sku, model.Status, model.PO, model.Store, model.RuleSetID);
-           
+
+            int beforeCheck = rdqsToRelease.Count();
+
             rdqsToRelease = rdqsToRelease.Where(rtr => rtr.Status.StartsWith("HOLD") && rtr.Status != "HOLD-XDC").ToList(); 
 
-            ////they are releasing the RDQ, so we'll make it a user RDQ so that the hold won't apply and it will be picked the next pick day
-            ////first, find the RDQ being held.
-            rdqsToRelease.ToList().ForEach(r =>
-            {
-                //now update it to a user RDQ, so that it will go down with the next batch
-                //set to HOLD-REL so that it will pick on the stores next pick day
-                RDQ rdq = db.RDQs.Where(x => x.ID == r.ID).FirstOrDefault();
-                rdq.Status = "HOLD-REL";
-                rdq.CreateDate = DateTime.Now;
-                rdq.CreatedBy = currentUser.NetworkID;
+            int afterCheck = rdqsToRelease.Count();
 
-                if (!string.IsNullOrEmpty(rdq.PO) && (rdq.Size.Length == 5))                
-                    rdq.DestinationType = "CROSSDOCK";                
-                else                
-                    rdq.DestinationType = "WAREHOUSE";                
-            });
+            if (beforeCheck != afterCheck)
+                ViewBag.message = "Releasing RDQs only works with HOLD-related statuses and HOLD-XDC RDQs can't be released to stores, so these records were skipped. Your results may be less than what you expected.";
 
-            // Persist changes
-            db.SaveChanges(currentUser.NetworkID);
-
+            rdqDAO.ReleaseRDQs(rdqsToRelease, currentUser.NetworkID);
+            
             model.SearchResult = false;
             InitializeDivisions(model);
             InitializeDepartments(model, false);
@@ -263,15 +253,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult ReleaseAllToWarehouse(BulkRDQModel model)
         {
-            List<RDQ> rdqsToRelease = GetRDQsForSession(model.Instance, model.Division, model.Department, model.Category, model.Sku, model.Status, model.PO, model.Store, model.RuleSetID);
-            rdqsToRelease.ToList().ForEach(r => 
-                {
-                    RDQ rdq = db.RDQs.Where(rr => rr.ID == r.ID).First();
-                    db.RDQs.Remove(rdq);                    
-                });
+            RDQDAO rdqDAO = new RDQDAO();
 
-            // Persist changes
-            db.SaveChanges(currentUser.NetworkID);
+            List<RDQ> rdqsToRelease = GetRDQsForSession(model.Instance, model.Division, model.Department, model.Category, model.Sku, model.Status, model.PO, model.Store, model.RuleSetID);
+
+            rdqDAO.DeleteRDQs(rdqsToRelease, currentUser.NetworkID);
 
             model.SearchResult = false;
             InitializeDivisions(model);

@@ -1,7 +1,4 @@
 ﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.SizeAllocation>
-<!--[if gt IE 8]>
-<link rel="stylesheet" type="text/css" href="../../Content/gridscroll.css" />
-<![endif]-->
 
 <link rel="stylesheet" type="text/css" href="../../Content/gridscroll.css" />
 
@@ -15,8 +12,6 @@
         font-color:Red; 
         background-color : #99FFCC;
     }
-
-
 </style>
 
 @if (Model.Count() > 0)
@@ -62,8 +57,6 @@
         element2.style.zIndex = '10001';
         element2.innerHTML = '<br><br><br><br><center><span class="FLtitle">Loading...</span></center>';
         document.body.appendChild(element2);
-
-
     }
 
     function getSelectedText(elementId) {
@@ -74,7 +67,6 @@
 
         return elt.options[elt.selectedIndex].text;
     }
-
     
     function SaveChanges(startrowid, rowid) {
         disableFLPage();
@@ -121,7 +113,6 @@
                 }
             }
         });
-
     }
 </script>
     
@@ -177,7 +168,6 @@
         }
     );
 
-
     function checkForChangeDetails(control) {
         $("[name='" + control + "'").css("background-color", "yellow");       
     }
@@ -213,7 +203,7 @@
             }
 
 
-/**/</script>
+</script>
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleRange()" checked>Range
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleMin()" checked>Min
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleMax()" checked>Max
@@ -221,8 +211,6 @@
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleMinEndDays()">Min End Days Override
         <input type="checkbox" id="showMinEndDate" value="Min End Date" onclick="toggleMinEndDate()" checked>Min End Date
         <div class="t-widget t-grid">
-            @*<div class="outer">
-            <div class="inner">*@
             <div class="scrollablearea" style="width: inherit">
                 <table class="scrolltable" style="width: inherit;" cellpadding=0 cellspacing=0>
                     <tr>
@@ -265,7 +253,6 @@
                                 @Html.Raw("<th class='long' nowrap>")
                                 @Html.Raw(item.Size + "")
                                 @Html.Raw("&nbsp;(<span class='total' id='sizeTotal" + item.Size + "'></span>)")
-                                @*@Html.Raw("<BR><font size=\"0.5em\">Rng/Min/Max/Dm</font>")*@
 
                                 scriptContent1 += "var extra" + item.Size + " = Number(0);";
                                 @Html.Raw("</th>")
@@ -311,11 +298,6 @@
                                         }
                                         startCount = count;
                                         storeCount++;
-
-                                        //if (storeCount > maxStore)
-                                        //{
-                                        //    break;
-                                        //}
                                     }
                                     else
                                     {
@@ -365,16 +347,7 @@
                                         @Html.Raw("<td class=\"headcol2\">")
                                         @Html.DisplayFor(m => item.StartDate);
                                         @Html.Raw("<input type='hidden' id='det[" + count + "]_StartDate' name='det[" + count + "].StartDate' value='" + item.StartDate + "'/>")
-
-                                        @*                    @(Html.Telerik().DatePicker()
-                                                .Name("det[" + count + "].StartDate")
-                                                .ClientEvents(events => events
-                                                .OnChange("setEndDate")
-                                                )
-                                                .HtmlAttributes(new { id = "DatePicker_wrapper", title = "First day of sales (Start date + store lead time)" })
-                                                .Value(item.StartDate).Enable(false)
-                                        )
-                                        *@ @Html.Raw("</td>")
+                                        @Html.Raw("</td>")
                                         @Html.Raw("<td class=\"headcol3\">")
                                         @(Html.Telerik().DatePicker()
                                                 .Name("det[" + count + "].EndDate")
@@ -391,7 +364,6 @@
                                 if ((storeCount >= minStore) && (storeCount <= maxStore))
                                 {
                                     @Html.Raw("<td nowrap  class=\"long\">")
-                                    @*@Html.DisplayFor(modelItem => item.Size)*@
 
                                     @Html.Raw("<input name=\"det[" + count + "].PlanID\" type=\"hidden\" value=\"" + item.PlanID + "\"/>")
                                     @Html.Raw("<input name=\"det[" + count + "].Division\" type=\"hidden\" value=\"" + item.Division + "\"/>")

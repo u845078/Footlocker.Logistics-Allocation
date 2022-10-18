@@ -317,7 +317,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 catch (Exception ex)
                 {
-                    model.Message = ex.Message;
+                    ModelState.AddModelError("", ex.Message);                    
                     return View(model);
                 }
 
@@ -340,6 +340,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     };
    
                     db.RuleSets.Add(rs);
+                    // doing a save to generate the identity column
                     db.SaveChanges();
 
                     OldRuleSets.Add(rsFrom.RuleSetID);
@@ -461,7 +462,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 catch
                 { }
-                model.Message = ex.Message;
+
+                ModelState.AddModelError("", string.Format("There was a problem copying the SKU Range: {0}", ex.Message));
                 return View(model);
             }
         }
@@ -1281,9 +1283,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             SkuSetupModel model = InitPresentationQtyModel(planID, message, page, show);
             GetPresentationQtyDeliveryGroups(model);
 
-            model.OrderPlanningRequest = (from a in db.OrderPlanningRequests
-                                          where a.PlanID == planID
-                                          select a).FirstOrDefault();
+            model.OrderPlanningRequest = db.OrderPlanningRequests.Where(opr => opr.PlanID == planID).FirstOrDefault();
             GetPresentationQtyModelDetails(model, show);
 
             return View(model);
@@ -1583,15 +1583,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <param name="page"></param>
         /// <param name="show"></param>
         /// <returns></returns>
-        private SkuSetupModel InitPresentationQtyModel(Int64 planID, string message, string page, string show)
+        private SkuSetupModel InitPresentationQtyModel(long planID, string message, string page, string show)
         {
             string ruleType = "SizeAlc";
 
-            if ((Request.UserAgent.Contains("Chrome")) || (Request.UserAgent.Contains("Firefox")))
+            if (Request.UserAgent.Contains("Chrome") || Request.UserAgent.Contains("Firefox"))
             {
                 ViewData["Chrome"] = "true";
             }
-            if ((message != null) && (message != ""))
+
+            if (!string.IsNullOrEmpty(message))
             {
                 ViewData["message"] = message;
             }
@@ -1608,13 +1609,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ViewData["LifeCycle"] = i.LifeCycleDays;
             }
             SkuSetupModel model = new SkuSetupModel();
-            model.RangePlan = (from a in db.RangePlans
-                               where a.Id == planID
-                               select a).First();
+            model.RangePlan = db.RangePlans.Where(rp => rp.Id == planID).First();
 
-            model.RangePlan.PreSaleSKU = (from a in db.PreSaleSKUs
-                                          where a.ItemID == model.RangePlan.ItemID && a.Active == true
-                                          select a).Count() > 0 ? "True" : "False";
+            model.RangePlan.PreSaleSKU = db.PreSaleSKUs.Where(pss => pss.ItemID == model.RangePlan.ItemID && pss.Active).Count() > 0 ? "True" : "False";
 
             var reInitStatus = (from a in db.ReInitializeSKUs
                                 where a.ItemID == model.RangePlan.ItemID
@@ -1666,37 +1663,44 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //if the plan doesn't have any, then let's create a default one with all stores
             if (model.DeliveryGroups.Count() == 0)
             {
-                DeliveryGroup newGroup = new DeliveryGroup();
-                newGroup.Name = "Delivery Group 1";
-                newGroup.PlanID = model.RangePlan.Id;
+                DeliveryGroup newGroup = new DeliveryGroup()
+                {
+                    Name = "Delivery Group 1",
+                    PlanID = model.RangePlan.Id
+                };
+
                 db.DeliveryGroups.Add(newGroup);
                 db.SaveChanges();
 
-                RuleSet rs = new RuleSet();
-                rs.PlanID = model.RangePlan.Id;
-                rs.Type = "Delivery";
-                rs.CreateDate = DateTime.Now;
-                rs.CreatedBy = User.Identity.Name;
+                RuleSet rs = new RuleSet()
+                {
+                    PlanID = model.RangePlan.Id,
+                    Type = "Delivery",
+                    CreateDate = DateTime.Now,
+                    CreatedBy = currentUser.NetworkID
+                };
 
                 db.RuleSets.Add(rs);
                 db.SaveChanges();
 
                 newGroup.RuleSetID = rs.RuleSetID;
 
-                List<RangePlanDetail> rangePlanDetails = (from a in db.RangePlanDetails
-                                                          where a.ID == newGroup.PlanID
-                                                          select a).ToList();
+                List<RangePlanDetail> rangePlanDetails = db.RangePlanDetails.Where(rpd => rpd.ID == newGroup.PlanID).ToList();
                 foreach (RangePlanDetail det in rangePlanDetails)
                 {
-                    RuleSelectedStore newDet = new RuleSelectedStore();
-                    newDet.RuleSetID = newGroup.RuleSetID;
-                    newDet.Store = det.Store;
-                    newDet.Division = det.Division;
-                    newDet.CreateDate = DateTime.Now;
-                    newDet.CreatedBy = User.Identity.Name;
+                    RuleSelectedStore newDet = new RuleSelectedStore() 
+                    {
+                        RuleSetID = newGroup.RuleSetID,
+                        Store = det.Store,
+                        Division = det.Division,
+                        CreateDate = DateTime.Now,
+                        CreatedBy = currentUser.NetworkID
+                    };
+
                     db.RuleSelectedStores.Add(newDet);
                 }
-                db.SaveChanges(UserName);
+
+                db.SaveChanges(currentUser.NetworkID);
 
                 model.DeliveryGroups.Add(newGroup);
             }
@@ -1707,10 +1711,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 d.StoreCount = (from a in db.RuleSelectedStores
                                 join p in db.RangePlanDetails on new { a.Division, a.Store } equals new { p.Division, p.Store }
                                 join b in db.vValidStores on new { a.Division, a.Store } equals new { b.Division, b.Store }
-                                where ((a.RuleSetID == d.RuleSetID) && (p.ID == d.PlanID))
+                                where (a.RuleSetID == d.RuleSetID) && (p.ID == d.PlanID)
                                 select a).Count();
             }
-            db.SaveChanges(UserName);
+
+            db.SaveChanges(currentUser.NetworkID);
         }
 
         public ActionResult DeleteDeliveryGroup(int deliveryGroupID, long planID)
