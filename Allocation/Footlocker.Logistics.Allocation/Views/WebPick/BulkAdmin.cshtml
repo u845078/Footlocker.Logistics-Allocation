@@ -66,48 +66,48 @@
                 {
                     @Html.Raw("(Stores are specified)")
                 }
-        </span>
-        <input type="button" value="Select Stores" class="t-button" onclick="return showStoreSelector()" />
-    </div>
+            </span>
+            <input type="button" value="Select Stores" class="t-button" onclick="return showStoreSelector()" />
+        </div>
 
-    <div class="editor-label">
-        @Html.LabelFor(model => model.Category)
-    </div>
-    <div class="editor-field">
-        @Html.EditorFor(model => model.Category)
-        @Html.ValidationMessageFor(model => model.Category)
-    </div>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Category)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Category)
+            @Html.ValidationMessageFor(model => model.Category)
+        </div>
 
-    <div class="editor-label">
-        @Html.LabelFor(model => model.Sku)
-    </div>
-    <div class="editor-field">
-        @Html.EditorFor(model => model.Sku)
-        @Html.ValidationMessageFor(model => model.Sku)
-    </div>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Sku)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Sku)
+            @Html.ValidationMessageFor(model => model.Sku)
+        </div>
 
-    <div class="editor-label">
-        @Html.LabelFor(model => model.PO)
-    </div>
-    <div class="editor-field">
-        @Html.EditorFor(model => model.PO)
-        @Html.ValidationMessageFor(model => model.PO)
-    </div>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.PO)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.PO)
+            @Html.ValidationMessageFor(model => model.PO)
+        </div>
 
-    <div class="editor-label">
-        @Html.LabelFor(model => model.Status)
-    </div>
-    <div class="editor-field">
-        @Html.DropDownListFor(model => model.Status, new SelectList(Model.StatusList))
-        @Html.ValidationMessageFor(model => model.Status)
-    </div>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Status)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.Status, new SelectList(Model.StatusList))
+            @Html.ValidationMessageFor(model => model.Status)
+        </div>
 
-    @Html.HiddenFor(model => model.RuleSetID)
+        @Html.HiddenFor(model => model.RuleSetID)
 
-    <p>
-        <input type="submit" value="Submit" class="t-button" />
-    </p>
-}
+        <p>
+            <input type="submit" value="Submit" class="t-button" />
+        </p>
+    }
 
     @if (Model.HaveResults)
     {
@@ -122,6 +122,7 @@
             @Html.HiddenFor(model => model.PO)
             @Html.HiddenFor(model => model.Status)
             @Html.HiddenFor(model => model.RuleSetID)
+            @Html.HiddenFor(model => model.Store)
 
             <input type="submit" value="Specified Store" onclick="return confirm('Are you sure you want to pick ALL the RDQs below?');" class="t-button" />
         }
@@ -137,6 +138,7 @@
             @Html.HiddenFor(model => model.PO)
             @Html.HiddenFor(model => model.Status)
             @Html.HiddenFor(model => model.RuleSetID)
+            @Html.HiddenFor(model => model.Store)
 
             <input type="submit" value="Warehouse" onclick="return confirm('Are you sure you want to release ALL RDQs below to warehouse available?');" class="t-button" />
         }
