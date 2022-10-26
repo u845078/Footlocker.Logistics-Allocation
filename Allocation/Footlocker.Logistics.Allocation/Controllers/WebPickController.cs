@@ -1327,10 +1327,32 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 RDQDAO rdqDAO = new RDQDAO();
                                 rdqDAO.InsertRDQs(validRDQs, currentUser.NetworkID);
 
-                                db.SaveChanges("");
+                                //db.SaveChanges("");
+
+                                List<RDQ> databaseRDQs = new List<RDQ>();
+
+                                foreach (RDQ rdq in validRDQs)
+                                {
+                                    List<RDQ> tempRDQ = db.RDQs.AsNoTracking().Where(r => r.Division == rdq.Division &&
+                                                                                          r.Store == rdq.Store &&
+                                                                                          r.DCID == rdq.DCID &&
+                                                                                          r.PO == rdq.PO &&
+                                                                                          r.Sku == rdq.Sku && 
+                                                                                          r.Size == rdq.Size &&
+                                                                                          r.Status == rdq.Status).ToList();
+                                    foreach (RDQ tempQueryRDQ in tempRDQ)
+                                    {
+                                        databaseRDQs.Add(new RDQ() 
+                                                                { 
+                                                                    ID = tempQueryRDQ.ID,
+                                                                    Sku = tempQueryRDQ.Sku,
+                                                                    Store = tempQueryRDQ.Store
+                                                                });
+                                    }                                    
+                                }
 
                                 // once the rdqs are saved to the db, apply holds and cancel holds
-                                ApplyHoldAndCancelHolds(validRDQs, errorList, instanceID, divCode, uniqueItems, uniqueSkus);
+                                ApplyHoldAndCancelHolds(databaseRDQs, errorList, instanceID, divCode, uniqueItems, uniqueSkus);
                             }
                         }
 
