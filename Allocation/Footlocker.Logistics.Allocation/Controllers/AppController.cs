@@ -8,6 +8,7 @@ using Telerik.Web.Mvc;
 using System.DirectoryServices;
 using System.Web.Routing;
 using Footlocker.Logistics.Allocation.Models;
+using Footlocker.Logistics.Allocation.Common;
 using System.ComponentModel;
 
 namespace Footlocker.Logistics.Allocation.Controllers
@@ -20,6 +21,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     public class AppController : Controller
     {
         Footlocker.Logistics.Allocation.Services.FootLockerCommonContext flCommon = new Footlocker.Logistics.Allocation.Services.FootLockerCommonContext();
+        public AppConfig appConfig = new AppConfig();
 
         public WebUser currentUser;
         public const string AppName = "Allocation";
@@ -90,6 +92,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ViewBag.FullUserName = currentUser.FullName;
             ViewBag.NetworkID = currentUser.FullNetworkID;
             ViewBag.CurrentDate = DateTime.Now;
+
+            appConfig.currentUser = currentUser;
+            appConfig.AppName = AppName;
+            appConfig.db = new DAO.AllocationContext();
+            appConfig.AppPath = Server.MapPath("~/"); 
         }
     }
 }

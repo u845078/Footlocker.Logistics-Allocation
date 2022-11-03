@@ -149,12 +149,8 @@ namespace Footlocker.Logistics.Allocation.Services
         {
             List<WarehouseInventory> returnValue = new List<WarehouseInventory>();
 
-            var legacyWarehouseInv = (from li in db.LegacyInventories
-                                      where li.LocationTypeCode == "W"
-                                      select li).ToList();
-
-            var DCList = (from dc in db.DistributionCenters
-                          select dc).ToList();
+            var legacyWarehouseInv = db.LegacyInventories.Where(li => li.LocationTypeCode == "W").ToList();
+            var DCList = db.DistributionCenters.ToList();
 
             var resultLookup = legacyWarehouseInv.Where(li => inventoryLookup.Any(il => il.SKU.Equals(li.Sku) &&
                                                                                         il.Size.Equals(li.Size) &&
@@ -197,14 +193,9 @@ namespace Footlocker.Logistics.Allocation.Services
 
             SetCaselots(itemID);
 
-            var AllocationDivision = (from d in db.AllocationDivisions
-                                      where d.DivisionCode == _SKU.Division
-                                      select d).FirstOrDefault();
+            var AllocationDivision = db.AllocationDivisions.Where(ad => ad.DivisionCode == _SKU.Division).FirstOrDefault();
 
-            var reductionDataForSku = (from rd in db.InventoryReductionsByType
-                                       where rd.Sku == _SKU.SKU &&
-                                             rd.PO == ""
-                                       select rd).ToList();
+            var reductionDataForSku = db.InventoryReductionsByType.Where(irbt => irbt.Sku == _SKU.SKU && irbt.PO == "").ToList();
 
             var reductionData = (from r in reductionDataForSku
                                  join w in warehouseInventory
@@ -256,9 +247,7 @@ namespace Footlocker.Logistics.Allocation.Services
 
             foreach (string dc in uniqueDCs)
             {
-                DistributionCenter tempDC = (from a in db.DistributionCenters
-                                             where a.MFCode == dc
-                                             select a).FirstOrDefault();
+                DistributionCenter tempDC = db.DistributionCenters.Where(tdc => tdc.MFCode == dc).FirstOrDefault();
                 warehouseInventory.Where(x => x.DistributionCenterID == dc).ToList().ForEach(y => y.distributionCenter = tempDC);
             }
         }

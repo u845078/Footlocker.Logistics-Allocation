@@ -218,6 +218,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Common\ActionResultCode.cs" />
     <Compile Include="Common\AjaxValidationException.cs" />
+    <Compile Include="Common\AppConfig.cs" />
     <Compile Include="Common\DeleteValidationException.cs" />
     <Compile Include="Common\ExistsValidationException.cs" />
     <Compile Include="Common\Extensions.cs" />
@@ -225,6 +226,8 @@
     <Compile Include="Common\Filters\HandleAjaxValidationError.cs" />
     <Compile Include="Common\Filters\LogError.cs" />
     <Compile Include="Common\JsonResultData.cs" />
+    <Compile Include="Common\UploadSpreadsheet.cs" />
+    <Compile Include="Common\WebPickSpreadsheet.cs" />
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ConceptTypeController.cs" />
     <Compile Include="Controllers\ConfigController.cs" />

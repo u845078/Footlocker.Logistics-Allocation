@@ -1,10 +1,11 @@
 ﻿@using Telerik.Web.Mvc;
+
 @{
     ViewBag.Title = "WebpickUpload";
 }
 
 <fieldset>
-    <legend> Web or Emergency Pick Upload </legend>
+    <legend>Web or Emergency Pick Upload</legend>
     See comments in spreadsheet header for format and other instructions. <br />
     @Html.ActionLink("Download Template","ExcelTemplate",new {}, new {@class = "t-button"})
     <br />
@@ -16,7 +17,7 @@
         .Name("attachments")
         .Multiple(true)
         .Async(async => async
-            .Save("SaveOptimized", "WebPick")
+            .Save("Save", "WebPick")
             .AutoUpload(false))
             .ShowFileList(true)
         .ClientEvents(events => events
@@ -38,7 +39,7 @@
             </div>
         </h4>
     <div id="errors" style="display:none">
-    @Html.ActionLink("Download Errors", "GetErrorsNew", null, new { @class = "t-button" })
+    @Html.ActionLink("Download Errors", "GetErrors", null, new { @class = "t-button" })
     </div>
 </fieldset>
  

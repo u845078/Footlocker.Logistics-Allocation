@@ -61,5 +61,22 @@
             }
             return Convert.ToInt32(config.Value);
         }
+
+        public int GetInstance(string division)
+        {
+            int instance = (from a in db.InstanceDivisions
+                            where a.Division == division
+                            select a.InstanceID).First();
+
+            return instance;
+        }
+
+        public DateTime GetControlDate(int instance)
+        {
+            DateTime controlDate = (from cd in db.ControlDates
+                                    where cd.InstanceID == instance
+                                    select cd.RunDate).FirstOrDefault();
+            return controlDate;
+        }
     }
 }
