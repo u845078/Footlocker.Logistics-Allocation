@@ -311,15 +311,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
-            List<POStatus> poStatusCodes = (from ps in db.POStatusCodes
-                                            select ps).ToList();
+            List<POStatus> poStatusCodes = db.POStatusCodes.ToList();
 
             foreach (ExistingPO epo in model)
             {
-                List<ExpeditePO> overridePOs = (from a in db.ExpeditePOs
-                                                where (a.Division == division) &&
-                                                      (a.PO == epo.PO)
-                                                select a).ToList();
+                List<ExpeditePO> overridePOs = db.ExpeditePOs.Where(ep => ep.Division == division && ep.PO == epo.PO).ToList();
+
                 if (overridePOs.Count > 0)
                     epo.OverrideDate = overridePOs[0].OverrideDate;
 

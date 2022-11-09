@@ -667,6 +667,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private List<RDQ> GetRDQsForSession(int instance, string div, string department, string category, string sku, string status, string po, string store, long ruleset)
         {
             List<RDQ> rdqList = new List<RDQ>();
+            List<RDQ> tempRDQList = new List<RDQ>();
             RDQDAO rdqDAO = new RDQDAO();
 
             // if it's all departments
@@ -676,12 +677,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 //List<Department> depts = currentUser.GetUserDepartments(AppName).Where(d => d.DivCode == div).ToList();
                 List<string> depts = currentUser.GetUserDivDept(AppName).Where(d => d.StartsWith(string.Format("{0}-", div))).ToList();
 
-                rdqList = rdqDAO.GetHeldRDQs(instance, div, department, category, sku, po, store, status);
+                tempRDQList = rdqDAO.GetHeldRDQs(instance, div, department, category, sku, po, store, status);
 
-                foreach (RDQ rdq in rdqList)
+                foreach (RDQ rdq in tempRDQList)
                 {
-                    if (!currentUser.HasDivDept(AppName, div, rdq.Department))                        
-                        rdqList.Remove(rdq);                                          
+                    if (currentUser.HasDivDept(AppName, div, rdq.Department))                        
+                        rdqList.Add(rdq);                                          
                 }
 			}
             else

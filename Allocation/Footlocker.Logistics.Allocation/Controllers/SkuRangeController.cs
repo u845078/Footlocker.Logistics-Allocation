@@ -26,11 +26,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         // GET: /SkuRange/
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
 
-        private void UpdateRangePlanDate(long planID)
-        {
-            db.UpdateRangePlanDate(planID, User.Identity.Name);
-        }
-
         #region ActionResults
 
         #region "Sku Range Plan (list of skus)
@@ -642,7 +637,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (processedCount > 0)
             {
-                UpdateRangePlanDate(planID);
+                db.UpdateRangePlanDate(planID, currentUser.NetworkID);
             }
 
             return RedirectToAction("PresentationQuantities", "SkuRange", new { planID = planID });
@@ -868,7 +863,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             if (list.Count() > 0)
             {
-                UpdateRangePlanDate(planID);
+                db.UpdateRangePlanDate(planID, currentUser.NetworkID);
             }
             return RedirectToAction("PresentationQuantities", "SkuRange", new { planID = planID });
         }
@@ -930,8 +925,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             if (list.Count() > 0)
-            {
-                UpdateRangePlanDate(planID);
+            {                
+                db.UpdateRangePlanDate(planID, currentUser.NetworkID);
             }
 
             return Json("Success");
@@ -1732,8 +1727,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             DeliveryGroup d = (from a in db.DeliveryGroups where a.ID == deliveryGroupID select a).First();
             db.DeliveryGroups.Remove(d);
 
-            db.SaveChanges(UserName);
-            UpdateRangePlanDate(planID);
+            db.SaveChanges(currentUser.NetworkID);
+            db.UpdateRangePlanDate(planID, currentUser.NetworkID);
 
             return RedirectToAction("PresentationQuantities", new { planID = planID });
         }
@@ -1909,14 +1904,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             ViewData["ruleSetID"] = model.DeliveryGroup.RuleSetID;
             ViewData["ruleType"] = "Delivery";
-            ItemMaster i = (from a in db.ItemMasters join b in db.RangePlans on a.ID equals b.ItemID where b.Id == planID select a).FirstOrDefault();
+            ItemMaster i = (from a in db.ItemMasters 
+                            join b in db.RangePlans 
+                              on a.ID equals b.ItemID 
+                            where b.Id == planID 
+                            select a).FirstOrDefault();
             if (i != null)
             {
                 ViewData["LifeCycle"] = i.LifeCycleDays;
             }
 
-            model.RuleModel = new RuleModel();
-            model.RuleModel.RuleSetID = model.DeliveryGroup.RuleSetID;
+            model.RuleModel = new RuleModel()
+            {
+                RuleSetID = model.DeliveryGroup.RuleSetID
+            };
+            
             return View(model);
         }
 
@@ -1932,7 +1934,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     model.DeliveryGroup.EndDate = ((DateTime)model.DeliveryGroup.EndDate).AddYears(centuries);
                 }
             }
-            //            var list = (from a in db.SizeAllocations join b in db.RuleSelectedStores on new { a.Division, a.Store } equals new { b.Division, b.Store } join c in db.MaxLeadTimes on new { a.Division, a.Store } equals new { c.Division, c.Store } where (a.PlanID == model.DeliveryGroup.PlanID) select new { sa = a, lt = c }).ToList();
+
             UpdateDeliveryGroupDates(model.DeliveryGroup);
             //note above line will save all changes
             UpdateRangeHeader(model.DeliveryGroup.PlanID);
@@ -1949,7 +1951,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             MaxLeadTime lt = (from c in db.MaxLeadTimes
-                              where ((c.Store == store) && (c.Division == div))
+                              where c.Store == store && c.Division == div
                               select c).FirstOrDefault();
             if (lt == null)
             {
@@ -2256,7 +2258,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     returnMessage += ", " + errors + " errors";
                 }
 
-                UpdateRangePlanDate(planID);
+                db.UpdateRangePlanDate(planID, currentUser.NetworkID);
                 return Content(returnMessage);
             }
             catch (Exception ex)
@@ -2354,7 +2356,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             RangePlanDetailDAO dao = new RangePlanDetailDAO();
             dao.DeleteStoresForPlan(planID);
-            UpdateRangePlanDate(planID);
+            db.UpdateRangePlanDate(planID, currentUser.NetworkID);            
         }
 
         #endregion
@@ -2502,7 +2504,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                           where a.Id == planID
                           select a).First();
 
-            UpdateRangePlanDate(planID);
+            db.UpdateRangePlanDate(planID, currentUser.NetworkID);            
 
             return View(model);
         }
@@ -2634,7 +2636,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RangePlanDetailDAO dao = new RangePlanDetailDAO();
             dao.AddStores(details);
 
-            UpdateRangePlanDate(planID);
+            db.UpdateRangePlanDate(planID, currentUser.NetworkID);
 
             return RedirectToAction("AddStoresByRule", new { planID = planID });
 
@@ -2660,14 +2662,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 det.Store = s.Store;
                 det.Division = s.Division;
                 det.CreateDate = createDate;
-                det.CreatedBy = User.Identity.Name;
+                det.CreatedBy = currentUser.NetworkID;
                 details.Add(det);
             }
 
             RangePlanDetailDAO dao = new RangePlanDetailDAO();
             dao.AddStores(details);
 
-            UpdateRangePlanDate(planID);
+            db.UpdateRangePlanDate(planID, currentUser.NetworkID);
             return Json("Success");
         }
 
@@ -2684,7 +2686,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 det.Division = div;
                 det.ID = planID;
                 det.CreateDate = DateTime.Now;
-                det.CreatedBy = User.Identity.Name;
+                det.CreatedBy = currentUser.NetworkID;
 
                 var deliveryGroupQuery = (from a in db.DeliveryGroups
                                           join c in db.RuleSelectedStores on a.RuleSetID equals c.RuleSetID
@@ -2721,7 +2723,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 db.RangePlanDetails.Add(det);
                 db.SaveChanges();
 
-                UpdateRangePlanDate(planID);
+                db.UpdateRangePlanDate(planID, currentUser.NetworkID);                
 
                 return Json("Success");
             }
@@ -2754,7 +2756,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     db.SaveChanges();
                 }
 
-                UpdateRangePlanDate(planID);
+                db.UpdateRangePlanDate(planID, currentUser.NetworkID);                
 
                 return Json("Success");
             }
@@ -3141,7 +3143,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             db.OrderPlanningRequests.Add(model);
             db.SaveChanges(UserName);
-            UpdateRangePlanDate(model.PlanID);
+            db.UpdateRangePlanDate(model.PlanID, currentUser.NetworkID);
+
             return RedirectToAction("PresentationQuantities", new { planID = model.PlanID });
         }
 
@@ -3175,8 +3178,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             OrderPlanningRequest model = (from a in db.OrderPlanningRequests where a.PlanID == planID select a).First();
             db.OrderPlanningRequests.Remove(model);
-            db.SaveChanges(UserName);
-            UpdateRangePlanDate(planID);
+            db.SaveChanges(currentUser.NetworkID);
+            
+            db.UpdateRangePlanDate(planID, currentUser.NetworkID);
             return RedirectToAction("PresentationQuantities", new { planID = model.PlanID });
         }
 
@@ -3199,7 +3203,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             db.Entry(model).State = System.Data.EntityState.Modified;
             db.SaveChanges(UserName);
-            UpdateRangePlanDate(model.PlanID);
+            db.UpdateRangePlanDate(model.PlanID, currentUser.NetworkID);
 
             return RedirectToAction("PresentationQuantities", new { planID = model.PlanID });
         }
@@ -3264,12 +3268,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 rp.ALRStartDate = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == rp.Division select a.RunDate).First().AddDays(1);
                 rp.UpdateDate = DateTime.Now;
-                rp.UpdatedBy = UserName;
+                rp.UpdatedBy = currentUser.NetworkID;
 
                 db.Entry(rp).State = System.Data.EntityState.Modified;
             }
-            db.SaveChanges(UserName);
-            UpdateRangePlanDate(planID);
+            db.SaveChanges(currentUser.NetworkID);
+            db.UpdateRangePlanDate(planID, currentUser.NetworkID);
 
             return RedirectToAction("PresentationQuantities", new { planID = planID });
         }
@@ -3283,11 +3287,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             rp.ALRStartDate = null;
             rp.UpdateDate = DateTime.Now;
-            rp.UpdatedBy = UserName;
+            rp.UpdatedBy = currentUser.NetworkID;
 
             db.Entry(rp).State = System.Data.EntityState.Modified;
-            db.SaveChanges(UserName);
-            UpdateRangePlanDate(planID);
+            db.SaveChanges(currentUser.NetworkID);
+            db.UpdateRangePlanDate(planID, currentUser.NetworkID);
 
             return RedirectToAction("PresentationQuantities", new { planID = planID });
         }

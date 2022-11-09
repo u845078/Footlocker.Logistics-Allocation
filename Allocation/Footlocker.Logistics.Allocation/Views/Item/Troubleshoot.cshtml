@@ -82,13 +82,7 @@
                     <td colspan=4><font color="red">This item is still on Mainframe Allocation</font></td>
                 }
             </tr>
-            @*<tr>
-                <td><strong>@Html.LabelFor(m => Model.AllocationDriver.ConvertDate)</strong></td>
-                <td>@Html.DisplayFor(m => Model.AllocationDriver.ConvertDate)</td>
-                <td><strong>@Html.LabelFor(m => Model.AllocationDriver.AllocateDate)</strong></td>
-                <td>@Html.DisplayFor(m => Model.AllocationDriver.AllocateDate)</td>
-            </tr>*@
-                        }
+        }
         <tr>
             <td><strong>@Html.LabelFor(m => Model.ItemMaster.ID)</strong></td>
             <td>@Html.DisplayFor(m => Model.ItemMaster.ID)</td>
@@ -417,7 +411,6 @@
 
             Html.ActionLink("Create SKU Override", "CreateAllPOsForSku", "OverridePO", new { div = Model.Division }, new { @class = "t-button" });
         }
-
     </p>
     @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.ExistingPO>()
         .Name("ExistingPO")
@@ -439,11 +432,6 @@
         {
             dataBinding.Ajax().Select("_POs", "item", new { sku = Model.Sku });
         })
-        //.DataBinding(dataBinding =>
-        //{
-        //    //dataBinding.Server().Select("Index", "OverridePO");
-        //    dataBinding.Ajax().Select("_Index", "OverridePO");
-        //})
         .Sortable(sorting => sorting.Enabled(true)
             .OrderBy(sortOrder =>
             {

@@ -794,12 +794,10 @@ namespace Footlocker.Logistics.Allocation.DAO
 
         public void UpdateRangePlanDate(long planID, string userName)
         {
-            RangePlan p = (from a in this.RangePlans where a.Id == planID select a).FirstOrDefault();
+            RangePlan p = RangePlans.Where(rp => rp.Id == planID).FirstOrDefault();
             p.UpdatedBy = userName;
             p.UpdateDate = DateTime.Now;
             SaveChanges(userName);
         }
-
-
     }
 }
