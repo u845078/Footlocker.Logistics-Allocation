@@ -7,7 +7,6 @@ using System.Drawing;
 using System.Linq;
 using System.Web;
 using System.Text.RegularExpressions;
-using static System.Net.Mime.MediaTypeNames;
 using System.Globalization;
 
 namespace Footlocker.Logistics.Allocation.Common
