@@ -104,36 +104,39 @@ namespace Footlocker.Logistics.Allocation.Services
 
             SQLCommand = _database.GetStoredProcCommand(SQL);
             _database.AddInParameter(SQLCommand, "@user", DbType.String, user);
-            //_database.AddInParameter(SQLCommand, "@rangestartdate", DbType.DateTime, list[0].RangeStartDate);
             StringWriter sw = new StringWriter();
             XmlSerializer xs = new XmlSerializer(list.GetType());
             xs.Serialize(sw, list);
-            String xout = sw.ToString();
+            string xout = sw.ToString();
             _database.AddInParameter(SQLCommand, "@xmlDetails", DbType.Xml, xout);
             _database.AddInParameter(SQLCommand, "@purgeFirst", DbType.Boolean, purgeFirst);
 
             SQLCommand.CommandTimeout = 300;
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _database.ExecuteDataSet(SQLCommand);
-
 
             if (data.Tables.Count > 0)
             {
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    BulkRange dg = new BulkRange();
-                    dg.BaseDemand = Convert.ToString(dr["BaseDemand"]);
-                    dg.Max = Convert.ToString(dr["Max"]);
-                    dg.Min = Convert.ToString(dr["Min"]);
-                    dg.MinEndDaysOverride = Convert.ToString(dr["MinEndDaysOverride"]);
-                    dg.Range = Convert.ToString(dr["Range"]);
-                    dg.RangeStartDate = Convert.ToString(dr["RangeStartDate"]);
-                    dg.Size = Convert.ToString(dr["Size"]);
-                    dg.Sku = Convert.ToString(dr["MerchantSku"]);
-                    dg.Store = Convert.ToString(dr["Store"]);
-                    dg.Division = Convert.ToString(dr["Division"]);
-                    dg.Error = Convert.ToString(dr["Error"]);
+                    BulkRange dg = new BulkRange()
+                    {
+                        BaseDemand = Convert.ToString(dr["BaseDemand"]),
+                        Max = Convert.ToString(dr["Max"]),
+                        Min = Convert.ToString(dr["Min"]),
+                        MinEndDaysOverride = Convert.ToString(dr["MinEndDaysOverride"]),
+                        Range = Convert.ToString(dr["Range"]),
+                        RangeStartDate = Convert.ToString(dr["RangeStartDate"]),
+                        Size = Convert.ToString(dr["Size"]),
+                        Sku = Convert.ToString(dr["MerchantSku"]),
+                        Store = Convert.ToString(dr["Store"]),
+                        Division = Convert.ToString(dr["Division"]),
+                        Error = Convert.ToString(dr["Error"]),
+                        OPStartSend = Convert.ToString(dr["OPStartSend"]),
+                        OPStopSend = Convert.ToString(dr["OPEndSend"]),
+                        OPRequestComments = Convert.ToString(dr["OPComments"])
+                    };
 
                     _que.Add(dg);
                 }

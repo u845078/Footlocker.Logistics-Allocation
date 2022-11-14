@@ -4,13 +4,9 @@
     ViewBag.Title = "Instance Configurations";
 }
 
-<style type="text/css">
-
-</style>
-
 <h2>Instance Configurations</h2>
 <div>
-    @Html.ActionLink("Create new param", "CreateParam", new { }, new { @class = "t-button"})
+    @Html.ActionLink("Create new parameter", "CreateParam", new { }, new { @class = "t-button"})
 </div><br />
 
 <div id="openModal" class="modalDialog">
@@ -20,17 +16,16 @@
             <div class="t-window-actions t-header">
                 <a href="#close" class="t-link"><span class="t-icon t-close">Close</span></a>
             </div>
-            </div>
+        </div>
         <br />
         <div style="padding:10px;">
-		<div id="description">Loading description..</div>
+		    <div id="description">Loading description..</div>
         </div>
         <br />
     </div>
 </div>
 
 <script>
-
     function showDescription(param, paramName) {
         $('#paramheader').empty().append('&nbsp;&nbsp;&nbsp;' + paramName);
 

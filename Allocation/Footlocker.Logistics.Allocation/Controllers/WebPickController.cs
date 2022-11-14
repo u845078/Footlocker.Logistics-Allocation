@@ -674,7 +674,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (department == "00")
             {
                 // get the list of user departments
-                //List<Department> depts = currentUser.GetUserDepartments(AppName).Where(d => d.DivCode == div).ToList();
                 List<string> depts = currentUser.GetUserDivDept(AppName).Where(d => d.StartsWith(string.Format("{0}-", div))).ToList();
 
                 tempRDQList = rdqDAO.GetHeldRDQs(instance, div, department, category, sku, po, store, status);

@@ -14,6 +14,7 @@ using Aspose.Excel;
 using Footlocker.Common;
 using System.Text;
 using System.Text.RegularExpressions;
+using Footlocker.Logistics.Allocation.Common;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -25,6 +26,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         //
         // GET: /SkuRange/
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        ConfigService configService = new ConfigService();
 
         #region ActionResults
 
@@ -3533,6 +3535,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("ReInitializeSKU");
         }
 
+        #region SKU Range Upload
         /// <summary>
         /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
         /// </summary>
@@ -3555,129 +3558,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return BulkSaveRange(attachments2, true);
         }
 
-
-        private ActionResult BulkSaveRange(IEnumerable<HttpPostedFileBase> attachments, Boolean purgeFirst)
+        private ActionResult BulkSaveRange(IEnumerable<HttpPostedFileBase> attachments, bool purgeFirst)
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-            string division = "";
+            SkuRangeSpreadsheet skuRangeSpreadsheet = new SkuRangeSpreadsheet(appConfig, configService);
+
             Session["errorList"] = null;
             try
             {
                 foreach (HttpPostedFileBase file in attachments)
                 {
-                    //Instantiate a Workbook object that represents an Excel file
-                    Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                    Byte[] data1 = new Byte[file.InputStream.Length];
-                    file.InputStream.Read(data1, 0, data1.Length);
-                    file.InputStream.Close();
-                    MemoryStream memoryStream1 = new MemoryStream(data1);
-                    workbook.Open(memoryStream1);
-                    Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-
-                    int row = 1;
-
-                    if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Division")) &&
-                        (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("League")) &&
-                        (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Region")) &&
-                        (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Store")) &&
-                        (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Sku")) &&
-                        (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Size"))
-                        && (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Delivery Group Start Date")) &&
-                        (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Delivery Group Name"))
-                        && (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Min")) &&
-                        (Convert.ToString(mySheet.Cells[0, 9].Value).Contains("Max"))
-                        && (Convert.ToString(mySheet.Cells[0, 10].Value).Contains("Base Demand")) &&
-                        (Convert.ToString(mySheet.Cells[0, 11].Value).Contains("Min End Days Override")) &&
-                        (Convert.ToString(mySheet.Cells[0, 12].Value).Contains("Store End Date Override"))
-                        )
-                    {
-                        division = Convert.ToString(mySheet.Cells[row, 0].Value).Trim().PadLeft(2, '0');
-                        List<BulkRange> updateList = new List<BulkRange>();
-                        List<BulkRange> errorList = new List<BulkRange>();
-                        BulkRange range;
-
-                        while (HasDataOnRow(mySheet, row))
-                        {
-                            if (division != Convert.ToString(mySheet.Cells[row, 0].Value).Trim().PadLeft(2, '0'))
-                            {
-                                division = Convert.ToString(mySheet.Cells[row, 0].Value).Trim().PadLeft(2, '0');
-                                if (!currentUser.HasDivision(AppName, division))
-                                {
-                                    return Content("You are not authorized to update division " + division);
-                                }
-                            }
-                            range = new BulkRange();
-                            range.Division = division;
-                            range.Store = Convert.ToString(mySheet.Cells[row, 3].Value).Trim().PadLeft(5, '0');
-
-                            //ensure the store is valid
-                            if (!ValidateStore(range.Division, range.Store))
-                            {
-                                string message = string.Format("Row #{0}: The division and store combination does not exist within the system.", row);
-                                return Content(message);
-                            }
-
-                            range.Sku = Convert.ToString(mySheet.Cells[row, 4].Value).Trim();
-                            range.Size = Convert.ToString(mySheet.Cells[row, 5].Value).Trim().PadLeft(3, '0').ToUpper();
-                            range.RangeStartDate = Convert.ToString(mySheet.Cells[row, 6].Value).Trim();
-                            range.DeliveryGroupName = Convert.ToString(mySheet.Cells[row, 7].Value).Trim();
-                            range.Range = "1";
-                            range.Min = Convert.ToString(mySheet.Cells[row, 8].Value).Trim();
-                            range.Max = Convert.ToString(mySheet.Cells[row, 9].Value).Trim();
-                            string baseDemand = Convert.ToString(mySheet.Cells[row, 10].Value).Trim();
-                            if (!string.IsNullOrEmpty(baseDemand))
-                            {
-                                range.BaseDemand = Convert.ToDecimal(mySheet.Cells[row, 10].FloatValue).ToString();
-                            }
-                            else
-                            {
-                                range.BaseDemand = "";
-                            }
-                            range.MinEndDaysOverride = Convert.ToString(mySheet.Cells[row, 11].Value).Trim();
-                            range.EndDate = Convert.ToString(mySheet.Cells[row, 12].Value);
-                            //doing this to preserve nulls for blank
-                            if (range.Min == "")
-                            {
-                                range.Min = "-1";
-                            }
-                            if (range.Max == "")
-                            {
-                                range.Max = "-1";
-                            }
-                            if (range.BaseDemand == "")
-                            {
-                                range.BaseDemand = "-1";
-                            }
-                            if (range.MinEndDaysOverride == "")
-                            {
-                                range.MinEndDaysOverride = "-1";
-                            }
-                            if (range.EndDate == "")
-                            {
-                                range.EndDate = "-1";
-                            }
-
-                            updateList.Add(range);
-                            row++;
-                        }
-
-                        RangePlanDetailDAO dao = new RangePlanDetailDAO();
-                        errorList = dao.BulkUpdateRange(updateList, User.Identity.Name, purgeFirst);
-
-                        if (errorList.Count > 0)
-                        {
-                            Session["errorList"] = errorList;
-                            return
-                                Content(errorList.Count + " size level errors (" +
-                                        updateList.Count + " records on sheet)");
-                        }
-                    }
+                    skuRangeSpreadsheet.Save(file, purgeFirst);
+                    if (!string.IsNullOrEmpty(skuRangeSpreadsheet.message))
+                        return Content(skuRangeSpreadsheet.message);
                     else
                     {
-                        // Inform of missing/bad header row
-                        return Content("Incorrectly formatted or missing header row. Please correct and re-process.");
+                        if (skuRangeSpreadsheet.errorList.Count > 0)
+                        {
+                            Session["errorList"] = skuRangeSpreadsheet.errorList;
+                            return Content(string.Format("{0} errors ({1} records on sheet)", skuRangeSpreadsheet.errorList.Count.ToString(), 
+                                skuRangeSpreadsheet.parsedRanges.Count.ToString()));
+                        }
                     }
                 }
             }
@@ -3693,99 +3593,32 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return Content("");
         }
 
-        private bool HasDataOnRow(Worksheet sheet, int row)
-        {
-            return sheet.Cells[row, 0].Value != null ||
-                   sheet.Cells[row, 1].Value != null ||
-                   sheet.Cells[row, 2].Value != null ||
-                   sheet.Cells[row, 3].Value != null ||
-                   sheet.Cells[row, 4].Value != null ||
-                   sheet.Cells[row, 5].Value != null ||
-                   sheet.Cells[row, 6].Value != null ||
-                   sheet.Cells[row, 7].Value != null ||
-                   sheet.Cells[row, 8].Value != null ||
-                   sheet.Cells[row, 9].Value != null ||
-                   sheet.Cells[row, 10].Value != null ||
-                   sheet.Cells[row, 11].Value != null ||
-                   sheet.Cells[row, 12].Value != null;
-        }
-
-        /// <summary>
-        /// Validate the store entered from the RangeUpload file
-        /// </summary>
-        /// <param name="division">division from file</param>
-        /// <param name="store">store from file</param>
-        /// <returns></returns>
-        private bool ValidateStore(string division, string store)
-        {
-            return (from sl in db.StoreLookups where sl.Division == division && sl.Store == store select sl).Any();
-        }
-
         public ActionResult DownloadRangeErrors()
         {
+            SkuRangeSpreadsheet skuRangeSpreadsheet = new SkuRangeSpreadsheet(appConfig, configService);
+            Excel excelDocument;
+
             List<BulkRange> errorList = new List<BulkRange>();
-            if (Session["errorList"] != null)
-            {
-                errorList = (List<BulkRange>)Session["errorList"];
-            }
 
+            if (Session["errorList"] != null)            
+                errorList = (List<BulkRange>)Session["errorList"];            
 
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-            Excel excelDocument = new Excel();
-            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["RangeTemplate"]);
-            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
-            Byte[] data1 = new Byte[file.Length];
-            file.Read(data1, 0, data1.Length);
-            file.Close();
-            MemoryStream memoryStream1 = new MemoryStream(data1);
-            excelDocument.Open(memoryStream1);
-            Worksheet mySheet = excelDocument.Worksheets[0];
-            int row = 1;
-            foreach (BulkRange p in errorList)
-            {
-                mySheet.Cells[row, 0].PutValue(p.Division);
-                mySheet.Cells[row, 1].PutValue(p.League);
-                mySheet.Cells[row, 2].PutValue(p.Region);
-                mySheet.Cells[row, 3].PutValue(p.Store);
-                mySheet.Cells[row, 4].PutValue(p.Sku);
-                mySheet.Cells[row, 5].PutValue(p.Size);
-                mySheet.Cells[row, 6].PutValue(p.RangeStartDate);
-                mySheet.Cells[row, 7].PutValue(p.DeliveryGroupName);
-                mySheet.Cells[row, 8].PutValue(p.Min);
-                mySheet.Cells[row, 9].PutValue(p.Max);
-                mySheet.Cells[row, 10].PutValue(p.BaseDemand);
-                mySheet.Cells[row, 11].PutValue(p.MinEndDaysOverride);
-                mySheet.Cells[row, 12].PutValue(p.EndDate);
-                mySheet.Cells[row, 13].PutValue(p.Error);
-                mySheet.Cells[row, 14].Style.Font.Color = Color.Red;
-                row++;
-            }
-
+            excelDocument = skuRangeSpreadsheet.GetErrors(errorList);           
             excelDocument.Save("RangeUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
-            return View();
 
+            return View();
         }
 
         public ActionResult ExcelRangeTemplate()
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            Excel excelDocument;
+            SkuRangeSpreadsheet rangeSpreadsheet = new SkuRangeSpreadsheet(appConfig, configService);
 
-            Excel excelDocument = new Excel();
-            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["RangeTemplate"]);
-            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
-            Byte[] data1 = new Byte[file.Length];
-            file.Read(data1, 0, data1.Length);
-            file.Close();
-            MemoryStream memoryStream1 = new MemoryStream(data1);
-            excelDocument.Open(memoryStream1);
+            excelDocument = rangeSpreadsheet.GetTemplate();
             excelDocument.Save("RangeUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
+        #endregion
 
         public ActionResult ExcelRange(string sku)
         {
@@ -3815,7 +3648,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 mySheet.Cells[row, 4].PutValue(p.Sku);
                 mySheet.Cells[row, 5].PutValue(p.Size);
                 mySheet.Cells[row, 6].PutValue(p.RangeStartDate);
-                //mySheet.Cells[row, 7].PutValue(p.OnRangeDate);
                 mySheet.Cells[row, 7].PutValue(p.DeliveryGroupName);
                 mySheet.Cells[row, 8].PutValue(p.Min);
                 mySheet.Cells[row, 9].PutValue(p.Max);
@@ -3829,8 +3661,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return View();
         }
-
-
 
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult SkuRPDGUpload()

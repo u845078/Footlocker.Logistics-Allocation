@@ -11,7 +11,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 {
     public class ConfigController : AppController
     {
-        Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        readonly DAO.AllocationContext db = new DAO.AllocationContext();
 
         [CheckPermission(Roles = "Support,IT")]
         public ActionResult Index()
@@ -30,23 +30,49 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _ConfigDetails(int instanceid)
         {
-            List<Config> list = (from a in db.Configs.Include("ConfigParam") 
-                                 where a.InstanceID == instanceid 
-                                 select a).ToList();
+            List<Config> list = db.Configs.Include("ConfigParam").Where(c => c.InstanceID == instanceid).ToList();
+
+            List<string> uniqueNames = (from l in list
+                                        select l.CreatedBy).Distinct().ToList();
+
+            List<string> uniqueNames2 = (from l in list
+                                         where !string.IsNullOrEmpty(l.UpdatedBy)
+                                        select l.UpdatedBy).Distinct().ToList();
+
+            Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+
+            foreach (var item in uniqueNames)
+            {
+                fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+            }
+
+            foreach (var item in uniqueNames2)
+            {
+                if (!fullNamePairs.ContainsKey(item))
+                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+            }
+
+            foreach (var item in fullNamePairs)
+            {
+                list.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+                list.Where(x => x.UpdatedBy == item.Key).ToList().ForEach(y => y.UpdatedBy = item.Value);
+            }
+
             //workaround, worked on localhost before, but got circular reference error on server
-            return View(new GridModel(list.Select(x => new { InstanceID = x.InstanceID,
-                                                             ParamID = x.ParamID,
-                                                             ParamName = x.ParamName,
-                                                            Value = x.Value,
-                                                            CreatedBy = x.CreatedBy,
-                                                            CreateDate = x.CreateDate,
-                                                            UpdatedBy = x.UpdatedBy,
-                                                            UpdateDate = x.UpdateDate})));
+            return View(new GridModel(list.Select(x => new { x.InstanceID,
+                                                             x.ParamID,
+                                                             x.ParamName,
+                                                             x.Value,
+                                                             x.CreatedBy,
+                                                             x.CreateDate,
+                                                             x.UpdatedBy,
+                                                             x.UpdateDate })));
         }
 
         public JsonResult _ConfigParam(int paramid)
         {
-            ConfigParam c = (from a in db.ConfigParams where a.ParamID == paramid select a).First();
+            ConfigParam c = db.ConfigParams.Where(cp => cp.ParamID == paramid).First();
+
             //workaround, worked on localhost before, but got circular reference error on server
             return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) { Data = c.Comment } };
         }
@@ -54,16 +80,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "IT")]
         public ActionResult Edit(int instanceid, int paramid)
         {
-            EditConfigModel model = new EditConfigModel();
-
-            model.Config = (from a in db.Configs 
-                            where (a.InstanceID == instanceid) && 
-                            (a.ParamID == paramid) 
-                            select a).First();
-
-            model.Param = (from a in db.ConfigParams 
-                           where a.ParamID == paramid
-                           select a).First();
+            EditConfigModel model = new EditConfigModel()
+            {
+                Config = db.Configs.Where(c => c.InstanceID == instanceid && c.ParamID == paramid).First(),
+                Param = db.ConfigParams.Where(cp => cp.ParamID == paramid).First()
+            };
 
             return View(model);
         }
@@ -73,21 +94,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Edit(EditConfigModel model)
         {
             model.Config.UpdateDate = DateTime.Now;
-            model.Config.UpdatedBy = UserName;
+            model.Config.UpdatedBy = currentUser.NetworkID;
             db.Entry(model.Config).State = System.Data.EntityState.Modified;
-            db.SaveChanges(UserName);
+            db.SaveChanges(currentUser.NetworkID);
 
             return RedirectToAction("Index");
         }
 
         [CheckPermission(Roles = "IT")]
         public ActionResult Create(int instanceid)
-        {
-            CreateConfigModel mainModel = new CreateConfigModel();
-            Config model = new Config();
-            model.InstanceID = instanceid;
-            mainModel.Config = model;
-            mainModel.Params = (from a in db.ConfigParams select a).ToList();
+        {            
+            Config model = new Config()
+            {
+                InstanceID = instanceid
+            };
+
+            CreateConfigModel mainModel = new CreateConfigModel()
+            {
+                Config = model,
+                Params = db.ConfigParams.ToList()
+            };
+                        
             return View(mainModel);
         }
 
@@ -96,12 +123,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Create(CreateConfigModel model)
         {
             model.Config.CreateDate = DateTime.Now;
-            model.Config.CreatedBy = UserName;
+            model.Config.CreatedBy = currentUser.NetworkID;
 
             db.Configs.Add(model.Config);
             try
             {
-                db.SaveChanges(UserName);
+                db.SaveChanges(currentUser.NetworkID);
             }
             catch (Exception ex)
             {
@@ -111,13 +138,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 if (ex.Message.Contains("PRIMARY KEY"))
                 {
-                    ViewData["Message"] = "Config value already setup.  Please use Edit instead.";
+                    ViewData["Message"] = "Config value already set up. Please use Edit instead.";
                 }
                 else
                 {
                     ViewData["Message"] = ex.Message;
                 }
-                model.Params = (from a in db.ConfigParams select a).ToList();
+
+                model.Params = db.ConfigParams.ToList();
                 return View(model);
             }
             return RedirectToAction("Index");
@@ -126,9 +154,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "IT")]
         public ActionResult CreateParam()
         {
-            CreateConfigParamModel model = new CreateConfigParamModel();
-            model.Params = (from a in db.ConfigParams select a).ToList();
-            model.Param = new ConfigParam();
+            CreateConfigParamModel model = new CreateConfigParamModel()
+            {
+                Params = db.ConfigParams.ToList(),
+                Param = new ConfigParam()
+            };
+
             return View(model);
         }
 
@@ -140,7 +171,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.ConfigParams.Add(model.Param);
             try
             {
-                db.SaveChanges(UserName);
+                db.SaveChanges(currentUser.NetworkID);
             }
             catch (Exception ex)
             {
@@ -156,11 +187,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     ViewData["Message"] = ex.Message;
                 }
-                model.Params = (from a in db.ConfigParams select a).ToList();
+
+                model.Params = db.ConfigParams.ToList();
                 return View(model);
             }
             return RedirectToAction("Index");
         }
-
     }
 }

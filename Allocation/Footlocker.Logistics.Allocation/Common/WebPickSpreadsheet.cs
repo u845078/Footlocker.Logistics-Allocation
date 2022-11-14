@@ -1,5 +1,4 @@
-﻿using Aspose.Cells.Charts;
-using Aspose.Excel;
+﻿using Aspose.Excel;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Models.Services;
 using Footlocker.Logistics.Allocation.Services;
@@ -8,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Web;
-using System.Web.Mvc;
 
 namespace Footlocker.Logistics.Allocation.Common
 {
@@ -781,8 +779,6 @@ namespace Footlocker.Logistics.Allocation.Common
 
                             RDQDAO rdqDAO = new RDQDAO();
                             rdqDAO.InsertRDQs(validRDQs, config.currentUser.NetworkID);
-
-                            //db.SaveChanges("");
 
                             List<RDQ> databaseRDQs = new List<RDQ>();
 

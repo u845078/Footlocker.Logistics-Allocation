@@ -13,6 +13,18 @@ namespace Footlocker.Logistics.Allocation.Common
         private string _asposeLicenseFile;
         private string _logFile;
         private string _webPickTemplate;
+        private string _skuTypeTemplate;
+        private string _productTypeTemplate;
+        private string _skuIdUploadTemplate;
+        private string _arSkusUploadTemplate;
+        private string _holdsUploadTemplate;
+        private string _arConstraintsUploadTemplate;
+        private string _skuRangePlanDGUploadTemplate;
+        private string _rdqRestrictionsTemplate;
+        private string _rangeTemplate;
+        private string _ringFenceDeleteTemplate;
+        private string _holdDeleteTemplate;
+        private string _rerankStoresTemplate;
 
         public string AppName;
         public string AppPath;
@@ -29,6 +41,18 @@ namespace Footlocker.Logistics.Allocation.Common
                 return _webPickTemplate;
             }
         }
+
+        public string RangeTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_rangeTemplate))
+                    _rangeTemplate = ConfigurationManager.AppSettings["RangeTemplate"].ToString();
+
+                return _rangeTemplate;
+            }
+        }
+
         public string AsposeLicenseFile 
         { 
             get

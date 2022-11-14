@@ -226,6 +226,7 @@
     <Compile Include="Common\Filters\HandleAjaxValidationError.cs" />
     <Compile Include="Common\Filters\LogError.cs" />
     <Compile Include="Common\JsonResultData.cs" />
+    <Compile Include="Common\SkuRangeSpreadsheet.cs" />
     <Compile Include="Common\UploadSpreadsheet.cs" />
     <Compile Include="Common\WebPickSpreadsheet.cs" />
     <Compile Include="Controllers\AppController.cs" />

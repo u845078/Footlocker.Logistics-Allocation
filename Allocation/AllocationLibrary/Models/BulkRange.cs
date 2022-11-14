@@ -22,6 +22,8 @@ namespace Footlocker.Logistics.Allocation.Models
         public string MinEndDaysOverride { get; set; }
         public string Error { get; set; }
         public string EndDate { get; set; }
-    
+        public string OPStartSend { get; set; }
+        public string OPStopSend { get; set; }
+        public string OPRequestComments { get; set; }
     }
 }
