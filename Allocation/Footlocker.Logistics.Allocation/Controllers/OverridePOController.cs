@@ -528,7 +528,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             d.EndDate = ((DateTime)d.EndDate).AddYears(centuries);
                         }
                     }
-                    //            var list = (from a in db.SizeAllocations join b in db.RuleSelectedStores on new { a.Division, a.Store } equals new { b.Division, b.Store } join c in db.MaxLeadTimes on new { a.Division, a.Store } equals new { c.Division, c.Store } where (a.PlanID == model.DeliveryGroup.PlanID) select new { sa = a, lt = c }).ToList();
+
                     (new SkuRangeController()).UpdateDeliveryGroupDates(d);
                 }
             }

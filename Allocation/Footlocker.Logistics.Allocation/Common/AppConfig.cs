@@ -31,8 +31,8 @@ namespace Footlocker.Logistics.Allocation.Common
         public WebUser currentUser;
         public AllocationContext db;
 
-        public string WebPickTemplate 
-        { 
+        public string WebPickTemplate
+        {
             get
             {
                 if (string.IsNullOrEmpty(_webPickTemplate))
@@ -50,6 +50,50 @@ namespace Footlocker.Logistics.Allocation.Common
                     _rangeTemplate = ConfigurationManager.AppSettings["RangeTemplate"].ToString();
 
                 return _rangeTemplate;
+            }
+        }
+
+        public string ARConstraintsUploadTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_arConstraintsUploadTemplate))
+                    _arConstraintsUploadTemplate = ConfigurationManager.AppSettings["ARConstraintsUploadTemplate"].ToString();
+
+                return _arConstraintsUploadTemplate;
+            }
+        }
+
+        public string ARSKUsUploadTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_arSkusUploadTemplate))
+                    _arSkusUploadTemplate = ConfigurationManager.AppSettings["ARSkusUploadTemplate"].ToString();
+
+                return _arSkusUploadTemplate;
+            }
+        }
+
+        public string SKUIDUploadTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_skuIdUploadTemplate))
+                    _skuIdUploadTemplate = ConfigurationManager.AppSettings["SkuIdUploadTemplate"].ToString();
+
+                return _skuIdUploadTemplate;
+            }
+        }
+
+        public string SKURangePlanDGUploadTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_skuRangePlanDGUploadTemplate))
+                    _skuRangePlanDGUploadTemplate = ConfigurationManager.AppSettings["SkuRangePlanDGUploadTemplate"].ToString();
+
+                return _skuRangePlanDGUploadTemplate;
             }
         }
 

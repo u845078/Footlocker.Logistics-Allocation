@@ -219,6 +219,8 @@
     <Compile Include="Common\ActionResultCode.cs" />
     <Compile Include="Common\AjaxValidationException.cs" />
     <Compile Include="Common\AppConfig.cs" />
+    <Compile Include="Common\ARConstraintsSpreadsheet.cs" />
+    <Compile Include="Common\ARSKUSpreadsheet.cs" />
     <Compile Include="Common\DeleteValidationException.cs" />
     <Compile Include="Common\ExistsValidationException.cs" />
     <Compile Include="Common\Extensions.cs" />
@@ -226,6 +228,7 @@
     <Compile Include="Common\Filters\HandleAjaxValidationError.cs" />
     <Compile Include="Common\Filters\LogError.cs" />
     <Compile Include="Common\JsonResultData.cs" />
+    <Compile Include="Common\SKURangePlanDGSpreadsheet.cs" />
     <Compile Include="Common\SkuRangeSpreadsheet.cs" />
     <Compile Include="Common\UploadSpreadsheet.cs" />
     <Compile Include="Common\WebPickSpreadsheet.cs" />
@@ -278,6 +281,7 @@
     <Compile Include="Models\AuditRDQModel.cs" />
     <Compile Include="Models\BulkRDQModel.cs" />
     <Compile Include="Models\CheckBoxModel.cs" />
+    <Compile Include="Models\DeliveryGroupUploadModel.cs" />
     <Compile Include="Models\EcomCustomerFulfillmentXrefModel.cs" />
     <Compile Include="Models\HoldsUploadDeleteModel.cs" />
     <Compile Include="Models\InstanceModel.cs" />

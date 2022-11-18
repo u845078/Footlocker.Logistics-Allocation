@@ -435,7 +435,7 @@
         .Sortable(sorting => sorting.Enabled(true)
             .OrderBy(sortOrder =>
             {
-                sortOrder.Add(o => o.ExpectedDeliveryDate).Descending();
+                sortOrder.Add(o => o.ExpectedDeliveryDate).Ascending();
             }))        
         .Pageable(paging => paging.Enabled(true))
         .Filterable(filtering => filtering.Enabled(true))

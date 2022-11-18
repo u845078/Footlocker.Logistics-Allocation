@@ -14,6 +14,7 @@ using Footlocker.Common.Services;
 using System.Data.Common;
 using System.Data.Entity;
 using System.Xml.Serialization;
+using Footlocker.Logistics.Allocation.Common;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -25,6 +26,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private string _userName = null;
         private string _fileLineFiller = null;
         private AllocationLibraryContext db;
+        private ConfigService configService = new ConfigService();
 
         #endregion
 
@@ -83,7 +85,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             return View();
         }
-
         
         /// <summary>
         /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
@@ -159,18 +160,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             return Content("Spreadsheet must be for one division only.");
                         }
                         tokens = Convert.ToString(mySheet.Cells[row, 0].Value).Split('-');
-                        //txtWrite.WriteLine(
-                        //        tokens[0].PadLeft(2, '0') +//div
-                        //        tokens[1].PadLeft(2, '0') +//dept
-                        //        tokens[2].PadLeft(5, '0') +//stk
-                        //        tokens[3].PadLeft(2, '0') +//width
-                        //        effectiveDate +//effective date
-                        //        Convert.ToString(mySheet.Cells[row, 2].Value).PadRight(1, ' ') +//service type
-                        //        DateTime.Now.ToString("yyyy-MM-dd-HH.mm.ss.ffffff") +//create date
-                        //        User.Identity.Name.Split('\\')[1].PadRight(30, ' ').Substring(0, 30) +//user
-                        //        "".PadRight(12, ' ') //filler
 
-                        //    );
                         txtWrite.WriteLine(
                             "SRVTY" +
                                 (tokens[0].PadLeft(2, '0') +//div
@@ -221,10 +211,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(Division))
                         {
                             Footlocker.Common.Services.FTPService ftp = new Footlocker.Common.Services.FTPService(System.Configuration.ConfigurationManager.AppSettings["FTPServer"], System.Configuration.ConfigurationManager.AppSettings["FTPUserName"], System.Configuration.ConfigurationManager.AppSettings["FTPPassword"]);
-                            //code replaced for secure FTP
-                            //ftp.Connect(0, 0);
-                            //ftp.SendFileToMainframe(filepath, System.Configuration.ConfigurationManager.AppSettings["SkuTypeDatasetEurope"], System.Configuration.ConfigurationManager.AppSettings["QuoteFTPCommand"]);
-                            //ftp.Quit();
 
                             ftp.FTPSToMainframe(filepath, System.Configuration.ConfigurationManager.AppSettings["SkuTypeDatasetEurope"], 0, 0, System.Configuration.ConfigurationManager.AppSettings["QuoteFTPCommand"]);
                             ftp.Disconnect();
@@ -232,10 +218,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         else
                         {
                             Footlocker.Common.Services.FTPService ftp = new Footlocker.Common.Services.FTPService(System.Configuration.ConfigurationManager.AppSettings["FTPServer"], System.Configuration.ConfigurationManager.AppSettings["FTPUserName"], System.Configuration.ConfigurationManager.AppSettings["FTPPassword"]);
-                            //code replaced for secure FTP
-                            //ftp.Connect(0, 0);
-                            //ftp.SendFileToMainframe(filepath, System.Configuration.ConfigurationManager.AppSettings["SkuTypeDataset"], System.Configuration.ConfigurationManager.AppSettings["QuoteFTPCommand"]);
-                            //ftp.Quit();
 
                             ftp.FTPSToMainframe(filepath, System.Configuration.ConfigurationManager.AppSettings["SkuTypeDataset"], 0, 0, System.Configuration.ConfigurationManager.AppSettings["QuoteFTPCommand"]);
                             ftp.Disconnect();
@@ -1446,8 +1428,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             Excel excelDocument = new Excel();
 
-            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["SkuIdUploadTemplate"]);
-            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
+            FileStream file = new FileStream(Server.MapPath("~/") + appConfig.SKUIDUploadTemplate, FileMode.Open, System.IO.FileAccess.Read);
 
             Byte[] data1 = new Byte[file.Length];
             file.Read(data1, 0, data1.Length);
@@ -1462,42 +1443,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult ExcelARSkusUploadTemplate()
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            ARSKUSpreadsheet arSKUSpreadsheet = new ARSKUSpreadsheet(appConfig, configService);
+            Excel excelDocument;
 
-            Excel excelDocument = new Excel();
-            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ARSkusUploadTemplate"]);
-            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
-
-            Byte[] data1 = new Byte[file.Length];
-            file.Read(data1, 0, data1.Length);
-            file.Close();
-            MemoryStream memoryStream1 = new MemoryStream(data1);
-            excelDocument.Open(memoryStream1);
-            excelDocument.Save("ARSkusUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
-            //return View();
+            excelDocument = arSKUSpreadsheet.GetTemplate();
+            excelDocument.Save("ARSkusUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);            
             return View("ARSkusUpload");
         }
 
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult ExcelARConstraintsUploadTemplate()
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            ARConstraintsSpreadsheet arConstraintsSpreadsheet = new ARConstraintsSpreadsheet(appConfig, configService);
+            Excel excelDocument;
 
-            Excel excelDocument = new Excel();
-            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["ARConstraintsUploadTemplate"]);
-            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
-
-            Byte[] data1 = new Byte[file.Length];
-            file.Read(data1, 0, data1.Length);
-            file.Close();
-            MemoryStream memoryStream1 = new MemoryStream(data1);
-            excelDocument.Open(memoryStream1);
+            excelDocument = arConstraintsSpreadsheet.GetTemplate();
             excelDocument.Save("ARConstraintsUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
-            //return View();
             return View("ARConstraintsUpload");
         }
 
@@ -1607,10 +1568,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     // FTP file to mainframe dataset address
                     Footlocker.Common.Services.FTPService ftp = new Footlocker.Common.Services.FTPService(System.Configuration.ConfigurationManager.AppSettings["FTPServer"], System.Configuration.ConfigurationManager.AppSettings["SkuIdFTPUserName"], System.Configuration.ConfigurationManager.AppSettings["SkuIdFTPPassword"]);
-                    //code replaced for FTP secure
-                    //ftp.Connect(0, 0);
-                    //ftp.SendFileToMainframe(filePath, System.Configuration.ConfigurationManager.AppSettings[dataSetKeyName], System.Configuration.ConfigurationManager.AppSettings["QuoteFTPCommand_SkuID"]);
-                    //ftp.Quit();
 
                     ftp.FTPSToMainframe(filePath, System.Configuration.ConfigurationManager.AppSettings[dataSetKeyName], 0, 0, System.Configuration.ConfigurationManager.AppSettings["QuoteFTPCommand_SkuID"]);
                     ftp.Disconnect();
@@ -1633,206 +1590,35 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-        [CheckPermission(
-            Roles =
-                "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support"
-            )]
+        [CheckPermission(Roles = "Merchandiser, Head Merchandiser, Buyer Planner, Director of Allocation, Admin, Support")]
         public ActionResult SaveARSkus(IEnumerable<HttpPostedFileBase> attachments)
         {
-            Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
+            ARSKUSpreadsheet arSKUSpreadsheet = new ARSKUSpreadsheet(appConfig, configService);
             string message = string.Empty;
-            bool errorsFound = false;
-            List<DirectToStoreSku> list = new List<DirectToStoreSku>();
 
             foreach (HttpPostedFileBase file in attachments)
             {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-
-                // Determine if the spreadsheet contains a valid header row
-                var hasValidHeaderRow = ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("SKU"))
-                    && (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Start Date"))
-                    && (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("End Date"))
-                    && (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Buying Multiple"))
-                    && (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Order Sunday"))
-                    && (Convert.ToString(mySheet.Cells[0, 5].Value).Contains("Order Monday"))
-                    && (Convert.ToString(mySheet.Cells[0, 6].Value).Contains("Order Tuesday"))
-                    && (Convert.ToString(mySheet.Cells[0, 7].Value).Contains("Order Wednesday"))
-                    && (Convert.ToString(mySheet.Cells[0, 8].Value).Contains("Order Thursday")));
-
-                // Validate that the template's header row exists... (else error out)
-                if (!hasValidHeaderRow)
-                {
-                    errorsFound = true;
-                    message = "Upload failed: Incorrect header - please use template.";
-                }
-                else
-                {
-                    int row = 1;
-                    try
-                    {
-                        while (mySheet.Cells[row, 0].Value != null)
-                        {
-                            DirectToStoreSku item = new DirectToStoreSku();
-                            item.Sku = Convert.ToString(mySheet.Cells[row, 0].Value).Trim();
-                            item.StartDate = Convert.ToDateTime(mySheet.Cells[row, 1].Value);
-                            item.EndDate = Convert.ToDateTime(mySheet.Cells[row, 2].Value);
-                            item.VendorPackQty = Convert.ToInt32(mySheet.Cells[row, 3].Value);
-                            item.OrderSun = Convert.ToBoolean(mySheet.Cells[row, 4].Value);
-                            item.OrderMon = Convert.ToBoolean(mySheet.Cells[row, 5].Value);
-                            item.OrderTue = Convert.ToBoolean(mySheet.Cells[row, 6].Value);
-                            item.OrderWed = Convert.ToBoolean(mySheet.Cells[row, 7].Value);
-                            item.OrderThur = Convert.ToBoolean(mySheet.Cells[row, 8].Value);
-
-                            item.CreateDate = DateTime.Now;
-                            item.CreatedBy = this.UserName;
-
-                            list.Add(item);
-                            row++;
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        errorsFound = true;
-                        message = "Upload failed: One ore more columns has missing or invalid data.";
-                    }                    
-                }
-            }
-
-            // Validate divisions 
-            if (!errorsFound)
-            {
-                var invalidList = (from a in list
-                    where !currentUser.GetUserDivisions(AppName).Any(p => p.DivCode == a.Division)
-                    select a);
-
-                if (invalidList.Any())
-                {
-                    errorsFound = true;
-                    message = "Upload failed: One ore more Skus are in a division you do not have permissions for.";
-                }
+                arSKUSpreadsheet.Save(file);
+                
+                if (!string.IsNullOrEmpty(arSKUSpreadsheet.message))                
+                    message = string.Format("Upload failed: {0}", arSKUSpreadsheet.message); 
             }
             
-            // Upload if spreadsheet has valid data
-            if (!errorsFound)
-            {
-                try
-                {
-                    var dao = new DirectToStoreDAO();
-                    dao.SaveARSkusUpload(list);
-                }
-                catch (Exception ex)
-                {
-                    message = "Upload failed: " + ex.Message;               
-                }
-            }
-
             return Content(message);
         }
 
-        [CheckPermission(
-            Roles =
-                "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support"
-            )]
+        [CheckPermission(Roles = "Merchandiser, Head Merchandiser, Buyer Planner, Director of Allocation, Admin, Support")]
         public ActionResult SaveARConstraints(IEnumerable<HttpPostedFileBase> attachments)
         {
-            Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
+            ARConstraintsSpreadsheet arConstraintsSpreadsheet = new ARConstraintsSpreadsheet(appConfig, configService);
             string message = string.Empty;
-            bool errorsFound = false;
-            List<DirectToStoreConstraint> list = new List<DirectToStoreConstraint>();
 
             foreach (HttpPostedFileBase file in attachments)
             {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+                arConstraintsSpreadsheet.Save(file);
 
-                // Determine if the spreadsheet contains a valid header row
-                var hasValidHeaderRow = ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("SKU"))
-                    && (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Size"))
-                    && (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Start Date"))
-                    && (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("End Date"))
-                    && (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Max Qty")));
-
-                // Validate that the template's header row exists... (else error out)
-                if (!hasValidHeaderRow)
-                {
-                    errorsFound = true;
-                    message = "Upload failed: Incorrect header - please use template.";
-                }
-
-                int row = 1;
-                try
-                {
-                    while (mySheet.Cells[row, 0].Value != null)
-                    {
-                        DirectToStoreConstraint item = new DirectToStoreConstraint();
-                        item.Sku = Convert.ToString(mySheet.Cells[row, 0].Value).Trim();
-                        item.Size = Convert.ToString(mySheet.Cells[row, 1].Value).Trim();
-                        item.StartDate = Convert.ToDateTime(mySheet.Cells[row, 2].Value);
-                        item.EndDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value);
-                        item.MaxQty = Convert.ToInt32(mySheet.Cells[row, 4].Value);
-
-                        item.CreateDate = DateTime.Now;
-                        item.CreatedBy = "ARConstraintsUpload";
-
-                        list.Add(item);
-                        row++;
-                    }
-                }
-                catch (Exception)
-                {
-                    errorsFound = true;
-                    message = "Upload failed: One ore more columns has missing or invalid data.";
-                }
-            }
-
-
-            // Validate divisions 
-            if (!errorsFound)
-            {
-                var invalidList = (from a in list
-                                   where !currentUser.GetUserDivisions(AppName).Any(p => p.DivCode == a.Division)
-                                   select a);
-
-                if (invalidList.Any())
-                {
-                    errorsFound = true;
-                    message = "Upload failed: One ore more Skus are in a division you do not have permissions for.";
-                }
-            }
-
-            // Upload if spreadsheet has valid data
-            if (!errorsFound)
-            {
-                try
-                {
-                    var dao = new DirectToStoreDAO();
-                    dao.SaveARConstraintsUpload(list);
-                }
-                catch (Exception ex)
-                {
-                    message = "Upload failed: " + ex.Message;
-                }
+                if (!string.IsNullOrEmpty(arConstraintsSpreadsheet.message))
+                    message = string.Format("Upload failed: {0}", arConstraintsSpreadsheet.message);
             }
 
             return Content(message);
@@ -1893,7 +1679,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
-        [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
+        [CheckPermission(Roles = "Merchandiser, Head Merchandiser, Buyer Planner, Director of Allocation, Admin, Support")]
         public ActionResult ARConstraintsUpload()
         {
             return View();

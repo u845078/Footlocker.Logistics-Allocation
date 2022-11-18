@@ -108,7 +108,6 @@ namespace Footlocker.Logistics.Allocation.Services
             }
             return _que;
         }
-
         
         public List<DirectToStoreConstraint> GetDTSConstraintsOneSize()
         {
@@ -146,7 +145,6 @@ namespace Footlocker.Logistics.Allocation.Services
 
         public void SaveARSkusUpload(List<DirectToStoreSku> list)
         {
-            //Database _database;
             DbCommand SQLCommand;
             string SQL;
             SQL = "dbo.[SaveARSkusUpload]";
@@ -156,7 +154,7 @@ namespace Footlocker.Logistics.Allocation.Services
             StringWriter sw = new StringWriter();
             XmlSerializer xs = new XmlSerializer(list.GetType());
             xs.Serialize(sw, list);
-            String xout = sw.ToString();
+            string xout = sw.ToString();
 
             _databaseAllocation.AddInParameter(SQLCommand, "@xml", DbType.Xml, xout);
             _databaseAllocation.ExecuteNonQuery(SQLCommand);
@@ -164,7 +162,6 @@ namespace Footlocker.Logistics.Allocation.Services
 
         public void SaveARConstraintsUpload(List<DirectToStoreConstraint> list)
         {
-            //Database _database;
             DbCommand SQLCommand;
             string SQL;
             SQL = "dbo.[SaveARConstraintsUpload]";
@@ -174,7 +171,7 @@ namespace Footlocker.Logistics.Allocation.Services
             StringWriter sw = new StringWriter();
             XmlSerializer xs = new XmlSerializer(list.GetType());
             xs.Serialize(sw, list);
-            String xout = sw.ToString();
+            string xout = sw.ToString();
 
             _databaseAllocation.AddInParameter(SQLCommand, "@xml", DbType.Xml, xout);
             _databaseAllocation.ExecuteNonQuery(SQLCommand);
