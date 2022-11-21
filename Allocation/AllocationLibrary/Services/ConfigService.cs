@@ -78,5 +78,16 @@
                                     select cd.RunDate).FirstOrDefault();
             return controlDate;
         }
+
+        public long GetCPID(string sku)
+        {
+            long cpid;
+
+            cpid =  db.CPSkuSizesXrefs.Where(cp => cp.LegacySku == sku)
+                                     .Select(cp => cp.CPID)
+                                     .FirstOrDefault();
+
+            return cpid;
+        }
     }
 }

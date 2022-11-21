@@ -9,12 +9,14 @@ using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Models.Services;
 using Telerik.Web.Mvc;
+using Telerik.Web.Mvc.Infrastructure;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
     public class ItemController : AppController
     {
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        ConfigService configService = new ConfigService();
 
         [CheckPermission(Roles = "Support,IT")]
         public ActionResult Lookup()
@@ -28,56 +30,44 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             string item;
             string[] tokens;
-            if (model.QItem != null)
+            if (!string.IsNullOrEmpty(model.QItem))
             {
                 tokens = model.QItem.Split('-');
                 item = tokens[0];
-                Int64 itemid = Convert.ToInt64(item);
-                model.noSizeItems = (from a in db.ItemMasters where (a.ID == itemid) select a).ToList();
-                try
-                {
-                    item = item.Substring(0, item.Length - 3);
-                    itemid = Convert.ToInt64(item);
-                }
-                catch { }
-            }
-            else if (model.MerchantSku != null)
-            {
-                item = model.MerchantSku;
+                long itemid = Convert.ToInt64(item);
 
-                model.noSizeItems = (from a in db.ItemMasters where (a.MerchantSku == item) select a).ToList();
+                model.noSizeItems = db.ItemMasters.Where(im => im.ID == itemid).ToList();
             }
+            else if (model.MerchantSku != null)            
+                model.noSizeItems = db.ItemMasters.Where(im => im.MerchantSku == model.MerchantSku).ToList();
+            
             return View(model);
         }
-
         
         private bool HasEditRole()
         {
             string checkroles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning";
-            string[] roles = checkroles.Split(new char[] { ',' });
-            bool? ok = WebSecurityService.UserHasRole(UserName, "Allocation", roles);
-            return ok ?? false;
-
-
+            List<string> roles = checkroles.Split(new char[] { ',' }).ToList();
+            return currentUser.HasUserRole(AppName, roles);
         }
-
         
         [CheckPermission(Roles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning,TroubleShootingReadOnly")]
         public ActionResult Troubleshoot(string sku)
         {
-            TroubleshootModel model = new TroubleshootModel();
-            model.Warehouse = -1;
+            TroubleshootModel model = new TroubleshootModel()
+            {
+                Warehouse = -1
+            };
+            
             SetDCs(model);
-            if (HasEditRole())
-                ViewBag.HasEditRole = true;
-            else
-                ViewBag.HasEditRole = false;
+
+            ViewBag.HasEditRole = HasEditRole();
+
             if (sku != null)
             {
                 model.Sku = sku;
                 UpdateTroubleShootModel(model);
-            }
-            
+            }            
 
             return View(model);
         }
@@ -86,10 +76,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Troubleshoot(TroubleshootModel model)
         {
-            if (HasEditRole())
-                ViewBag.HasEditRole = true;
-            else
-                ViewBag.HasEditRole = false;
+            ViewBag.HasEditRole = HasEditRole();
 
             UpdateTroubleShootModel(model);
             SetDCs(model);
@@ -98,24 +85,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void UpdateTroubleShootModel(TroubleshootModel model)
         {
-            if (model.Size == null)
-            {
+            int instanceID;
+            string div = "";
+
+            if (model.Size == null)            
                 model.Size = "";
-            }
-            if (model.Store == null)
-            {
+            
+            if (model.Store == null)            
                 model.Store = "";
-            }
+
+            if (!string.IsNullOrEmpty(model.Sku))
+                if (model.Sku.Length >= 2)
+                    div = model.Sku.Substring(0, 2);
+
             try
-            {
-                string div = model.Sku.Substring(0, 2);
-
-                DateTime today = (from a in db.ControlDates
-                                  join b in db.InstanceDivisions 
-                                  on a.InstanceID equals b.InstanceID
-                                  where b.Division == div
-                                  select a.RunDate).FirstOrDefault();
-
+            {                               
                 model.RangePlans = (from a in db.RangePlans
                                     join b in db.RangePlanDetails 
                                     on a.Id equals b.ID
@@ -135,10 +119,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                             orderby a.CreateDate descending
                                             select a).FirstOrDefault();
 
-                        if (reInitStatus != null)
-                        {
-                            rp.ReInitializeStatus = (reInitStatus.SkuExtracted) ? "SKU Extracted on " + reInitStatus.LastModifiedDate.ToShortDateString() : "Pending to be Extracted";
-                        }
+                        if (reInitStatus != null)                        
+                            rp.ReInitializeStatus = (reInitStatus.SkuExtracted) ? "SKU Extracted on " + reInitStatus.LastModifiedDate.ToShortDateString() : "Pending to be Extracted";                        
                     });
                 }
             }
@@ -150,60 +132,44 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             try
             {
-                ItemMaster item = (from a in db.ItemMasters
-                                   where a.MerchantSku == model.Sku
-                                   select a).FirstOrDefault();
+                ItemMaster item = db.ItemMasters.Where(im => im.MerchantSku == model.Sku).FirstOrDefault();
 
                 model.ItemMaster = item;
-                model.Department = (from d in db.Departments
-                                    where d.instanceID == item.InstanceID &&
-                                          d.divisionCode == item.Div &&
-                                          d.departmentCode == item.Dept
-                                    select d).FirstOrDefault();
+                model.Department = db.Departments.Where(d => d.instanceID == item.InstanceID &&
+                                                             d.divisionCode == item.Div &&
+                                                             d.departmentCode == item.Dept).FirstOrDefault();
 
-                model.Category = (from c in db.Categories
-                                  where c.instanceID == item.InstanceID &&
-                                        c.divisionCode == item.Div &&
-                                        c.departmentCode == item.Dept &&
-                                        c.categoryCode == item.Category
-                                  select c).FirstOrDefault();
+                model.Category = db.Categories.Where(c => c.instanceID == item.InstanceID &&
+                                                          c.divisionCode == item.Div &&
+                                                          c.departmentCode == item.Dept &&
+                                                          c.categoryCode == item.Category).FirstOrDefault();
 
-                model.Vendor = (from v in db.Vendors
-                                where v.InstanceID == item.InstanceID &&
-                                      v.VendorCode == item.Vendor
-                                select v).FirstOrDefault();
+                model.Vendor = db.Vendors.Where(v => v.InstanceID == item.InstanceID &&
+                                                     v.VendorCode == item.Vendor).FirstOrDefault();
 
-                model.BrandID = (from b in db.BrandIDs
-                                 where b.instanceID == item.InstanceID &&
-                                       b.divisionCode == item.Div &&
-                                       b.departmentCode == item.Dept &&
-                                       b.brandIDCode == item.Brand
-                                 select b).FirstOrDefault();
+                model.BrandID = db.BrandIDs.Where(b => b.instanceID == item.InstanceID && 
+                                                       b.divisionCode == item.Div && 
+                                                       b.departmentCode == item.Dept && 
+                                                       b.brandIDCode == item.Brand).FirstOrDefault();
 
                 if (item.TeamCode != "000")
                 {
-                    model.TeamCode = (from t in db.TeamCodes
-                                      where t.InstanceID == item.InstanceID &&
-                                            t.DivisionCode == item.Div &&
-                                            t.TeamCode == item.TeamCode
-                                      select t).FirstOrDefault();
+                    model.TeamCode = db.TeamCodes.Where(t => t.InstanceID == item.InstanceID &&
+                                                             t.DivisionCode == item.Div &&
+                                                             t.TeamCode == item.TeamCode).FirstOrDefault();
                 }
 
                 AllocationDriverDAO dao = new AllocationDriverDAO();
-                model.AllocationDriver = (from a in dao.GetAllocationDriverList(item.Div)
-                                          where a.Department == item.Dept
-                                          select a).FirstOrDefault();
+                model.AllocationDriver = dao.GetAllocationDriverList(item.Div).Where(adl => adl.Department == item.Dept).FirstOrDefault();
 
-                model.ControlDate = (from a in db.ControlDates
-                                     join b in db.InstanceDivisions 
-                                     on a.InstanceID equals b.InstanceID
-                                     where b.Division == item.Div
-                                     select a).FirstOrDefault();
+                instanceID = configService.GetInstance(div);
+                model.ControlDate = db.ControlDates.Where(cd => cd.InstanceID == instanceID).FirstOrDefault();
+
+                model.CPID = configService.GetCPID(model.ItemMaster.MerchantSku);
 
                 model.ValidItem = true;
 
-                if (item.Category.StartsWith("99") || item.Category.Equals("098") || 
-                    (Convert.ToInt32(item.ServiceCode) > 2))
+                if (item.Category.StartsWith("99") || item.Category.Equals("098") || (Convert.ToInt32(item.ServiceCode) > 2))
                 {
                     model.ValidItem = false;
                 }
@@ -213,16 +179,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ViewData["message"] = "invalid item";
             }
 
-            model.Sizes = (from a in db.Sizes where a.Sku == model.Sku select a).ToList();
-
-            //model.RDQs = (from a in db.RDQs where a.Sku == model.Sku select a).ToList();
+            model.Sizes = db.Sizes.Where(s => s.Sku == model.Sku).ToList();
         }
 
         [CheckPermission(Roles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning")]
         public ActionResult TroubleshootStore()
         {
-            TroubleshootStoreModel model = new TroubleshootStoreModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            TroubleshootStoreModel model = new TroubleshootStoreModel()
+            {
+                Divisions = currentUser.GetUserDivisions(AppName)
+            };
+
             return View(model);
         }
 
@@ -232,7 +199,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             UpdateTroubleShootStoreModel(model);
             return View(model);
         }
-
 
         private void UpdateTroubleShootStoreModel(TroubleshootStoreModel model)
         {
@@ -244,39 +210,40 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 model.Store = "";
             }
-            DateTime today = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == model.Division select a.RunDate).FirstOrDefault();
+            DateTime today = (from a in db.ControlDates 
+                              join b in db.InstanceDivisions 
+                              on a.InstanceID equals b.InstanceID 
+                              where b.Division == model.Division 
+                              select a.RunDate).FirstOrDefault();
             
 
             model.Divisions = currentUser.GetUserDivisions(AppName);
 
-            //model.BTSGroups = (from a in db.StoreBTS join b in db.StoreBTSDetails on a.ID equals b.GroupID where ((b.Store == model.Store) && (b.Division == model.Division)) select a).ToList();
+            var validStoreCount = db.vValidStores.Where(vs => vs.Division == model.Division && vs.Store == model.Store).Count();
+            model.isValid = validStoreCount > 0;
 
-            var validStoreQuery = (from a in db.vValidStores where ((a.Division == model.Division) && (a.Store == model.Store)) select a);
-            model.isValid = (validStoreQuery.Count() > 0);
-
-            //model.LikeStores = (from a in db.StoreAttributes where ((a.Division == model.Division) && (a.Store == model.Store)) select a).ToList();
-
-            model.StoreLookup = (from a in db.StoreLookups where ((a.Division == model.Division) && (a.Store == model.Store)) select a).FirstOrDefault();
+            model.StoreLookup = db.StoreLookups.Where(sl => sl.Division == model.Division && sl.Store == model.Store).FirstOrDefault();
 
             if (model.StoreLookup == null)
             {
                 model.Message = "Store not found";
             }
 
-            model.StoreExtension = (from a in db.StoreExtensions.Include("ConceptType").Include("StrategyType").Include("CustomerType") where ((a.Division == model.Division) && (a.Store == model.Store)) select a).FirstOrDefault();
+            model.StoreExtension = (from a in db.StoreExtensions.Include("ConceptType").Include("StrategyType").Include("CustomerType") 
+                                    where ((a.Division == model.Division) && (a.Store == model.Store)) 
+                                    select a).FirstOrDefault();
 
-            model.StoreSeasonality = (from a in db.StoreSeasonality join b in db.StoreSeasonalityDetails on a.ID equals b.GroupID where ((b.Division == model.Division) && (b.Store == model.Store)) select a).FirstOrDefault();
+            model.StoreSeasonality = (from a in db.StoreSeasonality 
+                                      join b in db.StoreSeasonalityDetails 
+                                      on a.ID equals b.GroupID 
+                                      where (b.Division == model.Division) && (b.Store == model.Store)
+                                      select a).FirstOrDefault();
 
-            model.Zone = (from a in db.NetworkZones join b in db.NetworkZoneStores on a.ID equals b.ZoneID where ((b.Division == model.Division) && (b.Store == model.Store)) select a).FirstOrDefault();
-
-            //model.StoreLeadTimes = (from a in db.StoreLeadTimes where ((a.Division == model.Division) && (a.Store == model.Store)) select a).ToList();
-            //foreach (StoreLeadTime lt in model.StoreLeadTimes)
-            //{
-            //    lt.Warehouse = (from a in db.DistributionCenters where a.ID == lt.DCID select a.Name).FirstOrDefault();
-            //}
-
-            //model.RingFences = (from a in db.RingFenceDetails join b in db.RingFences on a.RingFenceID equals b.ID where ((b.Division == model.Division) && (b.Store == model.Store)) select b).ToList();
-            //model.RDQs = (from a in db.RDQs where ((a.Division == model.Division) && ((a.Store == model.Store))||(a.Store == null)) select a).ToList();
+            model.Zone = (from a in db.NetworkZones 
+                          join b in db.NetworkZoneStores 
+                          on a.ID equals b.ZoneID 
+                          where (b.Division == model.Division) && (b.Store == model.Store)
+                          select a).FirstOrDefault();
         }
 
         #region GridAction Methods
@@ -382,10 +349,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             var packDetails = new List<ItemPackDetail>();
 
-            //// Get pack's item
-            //var item = db.RingFences.Single(rf => rf.ID == ringFenceID).Sku;
-            //var itemID = db.ItemMasters.Single(i => i.MerchantSku == item).ID;
-
             // Get pack by item/pack name
             var pack = db.ItemPacks.Include("Details").FirstOrDefault(p => p.ItemID == itemID && p.Name == packName);
             if (pack != null)
@@ -403,7 +366,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _BTSGroups(string div, string store)
         {
-            List<StoreBTS> model = (from a in db.StoreBTS join b in db.StoreBTSDetails on a.ID equals b.GroupID where ((b.Store == store) && (b.Division == div)) select a).ToList();
+            List<StoreBTS> model = (from a in db.StoreBTS 
+                                    join b in db.StoreBTSDetails 
+                                    on a.ID equals b.GroupID 
+                                    where (b.Store == store) && (b.Division == div) 
+                                    select a).ToList();
 
             return View(new GridModel(model));
 
@@ -412,21 +379,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _ItemPacks(string sku, string store)
         {
-            long itemid = (from a in db.ItemMasters where a.MerchantSku == sku select a.ID).FirstOrDefault();
+            long itemid = db.ItemMasters.Where(im => im.MerchantSku == sku)
+                                        .Select(im => im.ID)
+                                        .FirstOrDefault();
 
-            List<ItemPack> model = (from a in db.ItemPacks where a.ItemID == itemid select a).ToList();
+            List<ItemPack> model = db.ItemPacks.Where(ip => ip.ItemID == itemid).ToList();
 
             return View(new GridModel(model));
-
         }
 
         [GridAction]
         public ActionResult _PackDetails(long packID)
         {
-            List<ItemPackDetail> model = (from a in db.ItemPackDetails where a.PackID == packID select a).ToList();
-
+            List<ItemPackDetail> model = db.ItemPackDetails.Where(ipd => ipd.PackID == packID).ToList();
             return View(new GridModel(model));
-
         }
 
         [GridAction]
@@ -653,10 +619,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                               where b.Division == div
                               select a.RunDate).FirstOrDefault().AddDays(2);
             
-            List<Hold> holds = (from a in db.Holds select a).ToList();
+            List<Hold> holds = db.Holds.ToList();
 
-            ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == sku select a).FirstOrDefault();
-          AllocationDriverDAO dao = new AllocationDriverDAO();
+            ItemMaster item = db.ItemMasters.Where(im => im.MerchantSku == sku).FirstOrDefault();
+            AllocationDriverDAO dao = new AllocationDriverDAO();
 
             holds = (from a in holds
                      where ((a.Division == item.Div) &&
@@ -695,8 +661,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void SetDCs(TroubleshootModel model)
         {
-            model.AllDCs = (from a in db.DistributionCenters
-                            select a).ToList();
+            model.AllDCs = db.DistributionCenters.ToList();
             DistributionCenter dc = new DistributionCenter
             {
                 ID = -1,
@@ -912,15 +877,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<RDQ> model;
 
-            RDQDAO dao = new RDQDAO();
-            if ((sku != null) && (sku != ""))
+            if (!string.IsNullOrEmpty(sku))
             {
                 model = GetRDQExtractForSkuDate(sku, controldate);
             }
-            else
-            {
+            else            
                 model = new List<RDQ>();
-            }
+            
             return View(new GridModel(model));
         }
 
@@ -938,7 +901,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 			{
 				return Content(ex.Message);
 			}
-
 		}
 
 		private Excel CreateRDQExport(List<RDQ> items)
@@ -950,7 +912,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 			foreach (var rdq in items)
 			{
                 // rdq values
-
                 mySheet.Cells[row, 0].PutValue(rdq.Sku);
                 mySheet.Cells[row, 1].PutValue(rdq.Division);
                 mySheet.Cells[row, 1].Style.HorizontalAlignment = TextAlignmentType.Center;
@@ -994,7 +955,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 			Worksheet mySheet = excelDocument.Worksheets[0];
 
 			mySheet.Cells[1, 3].PutValue("RDQs to MF");
-//			mySheet.Cells[1, 3].Style.HorizontalAlignment = TextAlignmentType.Center;
 			mySheet.Cells[1, 3].Style.Font.Size = 12;
 			mySheet.Cells[1, 3].Style.Font.IsBold = true;
 
@@ -1088,7 +1048,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (submitAction == "LostSales")
             {
-                DateTime start = default(DateTime); //Day 1 of the 14 day span to initialize excel headings
+                DateTime start; //Day 1 of the 14 day span to initialize excel headings
                 Double weeklySales = 0; //Variable to store prior week lost sales
                 
                 request = dao.GetLostSales(model.Sku);

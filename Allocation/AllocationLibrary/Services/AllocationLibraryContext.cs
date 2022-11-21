@@ -83,6 +83,8 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<Country> Countries { get; set; }
         public DbSet<State> States { get; set; }
 
+        public DbSet<CPSkuSizesXref> CPSkuSizesXrefs { get; set; }
+
         public AllocationLibraryContext()
             : base("AllocationContext")
         {

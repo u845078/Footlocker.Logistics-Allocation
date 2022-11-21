@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.ItemLookupModel
+﻿@model ItemLookupModel
 
 @{
     ViewBag.Title = "Lookup";
@@ -48,7 +48,6 @@
     </fieldset>
 }
 
-
 @if (Model != null)
 {
     <br />
@@ -56,7 +55,7 @@
     {
         @Html.Raw("<b>Items:</b>")
         @Html.Raw("<table>")
-        foreach (Footlocker.Logistics.Allocation.Models.ItemMaster item in Model.noSizeItems)
+        foreach (ItemMaster item in Model.noSizeItems)
         { 
             @Html.Raw("<tr><td>")
                 @Html.LabelFor(i => item.ID)

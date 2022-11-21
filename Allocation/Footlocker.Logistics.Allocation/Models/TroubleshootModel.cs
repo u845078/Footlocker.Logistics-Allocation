@@ -24,7 +24,7 @@ namespace Footlocker.Logistics.Allocation.Models
         }
         public string Size { get; set; }
         public List<DistributionCenter> AllDCs { get; set; }
-        public Int32 Warehouse { get; set; }
+        public int Warehouse { get; set; }
         public string Store { get; set; }
 
         public List<RangePlan> RangePlans { get; set; }
@@ -145,9 +145,10 @@ namespace Footlocker.Logistics.Allocation.Models
                 return result;
             }
         }
-        public Boolean ValidItem { get; set; }
+        public bool ValidItem { get; set; }
         public AllocationDriver AllocationDriver { get; set; }
         public ControlDate ControlDate { get; set; }
+        public long CPID { get; set; }
 
         public List<RDQ> RDQs { get; set; }
     }
