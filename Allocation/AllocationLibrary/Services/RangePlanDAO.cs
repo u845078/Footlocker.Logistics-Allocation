@@ -33,10 +33,31 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.ExecuteNonQuery(SQLCommand);
         }
 
+        public void CopyRangePlan(string fromSKU, string toSKU, long toItemID, string toDescription, bool copyOPRequest, string userID)
+        {
+            DbCommand SQLCommand;
+            string SQL = "CopyRangePlan";
+            SQLCommand = _database.GetStoredProcCommand(SQL);
+            _database.AddInParameter(SQLCommand, "@fromSKU", DbType.String, fromSKU);
+            _database.AddInParameter(SQLCommand, "@toSKU", DbType.String, toSKU);
+            _database.AddInParameter(SQLCommand, "@toItemID", DbType.Int64, toItemID);
+            _database.AddInParameter(SQLCommand, "@toDescription", DbType.String, toDescription);
+            _database.AddInParameter(SQLCommand, "@copyOPRequest", DbType.Boolean, copyOPRequest);
+            _database.AddInParameter(SQLCommand, "@user", DbType.String, userID);
+
+            SQLCommand.CommandTimeout = 120;
+            _database.ExecuteNonQuery(SQLCommand);
+        }
+
         public long GetRangePlanID(string sku)
         {
             return db.RangePlans.Where(rp => rp.Sku == sku)
                 .Select(rp => rp.Id).FirstOrDefault();
+        }
+
+        public RangePlan GetRangePlan(string sku)
+        {
+            return db.RangePlans.Where(rp => rp.Sku == sku).FirstOrDefault();
         }
 
         /// <summary>

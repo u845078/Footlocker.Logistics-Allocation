@@ -15,6 +15,9 @@ using Footlocker.Common;
 using System.Text;
 using System.Text.RegularExpressions;
 using Footlocker.Logistics.Allocation.Common;
+using System.Data.Entity.Infrastructure;
+using Aspose.Cells;
+using System.Web.UI;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -27,6 +30,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         // GET: /SkuRange/
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
         ConfigService configService = new ConfigService();
+        RangePlanDAO rangePlanDAO = new RangePlanDAO();
 
         #region ActionResults
 
@@ -106,25 +110,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Delete(long planID)
         {
-            var rangePlanExists = db.RangePlans.Any(rp => rp.Id.Equals(planID));
-            if (!rangePlanExists)
-            {
-                return RedirectToAction("Index", new { message = "Range no longer exists." });
-            }
-            RangePlanDAO rpDAO = new RangePlanDAO();
-            rpDAO.DeleteRangePlan(planID);
+            var rangePlanExists = db.RangePlans.Any(rp => rp.Id == planID);
+            if (!rangePlanExists)            
+                return RedirectToAction("Index", new { message = "Range no longer exists." });           
+
+            rangePlanDAO.DeleteRangePlan(planID);
             return RedirectToAction("Index");
         }
 
         public ActionResult DeleteConfirm(long planID)
         {
-            var rangeQuery = (from a in db.RangePlans where a.Id == planID select a);
-            if (rangeQuery.Count() == 0)
-            {
+            RangePlan range = db.RangePlans.Where(rp => rp.Id == planID).FirstOrDefault();
+            
+            if (range == null)
                 return RedirectToAction("Index", new { message = "Range no longer exists." });
-            }
-            RangePlan plan = rangeQuery.First();
-            return View(plan);
+
+            range.CreatedBy = getFullUserNameFromDatabase(range.CreatedBy.Replace('\\', '/'));
+            range.UpdatedBy = getFullUserNameFromDatabase(range.UpdatedBy.Replace('\\', '/'));
+
+            return View(range);
         }
 
         public ActionResult CreateRangePlan()
@@ -202,9 +206,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 ItemDAO dao = new ItemDAO();
                 string div = SKU.Substring(0, 2);
-                int instance = (from a in db.InstanceDivisions
-                                where a.Division == div
-                                select a.InstanceID).First();
+
+                int instance = configService.GetInstance(div);
+
                 try
                 {
                     dao.CreateItemMaster(SKU, instance);
@@ -220,6 +224,62 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
+        private Dictionary<string, string> ValidateCopyRangeRecord(CopyRangePlanModel copyRangeRec)
+        {
+            Dictionary<string, string> errors = new Dictionary<string, string>();
+            string skuError;
+           
+            if (!string.IsNullOrEmpty(copyRangeRec.FromSku))
+            {
+                RangePlan range = rangePlanDAO.GetRangePlan(copyRangeRec.FromSku);
+
+                if (range == null)                
+                    errors.Add("FromSKU", "From Sku is not ranged.");
+                
+                copyRangeRec.FromRangePlan = range;
+            }
+            else if (!string.IsNullOrEmpty(copyRangeRec.FromDescription))     
+                copyRangeRec.FromRangePlan = db.RangePlans.Where(rp => rp.Description == copyRangeRec.FromDescription).FirstOrDefault();            
+            else           
+                errors.Add("", "You must specify either a SKU or Store Range Description.");            
+
+            if (errors.Count == 0)
+            {
+                if (copyRangeRec.FromSku.Substring(0, 2) != copyRangeRec.ToSku.Substring(0, 2))                
+                    errors.Add("FromSKU", "You can only copy from a sku in the same division.");                
+
+                //verify the sizes match on old/new sku
+                List<string> ToSizes = (from a in db.Sizes
+                                        where a.Sku == copyRangeRec.ToSku
+                                        select a.Size).OrderBy(p => p).ToList();
+                List<string> FromSizes = (from a in db.Sizes
+                                          where a.Sku == copyRangeRec.FromRangePlan.Sku
+                                          select a.Size).OrderBy(p => p).ToList();
+
+                if (ToSizes.Count != FromSizes.Count)
+                    errors.Add("", "These skus have different sizes, cannot copy");
+                else
+                {
+                    for (int i = 0; i < ToSizes.Count; i++)
+                    {
+                        if (errors.Count == 0)
+                            if (ToSizes[i] != FromSizes[i])                        
+                                errors.Add("", "These skus have different sizes, cannot copy");                        
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(copyRangeRec.FromSku))
+                copyRangeRec.FromSku = copyRangeRec.FromRangePlan.Sku;
+
+            skuError = ValidateSKU(copyRangeRec.ToSku);
+
+            if (!string.IsNullOrEmpty(skuError))
+                errors.Add("ToSku", skuError);
+
+            return errors;
+        }
+
         public ActionResult CopyRangePlan()
         {
             return View();
@@ -228,238 +288,37 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult CopyRangePlan(CopyRangePlanModel model)
         {
-            RangePlan fromPlan = null;
-            if (!string.IsNullOrEmpty(model.FromSku))
-            {
-                List<RangePlan> rpList = db.RangePlans.Where(rp => rp.Sku == model.FromSku).ToList();
-                if (rpList.Count() == 0)
-                {
-                    ModelState.AddModelError("FromSKU", "From Sku is not ranged.");
-                    return View(model);
-                }
+            Dictionary<string, string> errors;
+            long itemID;
 
-                fromPlan = rpList.First();
-            }
-            else if (!string.IsNullOrEmpty(model.FromDescription))
+            errors = ValidateCopyRangeRecord(model);
+
+            if (errors.Count() > 0)
             {
-                fromPlan = db.RangePlans.Where(rp => rp.Description == model.FromDescription).FirstOrDefault();
-            }
-            else
-            {
-                ModelState.AddModelError("", "You must specify either a SKU or Store Range Description.");
+                foreach (KeyValuePair<string, string> error in errors)                
+                    ModelState.AddModelError(error.Key, error.Value);
+
                 return View(model);
             }
 
-            if (model.FromSku.Substring(0, 2) != model.ToSku.Substring(0, 2))
-            {
-                ModelState.AddModelError("FromSKU", "You can only copy from a sku in the same division.");
-                return View(model);
-            }
-
-            //verify the sizes match on old/new sku
-            List<string> ToSizes = (from a in db.Sizes
-                                    where a.Sku == model.ToSku
-                                    select a.Size).OrderBy(p => p).ToList();
-            List<string> FromSizes = (from a in db.Sizes
-                                      where a.Sku == model.FromSku
-                                      select a.Size).OrderBy(p => p).ToList();
-
-            if (ToSizes.Count != FromSizes.Count)
-            {
-                ModelState.AddModelError("", "These skus have different sizes, cannot copy");
-                return View(model);
-            }
-
-            for (int i = 0; i < ToSizes.Count; i++)
-            {
-                if (ToSizes[i] != FromSizes[i])
-                {
-                    ModelState.AddModelError("", "These skus have different sizes, cannot copy");
-                    return View(model);
-                }
-            }
-
-            string validationMessage;
-
-            validationMessage = ValidateSKU(model.ToSku);
-            if (!string.IsNullOrEmpty(validationMessage))
-            {
-                ModelState.AddModelError("ToSku", validationMessage);
-                return View(model);
-            }
-
-            //create new skurange
             try
             {
-                RangePlan newPlan = new RangePlan()
-                {
-                    Sku = model.ToSku,
-                    Description = model.ToDescription,
-                    CreateDate = DateTime.Now,
-                    CreatedBy = currentUser.NetworkID,
-                    UpdateDate = DateTime.Now,
-                    UpdatedBy = currentUser.NetworkID,
-                    PlanType = fromPlan.PlanType,
-                    StoreCount = 0
-                };
+                itemID = RetreiveOrCreateItemID(model.ToSku);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+                return View(model);
+            }
+            
+            try
+            {
+                rangePlanDAO.CopyRangePlan(model.FromSku, model.ToSku, itemID, model.ToDescription, model.CopyOPRequest, currentUser.NetworkID);
 
-                if (string.IsNullOrEmpty(newPlan.Description))
-                {
-                    newPlan.Description = model.ToSku;
-                }
-
-                try
-                {
-                    newPlan.ItemID = RetreiveOrCreateItemID(newPlan.Sku);
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", ex.Message);                    
-                    return View(model);
-                }
-
-                db.RangePlans.Add(newPlan);
-                db.SaveChanges(currentUser.NetworkID);
-
-                List<long> OldRuleSets = new List<long>();
-                List<long> NewRuleSets = new List<long>();
-                //copy ruleset
-                List<RuleSet> rsFromList = db.RuleSets.Where(rs => rs.PlanID == fromPlan.Id).ToList();
-
-                foreach (RuleSet rsFrom in rsFromList)
-                {
-                    RuleSet rs = new RuleSet()
-                    {
-                        PlanID = newPlan.Id,
-                        Type = rsFrom.Type,
-                        CreatedBy = currentUser.NetworkID,
-                        CreateDate = DateTime.Now
-                    };
-   
-                    db.RuleSets.Add(rs);
-                    // doing a save to generate the identity column
-                    db.SaveChanges();
-
-                    OldRuleSets.Add(rsFrom.RuleSetID);
-                    NewRuleSets.Add(rs.RuleSetID);
-
-                    List<RuleSelectedStore> stores = db.RuleSelectedStores.Where(rss => rss.RuleSetID == rsFrom.RuleSetID).ToList();
-                    foreach (RuleSelectedStore storeFrom in stores)
-                    {
-                        RuleSelectedStore store = new RuleSelectedStore()
-                        {
-                            Division = storeFrom.Division,
-                            Store = storeFrom.Store,
-                            RuleSetID = rs.RuleSetID,
-                            CreatedBy = currentUser.NetworkID,
-                            CreateDate = DateTime.Now
-                        };
-
-                        db.RuleSelectedStores.Add(store);
-                    }
-                    db.SaveChanges();
-
-                    List<Rule> rules = db.Rules.Where(r => r.RuleSetID == rsFrom.RuleSetID).ToList();
-                    foreach (Rule fromRule in rules)
-                    {
-                        Rule rule = new Rule()
-                        {
-                            RuleSetID = rs.RuleSetID,
-                            Field = fromRule.Field,
-                            Compare = fromRule.Compare,
-                            Value = fromRule.Value,
-                            Sort = fromRule.Sort
-                        };
-
-                        db.Rules.Add(rule);
-                    }
-                    db.SaveChanges();
-                }
-
-                //copy deliverygroup
-                List<DeliveryGroup> dgList = db.DeliveryGroups.Where(dg => dg.PlanID == fromPlan.Id).ToList();
-                foreach (DeliveryGroup dg in dgList)
-                {
-                    DeliveryGroup dgNew = new DeliveryGroup()
-                    {
-                        PlanID = newPlan.Id,
-                        StoreCount = dg.StoreCount,
-                        StartDate = dg.StartDate,
-                        EndDate = dg.EndDate,
-                        Name = dg.Name,
-                        MinEndDays = dg.MinEndDays,
-                        RuleSetID = NewRuleSets[OldRuleSets.IndexOf(dg.RuleSetID)]
-                    };
-
-                    db.DeliveryGroups.Add(dgNew);
-                }
-                db.SaveChanges(currentUser.NetworkID);
-
-                //copy details
-                List<RangePlanDetail> details = db.RangePlanDetails.Where(rpd => rpd.ID == fromPlan.Id).ToList();
-                foreach (RangePlanDetail fromDet in details)
-                {
-                    RangePlanDetail det = new RangePlanDetail() 
-                    {
-                        ID = newPlan.Id,
-                        CreateDate = DateTime.Now,
-                        CreatedBy = currentUser.NetworkID,
-                        Division = fromDet.Division,
-                        EndDate = fromDet.EndDate,
-                        StartDate = fromDet.StartDate,
-                        Store = fromDet.Store
-                    };
-
-                    db.RangePlanDetails.Add(det);
-                }
-                db.SaveChanges();
-
-                //copy presentation qtys
-                //TODO:  Verify size exists for new sku
-                List<SizeObj> sizes = db.Sizes.Where(s => s.Sku == newPlan.Sku).ToList();
-                List<SizeAllocation> list = db.SizeAllocations.Where(sa => sa.PlanID == fromPlan.Id).ToList();
-
-                foreach (SizeAllocation saFrom in list)
-                {
-                    if (sizes.Where(s => s.Size == saFrom.Size).Count() > 0)
-                    {
-                        SizeAllocation sa = new SizeAllocation() 
-                        {
-                            PlanID = newPlan.Id,
-                            Days = saFrom.Days,
-                            Division = saFrom.Division,
-                            EndDate = saFrom.EndDate,
-                            InitialDemand = saFrom.InitialDemand,
-                            Max = saFrom.Max,
-                            Min = saFrom.Min,
-                            Range = saFrom.Range,
-                            Size = saFrom.Size,
-                            StartDate = saFrom.StartDate,
-                            Store = saFrom.Store,
-                            MinEndDays = saFrom.MinEndDays
-                        };
-
-                        db.SizeAllocations.Add(sa);
-                    }
-                }
-
-                db.SaveChanges(currentUser.NetworkID);
                 return RedirectToAction("Index", new { message = string.Format("Copied from {0} to {1}", model.FromSku, model.ToSku) });
             }
             catch (Exception ex)
             {
-                //we are saving changes periodically to get parent ID's.  
-                //maybe not the best, but we don't want to create the parent child relationship at this point
-                //so if there is an error, we'll just delete the new range and show an error message.
-                try
-                {
-                    RangePlan plan = db.RangePlans.Where(rp => rp.Sku == model.ToSku).First();
-                    db.RangePlans.Remove(plan);
-                    db.SaveChanges();
-                }
-                catch
-                { }
-
                 ModelState.AddModelError("", string.Format("There was a problem copying the SKU Range: {0}", ex.Message));
                 return View(model);
             }
@@ -773,7 +632,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             Excel excelDocument = new Excel();
 
-            Worksheet mySheet = excelDocument.Worksheets[0];
+            Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
 
             mySheet.Cells[0, 0].PutValue("PlanID");
             mySheet.Cells[0, 0].Style.Font.IsBold = true;
@@ -809,7 +668,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 mySheet.AutoFitColumn(i);
             }
 
-            excelDocument.Save("SizeAllocation" + planID + ".xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("SizeAllocation" + planID + ".xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
 
@@ -1047,7 +906,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             QFeedModel model = new QFeedModel();
             model.VerificationMessages = new List<string>();
-            int storecount = (from a in db.RangePlanDetails join b in db.vValidStores on new { a.Division, a.Store } equals new { b.Division, b.Store } where a.ID == planID select a).Count();
+            int storecount = (from a in db.RangePlanDetails 
+                              join b in db.vValidStores 
+                              on new { a.Division, a.Store } equals new { b.Division, b.Store } 
+                              where a.ID == planID 
+                              select a).Count();
 
             model.VerificationMessages.Add(storecount + " stores ranged.");
             model.VerificationMessages.Add("");
@@ -1057,8 +920,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.Sku = item.MerchantSku;
             model.RangePlan = rp;
 
-            int instanceid = (from a in db.InstanceDivisions where a.Division == item.Div select a.InstanceID).First();
-            model.Routes = (from a in db.Routes where a.InstanceID == instanceid select a).ToList();
+            int instanceid = configService.GetInstance(item.Div);
+            model.Routes = db.Routes.Where(r => r.InstanceID == instanceid).ToList();
 
             return View(model);
         }
@@ -1066,7 +929,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult _CheckPrice(string sku)
         {
-            ItemMaster item = (from a in db.ItemMasters where a.MerchantSku == sku select a).FirstOrDefault();
+            ItemMaster item = db.ItemMasters.Where(im => im.MerchantSku == sku).FirstOrDefault();
 
             if (item != null)
             {
@@ -1103,10 +966,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                            where a.ID == planID
                            select new { b.Division, b.Store, b.ZoneID, c.Name });
 
-            Route route = (from a in db.Routes where a.ID == routeid select a).First();
+            Route route = db.Routes.Where(r => r.ID == routeid).First();
 
             //2.  See if all zoneids are in that route
-            var routeZones = (from a in db.Routes join b in db.RouteDetails on a.ID equals b.RouteID where a.ID == routeid select new { b.RouteID, b.ZoneID });
+            var routeZones = (from a in db.Routes 
+                              join b in db.RouteDetails 
+                              on a.ID equals b.RouteID 
+                              where a.ID == routeid 
+                              select new { b.RouteID, b.ZoneID });
 
             var missingZones = (from a in zoneids
                                 where (!routeZones.Any(b => (b.ZoneID == a.ZoneID)))
@@ -1119,7 +986,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 issue = new RangeIssue();
                 issue.Division = det.Division;
                 issue.Store = det.Store;
-                issue.Message = "Zone [" + det.Name + "] not in route [" + route.DisplayString + "] for this product";
+                issue.Message = string.Format("Zone [{0}] not in route [{1}] for this product", det.Name, route.DisplayString);
                 issues.Add(issue);
             }
 
@@ -1620,8 +1487,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (model.RangePlan != null)
             {
-                if (model.RangePlan.UpdatedBy.Contains("CORP"))
-                    model.RangePlan.UpdatedBy = getFullUserNameFromDatabase(model.RangePlan.UpdatedBy.Replace('\\', '/'));
+                model.RangePlan.CreatedBy = getFullUserNameFromDatabase(model.RangePlan.CreatedBy.Replace('\\', '/'));
+                model.RangePlan.UpdatedBy = getFullUserNameFromDatabase(model.RangePlan.UpdatedBy.Replace('\\', '/'));
             }
 
             //update the store count
@@ -2267,8 +2134,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-
-
         public ActionResult StoreTemplate()
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
@@ -2282,11 +2147,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             excelDocument.Worksheets[0].Cells[0, 0].Style.Font.IsBold = true;
             excelDocument.Worksheets[0].Cells[0, 1].Style.Font.IsBold = true;
 
-            excelDocument.Save("StoreTemplate.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("StoreTemplate.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
 
-        public ActionResult Excel(Int64 planID)
+        public ActionResult Excel(long planID)
         {
             Aspose.Excel.License license = new Aspose.Excel.License();
             //Set the license 
@@ -2294,7 +2159,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             Excel excelDocument = new Excel();
 
-            Worksheet mySheet = excelDocument.Worksheets[0];
+            Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
 
             mySheet.Cells[0, 0].PutValue("Div (##)");
             mySheet.Cells[0, 0].Style.Font.IsBold = true;
@@ -2342,7 +2207,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 mySheet.AutoFitColumn(i);
             }
 
-            excelDocument.Save("SkuRangePlanStores.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("SkuRangePlanStores.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
 
@@ -3602,7 +3467,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 errorList = (List<BulkRange>)Session["errorList"];            
 
             excelDocument = skuRangeSpreadsheet.GetErrors(errorList);           
-            excelDocument.Save("RangeUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("RangeUploadErrors.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
 
             return View();
         }
@@ -3613,7 +3478,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             SkuRangeSpreadsheet rangeSpreadsheet = new SkuRangeSpreadsheet(appConfig, configService);
 
             excelDocument = rangeSpreadsheet.GetTemplate();
-            excelDocument.Save("RangeUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("RangeUpload.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
         #endregion
@@ -3635,7 +3500,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             List<BulkRange> list = (new RangePlanDetailDAO()).GetBulkRangesForSku(sku);
             int row = 1;
-            Worksheet mySheet = excelDocument.Worksheets[0];
+            Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
 
             foreach (BulkRange p in list)
             {
@@ -3655,7 +3520,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 row++;
             }
 
-            excelDocument.Save("RangeUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("RangeUpload.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
 
             return View();
         }
@@ -3693,7 +3558,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                         .ToList();
 
             int row = 1;
-            Worksheet mySheet = excelDocument.Worksheets[0];
+            Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
 
             foreach (BulkRange br in list)
             {
@@ -3713,7 +3578,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 row++;
             }
 
-            excelDocument.Save(sku + "-" + dg.Name + ".xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(sku + "-" + dg.Name + ".xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
 
@@ -3754,7 +3619,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             Excel excelDocument;
 
             excelDocument = skuRangePlanDGSpreadsheet.GetTemplate();
-            excelDocument.Save("SkuRangePlanDGUploadTemplate.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("SkuRangePlanDGUploadTemplate.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
 
             return View();
         }

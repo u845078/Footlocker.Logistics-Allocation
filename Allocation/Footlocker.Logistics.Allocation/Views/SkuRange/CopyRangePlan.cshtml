@@ -4,7 +4,7 @@
     ViewBag.Title = "Copy Range Plan";
 }
 
-<h2>CopyRangePlan</h2>
+<h2>Copy Range Plan</h2>
 <script type="text/javascript">
 
         function changeSkuValue(e) {
@@ -22,22 +22,22 @@
 @using (Html.BeginForm()) {
     @Html.ValidationSummary(true)
 
-    <fieldset>
-        <legend>Copy Range Plan Details</legend>
-        <div class="editor-label">
-            @Html.LabelFor(model => model.PlanType)
-        </div>
-        <div class="editor-field">
-            @Html.DropDownListFor(model => model.PlanType, new List<SelectListItem> { new SelectListItem{Text="ALR",Value="ALR"},
-                                                                                    new SelectListItem{Text="FOP",Value="FOP"}})
-        </div>
+<fieldset>
+    <legend>Copy Range Plan Details</legend>
+    <div class="editor-label">
+        @Html.LabelFor(model => model.PlanType)
+    </div>
+    <div class="editor-field">
+        @Html.DropDownListFor(model => model.PlanType, new List<SelectListItem> { new SelectListItem{Text="ALR",Value="ALR"},
+                                                                                new SelectListItem{Text="FOP",Value="FOP"}})
+    </div>
 
-        <div class="editor-label">
-            @Html.LabelFor(model => model.FromSku)
-        </div>
-        <div class="editor-field">
-            @Html.HiddenFor(model => model.FromSku)
-            @(Html.Telerik().AutoComplete()
+    <div class="editor-label">
+        @Html.LabelFor(model => model.FromSku)
+    </div>
+    <div class="editor-field">
+        @Html.HiddenFor(model => model.FromSku)
+        @(Html.Telerik().AutoComplete()
                 .Name("AjaxSku")
                 .AutoFill(true)
                 .DataBinding(binding => binding.Ajax()
@@ -55,15 +55,15 @@
                 .HighlightFirstMatch(true)
                 .ClientEvents(events => events.OnChange("changeSkuValue"))
             )
-            @Html.ValidationMessageFor(model => model.FromSku)
-        </div>
+        @Html.ValidationMessageFor(model => model.FromSku)
+    </div>
 
-        <div class="editor-label">
-            @Html.LabelFor(model => model.FromDescription)
-        </div>
-        <div class="editor-field">
-            @Html.HiddenFor(model => model.FromDescription)
-            @(Html.Telerik().AutoComplete()
+    <div class="editor-label">
+        @Html.LabelFor(model => model.FromDescription)
+    </div>
+    <div class="editor-field">
+        @Html.HiddenFor(model => model.FromDescription)
+        @(Html.Telerik().AutoComplete()
                 .Name("AjaxDescription")
                 .AutoFill(true)
                 .DataBinding(binding => binding.Ajax()
@@ -81,28 +81,35 @@
                 .HighlightFirstMatch(true)
                 .ClientEvents(events => events.OnChange("changeDescValue"))
             )
-        </div>
+    </div>
 
-        <div class="editor-label">
-            @Html.LabelFor(model => model.ToSku)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.ToSku)
-            @Html.ValidationMessageFor(model => model.ToSku)
-        </div>
+    <div class="editor-label">
+        @Html.LabelFor(model => model.ToSku)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(model => model.ToSku)
+        @Html.ValidationMessageFor(model => model.ToSku)
+    </div>
 
-        <div class="editor-label">
-            @Html.LabelFor(model => model.ToDescription)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.ToDescription)
-            @Html.ValidationMessageFor(model => model.ToDescription)
-        </div>
+    <div class="editor-label">
+        @Html.LabelFor(model => model.ToDescription)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(model => model.ToDescription)
+        @Html.ValidationMessageFor(model => model.ToDescription)
+    </div>
 
-        <p>
-            <input type="submit" value="Create" />
-        </p>
-    </fieldset>
+    <div class="editor-label">
+        @Html.LabelFor(model => model.CopyOPRequest)
+    </div>
+    <div class="editor-field">
+        @Html.EditorFor(model => model.CopyOPRequest)
+    </div>
+
+    <p>
+        <input type="submit" value="Create" />
+    </p>
+</fieldset>
 }
 
 <div>
