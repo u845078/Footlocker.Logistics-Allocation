@@ -228,6 +228,7 @@
     <Compile Include="Common\Filters\HandleAjaxValidationError.cs" />
     <Compile Include="Common\Filters\LogError.cs" />
     <Compile Include="Common\JsonResultData.cs" />
+    <Compile Include="Common\RingFenceDeleteSpreadsheet.cs" />
     <Compile Include="Common\SKURangePlanDGSpreadsheet.cs" />
     <Compile Include="Common\SkuRangeSpreadsheet.cs" />
     <Compile Include="Common\UploadSpreadsheet.cs" />

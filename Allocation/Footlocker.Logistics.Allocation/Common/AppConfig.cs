@@ -97,6 +97,17 @@ namespace Footlocker.Logistics.Allocation.Common
             }
         }
 
+        public string RingFenceDeleteTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_ringFenceDeleteTemplate))
+                    _ringFenceDeleteTemplate = ConfigurationManager.AppSettings["RingFenceDeleteTemplate"].ToString();
+
+                return _ringFenceDeleteTemplate;
+            }
+        }
+
         public string AsposeLicenseFile 
         { 
             get
