@@ -11,9 +11,9 @@ namespace Footlocker.Logistics.Allocation.Models
 {
     public class RangePlan
     {
-        private Int64 _id;
+        private long _id;
 
-        public Int64 Id
+        public long Id
         {
             get { return _id; }
             set { _id = value; }
@@ -119,22 +119,22 @@ namespace Footlocker.Logistics.Allocation.Models
             set { }
         }
 
-        public Int64? ItemID { get; set; }
+        public long? ItemID { get; set; }
 
-        private Int32 _storeCount;
+        private int _storeCount;
 
         [DisplayName("# Stores")]
-        public Int32 StoreCount
+        public int StoreCount
         {
             get { return _storeCount; }
             set { _storeCount = value; }
         }
 
-        public Boolean Launch { get; set; }
+        public bool Launch { get; set; }
 
-        public Boolean EvergreenSKU { get; set; }
+        public bool EvergreenSKU { get; set; }
 
-        public Boolean LaunchMinihubInd { get; set; }
+        public bool LaunchMinihubInd { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime? LaunchDate { get; set; }
@@ -142,11 +142,11 @@ namespace Footlocker.Logistics.Allocation.Models
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime? ALRStartDate { get; set; }
 
-        public String ActiveAR { get; set; }
+        public string ActiveAR { get; set; }
 
         [NotMapped]
         [DefaultValue("No")]
-        public String PreSaleSKU { get; set; }
+        public string PreSaleSKU { get; set; }
 
         [NotMapped]
         public string ReInitializeStatus { get; set; }
@@ -173,46 +173,6 @@ namespace Footlocker.Logistics.Allocation.Models
             this.ItemID = new Int64?();
             this.StoreCount = 0;
             this.ItemMaster = null;            
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the RangePlan class.
-        /// </summary>
-        /// <param name="id">The initial value for the identifier property.</param>
-        /// <param name="sku">The initial value for the stock keeping unit property.</param>
-        /// <param name="description">The initial value for the description property.</param>
-        /// <param name="startDate">The initial value for the start date property.</param>
-        /// <param name="endDate">The initial value for the end date property.</param>
-        /// <param name="planType">The initial value for the plan type property.</param>
-        /// <param name="updatedBy">The initial value for the updated by property.</param>
-        /// <param name="updateDate">The initial value for the update date property.</param>
-        /// <param name="createdBy">The initial value for the created by property.</param>
-        /// <param name="createDate">The initial value for the create date property.</param>
-        /// <param name="division">The initial value for the division property.</param>
-        /// <param name="department">The initial value for the department property.</param>
-        /// <param name="itemId">The initial value for the item identifier property.</param>
-        /// <param name="storeCount">The initial value for the store count property.</param>
-        /// <param name="itemMaster">The initial value for the item master property.</param>
-        public RangePlan(Int64 id, string sku, string description, DateTime? startDate, DateTime? endDate
-                , string planType, string updatedBy, DateTime? updateDate, string createdBy, DateTime createDate
-                , string division, string department, Int64? itemId, Int32 storeCount, ItemMaster itemMaster)
-            : this()
-        {
-            this.Id = id;
-            this.Sku = sku;
-            this.Description = description;
-            this.StartDate = startDate;
-            this.EndDate = endDate;
-            this.PlanType = planType;
-            this.UpdatedBy = updatedBy;
-            this.UpdateDate = updateDate;
-            this.CreatedBy = createdBy;
-            this.CreateDate = createDate;
-            this.Division = division;
-            this.Department = department;
-            this.ItemID = itemId;
-            this.StoreCount = storeCount;
-            this.ItemMaster = itemMaster;
         }
     }
 }

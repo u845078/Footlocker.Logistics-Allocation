@@ -9,27 +9,8 @@ namespace Footlocker.Logistics.Allocation.Models
 {
     public class RangePlanModel 
     {
-        public RangePlanModel()
-        { }
+        public RangePlan Range { get; set; }
 
-        //public RangePlanModel(RangePlan plan)
-        //{
-        //    foreach (PropertyInfo prop in plan.GetType().GetProperties())
-        //    {
-        //        if (prop.Name != "ItemMaster")
-        //        {
-        //            PropertyInfo prop2 = plan.GetType().GetProperty(prop.Name);
-        //            prop2.SetValue(this, prop.GetValue(plan, null), null);
-        //        }
-        //        else
-        //        {
-        //            if (plan.ItemMaster != null)
-        //            {
-        //                this.ItemMaster = plan.ItemMaster;
-        //            }
-        //        }
-        //    }
-        //}
-
+        public OrderPlanningRequest OPRequest { get; set; }
     }
 }

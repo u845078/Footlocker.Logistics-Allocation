@@ -24,7 +24,7 @@ namespace Footlocker.Logistics.Allocation.Models
         {
             get
             {
-                if ((Category == null)||(Category == ""))
+                if (string.IsNullOrEmpty(Category))
                     return "default";
                 else
                     return Category;
@@ -38,7 +38,7 @@ namespace Footlocker.Logistics.Allocation.Models
         {
             get
             {
-                if ((Brand == null) || (Brand == ""))
+                if (string.IsNullOrEmpty(Brand))
                     return "default";
                 else
                     return Brand;
@@ -49,7 +49,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public DateTime? CreateDate { get; set; }
         public decimal WeightActive { get; set; }
         [NotMapped]
-        public Int32 WeightActiveInt 
+        public int WeightActiveInt 
         { 
             get 
             { 
@@ -62,7 +62,13 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         [NotMapped]
-        public Int32 WeightInactive { get { return Convert.ToInt32(1 - WeightActive * 100); } }
+        public int WeightInactive 
+        { 
+            get 
+            { 
+                return Convert.ToInt32(1 - WeightActive * 100); 
+            } 
+        }
 
         public List<SkuAttributeDetail> SkuAttributeDetails { get; set; }
     }

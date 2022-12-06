@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.RangePlan
+﻿@model RangePlanModel
 
 @{
     ViewBag.Title = "CreateRangePlan";
@@ -23,40 +23,38 @@
 @using (Html.BeginForm())
 {
     @Html.ValidationSummary(true)
-    if ((ViewData["message"] != "") && (ViewData["message"] != null))
-    { 
-        <font color="red">@Html.Raw(ViewData["message"])</font>
-    }
+
+    <font color="red">@Html.Raw(ViewData["message"])</font>
 
     <fieldset>
         <legend>SKU</legend>
         <div class="editor-field">
-            @Html.CheckBoxFor(model => model.Launch, new { id = "launchChk" })
-            @Html.LabelFor(model => model.Launch)
+            @Html.CheckBoxFor(model => model.Range.Launch, new { id = "launchChk" })
+            @Html.LabelFor(model => model.Range.Launch)
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            @Html.CheckBoxFor(model => model.EvergreenSKU, new { id = "evergreenSKU" })
+            @Html.CheckBoxFor(model => model.Range.EvergreenSKU, new { id = "evergreenSKU" })
             <label>Evergreen SKU</label>
         </div>
 
         <div class="editor-field" style="padding-left: 15px;">
-            @Html.CheckBoxFor(model => model.LaunchMinihubInd, new { id = "launchWithMinihubChk", @disabled = "disabled" })
+            @Html.CheckBoxFor(model => model.Range.LaunchMinihubInd, new { id = "launchWithMinihubChk", @disabled = "disabled" })
             <label>Mini Hub Strategy</label>
         </div>
 
         <div class="editor-label">
-            @Html.LabelFor(model => model.LaunchDate)
+            @Html.LabelFor(model => model.Range.LaunchDate)
         </div>
         <div class="editor-field">
-            @Html.EditorFor(model => model.LaunchDate)
-            @Html.ValidationMessageFor(model => model.LaunchDate)
+            @Html.EditorFor(model => model.Range.LaunchDate)
+            @Html.ValidationMessageFor(model => model.Range.LaunchDate)
         </div>
 
         <div class="editor-label">
-            @Html.LabelFor(model => model.Description, "Comment")
+            @Html.LabelFor(model => model.Range.Description, "Comment")
         </div>
         <div class="editor-field">
-            @Html.EditorFor(model => model.Description)
-            @Html.ValidationMessageFor(model => model.Description)
+            @Html.EditorFor(model => model.Range.Description)
+            @Html.ValidationMessageFor(model => model.Range.Description)
         </div>
 @*
         <div class="editor-label">
@@ -68,13 +66,41 @@
         </div>*@
 
         <div class="editor-label">
-            @Html.LabelFor(model => model.Sku, "SKU") (##-##-#####-##)
+            @Html.LabelFor(model => model.Range.Sku, "SKU") (##-##-#####-##)
         </div>
         <div class="editor-field">
-            @Html.EditorFor(model => model.Sku)
-            @Html.ValidationMessageFor(model => model.Sku)
+            @Html.EditorFor(model => model.Range.Sku)
+            @Html.ValidationMessageFor(model => model.Range.Sku)
         </div>
 
+        <fieldset>
+            <legend>Order Planning Request</legend>
+
+            <div class="editor-label">
+                @Html.LabelFor(model => model.OPRequest.StartSend)
+            </div>
+            <div class="editor-field">
+                @Html.EditorFor(model => model.OPRequest.StartSend)
+                @Html.ValidationMessageFor(model => model.OPRequest.StartSend)
+            </div>
+
+            <div class="editor-label">
+                @Html.LabelFor(model => model.OPRequest.EndSend)
+            </div>
+            <div class="editor-field">
+                @Html.EditorFor(model => model.OPRequest.EndSend)
+                @Html.ValidationMessageFor(model => model.OPRequest.EndSend)
+            </div>
+
+            <div class="editor-label">
+                @Html.LabelFor(model => model.OPRequest.Comment)
+            </div>
+            <div class="editor-field">
+                @Html.EditorFor(model => model.OPRequest.Comment)
+                @Html.ValidationMessageFor(model => model.OPRequest.Comment)
+            </div>
+
+        </fieldset>
         <p>
             <input type="submit" value="Create" class="t-button"/>
         </p>

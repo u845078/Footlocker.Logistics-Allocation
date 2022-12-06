@@ -20,6 +20,7 @@ namespace Footlocker.Logistics.Allocation.Common
         public ConfigService configService;
         public string errorMessage;
         public string templateFilename;
+        public int headerRowNumber = 0;
 
         public bool HasValidHeaderRow()
         {
@@ -27,7 +28,7 @@ namespace Footlocker.Logistics.Allocation.Common
 
             for (int i = 0; i < maxColumns; i++)
             {
-                if (Convert.ToString(worksheet.Cells[0, i].Value) != columns[i])
+                if (Convert.ToString(worksheet.Cells[headerRowNumber, i].Value) != columns[i])
                     isValid = false;
             }
 

@@ -12,7 +12,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public SkuAttributeDetail()
         {
         }
-        public SkuAttributeDetail(string type, Boolean mandatory, Decimal weight)
+        public SkuAttributeDetail(string type, bool mandatory, decimal weight)
         {
             AttributeType = type;
             Mandatory = mandatory;
@@ -25,10 +25,10 @@ namespace Footlocker.Logistics.Allocation.Models
         [Key]
         [Column(Order = 1)]
         public string AttributeType { get; set; }
-        public Boolean Mandatory { get; set; }
-        public Decimal Weight { get; set; }
+        public bool Mandatory { get; set; }
+        public decimal Weight { get; set; }
         [NotMapped]
-        public Int32 WeightInt 
+        public int WeightInt 
         {
             get
             {
@@ -40,9 +40,9 @@ namespace Footlocker.Logistics.Allocation.Models
             }
         }
 
-        public Decimal WeightForInactive { get; set; }
+        public decimal WeightForInactive { get; set; }
         [NotMapped]
-        public Int32 WeightForInactiveInt
+        public int WeightForInactiveInt
         {
             get
             {
@@ -55,7 +55,7 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         [NotMapped]
-        public Int32 SortOrder
+        public int SortOrder
         {
             get
             {

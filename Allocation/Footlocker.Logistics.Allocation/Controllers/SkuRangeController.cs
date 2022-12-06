@@ -133,19 +133,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult CreateRangePlan()
         {
-            RangePlan p = new RangePlan();
+            RangePlanModel p = new RangePlanModel()
+            {
+                Range = new RangePlan(),
+                OPRequest = new OrderPlanningRequest()
+            };            
+           
             return View(p);
         }
 
         [HttpPost]
-        public ActionResult CreateRangePlan(RangePlan p)
+        public ActionResult CreateRangePlan(RangePlanModel p)
         {
-            p.CreatedBy = currentUser.NetworkID;
-            p.CreateDate = DateTime.Now;
-            p.UpdatedBy = currentUser.NetworkID;
-            p.UpdateDate = DateTime.Now;
+            p.Range.CreatedBy = currentUser.NetworkID;
+            p.Range.CreateDate = DateTime.Now;
+            p.Range.UpdatedBy = currentUser.NetworkID;
+            p.Range.UpdateDate = DateTime.Now;
 
-            string skuErrors = ValidateSKU(p.Sku);
+            string skuErrors = ValidateSKU(p.Range.Sku);
 
             if (!string.IsNullOrEmpty(skuErrors))
                 ModelState.AddModelError("Sku", skuErrors);
@@ -155,7 +160,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             try
             {
-                p.ItemID = RetreiveOrCreateItemID(p.Sku);
+                p.Range.ItemID = RetreiveOrCreateItemID(p.Range.Sku);
             }
             catch (Exception ex)
             {
@@ -163,12 +168,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return View(p);
             }
 
-            db.RangePlans.Add(p);
+            db.RangePlans.Add(p.Range);
             db.SaveChanges();
             //update ActiveARStatus since we added a new rangeplan
             ItemDAO itemDAO = new ItemDAO();
             itemDAO.UpdateActiveARStatus();
-            return RedirectToAction("EditStores", new { planID = p.Id });
+
+            if (p.OPRequest.StartSend.HasValue)
+            {
+                p.OPRequest.PlanID = p.Range.Id;
+                db.OrderPlanningRequests.Add(p.OPRequest);
+                db.SaveChanges();
+            }
+
+            return RedirectToAction("EditStores", new { planID = p.Range.Id });
         }
 
         private string ValidateSKU(string SKU)

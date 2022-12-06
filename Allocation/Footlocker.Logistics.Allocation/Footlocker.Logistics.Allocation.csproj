@@ -229,6 +229,7 @@
     <Compile Include="Common\Filters\LogError.cs" />
     <Compile Include="Common\JsonResultData.cs" />
     <Compile Include="Common\RingFenceDeleteSpreadsheet.cs" />
+    <Compile Include="Common\SkuAttributeSpreadsheet.cs" />
     <Compile Include="Common\SKURangePlanDGSpreadsheet.cs" />
     <Compile Include="Common\SkuRangeSpreadsheet.cs" />
     <Compile Include="Common\UploadSpreadsheet.cs" />
@@ -548,6 +549,7 @@
     <Content Include="Content\Templates\RDQRestrictionUploadTemplate.xls">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\Templates\SkuAttributeUploadTemplate.xls" />
     <None Include="Content\Templates\SkuIdUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -25,6 +25,7 @@ namespace Footlocker.Logistics.Allocation.Common
         private string _ringFenceDeleteTemplate;
         private string _holdDeleteTemplate;
         private string _rerankStoresTemplate;
+        private string _skuAttributeTemplate;
 
         public string AppName;
         public string AppPath;
@@ -105,6 +106,17 @@ namespace Footlocker.Logistics.Allocation.Common
                     _ringFenceDeleteTemplate = ConfigurationManager.AppSettings["RingFenceDeleteTemplate"].ToString();
 
                 return _ringFenceDeleteTemplate;
+            }
+        }
+
+        public string SKUAttributeTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_skuAttributeTemplate))
+                    _skuAttributeTemplate = ConfigurationManager.AppSettings["SKUAttributeTemplate"].ToString();
+
+                return _skuAttributeTemplate;
             }
         }
 
