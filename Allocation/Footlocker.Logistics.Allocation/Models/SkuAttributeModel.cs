@@ -20,6 +20,9 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Department { get; set; }
         public string Category { get; set; }
         public string BrandID { get; set; }
+
+        [RegularExpression(@"^\d{2}-\d{2}-\d{5}-\d{2}$", ErrorMessage = "Invalid Sku, format should be ##-##-#####-##")]
+        public string SKU { get; set; }
         public DateTime? UpdateDate { get; set; }
         public List<SkuAttributeDetail> Attributes { get; set; }
         public string Message { get; set; }

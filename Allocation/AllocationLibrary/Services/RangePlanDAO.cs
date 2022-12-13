@@ -60,6 +60,11 @@ namespace Footlocker.Logistics.Allocation.Services
             return db.RangePlans.Where(rp => rp.Sku == sku).FirstOrDefault();
         }
 
+        public RangePlan GetRangePlan(long planID)
+        {
+            return db.RangePlans.Where(rp => rp.Id == planID).FirstOrDefault();
+        }
+
         /// <summary>
         /// This will update Delivery Groups and associated RangePlans, RangePlanDetails records
         /// </summary>

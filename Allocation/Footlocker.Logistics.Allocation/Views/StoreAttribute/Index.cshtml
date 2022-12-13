@@ -1,9 +1,7 @@
-﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.StoreLookup>
-
+﻿@model IEnumerable<StoreLookup>
 @{
     ViewBag.Title = "Like Stores";
 }
-
 <h2>Like Stores</h2>
 
 <p>
@@ -35,6 +33,3 @@
         .Groupable(grouping => grouping.Enabled(false))
             .Footer(true)
 )
-
-
-</table>

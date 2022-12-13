@@ -359,7 +359,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         #endregion
 
-        #region "Presentation Qty's"
+        #region "Presentation Qtys"
         [HttpPost]
         public ActionResult SaveSkuRange(SizeAllocationModel model)
         {
@@ -1999,12 +1999,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #endregion
 
         #region "Add/Remove Stores"
-        public ActionResult Edit(Int64 planID, string message)
+        public ActionResult Edit(long planID, string message)
         {
             ViewData["message"] = message;
-            RangePlan p = (from a in db.RangePlans
-                           where a.Id == planID
-                           select a).First();
+            RangePlan p = db.RangePlans.Where(rp => rp.Id == planID).First();
 
             return View(p);
         }
@@ -2014,11 +2012,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             db.Entry(model).State = System.Data.EntityState.Modified;
             model.UpdateDate = DateTime.Now;
-            model.UpdatedBy = User.Identity.Name;
-            db.SaveChanges(UserName);
-            List<DeliveryGroup> groups = (from a in db.DeliveryGroups
-                                          where a.PlanID == model.Id
-                                          select a).ToList();
+            model.UpdatedBy = currentUser.NetworkID;
+            db.SaveChanges(currentUser.NetworkID);
+            List<DeliveryGroup> groups = db.DeliveryGroups.Where(dg => dg.PlanID == model.Id).ToList();
+            
             foreach (DeliveryGroup dg in groups)
             {
                 UpdateDeliveryGroupDates(dg);
@@ -2224,7 +2221,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
-        public ActionResult RemoveAllStores(Int64 planID)
+        public ActionResult RemoveAllStores(long planID)
         {
             ClearStoreFromPlan(planID);
             return RedirectToAction("EditStores", new { planID = planID, message = "All stores removed" });
@@ -2993,17 +2990,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #region OrderPlanningRequest
         public ActionResult CreateOrderPlanningRequest(long planID)
         {
-            OrderPlanningRequest model = new OrderPlanningRequest();
-            model.PlanID = planID;
-            DateTime start = (from p in db.RangePlans
-                              join i in db.ItemMasters
-                                on p.ItemID equals i.ID
-                              join id in db.InstanceDivisions
-                                on i.Div equals id.Division
-                              join cd in db.ControlDates
-                                on id.InstanceID equals cd.InstanceID
-                              where p.Id == planID
-                              select cd.RunDate).First();
+            OrderPlanningRequest model = new OrderPlanningRequest()
+            {                
+                PlanID = planID
+            };
+
+            RangePlan rangePlan = rangePlanDAO.GetRangePlan(planID);
+            int instanceID = configService.GetInstance(rangePlan.Division);
+            DateTime start = configService.GetControlDate(instanceID);
 
             model.StartSend = start.AddDays(2);
             model.EndSend = start.AddDays(12);
@@ -3020,7 +3014,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return View(model);
             }
             db.OrderPlanningRequests.Add(model);
-            db.SaveChanges(UserName);
+            db.SaveChanges(currentUser.NetworkID);
             db.UpdateRangePlanDate(model.PlanID, currentUser.NetworkID);
 
             return RedirectToAction("PresentationQuantities", new { planID = model.PlanID });
@@ -3028,15 +3022,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private string ValidateOrderPlanningRequest(OrderPlanningRequest model, bool edit)
         {
-            DateTime start = (from p in db.RangePlans
-                              join i in db.ItemMasters
-                                 on p.ItemID equals i.ID
-                              join id in db.InstanceDivisions
-                                 on i.Div equals id.Division
-                              join cd in db.ControlDates
-                                 on id.InstanceID equals cd.InstanceID
-                              where p.Id == model.PlanID
-                              select cd.RunDate).First();
+            RangePlan rangePlan = rangePlanDAO.GetRangePlan(model.PlanID);
+            int instanceID = configService.GetInstance(rangePlan.Division);
+            DateTime start = configService.GetControlDate(instanceID);
 
             if (model.StartSend < start.AddDays(2))
             {
@@ -3054,7 +3042,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult DeleteOrderPlanningRequest(long planID)
         {
-            OrderPlanningRequest model = (from a in db.OrderPlanningRequests where a.PlanID == planID select a).First();
+            OrderPlanningRequest model = db.OrderPlanningRequests.Where(opr => opr.PlanID == planID).First();
             db.OrderPlanningRequests.Remove(model);
             db.SaveChanges(currentUser.NetworkID);
             
@@ -3062,10 +3050,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("PresentationQuantities", new { planID = model.PlanID });
         }
 
-
         public ActionResult EditOrderPlanningRequest(long planID)
         {
-            OrderPlanningRequest model = (from a in db.OrderPlanningRequests where a.PlanID == planID select a).First();
+            OrderPlanningRequest model = db.OrderPlanningRequests.Where(opr => opr.PlanID == planID).First();
             return View(model);
         }
 
@@ -3080,18 +3067,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             db.Entry(model).State = System.Data.EntityState.Modified;
-            db.SaveChanges(UserName);
+            db.SaveChanges(currentUser.NetworkID);
             db.UpdateRangePlanDate(model.PlanID, currentUser.NetworkID);
 
             return RedirectToAction("PresentationQuantities", new { planID = model.PlanID });
         }
-
-
         #endregion
 
         #region ALR Request
-
-        public ActionResult StartALR(Int64 planID)
+        public ActionResult StartALR(long planID)
         {
             RangePlan rp = (from a in db.RangePlans where a.Id == planID select a).First();
             rp.ALRStartDate = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == rp.Division select a.RunDate).First().AddDays(1);
@@ -3099,7 +3083,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             rp.UpdatedBy = UserName;
             db.Entry(rp).State = System.Data.EntityState.Modified;
 
-            List<DeliveryGroup> deliveryGroups = (from a in db.DeliveryGroups where (a.PlanID == planID) select a).ToList();
+            List<DeliveryGroup> deliveryGroups = db.DeliveryGroups.Where(dg => dg.PlanID == planID).ToList();
             foreach (DeliveryGroup dg in deliveryGroups)
             {
                 if ((dg.ALRStartDate == null) || (dg.ALRStartDate > rp.ALRStartDate))
@@ -3110,28 +3094,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             db.SaveChanges(UserName);
-            return RedirectToAction("PresentationQuantities", new { planID = planID });
+            return RedirectToAction("PresentationQuantities", new { planID });
         }
 
-        public ActionResult StopALR(Int64 planID)
+        public ActionResult StopALR(long planID)
         {
-            RangePlan rp = (from a in db.RangePlans
-                            where a.Id == planID
-                            select a).First();
+            RangePlan rp = rangePlanDAO.GetRangePlan(planID); 
             rp.ALRStartDate = null;
             rp.UpdateDate = DateTime.Now;
-            rp.UpdatedBy = User.Identity.Name;
+            rp.UpdatedBy = currentUser.NetworkID;
 
             db.Entry(rp).State = System.Data.EntityState.Modified;
-            List<DeliveryGroup> deliveryGroups = (from a in db.DeliveryGroups where (a.PlanID == planID) select a).ToList();
+            List<DeliveryGroup> deliveryGroups = db.DeliveryGroups.Where(dg => dg.PlanID == planID).ToList();
             foreach (DeliveryGroup dg in deliveryGroups)
             {
                 dg.ALRStartDate = null;
                 db.Entry(dg).State = System.Data.EntityState.Modified;
             }
 
-            db.SaveChanges(UserName);
-            return RedirectToAction("PresentationQuantities", new { planID = planID });
+            db.SaveChanges(currentUser.NetworkID);
+            return RedirectToAction("PresentationQuantities", new { planID });
         }
 
         public ActionResult StartDeliveryGroup(Int64 deliveryGroupID, Int64 planID)

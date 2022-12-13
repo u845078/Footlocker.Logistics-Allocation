@@ -103,7 +103,6 @@
 
         $('#sum').empty().append('Total Weight:  ' + sum);
     }
-
 </script>
 <h2>Create Quantum Attribute Matching</h2>
 
@@ -139,24 +138,29 @@
     @Html.HiddenFor(model => model.Division)
     @Html.HiddenFor(model => model.Department)
 
-<div class="editor-field">
-    @Html.LabelFor(model => model.Category) [*** Optional ***] <br />
-    @Html.DropDownList("Category", Model.CategoryList, string.Empty, new { onchange = "checkAttribute(1);" })
-    @Html.ValidationMessageFor(model => model.Category)
-</div>
-<div class="editor-field">
-    @Html.LabelFor(model => model.BrandID) [*** Optional ***] <br />
-    @Html.DropDownList("BrandID", Model.BrandList, string.Empty, new { onchange = "checkAttribute(3);" })
-</div>
-<div class="editor-field">
     <div class="editor-field">
-        @Html.LabelFor(model => model.WeightActive)
-        <br />
-        @Html.TextBoxFor(model => model.WeightActive, new { @type = "number", min = 1, max = 100, @style = "width: 40px; margin-top: 5px;" })
-        <label>1 = Inactive, 100 = Active</label>
+        @Html.LabelFor(model => model.Category) [*** Optional ***] <br />
+        @Html.DropDownList("Category", Model.CategoryList, string.Empty, new { onchange = "checkAttribute(1);" })
+        @Html.ValidationMessageFor(model => model.Category)
     </div>
-</div>
-<br />
+    <div class="editor-field">
+        @Html.LabelFor(model => model.BrandID) [*** Optional ***] <br />
+        @Html.DropDownList("BrandID", Model.BrandList, string.Empty, new { onchange = "checkAttribute(3);" })
+    </div>
+    <div class="editor-field">
+        @Html.LabelFor(model => model.SKU) [*** Optional ***] <br />
+        @Html.EditorFor(model => model.SKU)
+        @Html.ValidationMessageFor(model => model.SKU)
+    </div>
+    <div class="editor-field">
+        <div class="editor-field">
+            @Html.LabelFor(model => model.WeightActive)
+            <br />
+            @Html.TextBoxFor(model => model.WeightActive, new { @type = "number", min = 1, max = 100, @style = "width: 40px; margin-top: 5px;" })
+            <label>1 = Inactive, 100 = Active</label>
+        </div>
+    </div>
+    <br />
     @Html.ValidationSummary(true)
     <br />
 
@@ -164,46 +168,44 @@
     { 
         @Html.Raw("<font color='red'>" + Model.Message + "</font>")
     }
-<table>
-@for (var count = 0; count < Model.Attributes.Count(); count++)
-{
-    <tr>
-    <td>
-        @Html.DisplayFor(model => Model.Attributes[count].AttributeType)
-        @Html.HiddenFor(model => Model.Attributes[count].AttributeType)
-    </td>
-    <td>
-        @Html.LabelFor(model => Model.Attributes[count].Mandatory)
-        @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory, new { onclick = "return enableCheckbox(this," + count + ");" })
-    </td>
-    <td>
-        @Html.LabelFor(model => Model.Attributes[count].Weight)
-        @if (Model.Attributes[count].Mandatory)
+
+    <table>
+        @for (var count = 0; count < Model.Attributes.Count(); count++)
         {
-            @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { disabled = "disabled", style = "width: 3em;", onblur = "updateSum();" })
+            <tr>
+                <td>
+                    @Html.DisplayFor(model => Model.Attributes[count].AttributeType)
+                    @Html.HiddenFor(model => Model.Attributes[count].AttributeType)
+                </td>
+                <td>
+                    @Html.LabelFor(model => Model.Attributes[count].Mandatory)
+                    @Html.CheckBoxFor(model => Model.Attributes[count].Mandatory, new { onclick = "return enableCheckbox(this," + count + ");" })
+                </td>
+                <td>
+                    @Html.LabelFor(model => Model.Attributes[count].Weight)
+                    @if (Model.Attributes[count].Mandatory)
+                    {
+                        @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { disabled = "disabled", style = "width: 3em;", onblur = "updateSum();" })
+                    }
+                    else
+                    {           
+                        @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { style = "width: 3em;", onblur = "updateSum();" })
+                    }
+                </td>
+            </tr>
         }
-        else
-        {           
-            @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { style = "width: 3em;", onblur = "updateSum();" })
-        }
-    </td>
-    </tr>
-}
-
-    <tr>
-    <td>
-    </td>
-    <td colspan="2" align="right">
-        <div id="sum">Total Weight:  0</div>
-    </td>
-    </tr>
-</table>
-
+        <tr>
+            <td></td>
+            <td colspan="2" align="right">
+                <div id="sum">Total Weight:  0</div>
+            </td>
+        </tr>
+    </table>
     <p>
         <input type="submit" value="Save" onclick="return validate();"/>
     </p>
 }
-    </fieldset>
+</fieldset>
 
 <br />
 @Html.ActionLink("Back to List", "Index",null, new {@class="t-button"})

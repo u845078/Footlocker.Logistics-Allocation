@@ -15,7 +15,7 @@ namespace Footlocker.Logistics.Allocation.Common
         List<RDQ> parsedRDQs = new List<RDQ>();
         public List<RDQ> validRDQs = new List<RDQ>();
         List<RDQ> ringFenceRDQs = new List<RDQ>();
-        List<string> webPickRoles;
+        readonly List<string> webPickRoles;
         public List<Tuple<RDQ, string>> errorList = new List<Tuple<RDQ, string>>();
 
         private RDQ ParseUploadRow(int row)
@@ -77,72 +77,83 @@ namespace Footlocker.Logistics.Allocation.Common
                           parsedRDQs.Remove(r);
                       });
 
-            // 1) check to see if only one division exists
-            if (parsedRDQs.Select(pr => pr.Division).Distinct().Count() > 1)
+            parsedRDQs.Where(pr => pr.Status == "E-PICK" && !string.IsNullOrEmpty(pr.PO))
+                      .ToList()
+                      .ForEach(r =>
+                      {
+                          SetErrorMessage(errorList, r, " You cannot do an E-Pick with a PO.");
+                          parsedRDQs.Remove(r);
+                      });
+
+            if (parsedRDQs.Count > 0)
             {
-                errorMessage = "Process cancelled.  Spreadsheet may only contain one division.";
-                return false;
-            }
-            else
-            {
-                bool canEPick = false;
-                bool canWebPick = true;
-
-                List<string> userRoles = config.currentUser.GetUserRoles(config.AppName);
-
-                // if they don't have any web pick roles, take out web pick
-                if (!userRoles.Intersect(webPickRoles).Any())
-                    canWebPick = false;
-
-                if (userRoles.Contains("EPick"))
-                    canEPick = true;
-
-                string division = parsedRDQs.Select(pr => pr.Division).FirstOrDefault();
-                // if division is null, then no sku was entered on the spreadsheet
-                if (division != null)
+                // 1) check to see if only one division exists
+                if (parsedRDQs.Select(pr => pr.Division).Distinct().Count() > 1)
                 {
-                    foreach (RDQ rdq in parsedRDQs)
-                    {
-                        if ((rdq.Status == "E-PICK") && !canEPick)
-                        {
-                            errorMessage = "You do not have permission to do E-Picks. Please remove the E-Pick request(s) and resubmit";
-                            return false;
-                        }
-
-                        if ((rdq.Status == "WEB PICK") && !canWebPick)
-                        {
-                            errorMessage = "You do not have permission to do Web Picks. Please remove the Web Pick request(s) and resubmit";
-                            return false;
-                        }
-                    }
-
-                    // 2) check to see if user has permission for this division
-                    if (!config.currentUser.HasDivision(config.AppName, division))
-                    {
-                        errorMessage = string.Format("You do not have permission for Division {0}.", division);
-                        return false;
-                    }
-                    else
-                    {
-                        // 3) check to see if the parsedRDQs has any duplicates. I don't return false
-                        //    for this case because I just remove duplicates and move on with processing
-                        parsedRDQs.GroupBy(pr => new { pr.Store, pr.Sku, pr.Size, pr.PO, pr.Qty, pr.DC, pr.RingFencePickStore, pr.Status })
-                                  .Where(pr => pr.Count() > 1)
-                                  .Select(pr => new { DuplicateRDQs = pr.ToList(), Counter = pr.Count() })
-                                  .ToList().ForEach(r =>
-                                  {
-                                      // set error message for first duplicate and the amount of times it was found in the file
-                                      SetErrorMessage(errorList, r.DuplicateRDQs.FirstOrDefault(),
-                                          string.Format("The following row of data was duplicated in the spreadsheet {0} times.  Please provide unique rows of data.", r.Counter));
-                                      // delete all instances of the duplications from the parsedRDQs list
-                                      r.DuplicateRDQs.ForEach(dr => parsedRDQs.Remove(dr));
-                                  });
-                    }
+                    errorMessage = "Process cancelled.  Spreadsheet may only contain one division.";
+                    return false;
                 }
                 else
                 {
-                    errorMessage = "Please provide a SKU in order to continue.";
-                    return false;
+                    bool canEPick = false;
+                    bool canWebPick = true;
+
+                    List<string> userRoles = config.currentUser.GetUserRoles(config.AppName);
+
+                    // if they don't have any web pick roles, take out web pick
+                    if (!userRoles.Intersect(webPickRoles).Any())
+                        canWebPick = false;
+
+                    if (userRoles.Contains("EPick"))
+                        canEPick = true;
+
+                    string division = parsedRDQs.Select(pr => pr.Division).FirstOrDefault();
+                    // if division is null, then no sku was entered on the spreadsheet
+                    if (division != null)
+                    {
+                        foreach (RDQ rdq in parsedRDQs)
+                        {
+                            if ((rdq.Status == "E-PICK") && !canEPick)
+                            {
+                                errorMessage = "You do not have permission to do E-Picks. Please remove the E-Pick request(s) and resubmit";
+                                return false;
+                            }
+
+                            if ((rdq.Status == "WEB PICK") && !canWebPick)
+                            {
+                                errorMessage = "You do not have permission to do Web Picks. Please remove the Web Pick request(s) and resubmit";
+                                return false;
+                            }
+                        }
+
+                        // 2) check to see if user has permission for this division
+                        if (!config.currentUser.HasDivision(config.AppName, division))
+                        {
+                            errorMessage = string.Format("You do not have permission for Division {0}.", division);
+                            return false;
+                        }
+                        else
+                        {
+                            // 3) check to see if the parsedRDQs has any duplicates. I don't return false
+                            //    for this case because I just remove duplicates and move on with processing
+                            parsedRDQs.GroupBy(pr => new { pr.Store, pr.Sku, pr.Size, pr.PO, pr.Qty, pr.DC, pr.RingFencePickStore, pr.Status })
+                                      .Where(pr => pr.Count() > 1)
+                                      .Select(pr => new { DuplicateRDQs = pr.ToList(), Counter = pr.Count() })
+                                      .ToList().ForEach(r =>
+                                      {
+                                          // set error message for first duplicate and the amount of times it was found in the file
+                                          SetErrorMessage(errorList, r.DuplicateRDQs.FirstOrDefault(),
+                                              string.Format("The following row of data was duplicated in the spreadsheet {0} times.  Please provide unique rows of data.", r.Counter));
+                                          // delete all instances of the duplications from the parsedRDQs list
+                                          r.DuplicateRDQs.ForEach(dr => parsedRDQs.Remove(dr));
+                                      });
+                        }
+                    }
+                    else
+                    {
+                        errorMessage = "Please provide a SKU in order to continue.";
+                        return false;
+                    }
                 }
             }
 

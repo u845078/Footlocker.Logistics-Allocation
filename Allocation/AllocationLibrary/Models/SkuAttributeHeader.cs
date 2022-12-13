@@ -48,6 +48,8 @@ namespace Footlocker.Logistics.Allocation.Models
         public string CreatedBy { get; set; }
         public DateTime? CreateDate { get; set; }
         public decimal WeightActive { get; set; }
+        
+        public string SKU { get; set; }
         [NotMapped]
         public int WeightActiveInt 
         { 

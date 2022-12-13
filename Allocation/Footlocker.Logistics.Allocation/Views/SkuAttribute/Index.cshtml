@@ -55,6 +55,7 @@
             columns.Bound(o => o.Dept).Width(60);
             columns.Bound(o => o.CategoryForDisplay);
             columns.Bound(o => o.BrandForDisplay);
+            columns.Bound(o => o.SKU);
             columns.Bound(o => o.WeightActiveInt).Title("Weight for Active");
             columns.Bound(o => o.CreatedBy).Title("UpdatedBy");
             columns.Bound(o => o.CreateDate).Title("UpdateDate");
@@ -62,7 +63,7 @@
                                 <a class='t-button' href="@Url.Content("~/SkuAttribute/Edit/" + @item.ID)">Edit</a>
                                 <a class='t-button' href="@Url.Content("~/SkuAttribute/Export/" + @item.ID)">Export</a>
                                 @Html.Raw("<a class=\"t-button\" href='javascript:Delete(\"" + item.ID + "\");'>Delete</a>")
-                                </text>).ClientTemplate("<a class='t-button' href='"
+                             </text>).ClientTemplate("<a class='t-button' href='"
                     + Url.Content("~/SkuAttribute/Edit/<#= ID #>")
                     + "'>Edit</a>"
                     + "<a class='t-button' href='"

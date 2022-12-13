@@ -16,6 +16,7 @@ namespace Footlocker.Logistics.Allocation.Common
     {
         public List<SkuAttributeHeader> parsedSKUAttributes = new List<SkuAttributeHeader>();
         public List<SkuAttributeHeader> validSKUAttributes = new List<SkuAttributeHeader>();
+        readonly ItemDAO itemDAO;
 
         private string CreateDetailRecord(SkuAttributeHeader header, string attributeType, string value)
         {            
@@ -55,29 +56,30 @@ namespace Footlocker.Logistics.Allocation.Common
                 Dept = Convert.ToString(worksheet.Cells[row, 1].Value).Trim(),
                 Category = Convert.ToString(worksheet.Cells[row, 2].Value).Trim(),
                 Brand = Convert.ToString(worksheet.Cells[row, 3].Value).Trim(),
-                CreateDate = Convert.ToDateTime(worksheet.Cells[row, 4].Value),
-                WeightActiveInt = Convert.ToInt32(worksheet.Cells[row, 5].Value)
+                SKU = Convert.ToString(worksheet.Cells[row, 4].Value).Trim(),
+                CreateDate = Convert.ToDateTime(worksheet.Cells[row, 5].Value),
+                WeightActiveInt = Convert.ToInt32(worksheet.Cells[row, 6].Value)
             };
 
-            message += CreateDetailRecord(returnValue, "Department", Convert.ToString(worksheet.Cells[row, 6].Value).Trim());
-            message += CreateDetailRecord(returnValue, "Category", Convert.ToString(worksheet.Cells[row, 7].Value).Trim());
-            message += CreateDetailRecord(returnValue, "VendorNumber", Convert.ToString(worksheet.Cells[row, 8].Value).Trim());
-            message += CreateDetailRecord(returnValue, "BrandID", Convert.ToString(worksheet.Cells[row, 9].Value).Trim());
-            message += CreateDetailRecord(returnValue, "Size", Convert.ToString(worksheet.Cells[row, 10].Value).Trim());
-            message += CreateDetailRecord(returnValue, "SizeRange", Convert.ToString(worksheet.Cells[row, 11].Value).Trim());
-            message += CreateDetailRecord(returnValue, "Color1", Convert.ToString(worksheet.Cells[row, 12].Value).Trim());
-            message += CreateDetailRecord(returnValue, "Color2", Convert.ToString(worksheet.Cells[row, 13].Value).Trim());
-            message += CreateDetailRecord(returnValue, "Color3", Convert.ToString(worksheet.Cells[row, 14].Value).Trim());
-            message += CreateDetailRecord(returnValue, "Gender", Convert.ToString(worksheet.Cells[row, 15].Value).Trim());
-            message += CreateDetailRecord(returnValue, "LifeOfSku", Convert.ToString(worksheet.Cells[row, 16].Value).Trim());
-            message += CreateDetailRecord(returnValue, "Material", Convert.ToString(worksheet.Cells[row, 17].Value).Trim());
-            message += CreateDetailRecord(returnValue, "PlayerID", Convert.ToString(worksheet.Cells[row, 18].Value).Trim());
-            message += CreateDetailRecord(returnValue, "SkuID1", Convert.ToString(worksheet.Cells[row, 19].Value).Trim());
-            message += CreateDetailRecord(returnValue, "SkuID2", Convert.ToString(worksheet.Cells[row, 20].Value).Trim());
-            message += CreateDetailRecord(returnValue, "SkuID3", Convert.ToString(worksheet.Cells[row, 21].Value).Trim());
-            message += CreateDetailRecord(returnValue, "SkuID4", Convert.ToString(worksheet.Cells[row, 22].Value).Trim());
-            message += CreateDetailRecord(returnValue, "SkuID5", Convert.ToString(worksheet.Cells[row, 23].Value).Trim());
-            message += CreateDetailRecord(returnValue, "TeamCode", Convert.ToString(worksheet.Cells[row, 24].Value).Trim());
+            message += CreateDetailRecord(returnValue, "Department", Convert.ToString(worksheet.Cells[row, 7].Value).Trim());
+            message += CreateDetailRecord(returnValue, "Category", Convert.ToString(worksheet.Cells[row, 8].Value).Trim());
+            message += CreateDetailRecord(returnValue, "VendorNumber", Convert.ToString(worksheet.Cells[row, 9].Value).Trim());
+            message += CreateDetailRecord(returnValue, "BrandID", Convert.ToString(worksheet.Cells[row, 10].Value).Trim());
+            message += CreateDetailRecord(returnValue, "Size", Convert.ToString(worksheet.Cells[row, 11].Value).Trim());
+            message += CreateDetailRecord(returnValue, "SizeRange", Convert.ToString(worksheet.Cells[row, 12].Value).Trim());
+            message += CreateDetailRecord(returnValue, "Color1", Convert.ToString(worksheet.Cells[row, 13].Value).Trim());
+            message += CreateDetailRecord(returnValue, "Color2", Convert.ToString(worksheet.Cells[row, 14].Value).Trim());
+            message += CreateDetailRecord(returnValue, "Color3", Convert.ToString(worksheet.Cells[row, 15].Value).Trim());
+            message += CreateDetailRecord(returnValue, "Gender", Convert.ToString(worksheet.Cells[row, 16].Value).Trim());
+            message += CreateDetailRecord(returnValue, "LifeOfSku", Convert.ToString(worksheet.Cells[row, 17].Value).Trim());
+            message += CreateDetailRecord(returnValue, "Material", Convert.ToString(worksheet.Cells[row, 18].Value).Trim());
+            message += CreateDetailRecord(returnValue, "PlayerID", Convert.ToString(worksheet.Cells[row, 19].Value).Trim());
+            message += CreateDetailRecord(returnValue, "SkuID1", Convert.ToString(worksheet.Cells[row, 20].Value).Trim());
+            message += CreateDetailRecord(returnValue, "SkuID2", Convert.ToString(worksheet.Cells[row, 21].Value).Trim());
+            message += CreateDetailRecord(returnValue, "SkuID3", Convert.ToString(worksheet.Cells[row, 22].Value).Trim());
+            message += CreateDetailRecord(returnValue, "SkuID4", Convert.ToString(worksheet.Cells[row, 23].Value).Trim());
+            message += CreateDetailRecord(returnValue, "SkuID5", Convert.ToString(worksheet.Cells[row, 24].Value).Trim());
+            message += CreateDetailRecord(returnValue, "TeamCode", Convert.ToString(worksheet.Cells[row, 25].Value).Trim());
 
             if (!string.IsNullOrEmpty(message))
                 message = string.Format("Row #{0}: {1}", row, message);
@@ -100,6 +102,7 @@ namespace Footlocker.Logistics.Allocation.Common
             bool deptExists = !string.IsNullOrEmpty(header.Dept);
             bool categoryExists = !string.IsNullOrEmpty(header.Category);
             bool brandExists = !string.IsNullOrEmpty(header.Brand);
+            bool skuExists = !string.IsNullOrEmpty(header.SKU);
 
             if (!divisionExists)            
                 errorsFound += "Division is required. <br />";            
@@ -138,6 +141,41 @@ namespace Footlocker.Logistics.Allocation.Common
                 if (!comboExists)                
                     errorsFound += "The Division/Department/Category/Brand combination is not associated with any Sku  <br />";                
             }
+
+            if (skuExists)
+            {
+                string skuDivision = header.SKU.Substring(0, 2);
+                string skuDepartment = header.SKU.Substring(3, 2);
+
+                if (skuDivision != header.Division || skuDepartment != header.Dept)
+                    errorsFound += "The Division and Department must match the SKU's division and department";
+
+                long itemID = itemDAO.GetItemID(header.SKU);
+                if (itemID == 0)
+                    errorsFound += "This SKU is not found in the database";
+
+                if (!string.IsNullOrEmpty(header.Category))
+                {
+                    int skuCount = config.db.ItemMasters.Where(im => im.Div == header.Division &&
+                                                              im.Dept == header.Dept &&
+                                                              im.Category == header.Category &&
+                                                              im.MerchantSku == header.SKU).Count();
+
+                    if (skuCount == 0)
+                        errorsFound += "This Department/Category selection doesn't match the provided sku.";
+                }
+
+                if (!string.IsNullOrEmpty(header.Brand))
+                {
+                    int skuCount = config.db.ItemMasters.Where(im => im.Div == header.Division &&
+                                                              im.Dept == header.Dept &&
+                                                              im.Brand == header.Brand &&
+                                                              im.MerchantSku == header.SKU).Count();
+
+                    if (skuCount == 0)
+                        errorsFound += "This Department/BrandID selection doesn't match the provided sku.";
+                }
+            }        
 
             // department MUST be mandatory.
             var departmentAttributeDetail = header.SkuAttributeDetails.Where(sad => sad.AttributeType.ToLower().Equals("department")).SingleOrDefault();
@@ -246,37 +284,39 @@ namespace Footlocker.Logistics.Allocation.Common
             }
         }
 
-        public SkuAttributeSpreadsheet(AppConfig config, ConfigService configService) : base(config, configService)
+        public SkuAttributeSpreadsheet(AppConfig config, ConfigService configService, ItemDAO itemDAO) : base(config, configService)
         {
-            maxColumns = 25;
+            maxColumns = 26;
             headerRowNumber = 1;
 
             columns.Add(0, "Division");
             columns.Add(1, "Department");
             columns.Add(2, "Category");
             columns.Add(3, "BrandID");
-            columns.Add(4, "Update Date");
-            columns.Add(5, "Active");
-            columns.Add(6, "Department");
-            columns.Add(7, "Category");
-            columns.Add(8, "VendorNumber");
-            columns.Add(9, "BrandID");
-            columns.Add(10, "Size");
-            columns.Add(11, "SizeRange");
-            columns.Add(12, "Color1");
-            columns.Add(13, "Color2");
-            columns.Add(14, "Color3");
-            columns.Add(15, "Gender");
-            columns.Add(16, "LifeOfSku");
-            columns.Add(17, "Material");
-            columns.Add(18, "PlayerID");
-            columns.Add(19, "SkuID1");
-            columns.Add(20, "SkuID2");
-            columns.Add(21, "SkuID3");
-            columns.Add(22, "SkuID4");
-            columns.Add(23, "SkuID5");
-            columns.Add(24, "Team Code");
+            columns.Add(4, "SKU");
+            columns.Add(5, "Update Date");
+            columns.Add(6, "Active");
+            columns.Add(7, "Department");
+            columns.Add(8, "Category");
+            columns.Add(9, "VendorNumber");
+            columns.Add(10, "BrandID");
+            columns.Add(11, "Size");
+            columns.Add(12, "SizeRange");
+            columns.Add(13, "Color1");
+            columns.Add(14, "Color2");
+            columns.Add(15, "Color3");
+            columns.Add(16, "Gender");
+            columns.Add(17, "LifeOfSku");
+            columns.Add(18, "Material");
+            columns.Add(19, "PlayerID");
+            columns.Add(20, "SkuID1");
+            columns.Add(21, "SkuID2");
+            columns.Add(22, "SkuID3");
+            columns.Add(23, "SkuID4");
+            columns.Add(24, "SkuID5");
+            columns.Add(25, "Team Code");
 
+            this.itemDAO = itemDAO;
             templateFilename = config.SKUAttributeTemplate;
         }
     }

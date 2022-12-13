@@ -103,6 +103,11 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.ExecuteNonQuery(SQLCommand);
         }
 
+        public long GetItemID(string sku)
+        {
+            return db.ItemMasters.Where(im => im.MerchantSku == sku).Select(im => im.ID).FirstOrDefault();
+        }
+
         public bool DoValidSizesExist(string sku, string size)
         {
             int sizeCount = db.Sizes.Where(s => s.Sku == sku && s.Size == size).Count();

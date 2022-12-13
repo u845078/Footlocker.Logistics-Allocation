@@ -96,20 +96,21 @@
 {
     @Html.HiddenFor(model => model.HeaderID)
 
-    <fieldset>
+<fieldset>
     <div class="editor-field">
         @Html.LabelFor(model => model.Division)
-        <br/>        
+        <br />
         @Html.DropDownListFor(model => model.Division, Model.DivisionList, new { disabled = true })
         @Html.HiddenFor(model => model.Division)
     </div>
-
+    <br />
     <div class="editor-field">
         @Html.LabelFor(model => model.Department)
-        <br />        
+        <br />
         @Html.DropDownListFor(model => model.Department, Model.DepartmentList, new { disabled = true })
         @Html.HiddenFor(model => model.Department)
     </div>
+    <br />
     <div class="editor-field">
         @if (Model.Category == null)
         {
@@ -123,6 +124,7 @@
         }
         @Html.HiddenFor(model => model.Category)
     </div>
+    <br />
     <div class="editor-field">
         @if (Model.BrandID == null)
         {
@@ -138,14 +140,28 @@
     </div>
     <br />
     <div class="editor-field">
-        @Html.LabelFor(model => model.WeightActive) 
+        @if (string.IsNullOrEmpty(Model.SKU))
+        {
+            @Html.Raw("SKU: default")
+        }
+        else
+        {
+            @Html.LabelFor(model => model.SKU)
+            <br />
+            @Html.TextBoxFor(model => model.SKU, new { disabled = "disabled" })
+        }
+        @Html.HiddenFor(model => model.SKU)
+    </div>
+    <br />
+    <div class="editor-field">
+        @Html.LabelFor(model => model.WeightActive)
         <br />
-        @Html.TextBoxFor(model => model.WeightActive, new { @type = "number", min = 1, max = 100, @style="width: 40px; margin-top: 5px;" })
+        @Html.TextBoxFor(model => model.WeightActive, new { @type = "number", min = 1, max = 100, @style = "width: 40px; margin-top: 5px;" })
         <label>1 = Inactive, 100 = Active</label>
     </div>
     <br />
     @if (Model.Message != null)
-    { 
+    {
         @Html.Raw("<font color='red'>" + Model.Message + "</font>")
     }
     <table>
@@ -165,11 +181,11 @@
                     @Html.LabelFor(model => Model.Attributes[count].Weight)
                     @if (Model.Attributes[count].Mandatory)
                     {
-                    @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { disabled = "disabled", style = "width: 3em;", onblur = "updateSum();" })
+                        @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { disabled = "disabled", style = "width: 3em;", onblur = "updateSum();" })
                     }
                     else
-                    {           
-                    @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { style = "width: 3em;", onblur = "updateSum();" })
+                    {
+                        @Html.TextBoxFor(model => Model.Attributes[count].WeightInt, new { style = "width: 3em;", onblur = "updateSum();" })
                     }
                 </td>
             </tr>
@@ -179,17 +195,17 @@
             <td colspan="2" align="right">
                 <div id="sum">Total Weight:  0</div>
             </td>
-        </tr>    
+        </tr>
     </table>
 
-        @if (hasEditRole)
-        {
-            <p>
-                <input type="submit" value="Save" />
-            </p>
-        }
+    @if (hasEditRole)
+    {
+        <p>
+            <input type="submit" value="Save" />
+        </p>
+    }
 
-    </fieldset>
+</fieldset>
 }
 <br />
 @Html.ActionLink("Back to List", "Index",null, new {@class="t-button"})

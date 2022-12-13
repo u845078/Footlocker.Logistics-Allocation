@@ -21,6 +21,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     {
         AllocationContext db = new AllocationContext();
         ConfigService configService = new ConfigService();
+        ItemDAO itemDAO = new ItemDAO();
 
         readonly string editRoles = "Director of Allocation,Admin,Support,Advanced Merchandiser Processes";
 
@@ -45,7 +46,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders.AsEnumerable()
                                                 join d in currentUser.GetUserDivisions(AppName)
-                                                    on new { Division = a.Division } equals
+                                                    on new { a.Division } equals
                                                        new { Division = d.DivCode }
                                                 orderby a.Division, a.Dept, a.Category
                                                 select a).ToList();
@@ -196,45 +197,69 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (ModelState.IsValid)
             {
-                var existing = from a in db.SkuAttributeHeaders
-                                where a.Division == model.Division &&
-                                      a.Dept == model.Department &&
-                                      (a.Category == model.Category ||
-                                       (a.Category == null && model.Category == null)) &&
-                                      (a.Brand == model.BrandID ||
-                                       (a.Brand == null && model.BrandID == null))                                    
-                                select a;
+                bool existing = db.SkuAttributeHeaders.Where(sah => sah.Division == model.Division &&
+                                                                    sah.Dept == model.Department &&
+                                                                    (sah.Category == model.Category ||
+                                                                     (sah.Category == null && model.Category == null)) &&
+                                                                    (sah.Brand == model.BrandID ||
+                                                                     (sah.Brand == null && model.BrandID == null))).Any();
 
-                if (existing.Any())
-                {
-                    ModelState.AddModelError("", "This Department/Category/BrandID is already setup, please use go Back to List and use Edit.");
-                }
+                if (existing)                
+                    ModelState.AddModelError("", "This Department/Category/BrandID is already setup, please use go Back to List and use Edit.");                
 
-                if (!string.IsNullOrEmpty(model.BrandID) && string.IsNullOrEmpty(model.Category))
-                {
-                    ModelState.AddModelError("Category", "Category is required when a BrandID is selected");
-                }
+                if (!string.IsNullOrEmpty(model.BrandID) && string.IsNullOrEmpty(model.Category))                
+                    ModelState.AddModelError("Category", "Category is required when a BrandID is selected");                
 
                 if (!string.IsNullOrEmpty(model.BrandID))
                 {
-                    var skus = from a in db.ItemMasters
-                               where a.Div == model.Division &&
-                                     a.Dept == model.Department &&
-                                     a.Category == model.Category &&
-                                     a.Brand == model.BrandID                                        
-                               select a;
+                    int skuCount = db.ItemMasters.Where(im => im.Div == model.Division && 
+                                                          im.Dept == model.Department &&
+                                                          im.Category == model.Category &&
+                                                          im.Brand == model.BrandID).Count();
 
-                    if (!skus.Any())
+                    if (skuCount == 0)                    
+                        ModelState.AddModelError("", "This Department/Category/BrandID selection doesn't match any skus.");                    
+                }
+
+                if (!string.IsNullOrEmpty(model.SKU))
+                {
+                    string skuDivision = model.SKU.Substring(0, 2);
+                    string skuDepartment = model.SKU.Substring(3, 2);
+
+                    if (skuDivision != model.Division || skuDepartment != model.Department)
+                        ModelState.AddModelError("SKU", "The Division and Department must match the SKU's division and department");
+
+                    long itemID = itemDAO.GetItemID(model.SKU);
+                    if (itemID == 0)
+                        ModelState.AddModelError("SKU", "This SKU is not found in the database");
+
+                    if (!string.IsNullOrEmpty(model.Category))
                     {
-                        ModelState.AddModelError("", "This Department/Category/BrandID selection doesn't match any skus.");
+                        int skuCount = db.ItemMasters.Where(im => im.Div == model.Division &&
+                                                                  im.Dept == model.Department &&
+                                                                  im.Category == model.Category &&                                                                  
+                                                                  im.MerchantSku == model.SKU).Count();
+
+                        if (skuCount == 0)
+                            ModelState.AddModelError("", "This Department/Category selection doesn't match the provided sku.");
+                    }
+
+                    if (!string.IsNullOrEmpty(model.BrandID))
+                    {
+                        int skuCount = db.ItemMasters.Where(im => im.Div == model.Division &&
+                                                                  im.Dept == model.Department &&
+                                                                  im.Brand == model.BrandID &&
+                                                                  im.MerchantSku == model.SKU).Count();
+
+                        if (skuCount == 0)
+                            ModelState.AddModelError("", "This Department/BrandID selection doesn't match the provided sku.");
                     }
                 }
 
                 int total = model.Attributes.Sum(m => m.WeightInt);
-                if (total != 0 && total != 100)
-                {
-                    ModelState.AddModelError("", string.Format("Total must equal 100, it was {0}", total));
-                }
+
+                if (total != 0 && total != 100)                
+                    ModelState.AddModelError("", string.Format("Total must equal 100, it was {0}", total));                
             }
 
             if (!ModelState.IsValid)
@@ -254,6 +279,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     Dept = model.Department,
                     Category = model.Category,
                     Brand = model.BrandID,
+                    SKU = model.SKU,
                     CreatedBy = currentUser.NetworkID,
                     CreateDate = DateTime.Now,
                     WeightActiveInt = model.WeightActive
@@ -299,6 +325,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 Department = header.Dept,
                 Category = header.Category,
                 BrandID = header.Brand,
+                SKU = header.SKU,
                 WeightActive = header.WeightActiveInt,
                 DivisionList = new SelectList(divisions, "Value", "Text"),
                 DepartmentList = new SelectList(depts, "Value", "Text"),
@@ -338,10 +365,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if ((total == 100) || (total == 0))
                 {
-                    foreach (SkuAttributeDetail det in model.Attributes)
-                    {
-                        db.Entry(det).State = System.Data.EntityState.Modified;
-                    }
+                    foreach (SkuAttributeDetail det in model.Attributes)                    
+                        db.Entry(det).State = System.Data.EntityState.Modified;                    
 
                     SkuAttributeHeader header = db.SkuAttributeHeaders.Where(s => s.ID == model.HeaderID).First();
 
@@ -350,10 +375,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     header.CreateDate = DateTime.Now;
                     db.SaveChanges();
                 }
-                else
-                {
-                    ModelState.AddModelError("", string.Format("Total must equal 100, it was {0}", total));
-                }
+                else                
+                    ModelState.AddModelError("", string.Format("Total must equal 100, it was {0}", total));                
             }
             else
             {
@@ -361,10 +384,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ViewBag.hasEditRole = false;
             }
 
-            if (ModelState.IsValid)
-            {
-                return RedirectToAction("Index");
-            }
+            if (ModelState.IsValid)            
+                return RedirectToAction("Index");            
             else
             {
                 model.DivisionList = new SelectList(DivisionService.ListDivisions(), "divCode", "DisplayName");
@@ -387,12 +408,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 db.SkuAttributeHeaders.Remove(header);
                 //db.SaveChanges();
                 var details = db.SkuAttributeDetails.Where(d => d.HeaderID == ID).ToList();
-                foreach (SkuAttributeDetail det in details)
-                {
-                    db.SkuAttributeDetails.Remove(det);
-                    db.SaveChanges();
-                }
-
+                foreach (SkuAttributeDetail det in details)                
+                    db.SkuAttributeDetails.Remove(det);                    
+                
+                db.SaveChanges();
                 return RedirectToAction("Index");
             }
             else
@@ -412,7 +431,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult GetSkuAttributeTemplate()
         {
-            SkuAttributeSpreadsheet skuAttributeSpreadsheet = new SkuAttributeSpreadsheet(appConfig, configService);
+            SkuAttributeSpreadsheet skuAttributeSpreadsheet = new SkuAttributeSpreadsheet(appConfig, configService, itemDAO);
             Excel excelDocument;
 
             excelDocument = skuAttributeSpreadsheet.GetTemplate();
@@ -423,7 +442,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult UploadSkuAttributes(IEnumerable<HttpPostedFileBase> attachments)
         {
-            SkuAttributeSpreadsheet skuAttributeSpreadsheet = new SkuAttributeSpreadsheet(appConfig, configService);
+            SkuAttributeSpreadsheet skuAttributeSpreadsheet = new SkuAttributeSpreadsheet(appConfig, configService, itemDAO);
 
             string message = string.Empty;
             int successCount = 0;
@@ -447,13 +466,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             IQueryable<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders.Include("SkuAttributeDetails").AsEnumerable()
                                                 join d in currentUser.GetUserDivisions(AppName)
                                                     on new { a.Division } equals new { Division = d.DivCode }
-                                                orderby a.Division, a.Dept, a.Category
+                                                orderby a.Division, a.Dept, a.Category, a.SKU
                                                 select a).AsQueryable();
 
             if (settings.FilterDescriptors.Any())
-            {
-                headers = headers.ApplyFilters(settings.FilterDescriptors);
-            }            
+                headers = headers.ApplyFilters(settings.FilterDescriptors);            
+
             Aspose.Excel.Excel excelDocument = CreateSkuAttributeExport(headers.ToList());
             excelDocument.Save("SkuAttributes.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return RedirectToAction("Index");
@@ -462,21 +480,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Export(int ID)
         {
             // retrieve data (return list even though only 1 should be returned in order to use general method)
-            List<SkuAttributeHeader> header = (from a in db.SkuAttributeHeaders.Include("SkuAttributeDetails") where a.ID == ID select a).ToList();
+            List<SkuAttributeHeader> header = db.SkuAttributeHeaders.Include("SkuAttributeDetails")
+                                                                    .Where(sa => sa.ID == ID)
+                                                                    .ToList();
             Excel excelDocument = CreateSkuAttributeExport(header);
             SkuAttributeHeader sah = header.FirstOrDefault();
-            string excelFileName = sah.Division + "-" + sah.Dept;
+            string excelFileName = string.Format("{0}-{1}", sah.Division, sah.Dept);
             if (sah != null)
             {
-                if (sah.Category != null)
-                {
+                if (sah.Category != null)                
                     excelFileName += "-" + sah.Category;
-                }
-                if (sah.Brand != null)
-                {
+                
+                if (sah.Brand != null)                
                     excelFileName += "-" + sah.Brand;
-                }
+                
+                if (!string.IsNullOrEmpty(sah.SKU))
+                    excelFileName += "-" + sah.SKU;
             }
+
             excelFileName += "-SkuAttributes.xls";
             excelDocument.Save(excelFileName, SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return RedirectToAction("Index");
@@ -499,32 +520,34 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 mySheet.Cells[row, 2].Style.HorizontalAlignment = TextAlignmentType.Right;
                 mySheet.Cells[row, 3].PutValue(header.BrandForDisplay);
                 mySheet.Cells[row, 3].Style.HorizontalAlignment = TextAlignmentType.Right;
-                mySheet.Cells[row, 4].PutValue(header.CreateDate);
-                mySheet.Cells[row, 4].Style.Number = 14;
-                mySheet.Cells[row, 5].PutValue(header.WeightActiveInt);
-                mySheet.Cells[row, 5].Style.HorizontalAlignment = TextAlignmentType.Right;
-                AddBorder(row, 5, mySheet);
+                mySheet.Cells[row, 4].PutValue(header.SKU);
+                mySheet.Cells[row, 4].Style.HorizontalAlignment = TextAlignmentType.Right;
+                mySheet.Cells[row, 5].PutValue(header.CreateDate);
+                mySheet.Cells[row, 5].Style.Number = 14;
+                mySheet.Cells[row, 6].PutValue(header.WeightActiveInt);
+                mySheet.Cells[row, 6].Style.HorizontalAlignment = TextAlignmentType.Right;
+                AddBorder(row, 6, mySheet);
 
                 // attribute weighting
-                PopulateRowValue(row, 6, header, mySheet, "department");
-                PopulateRowValue(row, 7, header, mySheet, "category");
-                PopulateRowValue(row, 8, header, mySheet, "vendornumber");
-                PopulateRowValue(row, 9, header, mySheet, "brandid");
-                PopulateRowValue(row, 10, header, mySheet, "size");
-                PopulateRowValue(row, 11, header, mySheet, "sizerange");
-                PopulateRowValue(row, 12, header, mySheet, "color1");
-                PopulateRowValue(row, 13, header, mySheet, "color2");
-                PopulateRowValue(row, 14, header, mySheet, "color3");
-                PopulateRowValue(row, 15, header, mySheet, "gender");
-                PopulateRowValue(row, 16, header, mySheet, "lifeofsku");
-                PopulateRowValue(row, 17, header, mySheet, "material");
-                PopulateRowValue(row, 18, header, mySheet, "playerid");
-                PopulateRowValue(row, 19, header, mySheet, "skuid1");
-                PopulateRowValue(row, 20, header, mySheet, "skuid2");
-                PopulateRowValue(row, 21, header, mySheet, "skuid3");
-                PopulateRowValue(row, 22, header, mySheet, "skuid4");
-                PopulateRowValue(row, 23, header, mySheet, "skuid5");
-                PopulateRowValue(row, 24, header, mySheet, "teamcode");
+                PopulateRowValue(row, 7, header, mySheet, "department");
+                PopulateRowValue(row, 8, header, mySheet, "category");
+                PopulateRowValue(row, 9, header, mySheet, "vendornumber");
+                PopulateRowValue(row, 10, header, mySheet, "brandid");
+                PopulateRowValue(row, 11, header, mySheet, "size");
+                PopulateRowValue(row, 12, header, mySheet, "sizerange");
+                PopulateRowValue(row, 13, header, mySheet, "color1");
+                PopulateRowValue(row, 14, header, mySheet, "color2");
+                PopulateRowValue(row, 15, header, mySheet, "color3");
+                PopulateRowValue(row, 16, header, mySheet, "gender");
+                PopulateRowValue(row, 17, header, mySheet, "lifeofsku");
+                PopulateRowValue(row, 18, header, mySheet, "material");
+                PopulateRowValue(row, 19, header, mySheet, "playerid");
+                PopulateRowValue(row, 20, header, mySheet, "skuid1");
+                PopulateRowValue(row, 21, header, mySheet, "skuid2");
+                PopulateRowValue(row, 22, header, mySheet, "skuid3");
+                PopulateRowValue(row, 23, header, mySheet, "skuid4");
+                PopulateRowValue(row, 24, header, mySheet, "skuid5");
+                PopulateRowValue(row, 25, header, mySheet, "teamcode");
                 row++;
             }
 
@@ -554,12 +577,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             Worksheet mySheet = excelDocument.Worksheets[0];
 
-            Aspose.Excel.Range range = mySheet.Cells.CreateRange("F1", "Y1");
+            Aspose.Excel.Range range = mySheet.Cells.CreateRange("G1", "Z1");
             range.Merge();
-            mySheet.Cells[0, 5].PutValue("Attribute Weighting");
-            mySheet.Cells[0, 5].Style.HorizontalAlignment = TextAlignmentType.Center;
-            mySheet.Cells[0, 5].Style.Font.Size = 12;
-            mySheet.Cells[0, 5].Style.Font.IsBold = true;
+            mySheet.Cells[0, 6].PutValue("Attribute Weighting");
+            mySheet.Cells[0, 6].Style.HorizontalAlignment = TextAlignmentType.Center;
+            mySheet.Cells[0, 6].Style.Font.Size = 12;
+            mySheet.Cells[0, 6].Style.Font.IsBold = true;
             range.SetOutlineBorder(BorderType.BottomBorder, CellBorderType.Thin, System.Drawing.Color.Black);
             range.SetOutlineBorder(BorderType.TopBorder, CellBorderType.Thin, System.Drawing.Color.Black);
             range.SetOutlineBorder(BorderType.LeftBorder, CellBorderType.Thin, System.Drawing.Color.Black);
@@ -572,35 +595,36 @@ namespace Footlocker.Logistics.Allocation.Controllers
             PutComment(mySheet, "B2", "Department is mandatory.");
             mySheet.Cells[1, 2].PutValue("Category");
             mySheet.Cells[1, 3].PutValue("BrandID");
-            mySheet.Cells[1, 4].PutValue("Update Date");
-            mySheet.Cells[1, 5].PutValue("Active");
-            mySheet.Cells[1, 6].PutValue("Department");
-            PutComment(mySheet, "G2", "Department must have a mandatory value (M).");
-            mySheet.Cells[1, 7].PutValue("Category");
-            PutComment(mySheet, "H2", "If a Category was supplied, then this field must be mandatory (M).");
-            mySheet.Cells[1, 8].PutValue("VendorNumber");
-            mySheet.Cells[1, 9].PutValue("BrandID");
-            PutComment(mySheet, "J2", "If a BrandID was supplied, then this field must be mandatory (M).");
-            mySheet.Cells[1, 10].PutValue("Size");
-            mySheet.Cells[1, 11].PutValue("SizeRange");
-            mySheet.Cells[1, 12].PutValue("Color1");
-            mySheet.Cells[1, 13].PutValue("Color2");
-            mySheet.Cells[1, 14].PutValue("Color3");
-            mySheet.Cells[1, 15].PutValue("Gender");
-            mySheet.Cells[1, 16].PutValue("LifeOfSku");
-            mySheet.Cells[1, 17].PutValue("Material");
-            mySheet.Cells[1, 18].PutValue("PlayerID");
-            mySheet.Cells[1, 19].PutValue("SkuID1");
-            mySheet.Cells[1, 20].PutValue("SkuID2");
-            mySheet.Cells[1, 21].PutValue("SkuID3");
-            mySheet.Cells[1, 22].PutValue("SkuID4");
-            mySheet.Cells[1, 23].PutValue("SkuID5");
-            mySheet.Cells[1, 24].PutValue("Team Code");
+            mySheet.Cells[1, 4].PutValue("SKU");
+            mySheet.Cells[1, 5].PutValue("Update Date");
+            mySheet.Cells[1, 6].PutValue("Active");
+            mySheet.Cells[1, 7].PutValue("Department");
+            PutComment(mySheet, "H2", "Department must have a mandatory value (M).");
+            mySheet.Cells[1, 8].PutValue("Category");
+            PutComment(mySheet, "I2", "If a Category was supplied, then this field must be mandatory (M).");
+            mySheet.Cells[1, 9].PutValue("VendorNumber");
+            mySheet.Cells[1, 10].PutValue("BrandID");
+            PutComment(mySheet, "K2", "If a BrandID was supplied, then this field must be mandatory (M).");
+            mySheet.Cells[1, 11].PutValue("Size");
+            mySheet.Cells[1, 12].PutValue("SizeRange");
+            mySheet.Cells[1, 13].PutValue("Color1");
+            mySheet.Cells[1, 14].PutValue("Color2");
+            mySheet.Cells[1, 15].PutValue("Color3");
+            mySheet.Cells[1, 16].PutValue("Gender");
+            mySheet.Cells[1, 17].PutValue("LifeOfSku");
+            mySheet.Cells[1, 18].PutValue("Material");
+            mySheet.Cells[1, 19].PutValue("PlayerID");
+            mySheet.Cells[1, 20].PutValue("SkuID1");
+            mySheet.Cells[1, 21].PutValue("SkuID2");
+            mySheet.Cells[1, 22].PutValue("SkuID3");
+            mySheet.Cells[1, 23].PutValue("SkuID4");
+            mySheet.Cells[1, 24].PutValue("SkuID5");
+            mySheet.Cells[1, 25].PutValue("Team Code");
 
-            for (int i = 0; i < 25; i++)
+            for (int i = 0; i < 26; i++)
             {
                 mySheet.Cells[1, i].Style.Font.IsBold = true;
-                if (i > 4)
+                if (i > 5)
                 {
                     AddBorder(1, i, mySheet);
                 }
