@@ -202,10 +202,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                                     (sah.Category == model.Category ||
                                                                      (sah.Category == null && model.Category == null)) &&
                                                                     (sah.Brand == model.BrandID ||
-                                                                     (sah.Brand == null && model.BrandID == null))).Any();
+                                                                     (sah.Brand == null && model.BrandID == null)) &&
+                                                                    (sah.SKU == model.SKU ||
+                                                                     (sah.SKU == null && model.SKU == null))).Any();
 
                 if (existing)                
-                    ModelState.AddModelError("", "This Department/Category/BrandID is already setup, please use go Back to List and use Edit.");                
+                    ModelState.AddModelError("", "This Department/Category/BrandID/SKU is already setup, please use go Back to List and use Edit.");                
 
                 if (!string.IsNullOrEmpty(model.BrandID) && string.IsNullOrEmpty(model.Category))                
                     ModelState.AddModelError("Category", "Category is required when a BrandID is selected");                

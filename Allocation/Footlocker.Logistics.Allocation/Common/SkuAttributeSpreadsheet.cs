@@ -233,7 +233,8 @@ namespace Footlocker.Logistics.Allocation.Common
                             SkuAttributeHeader existentHeader = config.db.SkuAttributeHeaders.Where(sah => sah.Division == uploadRec.Division &&
                                                                                                            sah.Dept == uploadRec.Dept &&
                                                                                                            (sah.Category == null ? uploadRec.Category == null : sah.Category == uploadRec.Category) &&
-                                                                                                           (sah.Brand == null ? uploadRec.Brand == null : sah.Brand == uploadRec.Brand))
+                                                                                                           (sah.Brand == null ? uploadRec.Brand == null : sah.Brand == uploadRec.Brand) &&
+                                                                                                           (sah.SKU == null ? uploadRec.SKU == null : sah.SKU == uploadRec.SKU))
                                                                                              .SingleOrDefault();
 
                             if (existentHeader != null)
