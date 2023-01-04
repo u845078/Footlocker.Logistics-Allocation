@@ -10,109 +10,112 @@
     body {
         background-color: #fff;
     }
-
 </style>
-    <table cellpadding=0 cellspacing=0><tr><td>
-        <img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.RangePlan.Sku)"/>
-    </td><td valign="middle">
-    <span class="editor-label">
-        <b>@Html.LabelFor(model => model.RangePlan.Sku):</b>
-    </span>
-    <span class="editor-field">
-        @Html.Raw(Model.RangePlan.Sku)
-    </span>
-    &nbsp;&nbsp;
-    <span class="editor-label">
-        <b>@Html.LabelFor(model => model.RangePlan.Description, "Comment"):</b>
-    </span>
-    <span class="editor-field">
-        @Html.Raw(Model.RangePlan.Description)
-    </span>
-    &nbsp;&nbsp;
-    <span class="editor-field">
-        @Html.Raw("<b># Stores:</b>  " + Model.RangePlan.StoreCount)
-    </span>
-    <br />
-    <br />
-    <span class="editor-label">
-        <b>@Html.LabelFor(model => model.RangePlan.ItemMaster.Description):</b>
-    </span>
-    <span class="editor-field">
-        @Html.Raw(Model.RangePlan.ItemMaster.Description)
-    </span>
-    <br />
-    <br />
-    <span class="editor-label">
-        <b>Evergreen SKU:</b>
-    </span>
-    <span class="editor-field">
-        @Html.Raw(Model.RangePlan.EvergreenSKU)
-    </span>
-    &nbsp;&nbsp;
-    <span class="editor-label">
-        <b>PreSale SKU:</b>
-    </span>
-    <span class="editor-field">
-        @Html.Raw(Model.RangePlan.PreSaleSKU)
-    </span>
-    <br />
-    <br />
-    <span class="editor-label">
-        <b>Re-Initialize Status:</b>
-    </span>
-    <span class="editor-field">
-        @Html.Raw(Model.RangePlan.ReInitializeStatus)
-    </span>
-    <br />
-    <br />
-    <span class="editor-label">
-        <b>@Html.LabelFor(model => model.RangePlan.CreatedBy):</b>
-    </span>
-    <span class="editor-field">
-        @Html.Raw(Model.RangePlan.CreatedBy)
-    </span>
-    &nbsp;&nbsp;
-    <span class="editor-label">
-        <b>@Html.LabelFor(model => model.RangePlan.CreateDate):</b>
-    </span>
-    <span class="editor-field">
-        @Html.Raw(Model.RangePlan.CreateDate)
-    </span>
-    <br />
-    <br />
-    <span class="editor-label">
-        <b>@Html.LabelFor(model => model.RangePlan.UpdateDate):</b>
-    </span>
-    <span class="editor-field">
-        @Html.Raw(Model.RangePlan.UpdateDate)
-    </span>
-    &nbsp;&nbsp;
-    <span class="editor-label">
-        <b>@Html.LabelFor(model => model.RangePlan.UpdatedBy):</b>
-    </span>
-    <span class="editor-field">
-        @Html.Raw(Model.RangePlan.UpdatedBy)
-    </span>
-</td></tr>
-    @if (Model.RangePlan.Launch)
-    { 
-        <tr>
-        <td colspan="2">
-            @if (Model.RangePlan.LaunchDate != null)
-            {
-                @Html.Raw("<font color='red'><b>This sku Launches on " + ((DateTime)Model.RangePlan.LaunchDate).ToShortDateString() + "</b></font>")
-            }
-            else
-            { 
-                @Html.Raw("<font color='red'><b>This sku Launches on ??? </b></font>")            
-            }
-            @Html.Raw("<br><font color='red'><b>The start date must be the launch date.</b></font>")
+<table cellpadding=0 cellspacing=0>
+    <tr>
+        <td>
+            <img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.RangePlan.Sku)" />
         </td>
+        <td valign="middle">
+            <span class="editor-label">
+                <b>@Html.LabelFor(model => model.RangePlan.Sku):</b>
+            </span>
+            <span class="editor-field">
+                @Html.Raw(Model.RangePlan.Sku)
+            </span>
+            &nbsp;&nbsp;
+            <span class="editor-label">
+                <b>@Html.LabelFor(model => model.RangePlan.Description, "Comment"):</b>
+            </span>
+            <span class="editor-field">
+                @Html.Raw(Model.RangePlan.Description)
+            </span>
+            &nbsp;&nbsp;
+            <span class="editor-field">
+                @Html.Raw("<b># Stores:</b>  " + Model.RangePlan.StoreCount)
+            </span>
+            <br />
+            <br />
+            <span class="editor-label">
+                <b>@Html.LabelFor(model => model.RangePlan.ItemMaster.Description):</b>
+            </span>
+            <span class="editor-field">
+                @Html.Raw(Model.RangePlan.ItemMaster.Description)
+            </span>
+            <br />
+            <br />
+            <span class="editor-label">
+                <b>Evergreen SKU:</b>
+            </span>
+            <span class="editor-field">
+                @Html.Raw(Model.RangePlan.EvergreenSKU)
+            </span>
+            &nbsp;&nbsp;
+            <span class="editor-label">
+                <b>PreSale SKU:</b>
+            </span>
+            <span class="editor-field">
+                @Html.Raw(Model.RangePlan.PreSaleSKU)
+            </span>
+            <br />
+            <br />
+            <span class="editor-label">
+                <b>Re-Initialize Status:</b>
+            </span>
+            <span class="editor-field">
+                @Html.Raw(Model.RangePlan.ReInitializeStatus)
+            </span>
+            <br />
+            <br />
+            <span class="editor-label">
+                <b>@Html.LabelFor(model => model.RangePlan.CreatedBy):</b>
+            </span>
+            <span class="editor-field">
+                @Html.Raw(Model.RangePlan.CreatedBy)
+            </span>
+            &nbsp;&nbsp;
+            <span class="editor-label">
+                <b>@Html.LabelFor(model => model.RangePlan.CreateDate):</b>
+            </span>
+            <span class="editor-field">
+                @Html.Raw(Model.RangePlan.CreateDate)
+            </span>
+            <br />
+            <br />
+            <span class="editor-label">
+                <b>@Html.LabelFor(model => model.RangePlan.UpdateDate):</b>
+            </span>
+            <span class="editor-field">
+                @Html.Raw(Model.RangePlan.UpdateDate)
+            </span>
+            &nbsp;&nbsp;
+            <span class="editor-label">
+                <b>@Html.LabelFor(model => model.RangePlan.UpdatedBy):</b>
+            </span>
+            <span class="editor-field">
+                @Html.Raw(Model.RangePlan.UpdatedBy)
+            </span>
+        </td>
+    </tr>
+    @if (Model.RangePlan.Launch)
+    {
+        <tr>
+            <td colspan="2">
+                @if (Model.RangePlan.LaunchDate != null)
+                {
+                    @Html.Raw("<font color='red'><b>This sku Launches on " + ((DateTime)Model.RangePlan.LaunchDate).ToShortDateString() + "</b></font>")
+                }
+                else
+                {
+                    @Html.Raw("<font color='red'><b>This sku Launches on ??? </b></font>")
+                }
+                @Html.Raw("<br><font color='red'><b>The start date must be the launch date.</b></font>")
+            </td>
         </tr>
 
     }
 
-    </table>
+</table>
 
 <br />
 <script type="text/javascript">
@@ -139,19 +142,24 @@
 </script>
 
 @*@Html.ActionLink("Export to Excel", "ExcelSizeAllocation", new {planID = Model.Plan.Id}, new { @class="t-button"})*@
-@if ((ViewData["message"] != null) && (ViewData["message"] != "")) {
+@if ((ViewData["message"] != null) && (ViewData["message"] != ""))
+{
     @Html.Raw("<font color='red'><b>" + ViewData["message"] + "</b></font><br><br>")
 }
+@if ((TempData["message"] != null) && (TempData["message"].ToString() != ""))
+{
+    @Html.Raw("<font color='red'><b>" + TempData["message"] + "</b></font><br><br>")
+}
 <div>
-@Html.ActionLink("Add Delivery Group", "CreateDeliveryGroup", new { planID = Model.RangePlan.Id }, new { @class = "t-button", @style = "margin-bottom: 5px;" })
-@(Html.Telerik().Grid(Model.DeliveryGroups)
+    @Html.ActionLink("Add Delivery Group", "CreateDeliveryGroup", new { planID = Model.RangePlan.Id }, new { @class = "t-button", @style = "margin-bottom: 5px;" })
+    @(Html.Telerik().Grid(Model.DeliveryGroups)
         .Name("DeliveryGroups")
         .Columns(columns =>
         {
             columns.Bound(o => o.Selected)
-                .Template(@<text> 
+                .Template(@<text>
                             @if (item.Selected)
-                            { 
+                            {
                                 @Html.Raw("<a class=\"t-button\" href='/SkuRange/SelectDeliveryGroup?deliveryGroupID=" + item.ID + "&planID=" + item.PlanID +"'>Hide</a>")
                             }
                             else
@@ -228,10 +236,10 @@
                 }
             }
             )
-) 
+)
 </div>
 @if (Model.RangePlan.StoreCount > Model.DeliveryStoreCount)
-{ 
+{
     @Html.Raw("<font color='red'>You have " + (Model.RangePlan.StoreCount - Model.DeliveryStoreCount) + " store(s) that are not in a delivery group.<BR>They will not be ranged in Q without being in a delivery group.</font>&nbsp;&nbsp;")
     @Html.ActionLink("Show Stores", "ShowStoresWithoutDeliveryGroup", new { planID = Model.RangePlan.Id }, new { @class = "t-button" })
 }
@@ -243,40 +251,41 @@
 
         @if (Model.OrderPlanningRequest != null)
         {
-        <div class="t-widget t-grid">
-            <table width="765px" cellpadding="0" cellspacing="0">
-            <thead class="t-grid-header">
-            <tr>
-                <th class="t-header">Start Requesting</th>
-                <th class="t-header">Request Until</th>
-                <th class="t-header">Comment</th>
-                <th class="t-header"></th>
-            </tr>
-            </thead>
-            <script>
-                function showTest() {
-                    $('#testdiv').empty().append('<table><tr><td>Version</td><td>PO</td><td>Comment</td><td></td></tr><tr><td>1234</td><td>6345100</td><td>25 doors</td><td><input type="button" value="Apply"/></td></tr><tr><td>1235</td><td>6345455</td><td>200 doors</td><td><input type="button" value="Apply"/></td></tr></table><input type="button" onclick="closeTest()" value="Close"/>');
-                    $('#testdiv').append('<br>The list is versions that have POs created off of them.  What would we apply here, mins/max?, dates?, limit to these stores?, add these stores?')
-                }
+            <div class="t-widget t-grid">
+                <table width="765px" cellpadding="0" cellspacing="0">
+                    <thead class="t-grid-header">
+                        <tr>
+                            <th class="t-header">Start Requesting</th>
+                            <th class="t-header">Request Until</th>
+                            <th class="t-header">Comment</th>
+                            <th class="t-header"></th>
+                        </tr>
+                    </thead>
+                    <script>
+                        function showTest() {
+                            $('#testdiv').empty().append('<table><tr><td>Version</td><td>PO</td><td>Comment</td><td></td></tr><tr><td>1234</td><td>6345100</td><td>25 doors</td><td><input type="button" value="Apply"/></td></tr><tr><td>1235</td><td>6345455</td><td>200 doors</td><td><input type="button" value="Apply"/></td></tr></table><input type="button" onclick="closeTest()" value="Close"/>');
+                            $('#testdiv').append('<br>The list is versions that have POs created off of them.  What would we apply here, mins/max?, dates?, limit to these stores?, add these stores?')
+                        }
 
-                function closeTest() {
-                    $('#testdiv').empty();
-                 }
-            </script>
-            <tbody>
-                <tr>
-                    <td>@Html.DisplayFor(m => m.OrderPlanningRequest.StartSend)</td>
-                    <td>@Html.DisplayFor(m => m.OrderPlanningRequest.EndSend)</td>
-                    <td>@Html.DisplayFor(m => m.OrderPlanningRequest.Comment)</td>
-                    <td>
-                    @Html.ActionLink("Edit", "EditOrderPlanningRequest", new { planID = Model.RangePlan.Id }, new { @class = "t-button" })
-                    @Html.ActionLink("Delete", "DeleteOrderPlanningRequest", new { planID = Model.RangePlan.Id }, new { @class = "t-button", onclick = "return confirm('Are you sure?');" })
-                    @*<div class='t-button' onclick="showTest()">Apply to AR?</div>*@
-                    </td></tr>
-            </tbody>
-            </table>
-        </div>        
-        <div id=testdiv></div>
+                        function closeTest() {
+                            $('#testdiv').empty();
+                        }
+                    </script>
+                    <tbody>
+                        <tr>
+                            <td>@Html.DisplayFor(m => m.OrderPlanningRequest.StartSend)</td>
+                            <td>@Html.DisplayFor(m => m.OrderPlanningRequest.EndSend)</td>
+                            <td>@Html.DisplayFor(m => m.OrderPlanningRequest.Comment)</td>
+                            <td>
+                                @Html.ActionLink("Edit", "EditOrderPlanningRequest", new { planID = Model.RangePlan.Id }, new { @class = "t-button" })
+                                @Html.ActionLink("Delete", "DeleteOrderPlanningRequest", new { planID = Model.RangePlan.Id }, new { @class = "t-button", onclick = "return confirm('Are you sure?');" })
+                                @*<div class='t-button' onclick="showTest()">Apply to AR?</div>*@
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id=testdiv></div>
         }
         else
         {
@@ -303,26 +312,26 @@
 
 
 <div style="margin-left:0px;margin-right:200px;" class="fieldset">
-<b>Filters:</b><br />
-<div class="t-button" onclick="showRuleSelector()">Edit Filter Rules</div>
-<div class="t-button" onclick="showRuleSelectorExcel()">Filter Excel Upload</div>
-@Html.ActionLink("Clear Filtered Stores", "ClearRules", new { value = "", planID = Model.RangePlan.Id, ruleType = "SizeAlc" }, new { @class = "t-button" })
-@*@if ("emptyStartDates".Equals(ViewData["show"]))
-{ 
-    @Html.ActionLink("Show All Filtered", "PresentationQuantities", new { planID = ViewData["planID"], message = "", page = 0, show = "" }, new { @class = "t-button" })
-}
-else
-{   
-    @Html.ActionLink("Show Filtered With Blank Start Dates", "PresentationQuantities", new { planID = ViewData["planID"], message = "", page = 0, show = "emptyStartDates" }, new { @class = "t-button" })
-}*@
-<div id="ruleSelector" style="display:none">
-    @Html.Partial(Url.Content("~/Views/Rule/RuleFilterNoStores.cshtml"), Model, ViewData)
-</div>
+    <b>Filters:</b><br />
+    <div class="t-button" onclick="showRuleSelector()">Edit Filter Rules</div>
+    <div class="t-button" onclick="showRuleSelectorExcel()">Filter Excel Upload</div>
+    @Html.ActionLink("Clear Filtered Stores", "ClearRules", new { value = "", planID = Model.RangePlan.Id, ruleType = "SizeAlc" }, new { @class = "t-button" })
+    @*@if ("emptyStartDates".Equals(ViewData["show"]))
+        {
+            @Html.ActionLink("Show All Filtered", "PresentationQuantities", new { planID = ViewData["planID"], message = "", page = 0, show = "" }, new { @class = "t-button" })
+        }
+        else
+        {
+            @Html.ActionLink("Show Filtered With Blank Start Dates", "PresentationQuantities", new { planID = ViewData["planID"], message = "", page = 0, show = "emptyStartDates" }, new { @class = "t-button" })
+        }*@
+    <div id="ruleSelector" style="display:none">
+        @Html.Partial(Url.Content("~/Views/Rule/RuleFilterNoStores.cshtml"), Model, ViewData)
+    </div>
     <br />
     <div id="filtermessage">
-    <font color="red">
-    @Html.Raw("Filter of Range Plan showing  " + Model.StoreCount + " store(s).") 
-    </font>
+        <font color="red">
+            @Html.Raw("Filter of Range Plan showing  " + Model.StoreCount + " store(s).")
+        </font>
     </div>
 </div>
 
@@ -334,13 +343,13 @@ else
     }
 }
 <div id="sizeallocs">
-@Html.Partial(@Url.Content("~/Views/SkuRange/TotalSizeAllocation.cshtml"), Model.TotalSizeAllocations)
+    @Html.Partial(@Url.Content("~/Views/SkuRange/TotalSizeAllocation.cshtml"), Model.TotalSizeAllocations)
 
-@Html.Partial(@Url.Content("~/Views/SkuRange/StoreSizeAllocation.cshtml"), Model.SizeAllocations)
+    @Html.Partial(@Url.Content("~/Views/SkuRange/StoreSizeAllocation.cshtml"), Model.SizeAllocations)
 </div>
 @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
 @Html.ActionLink("Stores", "EditStores", new { planID = Model.RangePlan.Id }, new { @class = "t-button" })
 @Html.ActionLink("Download to Excel", "ExcelRange", new { sku = Model.RangePlan.Sku }, new { @class = "t-button" })
 @Html.ActionLink("Preview Q Feed", "ShowQFeed", new { planID = Model.RangePlan.Id }, new { @class = "t-button" })
-
+@Html.ActionLink("Reinitialize SKU", "ReinitSku", new { sku = Model.RangePlan.Sku, planID = Model.RangePlan.Id }, new { @class = "t-button" })
 

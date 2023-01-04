@@ -200,6 +200,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 InitializeDepartments(model, false);
                 InitializeCategories(model);
                 InitializeBrands(model);
+
+                if (ModelState.IsValid)
+                    model.Message = "The SKU has been scheduled to reinitialize.";
+
                 return View(model);
             }                
             else

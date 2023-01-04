@@ -896,6 +896,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
+        public ActionResult ReinitSku(string sku, long planID)
+        {
+            string errorMessage;
+
+            errorMessage = AddReinitializedSKU(sku, currentUser);
+            if (!string.IsNullOrEmpty(errorMessage))
+                TempData["message"] = errorMessage;
+            else
+                TempData["message"] = "The SKU has been scheduled to reinitialize.";
+
+            return RedirectToAction("PresentationQuantities", "SkuRange", new { planID });
+        }
+
         [GridAction]
         public ActionResult _ShowQFeed(long planID)
         {
