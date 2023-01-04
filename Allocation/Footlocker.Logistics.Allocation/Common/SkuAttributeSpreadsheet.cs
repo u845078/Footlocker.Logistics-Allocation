@@ -151,30 +151,12 @@ namespace Footlocker.Logistics.Allocation.Common
                     errorsFound += "The Division and Department must match the SKU's division and department";
 
                 long itemID = itemDAO.GetItemID(header.SKU);
+
                 if (itemID == 0)
                     errorsFound += "This SKU is not found in the database";
 
-                if (!string.IsNullOrEmpty(header.Category))
-                {
-                    int skuCount = config.db.ItemMasters.Where(im => im.Div == header.Division &&
-                                                              im.Dept == header.Dept &&
-                                                              im.Category == header.Category &&
-                                                              im.MerchantSku == header.SKU).Count();
-
-                    if (skuCount == 0)
-                        errorsFound += "This Department/Category selection doesn't match the provided sku.";
-                }
-
-                if (!string.IsNullOrEmpty(header.Brand))
-                {
-                    int skuCount = config.db.ItemMasters.Where(im => im.Div == header.Division &&
-                                                              im.Dept == header.Dept &&
-                                                              im.Brand == header.Brand &&
-                                                              im.MerchantSku == header.SKU).Count();
-
-                    if (skuCount == 0)
-                        errorsFound += "This Department/BrandID selection doesn't match the provided sku.";
-                }
+                if (categoryExists || brandExists)                
+                    errorsFound += "You can't provide a Category or Brand ID when providing a SKU.";                
             }        
 
             // department MUST be mandatory.

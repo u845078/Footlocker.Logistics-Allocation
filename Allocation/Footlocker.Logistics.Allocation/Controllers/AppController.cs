@@ -10,6 +10,7 @@ using System.Web.Routing;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Common;
 using System.ComponentModel;
+using System.Reflection;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {

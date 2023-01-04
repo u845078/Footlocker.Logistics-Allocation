@@ -190,114 +190,124 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
-        public ActionResult Create(SkuAttributeModel model)
+        public ActionResult Create(SkuAttributeModel model, string submitButton)
         {
-            InitializeDivisions(model);
-            InitializeDepartments(model, false);
-
-            if (ModelState.IsValid)
+            if (submitButton == "Reinitialize")
             {
-                bool existing = db.SkuAttributeHeaders.Where(sah => sah.Division == model.Division &&
-                                                                    sah.Dept == model.Department &&
-                                                                    (sah.Category == model.Category ||
-                                                                     (sah.Category == null && model.Category == null)) &&
-                                                                    (sah.Brand == model.BrandID ||
-                                                                     (sah.Brand == null && model.BrandID == null)) &&
-                                                                    (sah.SKU == model.SKU ||
-                                                                     (sah.SKU == null && model.SKU == null))).Any();
+                ReInitializeSKU(model);
 
-                if (existing)                
-                    ModelState.AddModelError("", "This Department/Category/BrandID/SKU is already setup, please use go Back to List and use Edit.");                
+                InitializeDivisions(model);
+                InitializeDepartments(model, false);
+                InitializeCategories(model);
+                InitializeBrands(model);
+                return View(model);
+            }                
+            else
+            {
+                InitializeDivisions(model);
+                InitializeDepartments(model, false);
 
-                if (!string.IsNullOrEmpty(model.BrandID) && string.IsNullOrEmpty(model.Category))                
-                    ModelState.AddModelError("Category", "Category is required when a BrandID is selected");                
-
-                if (!string.IsNullOrEmpty(model.BrandID))
+                if (ModelState.IsValid)
                 {
-                    int skuCount = db.ItemMasters.Where(im => im.Div == model.Division && 
-                                                          im.Dept == model.Department &&
-                                                          im.Category == model.Category &&
-                                                          im.Brand == model.BrandID).Count();
+                    bool existing = db.SkuAttributeHeaders.Where(sah => sah.Division == model.Division &&
+                                                                        sah.Dept == model.Department &&
+                                                                        (sah.Category == model.Category ||
+                                                                         (sah.Category == null && model.Category == null)) &&
+                                                                        (sah.Brand == model.BrandID ||
+                                                                         (sah.Brand == null && model.BrandID == null)) &&
+                                                                        (sah.SKU == model.SKU ||
+                                                                         (sah.SKU == null && model.SKU == null))).Any();
 
-                    if (skuCount == 0)                    
-                        ModelState.AddModelError("", "This Department/Category/BrandID selection doesn't match any skus.");                    
-                }
+                    if (existing)
+                        ModelState.AddModelError("", "This Department/Category/BrandID/SKU is already setup, please use go Back to List and use Edit.");
 
-                if (!string.IsNullOrEmpty(model.SKU))
-                {
-                    string skuDivision = model.SKU.Substring(0, 2);
-                    string skuDepartment = model.SKU.Substring(3, 2);
-
-                    if (skuDivision != model.Division || skuDepartment != model.Department)
-                        ModelState.AddModelError("SKU", "The Division and Department must match the SKU's division and department");
-
-                    long itemID = itemDAO.GetItemID(model.SKU);
-                    if (itemID == 0)
-                        ModelState.AddModelError("SKU", "This SKU is not found in the database");
-
-                    if (!string.IsNullOrEmpty(model.Category))
-                    {
-                        int skuCount = db.ItemMasters.Where(im => im.Div == model.Division &&
-                                                                  im.Dept == model.Department &&
-                                                                  im.Category == model.Category &&                                                                  
-                                                                  im.MerchantSku == model.SKU).Count();
-
-                        if (skuCount == 0)
-                            ModelState.AddModelError("", "This Department/Category selection doesn't match the provided sku.");
-                    }
+                    if (!string.IsNullOrEmpty(model.BrandID) && string.IsNullOrEmpty(model.Category))
+                        ModelState.AddModelError("Category", "Category is required when a BrandID is selected");
 
                     if (!string.IsNullOrEmpty(model.BrandID))
                     {
                         int skuCount = db.ItemMasters.Where(im => im.Div == model.Division &&
-                                                                  im.Dept == model.Department &&
-                                                                  im.Brand == model.BrandID &&
-                                                                  im.MerchantSku == model.SKU).Count();
+                                                              im.Dept == model.Department &&
+                                                              im.Category == model.Category &&
+                                                              im.Brand == model.BrandID).Count();
 
                         if (skuCount == 0)
-                            ModelState.AddModelError("", "This Department/BrandID selection doesn't match the provided sku.");
+                            ModelState.AddModelError("", "This Department/Category/BrandID selection doesn't match any skus.");
                     }
+
+                    if (!string.IsNullOrEmpty(model.SKU))
+                    {
+                        string skuDivision = model.SKU.Substring(0, 2);
+                        string skuDepartment = model.SKU.Substring(3, 2);
+
+                        if (skuDivision != model.Division || skuDepartment != model.Department)
+                            ModelState.AddModelError("SKU", "The Division and Department must match the SKU's division and department");
+
+                        long itemID = itemDAO.GetItemID(model.SKU);
+                        if (itemID == 0)
+                            ModelState.AddModelError("SKU", "This SKU is not found in the database");
+
+                        if (!string.IsNullOrEmpty(model.Category) || !string.IsNullOrEmpty(model.BrandID))
+                            ModelState.AddModelError("SKU", "You can't provide a Category or Brand ID when providing a SKU.");
+                    }
+
+                    int total = model.Attributes.Sum(m => m.WeightInt);
+
+                    if (total != 0 && total != 100)
+                        ModelState.AddModelError("", string.Format("Total must equal 100, it was {0}", total));
                 }
 
-                int total = model.Attributes.Sum(m => m.WeightInt);
+                if (!ModelState.IsValid)
+                {
+                    //has errors
+                    InitializeCategories(model);
+                    InitializeBrands(model);
 
-                if (total != 0 && total != 100)                
-                    ModelState.AddModelError("", string.Format("Total must equal 100, it was {0}", total));                
+                    return View(model);
+                }
+                else
+                {
+                    //process create
+                    SkuAttributeHeader header = new SkuAttributeHeader
+                    {
+                        Division = model.Division,
+                        Dept = model.Department,
+                        Category = model.Category,
+                        Brand = model.BrandID,
+                        SKU = model.SKU,
+                        CreatedBy = currentUser.NetworkID,
+                        CreateDate = DateTime.Now,
+                        WeightActiveInt = model.WeightActive
+                    };
+
+                    db.SkuAttributeHeaders.Add(header);
+                    db.SaveChanges();
+
+                    foreach (SkuAttributeDetail det in model.Attributes)
+                    {
+                        det.HeaderID = header.ID;
+                        db.SkuAttributeDetails.Add(det);
+                        db.SaveChanges();
+                    }
+
+                    return RedirectToAction("Index");
+                }
             }
+        }
 
-            if (!ModelState.IsValid)
-            {
-                //has errors
-                InitializeCategories(model);
-                InitializeBrands(model);
+        public void ReInitializeSKU(SkuAttributeModel model)
+        {
+            string errorMessage;
 
-                return View(model);
-            }
+            if (string.IsNullOrEmpty(model.SKU))
+                ModelState.AddModelError("SKU", "You must supply a SKU to reinitialize");
             else
             {
-                //process create
-                SkuAttributeHeader header = new SkuAttributeHeader
-                {
-                    Division = model.Division,
-                    Dept = model.Department,
-                    Category = model.Category,
-                    Brand = model.BrandID,
-                    SKU = model.SKU,
-                    CreatedBy = currentUser.NetworkID,
-                    CreateDate = DateTime.Now,
-                    WeightActiveInt = model.WeightActive
-                };
-                
-                db.SkuAttributeHeaders.Add(header);
-                db.SaveChanges();
+                SkuRangeController skuRangeController = new SkuRangeController();
+                errorMessage = skuRangeController.AddReinitializedSKU(model.SKU, currentUser);
 
-                foreach (SkuAttributeDetail det in model.Attributes)
-                {
-                    det.HeaderID = header.ID;
-                    db.SkuAttributeDetails.Add(det);
-                    db.SaveChanges();
-                }
-
-                return RedirectToAction("Index");
+                if (!string.IsNullOrEmpty(errorMessage))
+                    ModelState.AddModelError("SKU", errorMessage);
             }
         }
 

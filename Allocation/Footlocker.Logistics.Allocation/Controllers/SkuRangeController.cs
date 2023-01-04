@@ -31,6 +31,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
         ConfigService configService = new ConfigService();
         RangePlanDAO rangePlanDAO = new RangePlanDAO();
+        ItemDAO itemDAO = new ItemDAO();
 
         #region ActionResults
 
@@ -3361,36 +3362,48 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult CreateReInitializeSKU(ReInitializeSKUModel model)
         {
-            ReInitializeSKU reInitialize = new ReInitializeSKU();
+            string errorMessage = AddReinitializedSKU(model.SKU, currentUser);
 
-            reInitialize.LastModifiedDate = DateTime.Now;
-            reInitialize.LastModifiedUser = currentUser.NetworkID;
-            reInitialize.CreateDate = DateTime.Now;
-            reInitialize.CreateUser = currentUser.NetworkID;
-
-            reInitialize.ItemID = ValidatePreSaleSKU(model.SKU);
-            reInitialize.SkuExtracted = false;
-
-            if (reInitialize.ItemID == 0)
+            if (!string.IsNullOrEmpty(errorMessage))
             {
-                ViewData["message"] = "SKU does not exists.";
+                ViewData["message"] = errorMessage;
                 return View(model);
             }
-
-            long reInitSkuID = (from a in db.ReInitializeSKUs
-                                where a.ItemID == reInitialize.ItemID && a.SkuExtracted == false
-                                select a.ItemID).FirstOrDefault();
-
-            if (reInitSkuID > 0)
-            {
-                ViewData["message"] = "SKU is already pending to be extracted";
-                return View(model);
-            }
-
-            db.ReInitializeSKUs.Add(reInitialize);
-            db.SaveChanges();
 
             return RedirectToAction("ReInitializeSKU");
+        }
+
+        public string AddReinitializedSKU(string sku, WebUser webUser)
+        {
+            string errorMessage = string.Empty;
+            ReInitializeSKU reInitialize = new ReInitializeSKU()
+            {
+                LastModifiedDate = DateTime.Now,
+                LastModifiedUser = webUser.NetworkID,
+                CreateDate = DateTime.Now,
+                CreateUser = webUser.NetworkID,
+                SkuExtracted = false,
+                ItemID = itemDAO.GetItemID(sku)
+            };
+
+            if (reInitialize.ItemID == 0)            
+                errorMessage = "SKU does not exist.";
+            else
+            {
+                long reInitSkuID = (from a in db.ReInitializeSKUs
+                                    where a.ItemID == reInitialize.ItemID && a.SkuExtracted == false
+                                    select a.ItemID).FirstOrDefault();
+
+                if (reInitSkuID > 0)
+                    errorMessage = "SKU is already pending to be extracted";
+                else
+                {
+                    db.ReInitializeSKUs.Add(reInitialize);
+                    db.SaveChanges();
+                }
+            }
+
+            return errorMessage;
         }
 
         #region SKU Range Upload
