@@ -371,28 +371,35 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
-        public ActionResult Edit(SkuAttributeModel model)
+        public ActionResult Edit(SkuAttributeModel model, string submitButton)
         {
             ViewBag.hasEditRole = true;
 
             if (currentUser.HasDivDept(AppName, model.Division, model.Department))
             {
-                int total = model.Attributes.Sum(a => a.WeightInt);
-
-                if ((total == 100) || (total == 0))
+                if (submitButton == "Save")
                 {
-                    foreach (SkuAttributeDetail det in model.Attributes)                    
-                        db.Entry(det).State = System.Data.EntityState.Modified;                    
+                    int total = model.Attributes.Sum(a => a.WeightInt);
 
-                    SkuAttributeHeader header = db.SkuAttributeHeaders.Where(s => s.ID == model.HeaderID).First();
+                    if ((total == 100) || (total == 0))
+                    {
+                        foreach (SkuAttributeDetail det in model.Attributes)
+                            db.Entry(det).State = System.Data.EntityState.Modified;
 
-                    header.WeightActiveInt = model.WeightActive;
-                    header.CreatedBy = currentUser.NetworkID;
-                    header.CreateDate = DateTime.Now;
-                    db.SaveChanges();
+                        SkuAttributeHeader header = db.SkuAttributeHeaders.Where(s => s.ID == model.HeaderID).First();
+
+                        header.WeightActiveInt = model.WeightActive;
+                        header.CreatedBy = currentUser.NetworkID;
+                        header.CreateDate = DateTime.Now;
+                        db.SaveChanges();
+                    }
+                    else
+                        ModelState.AddModelError("", string.Format("Total must equal 100, it was {0}", total));
                 }
-                else                
-                    ModelState.AddModelError("", string.Format("Total must equal 100, it was {0}", total));                
+                else
+                {
+                    ReInitializeSKU(model);
+                }
             }
             else
             {
@@ -400,10 +407,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ViewBag.hasEditRole = false;
             }
 
-            if (ModelState.IsValid)            
-                return RedirectToAction("Index");            
+            if (ModelState.IsValid && submitButton == "Save")
+                return RedirectToAction("Index");
             else
             {
+                if (ModelState.IsValid)
+                    model.Message = "The SKU has been scheduled to reinitialize.";
+
                 model.DivisionList = new SelectList(DivisionService.ListDivisions(), "divCode", "DisplayName");
                 model.DepartmentList = new SelectList(DepartmentService.ListDepartments(model.Division), "DeptNumber", "DisplayName");
 

@@ -1190,114 +1190,114 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("PresentationQuantities", new { planID = planID });
         }
 
-        private SkuSetupModel GetPresentationQtyModel(long planID, string message, string page, string show)
-        {
-            string ruleType = "SizeAlc";
+        //private SkuSetupModel GetPresentationQtyModel(long planID, string message, string page, string show)
+        //{
+        //    string ruleType = "SizeAlc";
 
-            if ((Request.UserAgent.Contains("Chrome")) || (Request.UserAgent.Contains("Firefox")))
-            {
-                ViewData["Chrome"] = "true";
-            }
-            if ((message != null) && (message != ""))
-            {
-                ViewData["message"] = message;
-            }
-            ViewData["planID"] = planID;
-            ViewData["ruleType"] = ruleType;
-            ViewData["page"] = page;
-            ItemMaster i = (from a in db.ItemMasters join b in db.RangePlans on a.ID equals b.ItemID where b.Id == planID select a).FirstOrDefault();
-            if (i != null)
-            {
-                ViewData["LifeCycle"] = i.LifeCycleDays;
-            }
-            SkuSetupModel model = new SkuSetupModel();
-            model.RangePlan = (from a in db.RangePlans where a.Id == planID select a).First();
+        //    if ((Request.UserAgent.Contains("Chrome")) || (Request.UserAgent.Contains("Firefox")))
+        //    {
+        //        ViewData["Chrome"] = "true";
+        //    }
+        //    if ((message != null) && (message != ""))
+        //    {
+        //        ViewData["message"] = message;
+        //    }
+        //    ViewData["planID"] = planID;
+        //    ViewData["ruleType"] = ruleType;
+        //    ViewData["page"] = page;
+        //    ItemMaster i = (from a in db.ItemMasters join b in db.RangePlans on a.ID equals b.ItemID where b.Id == planID select a).FirstOrDefault();
+        //    if (i != null)
+        //    {
+        //        ViewData["LifeCycle"] = i.LifeCycleDays;
+        //    }
+        //    SkuSetupModel model = new SkuSetupModel();
+        //    model.RangePlan = (from a in db.RangePlans where a.Id == planID select a).First();
 
-            //update the store count
-            model.RangePlan.StoreCount = (from a in db.RangePlanDetails join b in db.vValidStores on new { a.Division, a.Store } equals new { b.Division, b.Store } where a.ID == planID select a).Count();
-            db.SaveChanges();
+        //    //update the store count
+        //    model.RangePlan.StoreCount = (from a in db.RangePlanDetails join b in db.vValidStores on new { a.Division, a.Store } equals new { b.Division, b.Store } where a.ID == planID select a).Count();
+        //    db.SaveChanges();
 
-            #region ruleModel
-            var existingRuleSet = (from a in db.RuleSets where (a.PlanID == planID) && (a.Type == ruleType) select a.RuleSetID);
-            if (existingRuleSet.Count() > 0)
-            {
-                model.RuleSetID = existingRuleSet.First();
-            }
-            else
-            {
-                RuleSet rs = new RuleSet();
-                rs.PlanID = model.RangePlan.Id;
-                rs.Type = ruleType;
-                rs.CreatedBy = User.Identity.Name;
-                rs.CreateDate = DateTime.Now;
-                db.RuleSets.Add(rs);
-                db.SaveChanges();
-                model.RuleSetID = rs.RuleSetID;
-            }
-            ViewData["ruleSetID"] = model.RuleSetID;
-            ViewData["gridtype"] = ruleType;
+        //    #region ruleModel
+        //    var existingRuleSet = (from a in db.RuleSets where (a.PlanID == planID) && (a.Type == ruleType) select a.RuleSetID);
+        //    if (existingRuleSet.Count() > 0)
+        //    {
+        //        model.RuleSetID = existingRuleSet.First();
+        //    }
+        //    else
+        //    {
+        //        RuleSet rs = new RuleSet();
+        //        rs.PlanID = model.RangePlan.Id;
+        //        rs.Type = ruleType;
+        //        rs.CreatedBy = User.Identity.Name;
+        //        rs.CreateDate = DateTime.Now;
+        //        db.RuleSets.Add(rs);
+        //        db.SaveChanges();
+        //        model.RuleSetID = rs.RuleSetID;
+        //    }
+        //    ViewData["ruleSetID"] = model.RuleSetID;
+        //    ViewData["gridtype"] = ruleType;
 
-            model.Rules = db.GetRulesForRuleSet(model.RuleSetID, ruleType);
+        //    model.Rules = db.GetRulesForRuleSet(model.RuleSetID, ruleType);
 
-            SizeAllocationDAO dao = new SizeAllocationDAO();
-            List<SizeAllocation> allocs = dao.GetSizeAllocationList(planID);
+        //    SizeAllocationDAO dao = new SizeAllocationDAO();
+        //    List<SizeAllocation> allocs = dao.GetSizeAllocationList(planID);
 
-            if (model.Rules.Count() == 0)
-            {
-                //add a temp rule so we can show the and/etc.
-                Rule r = new Rule();
-                r.RuleSetID = model.RuleSetID;
+        //    if (model.Rules.Count() == 0)
+        //    {
+        //        //add a temp rule so we can show the and/etc.
+        //        Rule r = new Rule();
+        //        r.RuleSetID = model.RuleSetID;
 
-                model.Rules = new List<Rule>();
-                model.Rules.Add(r);
-                model.RuleToAdd.RuleSetID = r.RuleSetID;
+        //        model.Rules = new List<Rule>();
+        //        model.Rules.Add(r);
+        //        model.RuleToAdd.RuleSetID = r.RuleSetID;
 
-                List<StoreLookup> stores = (new RuleDAO()).GetStoresInRuleSet(r.RuleSetID);
-                if (stores.Count > 0)
-                {
-                    //spreadsheet upload
-                    model.StoreCount = (from a in stores join b in allocs on new { a.Store, a.Division } equals new { b.Store, b.Division } select a).Distinct().Count();
-                    model.SizeAllocations = (from a in allocs join b in stores on new { a.Store, a.Division } equals new { b.Store, b.Division } select a).ToList();
-                }
-                else
-                {
-                    model.StoreCount = model.Plan.StoreCount;
-                    model.SizeAllocations = allocs;
-                }
-            }
-            else
-            {
-                model.RuleToAdd.RuleSetID = model.Rules[0].RuleSetID;
-                try
-                {
-                    model.NewStores = GetStoresForRules(model.Rules, planID);
-                    model.StoreCount = model.NewStores.Count();
-                    model.StoreCount = (from a in model.NewStores join b in allocs on new { a.Store, a.Division } equals new { b.Store, b.Division } select a).Distinct().Count();
-                }
-                catch (Exception ex)
-                {
-                    ShowError(ex);
-                    model.NewStores = new List<StoreLookupModel>();
-                }
+        //        List<StoreLookup> stores = (new RuleDAO()).GetStoresInRuleSet(r.RuleSetID);
+        //        if (stores.Count > 0)
+        //        {
+        //            //spreadsheet upload
+        //            model.StoreCount = (from a in stores join b in allocs on new { a.Store, a.Division } equals new { b.Store, b.Division } select a).Distinct().Count();
+        //            model.SizeAllocations = (from a in allocs join b in stores on new { a.Store, a.Division } equals new { b.Store, b.Division } select a).ToList();
+        //        }
+        //        else
+        //        {
+        //            model.StoreCount = model.Plan.StoreCount;
+        //            model.SizeAllocations = allocs;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        model.RuleToAdd.RuleSetID = model.Rules[0].RuleSetID;
+        //        try
+        //        {
+        //            model.NewStores = GetStoresForRules(model.Rules, planID);
+        //            model.StoreCount = model.NewStores.Count();
+        //            model.StoreCount = (from a in model.NewStores join b in allocs on new { a.Store, a.Division } equals new { b.Store, b.Division } select a).Distinct().Count();
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            ShowError(ex);
+        //            model.NewStores = new List<StoreLookupModel>();
+        //        }
 
-                model.SizeAllocations = (from a in allocs join b in model.NewStores on new { a.Store, a.Division } equals new { b.Store, b.Division } select a).ToList();
-            }
+        //        model.SizeAllocations = (from a in allocs join b in model.NewStores on new { a.Store, a.Division } equals new { b.Store, b.Division } select a).ToList();
+        //    }
 
-            ViewData["show"] = show;
-            if (show == "emptyStartDates")
-            {
-                model.SizeAllocations = (from a in model.SizeAllocations where (a.StartDate == null) select a).ToList();
-            }
+        //    ViewData["show"] = show;
+        //    if (show == "emptyStartDates")
+        //    {
+        //        model.SizeAllocations = (from a in model.SizeAllocations where (a.StartDate == null) select a).ToList();
+        //    }
 
-            model.RuleToAdd.Sort = model.Rules.Count() + 1;
-            #endregion
+        //    model.RuleToAdd.Sort = model.Rules.Count() + 1;
+        //    #endregion
 
-            model.TotalSizeAllocations = GetTotals(model.SizeAllocations);
+        //    model.TotalSizeAllocations = GetTotals(model.SizeAllocations);
 
-            model.DeliveryGroups = (from a in db.DeliveryGroups where a.PlanID == planID select a).ToList();
-            InitializeDeliveryGroups(model);
-            return model;
-        }
+        //    model.DeliveryGroups = (from a in db.DeliveryGroups where a.PlanID == planID select a).ToList();
+        //    InitializeDeliveryGroups(model);
+        //    return model;
+        //}
 
         private void GetPresentationQtyModelDetails(SkuSetupModel model, string show)
         {

@@ -97,6 +97,11 @@
     @Html.HiddenFor(model => model.HeaderID)
 
 <fieldset>
+    @if (ViewData["message"] != null)
+    {
+        @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
+    }
+
     <div class="editor-field">
         @Html.LabelFor(model => model.Division)
         <br />
@@ -201,8 +206,15 @@
     @if (hasEditRole)
     {
         <p>
-            <input type="submit" value="Save" />
+            <input type="submit" value="Save" name="submitButton" />
         </p>
+
+        if (!string.IsNullOrEmpty(Model.SKU))
+        {
+            <p>
+                <input type="submit" value="Reinitialize" name="submitButton" />
+            </p>
+        }
     }
 
 </fieldset>

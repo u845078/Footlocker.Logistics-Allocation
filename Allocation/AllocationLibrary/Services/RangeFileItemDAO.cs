@@ -21,21 +21,6 @@ namespace Footlocker.Logistics.Allocation.Services
             _database = DatabaseFactory.CreateDatabase("AllocationContext");
         }
 
-        
-        //public IDataReader GetRangeFileExtract(string div, string dept)
-        //{
-
-        //    DbCommand SQLCommand;
-        //    string SQL = "dbo.GetRangeExtract";
-
-        //    SQLCommand = _database.GetStoredProcCommand(SQL);
-        //    _database.AddInParameter(SQLCommand, "@div", DbType.String, div);
-        //    _database.AddInParameter(SQLCommand, "@dept", DbType.String, dept);
-        //    SQLCommand.CommandTimeout = 0;
-
-        //    return _database.ExecuteReader(SQLCommand);
-        //}
-
         public IDataReader GetRangeFileExtract(int instance)
         {
 
@@ -69,17 +54,6 @@ namespace Footlocker.Logistics.Allocation.Services
             _que = new List<RangeFileItem>();
 
             IDataReader datareader = GetRangeFileExtractDataReader(sku);
-            //DbCommand SQLCommand;
-            //string SQL = "dbo.GetRangeExtract";
-
-            //SQLCommand = _database.GetStoredProcCommand(SQL);
-            //_database.AddInParameter(SQLCommand, "@div", DbType.String, div);
-            //_database.AddInParameter(SQLCommand, "@dept", DbType.String, dept);
-            //_database.AddInParameter(SQLCommand, "@sku", DbType.String, sku);
-            //SQLCommand.CommandTimeout = 0;
-
-            //IDataReader datareader = _database.ExecuteReader(SQLCommand);
-
             RangeFileItemFactory factory = new RangeFileItemFactory();
 
             while (datareader.Read())
@@ -91,7 +65,6 @@ namespace Footlocker.Logistics.Allocation.Services
 
         public IDataReader GetLegacyRangeFileExtract(int instance)
         {
-
             DbCommand SQLCommand;
             string SQL = "dbo.GetLegacyRangeExtract";
 
