@@ -221,6 +221,7 @@
     <Compile Include="Common\AppConfig.cs" />
     <Compile Include="Common\ARConstraintsSpreadsheet.cs" />
     <Compile Include="Common\ARSKUSpreadsheet.cs" />
+    <Compile Include="Common\CrossdockLinkSpreadsheet.cs" />
     <Compile Include="Common\DeleteValidationException.cs" />
     <Compile Include="Common\ExistsValidationException.cs" />
     <Compile Include="Common\Extensions.cs" />
@@ -542,6 +543,7 @@
     </Content>
     <Content Include="Content\Templates\HoldsUpdatesTemplate.xlsx" />
     <Content Include="Content\Templates\NetworkScheduleUpdateTemplate.xlsx" />
+    <Content Include="Content\Templates\CrossdockLinkDataTemplate.xls" />
     <None Include="Content\Templates\ProductTypeTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -795,6 +797,7 @@
     <Content Include="Views\SkuRange\PreSale.cshtml" />
     <Content Include="Views\SkuRange\EditPreSale.cshtml" />
     <Content Include="Views\SkuRange\ReInitializeSKU.cshtml" />
+    <Content Include="Views\Upload\CrossdockLinkUpload.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

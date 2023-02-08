@@ -1,0 +1,64 @@
+﻿@using Telerik.Web.Mvc;
+@{
+    ViewBag.Title = "Crossdock Link Upload";
+}
+
+<fieldset>
+    <legend>Crossdock Link Upload</legend>
+    <br />
+    @Html.ActionLink("Download Template", "CrossdockLinkUploadTemplate", new {}, new {@class = "t-button"})
+    <br />
+    <br />
+    <p>This upload will send PO delivery information to Allocation, which will be picked up by Kafka processes.</p>
+    <br />
+    <b>See the comments inside of the spreadsheet for direction on required data elements.</b>
+    <b>Please select the appropriate spreadsheet to upload: </b>
+        <br />
+        <br />
+    @(Html.Telerik().Upload()
+        .Name("attachments")
+        .Multiple(false)
+        .Async(async => async
+            .Save("SaveCrossdockLinks", "Upload")
+            .AutoUpload(false))
+            .ShowFileList(true)
+        .ClientEvents(events => events
+            .OnError("onError")
+            .OnSelect("onSelect")
+                    .OnSuccess("onSuccess")
+            )
+        )
+        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
+        <br />
+        <h4 id="message"></h4>
+</fieldset>
+ 
+<script type="text/javascript">
+    function onSelect(e) {
+        var files = e.files;
+        if (files[0].extension != ".xls") {
+            alert("Document must be a spreadsheet with a xls extension. ");
+            e.preventDefault();
+        }
+        else{
+                document.getElementById('spreadsheet').style.visibility = 'visible';
+            }
+            $('#message').empty();
+    }
+
+    function onError(e) 
+    {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>"+message+"</font><br><a class='t-button' href='DownloadCrossdockLinkErrors'>Download Errors</a>");
+
+        e.preventDefault();
+     }
+
+    function onSuccess(e) {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>Success</font>");
+
+        e.preventDefault();
+    }
+</script>
+    

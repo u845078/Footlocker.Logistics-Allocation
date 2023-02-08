@@ -71,6 +71,7 @@
 		  <siteMapNode title="Service Type" controller="Upload" action="SkuTypeUpload" />
       <siteMapNode title="SKU Id" controller="Upload" action="SkuIdUpload" />
       <siteMapNode title="SKU Setup Upload" controller="SkuRange" action="UploadRange" />
+      <siteMapNode title="Crossdock Link Upload" controller="Upload" action="CrossdockLinkUpload" />
     </siteMapNode>
 
 	  <siteMapNode title="About" controller="Home" action="About" />

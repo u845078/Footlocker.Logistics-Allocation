@@ -26,6 +26,7 @@ namespace Footlocker.Logistics.Allocation.Common
         private string _holdDeleteTemplate;
         private string _rerankStoresTemplate;
         private string _skuAttributeTemplate;
+        private string _crossdockLinkTemplate;
 
         public string AppName;
         public string AppPath;
@@ -117,6 +118,17 @@ namespace Footlocker.Logistics.Allocation.Common
                     _skuAttributeTemplate = ConfigurationManager.AppSettings["SKUAttributeTemplate"].ToString();
 
                 return _skuAttributeTemplate;
+            }
+        }
+
+        public string CrossdockLinkTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_crossdockLinkTemplate))
+                    _crossdockLinkTemplate = ConfigurationManager.AppSettings["CrossdockLinkTemplate"].ToString();
+
+                return _crossdockLinkTemplate;
             }
         }
 

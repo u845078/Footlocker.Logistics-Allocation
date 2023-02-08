@@ -183,6 +183,7 @@
     <Compile Include="Models\MinihubStore.cs" />
     <Compile Include="Models\NSSUpload.cs" />
     <Compile Include="Models\OrderPlanningRequest.cs" />
+    <Compile Include="Models\POCrossdockData.cs" />
     <Compile Include="Models\POStatus.cs" />
     <Compile Include="Models\POStockStatus.cs" />
     <Compile Include="Models\PreSaleSKU.cs" />

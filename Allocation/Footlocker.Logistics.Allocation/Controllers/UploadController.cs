@@ -27,7 +27,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private string _fileLineFiller = null;
         private AllocationLibraryContext db;
         private ConfigService configService = new ConfigService();
-
         #endregion
 
         #region Non-Public Properties
@@ -1684,6 +1683,64 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             return View();
         }
+
+
+        #region Crossdock Link Upload
+        public ActionResult CrossdockLinkUpload()
+        {
+            return View();
+        }
+
+        public ActionResult CrossdockLinkUploadTemplate()
+        {
+            CrossdockLinkSpreadsheet crossdockLinkSpreadsheet = new CrossdockLinkSpreadsheet(appConfig, configService);
+            Excel excelDocument;
+
+            excelDocument = crossdockLinkSpreadsheet.GetTemplate();
+            excelDocument.Save("crossdockLinkUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            return View("CrossdockLinkUpload");
+        }
+
+        public ActionResult SaveCrossdockLinks(IEnumerable<HttpPostedFileBase> attachments)
+        {
+            CrossdockLinkSpreadsheet crossdockLinkSpreadsheet = new CrossdockLinkSpreadsheet(appConfig, configService);
+            string message = string.Empty;
+
+            foreach (HttpPostedFileBase file in attachments)
+            {
+                crossdockLinkSpreadsheet.Save(file);
+
+                if (!string.IsNullOrEmpty(crossdockLinkSpreadsheet.message))
+                    message = string.Format("Upload failed: {0}", crossdockLinkSpreadsheet.message);
+                else
+                {
+                    if (crossdockLinkSpreadsheet.errorList.Count() > 0)
+                    {
+                        Session["errorList"] = crossdockLinkSpreadsheet.errorList;
+
+                        message = string.Format("{0} successfully uploaded, {1} Errors", crossdockLinkSpreadsheet.validPOCrossdocks.Count.ToString(),
+                            crossdockLinkSpreadsheet.errorList.Count.ToString());
+                    }
+                }
+            }
+
+            return Content(message);
+        }
+
+        public ActionResult DownloadCrossdockLinkErrors()
+        {
+            List<POCrossdockData> errors = (List<POCrossdockData>)Session["errorList"];
+            Excel excelDocument;
+            CrossdockLinkSpreadsheet crossdockLinkSpreadsheet = new CrossdockLinkSpreadsheet(appConfig, configService);
+
+            if (errors != null)
+            {
+                excelDocument = crossdockLinkSpreadsheet.GetErrors(errors);
+                excelDocument.Save("CrossdockLinkErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            }
+            return View();
+        }
+        #endregion
 
         private bool TryGetFileLineOfSkuIdSheetRow(Cells spreadsheetCells, int rowIndex, string spreadsheetDivCode, out string constructedFileLine, out string errorMsg)
         {
