@@ -18,13 +18,17 @@ namespace Footlocker.Logistics.Allocation.Common
         {
             POCrossdockData returnValue = new POCrossdockData
             {
-                Division = Convert.ToString(worksheet.Cells[row, 0].Value).Trim(),
-                PO = Convert.ToString(worksheet.Cells[row, 1].Value).Trim(),
-                ExpectedReceiptDateString = Convert.ToString(worksheet.Cells[row, 2].Value),
-                CancelIndString = Convert.ToString(worksheet.Cells[row, 3].Value).ToUpper(),                
+                WarehouseID = Convert.ToString(worksheet.Cells[row, 0].Value).Trim(),
+                Division = Convert.ToString(worksheet.Cells[row, 1].Value).Trim(),
+                PO = Convert.ToString(worksheet.Cells[row, 2].Value).Trim(),
+                ExpectedReceiptDateString = Convert.ToString(worksheet.Cells[row, 3].Value),
+                CancelIndString = Convert.ToString(worksheet.Cells[row, 4].Value).ToUpper(),                
                 LastModifiedDate = DateTime.Now,
                 LastModifiedUser = config.currentUser.NetworkID
             };
+
+            if (string.IsNullOrEmpty(returnValue.WarehouseID))
+                returnValue.ErrorMessage = "Warehouse ID is a mandatory field";
 
             if (!string.IsNullOrEmpty(returnValue.CancelIndString))
                 returnValue.CancelInd = returnValue.CancelIndString == "Y";
@@ -146,13 +150,14 @@ namespace Footlocker.Logistics.Allocation.Common
                 int row = 1;
                 foreach (POCrossdockData p in errorList)
                 {
-                    mySheet.Cells[row, 0].PutValue(p.Division);
-                    mySheet.Cells[row, 1].PutValue(p.PO);
-                    mySheet.Cells[row, 2].PutValue(p.ExpectedReceiptDateString);
-                    mySheet.Cells[row, 3].PutValue(p.CancelIndString);
+                    mySheet.Cells[row, 0].PutValue(p.WarehouseID);
+                    mySheet.Cells[row, 1].PutValue(p.Division);
+                    mySheet.Cells[row, 2].PutValue(p.PO);
+                    mySheet.Cells[row, 3].PutValue(p.ExpectedReceiptDateString);
+                    mySheet.Cells[row, 4].PutValue(p.CancelIndString);
 
-                    mySheet.Cells[row, 4].PutValue(p.ErrorMessage);
-                    mySheet.Cells[row, 4].Style.Font.Color = Color.Red;
+                    mySheet.Cells[row, 5].PutValue(p.ErrorMessage);
+                    mySheet.Cells[row, 5].Style.Font.Color = Color.Red;
                     row++;
                 }
 
@@ -169,12 +174,13 @@ namespace Footlocker.Logistics.Allocation.Common
 
         public CrossdockLinkSpreadsheet(AppConfig config, ConfigService configService) : base(config, configService)
         {
-            maxColumns = 4;
+            maxColumns = 5;
 
-            columns.Add(0, "Division");
-            columns.Add(1, "PO Number");
-            columns.Add(2, "Expected Receipt Date");
-            columns.Add(3, "Cancel PO?");
+            columns.Add(0, "Warehouse ID");
+            columns.Add(1, "Division");
+            columns.Add(2, "PO Number");
+            columns.Add(3, "Expected Receipt Date");
+            columns.Add(4, "Cancel PO?");
 
             templateFilename = config.CrossdockLinkTemplate;
         }

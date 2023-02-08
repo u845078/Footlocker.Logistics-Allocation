@@ -23,6 +23,8 @@ namespace Footlocker.Logistics.Allocation.Models
         public string PO { get; set; }
         public DateTime? ExpectedReceiptDate { get; set; }
 
+        public string WarehouseID { get; set; }
+
         [NotMapped]
         public string ExpectedReceiptDateString { get; set; }
         public bool CancelInd { get; set; }
