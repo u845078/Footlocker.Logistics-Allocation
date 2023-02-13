@@ -27,22 +27,22 @@ namespace Footlocker.Logistics.Allocation.Common
                 DeliveryGroupName = Convert.ToString(worksheet.Cells[row, 1].Value).Trim()                
             };
 
-            if (!string.IsNullOrEmpty(worksheet.Cells[row, 2].ToString()))
+            if (!string.IsNullOrEmpty(worksheet.Cells[row, 2].Value.ToString()))
                 returnValue.StartDate = Convert.ToDateTime(worksheet.Cells[row, 2].Value);
 
-            if (!string.IsNullOrEmpty(worksheet.Cells[row, 3].ToString()))
+            if (!string.IsNullOrEmpty(worksheet.Cells[row, 3].Value.ToString()))
                 returnValue.EndDate = Convert.ToDateTime(worksheet.Cells[row, 3].Value);
 
-            if (!string.IsNullOrEmpty(worksheet.Cells[row, 4].ToString()))
+            if (!string.IsNullOrEmpty(worksheet.Cells[row, 4].Value.ToString()))
                 returnValue.MinEndDays = Convert.ToInt32(worksheet.Cells[row, 4].Value);
 
             returnValue.RangePlanID = rangeDAO.GetRangePlanID(returnValue.SKU);
             returnValue.DeliveryGroup = config.db.DeliveryGroups.Where(dg => dg.PlanID == returnValue.RangePlanID && 
                                                                              dg.Name == returnValue.DeliveryGroupName).FirstOrDefault();
 
-            if (string.IsNullOrEmpty(worksheet.Cells[row, 2].ToString()) &&
-                string.IsNullOrEmpty(worksheet.Cells[row, 3].ToString()) &&
-                string.IsNullOrEmpty(worksheet.Cells[row, 4].ToString()))
+            if (string.IsNullOrEmpty(worksheet.Cells[row, 2].Value.ToString()) &&
+                string.IsNullOrEmpty(worksheet.Cells[row, 3].Value.ToString()) &&
+                string.IsNullOrEmpty(worksheet.Cells[row, 4].Value.ToString()))
                 returnValue.ErrorMessage = "Missing required fields";
 
             return returnValue;
@@ -52,6 +52,9 @@ namespace Footlocker.Logistics.Allocation.Common
         {
             if (!config.currentUser.HasDivDept(config.AppName, row.Division, row.Department))
                 row.ErrorMessage = string.Format("You do not have permission for the division/department {0}/{1}.", row.Division, row.Department);
+
+            if (row.DeliveryGroup == null)
+                row.ErrorMessage = "Range plan for this SKU and/or Delivery Group Name was not found";
         }
 
 
