@@ -46,8 +46,10 @@ namespace Footlocker.Logistics.Allocation.Common
 
             try
             {
+                int instanceID;
+
                 if (string.IsNullOrEmpty(returnValue.ErrorMessage))
-                    returnValue.InstanceID = configService.GetInstance(returnValue.Division);
+                    instanceID = configService.GetInstance(returnValue.Division);
             }
             catch 
             {

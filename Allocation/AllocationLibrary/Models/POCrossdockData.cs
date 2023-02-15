@@ -12,14 +12,10 @@ namespace Footlocker.Logistics.Allocation.Models
     {
         [Key]
         [Column(Order = 0)]
-        public int InstanceID { get; set; }
-
-        [Key]
-        [Column(Order = 1)]
         public string Division { get; set; }
 
         [Key]
-        [Column(Order = 2)]
+        [Column(Order = 1)]
         public string PO { get; set; }
         public DateTime? ExpectedReceiptDate { get; set; }
 
