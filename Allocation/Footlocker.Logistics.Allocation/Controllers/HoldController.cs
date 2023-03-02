@@ -1454,7 +1454,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 holdsUploadSpreadsheet.Save(file);
 
                 if (!string.IsNullOrEmpty(holdsUploadSpreadsheet.message))
-                    return Content(message);
+                    return Content(holdsUploadSpreadsheet.message);
                 else
                 {
                     if (holdsUploadSpreadsheet.errorList.Count() > 0)

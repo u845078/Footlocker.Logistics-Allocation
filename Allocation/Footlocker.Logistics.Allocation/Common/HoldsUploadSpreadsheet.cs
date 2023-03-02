@@ -114,8 +114,6 @@ namespace Footlocker.Logistics.Allocation.Common
             else            
                 returnValue.Level = "";
 
-            returnValue.ReserveInventoryBool = returnValue.HoldType == "reserve inventory";
-
             // check end date - original parsing will set the EndDate to the MinValue if not present, which will conflict with sql server
             if (returnValue.EndDate.Equals(DateTime.MinValue))
                 returnValue.EndDate = null;
@@ -135,7 +133,7 @@ namespace Footlocker.Logistics.Allocation.Common
                 errorMessage += "Invalid input for 'Duration'. ";            
 
             // check hold type
-            if (hold.HoldType == "reserve inventory" || hold.HoldType == "cancel inventory")
+            if (hold.HoldType == "Reserve Inventory" || hold.HoldType == "Cancel Inventory")
             {
                 // if duration is permanent, the user should not be able to reserve inventory
                 if (hold.ReserveInventoryBool && hold.Duration == "Permanent")                
@@ -274,20 +272,20 @@ namespace Footlocker.Logistics.Allocation.Common
         public HoldsUploadSpreadsheet(AppConfig config, ConfigService configService, HoldService holdService) : base(config, configService)
         {
             maxColumns = 13;
-            headerRowNumber = 1;
+            headerRowNumber = 0;
 
-            columns.Add(0, "Division");
+            columns.Add(0, "Division\n[required]");
             columns.Add(1, "Store");
-            columns.Add(2, "Duration");
+            columns.Add(2, "Duration\n[required]");
             columns.Add(3, "Department");
-            columns.Add(4, "Brand");
+            columns.Add(4, "Brand ID");
             columns.Add(5, "Team");
             columns.Add(6, "Category");
             columns.Add(7, "Vendor");
             columns.Add(8, "Sku");
-            columns.Add(9, "Start Date");
+            columns.Add(9, "Start Date\n[required]");
             columns.Add(10, "End Date");
-            columns.Add(11, "Hold Type");
+            columns.Add(11, "Hold Type\n[required]");
             columns.Add(12, "Comment");
 
             //this.itemDAO = itemDAO;

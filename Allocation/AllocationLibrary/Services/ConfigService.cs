@@ -15,22 +15,22 @@
             db = new AllocationLibraryContext();
         }
     
-        public bool IsTrue(int instanceid, string setting)
-        {
-            Config config = (from a in db.Configs
-                             join b in db.ConfigParams 
-                             on a.ParamID equals b.ParamID 
-                             where (a.InstanceID == instanceid) && 
-                             (b.Name == setting) 
-                             select a).FirstOrDefault();
+        //public bool IsTrue(int instanceid, string setting)
+        //{
+        //    Config config = (from a in db.Configs
+        //                     join b in db.ConfigParams 
+        //                     on a.ParamID equals b.ParamID 
+        //                     where (a.InstanceID == instanceid) && 
+        //                     (b.Name == setting) 
+        //                     select a).FirstOrDefault();
 
-            if (config == null)
-            {
-                throw new Exception(string.Format("Configuration setting {0} is not setup for instance {1}", setting, instanceid.ToString()));
-            }
+        //    if (config == null)
+        //    {
+        //        throw new Exception(string.Format("Configuration setting {0} is not setup for instance {1}", setting, instanceid.ToString()));
+        //    }
 
-            return config.Value.ToLower() == "true";
-        }
+        //    return config.Value.ToLower() == "true";
+        //}
 
         public string GetValue(int instanceid, string setting)
         {
@@ -48,19 +48,19 @@
             return config.Value;
         }
 
-        public int GetIntValue(int instanceid, string setting)
-        {
-            Config config = (from a in db.Configs
-                             join b in db.ConfigParams on a.ParamID equals b.ParamID
-                             where (a.InstanceID == instanceid) && (b.Name == setting)
-                             select a).FirstOrDefault();
+        //public int GetIntValue(int instanceid, string setting)
+        //{
+        //    Config config = (from a in db.Configs
+        //                     join b in db.ConfigParams on a.ParamID equals b.ParamID
+        //                     where (a.InstanceID == instanceid) && (b.Name == setting)
+        //                     select a).FirstOrDefault();
 
-            if (config == null)
-            {
-                throw new Exception(string.Format("Configuration setting {0} is not setup for instance {1}", setting, instanceid.ToString()));
-            }
-            return Convert.ToInt32(config.Value);
-        }
+        //    if (config == null)
+        //    {
+        //        throw new Exception(string.Format("Configuration setting {0} is not setup for instance {1}", setting, instanceid.ToString()));
+        //    }
+        //    return Convert.ToInt32(config.Value);
+        //}
 
         public int GetInstance(string division)
         {

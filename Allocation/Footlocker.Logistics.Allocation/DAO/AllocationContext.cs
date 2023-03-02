@@ -62,7 +62,7 @@ namespace Footlocker.Logistics.Allocation.DAO
         public DbSet<PriorityType> PriorityTypes { get; set; }
         public DbSet<StrategyType> StrategyTypes { get; set; }
         public DbSet<StoreExtension> StoreExtensions { get; set; }
-        public DbSet<VendorGroupLeadTime> VendorGroupLeadTimes { get; set; }
+        //public DbSet<VendorGroupLeadTime> VendorGroupLeadTimes { get; set; }
         public DbSet<FOB> FOBs { get; set; }
         public DbSet<FOBDept> FOBDepts { get; set; }
         public DbSet<FOBPack> FOBPacks { get; set; }
@@ -145,9 +145,9 @@ namespace Footlocker.Logistics.Allocation.DAO
 
 
 
-            modelBuilder.Entity<VendorGroupLeadTime>().HasRequired(o => o.Zone).WithMany().HasForeignKey(c => c.ZoneID);
+            //modelBuilder.Entity<VendorGroupLeadTime>().HasRequired(o => o.Zone).WithMany().HasForeignKey(c => c.ZoneID);
 
-            modelBuilder.Entity<VendorGroupLeadTime>().HasRequired(o => o.Group).WithMany().HasForeignKey(c => c.VendorGroupID);
+            //modelBuilder.Entity<VendorGroupLeadTime>().HasRequired(o => o.Group).WithMany().HasForeignKey(c => c.VendorGroupID);
 
             modelBuilder.Entity<RDQ>().HasOptional(o => o.DistributionCenter).WithMany().HasForeignKey(c => c.DCID);
 

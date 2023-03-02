@@ -81,25 +81,17 @@ namespace Footlocker.Logistics.Allocation.Models
         {
             get 
             {
-                if (Convert.ToBoolean(ReserveInventory))
-                {
-                    return "Reserve Inventory";
-                }
-                else
-                {
-                    return "Cancel Inventory";
-               }
+                if (ReserveInventory == 1)                
+                    return "Reserve Inventory";                
+                else                
+                    return "Cancel Inventory";               
             }
             set 
             {
-                if (value.Equals("Reserve Inventory"))
-                {
-                    ReserveInventory = 1;
-                }
-                else
-                {
-                    ReserveInventory = 0;
-                }
+                if (value.ToLower() == "reserve inventory")                
+                    ReserveInventory = 1;                
+                else                
+                    ReserveInventory = 0;                
             }
         }
 

@@ -97,12 +97,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(new GridModel(list));
         }
 
-        [GridAction]
-        public ActionResult _RefreshLeadTimeGrid(int ID, string message)
-        {
-            List<VendorGroupLeadTime> list = (from a in db.VendorGroupLeadTimes where a.VendorGroupID == ID select a).ToList();
-            return View(new GridModel(list));
-        }
+        //[GridAction]
+        //public ActionResult _RefreshLeadTimeGrid(int ID, string message)
+        //{
+        //    List<VendorGroupLeadTime> list = (from a in db.VendorGroupLeadTimes where a.VendorGroupID == ID select a).ToList();
+        //    return View(new GridModel(list));
+        //}
 
         public ActionResult DeleteDetail(int ID, string vendorNumber)
         {
@@ -216,20 +216,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("Index");
         }
 
-        public ActionResult EditLeadTime(int ID, int ZoneID)
-        {
-            VendorGroupLeadTime group = (from a in db.VendorGroupLeadTimes where ((a.ZoneID == ZoneID) && (a.VendorGroupID == ID)) select a).First();
+        //public ActionResult EditLeadTime(int ID, int ZoneID)
+        //{
+        //    VendorGroupLeadTime group = (from a in db.VendorGroupLeadTimes where ((a.ZoneID == ZoneID) && (a.VendorGroupID == ID)) select a).First();
 
-            return View(group);
-        }
+        //    return View(group);
+        //}
 
-        [HttpPost]
-        public ActionResult EditLeadTime(VendorGroupLeadTime model)
-        {
-            db.Entry(model).State = System.Data.EntityState.Modified;
-            db.SaveChanges();
-            return RedirectToAction("Details", new { ID = model.VendorGroupID });
-        }
+        //[HttpPost]
+        //public ActionResult EditLeadTime(VendorGroupLeadTime model)
+        //{
+        //    db.Entry(model).State = System.Data.EntityState.Modified;
+        //    db.SaveChanges();
+        //    return RedirectToAction("Details", new { ID = model.VendorGroupID });
+        //}
 
         /// <summary>
         /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
