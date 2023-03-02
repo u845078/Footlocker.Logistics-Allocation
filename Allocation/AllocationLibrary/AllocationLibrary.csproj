@@ -281,6 +281,7 @@
     <Compile Include="Services\ConvertRangeDAO.cs" />
     <Compile Include="Services\EcomCustXrefDAO.cs" />
     <Compile Include="Services\FootLockerCommonContext.cs" />
+    <Compile Include="Services\HoldService.cs" />
     <Compile Include="Services\Repository.cs" />
     <Compile Include="Services\ItemDAO.cs" />
     <Compile Include="Services\LegacyFutureInventoryDAO.cs" />

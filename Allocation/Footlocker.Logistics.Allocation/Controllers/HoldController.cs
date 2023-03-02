@@ -15,6 +15,7 @@ using Aspose.Excel;
 using System.Globalization;
 using Aspose.Cells;
 using System.Data;
+using System.Web.ApplicationServices;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -26,6 +27,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private readonly int _BIN_SIZE_VALUE_LENGTH = 3;
         AllocationContext db = new AllocationContext();
         ConfigService configService = new ConfigService();
+        HoldService holdService;
 
         #endregion
 
@@ -381,7 +383,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ViewData["ruleSetID"] = model.RuleSetID;
             ViewData["ruleType"] = "hold";
-            string validationMessage = model.Hold.ValidateHold(currentUser, configService, model.RuleSetID > 0, false, false);
+
+            holdService = new HoldService(currentUser, configService)
+            {
+                Hold = model.Hold
+            };
+            
+            string validationMessage = holdService.ValidateHold(model.RuleSetID > 0, false, false);
             //string validationMessage = ValidateHold(model.Hold, (model.RuleSetID > 0), false);
             if (model.ShowStoreSelector == "yes")
             {
@@ -517,7 +525,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Edit(HoldModel model)
         {
-            string validationMessage = model.Hold.ValidateHold(currentUser, configService, false, true, false);
+            holdService = new HoldService(currentUser, configService)
+            {
+                Hold = model.Hold
+            };
+            
+            string validationMessage = holdService.ValidateHold(false, true, false);
             //string validationMessage = ValidateHold(model.Hold, false, true);
             if (model.OriginalStartDate > model.Hold.StartDate)
             {
@@ -596,7 +609,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          where ((a.Division == model.Hold.Division) && (a.Level == model.Hold.Level) && (a.Value == model.Hold.Value) && (a.ReserveInventory == 0)) 
                          select a).ToList();
             }
-
+            holdService = new HoldService(currentUser, configService);
             string validationMessage = "";
             List<Hold> updatedList = new List<Hold>();
             DateTime startdate;
@@ -611,7 +624,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     h.Comments = model.Hold.Comments;
                 }
 
-                string tempvalidationMessage = h.ValidateHold(currentUser, configService, false, true, false);
+                holdService.Hold = h;                
+                
+                string tempvalidationMessage = holdService.ValidateHold(false, true, false);
                 //string tempvalidationMessage = ValidateHold(h, false, true);
                 if (startdate > model.Hold.StartDate)
                 {
@@ -658,6 +673,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 holds = (from a in db.Holds where ((a.Division == model.Hold.Division) && (a.Store == model.Hold.Store) && (a.ReserveInventory == 0)) select a).ToList();
             }
 
+            holdService = new HoldService(currentUser, configService);
             string validationMessage = "";
             List<Hold> updatedList = new List<Hold>();
             DateTime startdate;
@@ -672,7 +688,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     h.Comments = model.Hold.Comments;
                 }
 
-                string tempvalidationMessage = h.ValidateHold(currentUser, configService, false, true, false);
+                holdService.Hold = h;
+                string tempvalidationMessage = holdService.ValidateHold(false, true, false);
                 //string tempvalidationMessage = ValidateHold(h, false, true);
                 if (startdate > model.Hold.StartDate)
                 {
@@ -1414,7 +1431,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #region HoldsUpload spreadsheet
         public ActionResult ExcelHoldsUploadTemplate()
         {
-            HoldsUploadSpreadsheet holdsUploadSpreadsheet = new HoldsUploadSpreadsheet(appConfig, configService);
+            HoldsUploadSpreadsheet holdsUploadSpreadsheet = new HoldsUploadSpreadsheet(appConfig, configService, holdService);
             Excel excelDocument;
 
             excelDocument = holdsUploadSpreadsheet.GetTemplate();
@@ -1425,7 +1442,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult UploadHolds(IEnumerable<HttpPostedFileBase> attachments)
         {
-            HoldsUploadSpreadsheet holdsUploadSpreadsheet = new HoldsUploadSpreadsheet(appConfig, configService);
+            holdService = new HoldService(currentUser, configService);            
+
+            HoldsUploadSpreadsheet holdsUploadSpreadsheet = new HoldsUploadSpreadsheet(appConfig, configService, holdService);
 
             string message = string.Empty;
             int successCount = 0;
@@ -1459,7 +1478,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<Hold> errors = (List<Hold>)Session["errorList"];
             Excel excelDocument;
-            HoldsUploadSpreadsheet holdsUploadSpreadsheet = new HoldsUploadSpreadsheet(appConfig, configService);
+            HoldsUploadSpreadsheet holdsUploadSpreadsheet = new HoldsUploadSpreadsheet(appConfig, configService, holdService);
 
             if (errors != null)
             {

@@ -17,6 +17,7 @@ namespace Footlocker.Logistics.Allocation.Common
     {
         public List<Hold> validHolds = new List<Hold>();
         public List<Hold> errorList = new List<Hold>();
+        readonly HoldService holdService;
 
         private Hold ParseRow(int row)
         {
@@ -204,7 +205,8 @@ namespace Footlocker.Logistics.Allocation.Common
                     foreach (Hold hold in validHolds)
                     {
                         //validate values dependent on business logic and sql server data type restrictions
-                        hold.ErrorMessage = hold.ValidateHold(config.currentUser, configService, false, false, true);
+                        holdService.Hold = hold;
+                        hold.ErrorMessage = holdService.ValidateHold(false, false, true);
                     }
 
                     List<Hold> erroredHolds = validHolds.Where(vh => !string.IsNullOrEmpty(vh.ErrorMessage)).ToList();
@@ -269,7 +271,7 @@ namespace Footlocker.Logistics.Allocation.Common
             }
         }
 
-        public HoldsUploadSpreadsheet(AppConfig config, ConfigService configService) : base(config, configService)
+        public HoldsUploadSpreadsheet(AppConfig config, ConfigService configService, HoldService holdService) : base(config, configService)
         {
             maxColumns = 13;
             headerRowNumber = 1;
@@ -290,6 +292,7 @@ namespace Footlocker.Logistics.Allocation.Common
 
             //this.itemDAO = itemDAO;
             templateFilename = config.HoldsUploadTemplate;
+            this.holdService = holdService;
         }
     }
 }
