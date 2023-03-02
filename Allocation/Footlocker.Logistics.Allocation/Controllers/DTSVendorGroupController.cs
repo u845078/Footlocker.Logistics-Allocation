@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
+using Footlocker.Logistics.Allocation.DAO;
 using System.IO;
 using Aspose.Excel;
 using Telerik.Web.Mvc;
@@ -15,7 +16,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     [CheckPermission(Roles = "Support,Logistics")]
     public class DTSVendorGroupController : AppController
     {
-        Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        AllocationContext db = new AllocationContext();
 
         public ActionResult Index(string message)
         {
@@ -28,10 +29,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             string message="";
             try
             {
-                VendorGroup group = new VendorGroup();
-                group.Comment = name;
-                group.CreatedBy = User.Identity.Name;
-                group.CreateDate = DateTime.Now;
+                VendorGroup group = new VendorGroup()
+                {
+                    Comment = name,
+                    CreatedBy = currentUser.NetworkID,
+                    CreateDate = DateTime.Now
+                };
 
                 db.VendorGroups.Add(group);
                 db.SaveChanges();
@@ -52,18 +55,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 message = ex.Message;
             }
 
-            return RedirectToAction("Index", new { message = message });
+            return RedirectToAction("Index", new { message });
         }
 
         public ActionResult Delete(int ID)
         {
-            var details = (from a in db.VendorGroupDetails where a.GroupID == ID select a);
+            List<VendorGroupDetail> details = db.VendorGroupDetails.Where(vgd => vgd.GroupID == ID).ToList();
             foreach (VendorGroupDetail det in details)
             {
                 db.VendorGroupDetails.Remove(det);
             }
-            db.SaveChanges();
-            VendorGroup group = (from a in db.VendorGroups where a.ID == ID select a).First();
+
+            VendorGroup group = db.VendorGroups.Where(vg => vg.ID == ID).First();
 
             db.VendorGroups.Remove(group);
             db.SaveChanges();
@@ -74,24 +77,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Details(int ID, string message)
         {
             ViewData["message"] = message;
-            VendorGroupDetailsModel model = new VendorGroupDetailsModel();
-            //model.Details = dao.GetVendorGroupDetails(ID);//(from a in db.VendorGroupDetails where a.GroupID == ID select a).ToList();
-            model.HasDetails = (from a in db.VendorGroupDetails where a.GroupID == ID select a).Any();
-            model.Header = (from a in db.VendorGroups where a.ID == ID select a).First();
-            //model.LeadTimes = (from a in db.VendorGroupLeadTimes where a.VendorGroupID == ID select a).ToList();
-            ViewData["GroupID"] = ID;
+            VendorGroupDetailsModel model = new VendorGroupDetailsModel()
+            {
+                HasDetails = db.VendorGroupDetails.Where(vgd => vgd.GroupID == ID).Any(),
+                Header = db.VendorGroups.Where(vg => vg.ID == ID).FirstOrDefault()
+            };
 
+            ViewData["GroupID"] = ID;
             return View(model);
         }
 
         [GridAction]
-        public ActionResult _RefreshGrid(int ID, string message)
+        public ActionResult _RefreshGrid(int ID)
         {
-            //ViewData["message"] = message;
-            Footlocker.Logistics.Allocation.Services.VendorGroupDetailDAO dao = new Services.VendorGroupDetailDAO();
+            VendorGroupDetailDAO dao = new VendorGroupDetailDAO();
 
-            List<VendorGroupDetail> list = dao.GetVendorGroupDetails(ID);//(from a in db.VendorGroupDetails where a.GroupID == ID select a).ToList();
-            //ViewData["GroupID"] = ID;
+            List<VendorGroupDetail> list = dao.GetVendorGroupDetails(ID);
 
             return View(new GridModel(list));
         }
@@ -99,17 +100,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _RefreshLeadTimeGrid(int ID, string message)
         {
-            List<VendorGroupLeadTime> list=  (from a in db.VendorGroupLeadTimes where a.VendorGroupID == ID select a).ToList();
+            List<VendorGroupLeadTime> list = (from a in db.VendorGroupLeadTimes where a.VendorGroupID == ID select a).ToList();
             return View(new GridModel(list));
         }
 
         public ActionResult DeleteDetail(int ID, string vendorNumber)
         {
-            VendorGroupDetail det = (from a in db.VendorGroupDetails where ((a.GroupID == ID)&&(a.VendorNumber==vendorNumber)) select a).First();
-            db.VendorGroupDetails.Remove(det);
-            db.SaveChanges();
+            VendorGroupDetail det = db.VendorGroupDetails.Where(vgd => vgd.GroupID == ID && vgd.VendorNumber == vendorNumber).First();
+            db.VendorGroupDetails.Remove(det);            
 
-            VendorGroup group = (from a in db.VendorGroups where a.ID == ID select a).First();
+            VendorGroup group = db.VendorGroups.Where(vg => vg.ID == ID).First();
             group.Count = group.Count - 1;
             db.SaveChanges();
 
@@ -119,17 +119,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult AddDetail(int ID, string vendorNumber)
         {
             string message = "";
-            var existing = (from a in db.VendorGroupDetails where (a.VendorNumber == vendorNumber) select a);
+            List<VendorGroupDetail> existing = db.VendorGroupDetails.Where(vgd => vgd.VendorNumber == vendorNumber).ToList();
+            
             if (existing.Count() > 0)
             {
                 int oldGroup = existing.First().GroupID;
-                ViewData["OriginalGroup"] = (from a in db.VendorGroups where a.ID == oldGroup select a).First().Name;
-                ViewData["NewGroup"] = (from a in db.VendorGroups where a.ID == ID select a).First().Name;
+                ViewData["OriginalGroup"] = db.VendorGroups.Where(vg => vg.ID == oldGroup).First().Name;
+                ViewData["NewGroup"] = db.VendorGroups.Where(vg => vg.ID == ID).First().Name;
+
                 //give them a confirmation screen about the move
                 ViewData["GroupID"] = ID;
                 ViewData["vendorNumber"] = vendorNumber;
-                return View();
-                //RedirectToAction("ConfirmMove", new { ID = ID, vendorNumber = vendorNumber });
+
+                return View();                
             }
             else
             {
@@ -138,16 +140,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     VendorGroupDetailDAO dao = new VendorGroupDetailDAO();
                     if (dao.IsVendorSetupForEDI(vendorNumber))
                     {
-                        VendorGroupDetail det = new VendorGroupDetail();
-                        det.GroupID = ID;
-                        det.VendorNumber = vendorNumber;
-                        det.CreateDate = DateTime.Now;
-                        det.CreatedBy = User.Identity.Name;
-                        db.VendorGroupDetails.Add(det);
-                        db.SaveChanges();
+                        VendorGroupDetail det = new VendorGroupDetail()
+                        {
+                            GroupID = ID,
+                            VendorNumber = vendorNumber,
+                            CreateDate = DateTime.Now,
+                            CreatedBy = currentUser.NetworkID
+                        };
 
-                        VendorGroup group = (from a in db.VendorGroups where a.ID == ID select a).First();
-                        group.Count = group.Count + 1;
+                        db.VendorGroupDetails.Add(det);
+
+                        VendorGroup group = db.VendorGroups.Where(vg => vg.ID == ID).First();
+                        group.Count += 1;
                         db.SaveChanges();
                     }
                     else
@@ -171,7 +175,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     message = ex.Message;
                 }
             }
-            return RedirectToAction("Details", new { ID = ID, message = message });
+            return RedirectToAction("Details", new { ID, message });
         }
 
         public ActionResult ConfirmMove(int ID, string vendorNumber)
@@ -184,7 +188,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             
             det.GroupID = ID;
             det.CreateDate = DateTime.Now;
-            det.CreatedBy = User.Identity.Name;
+            det.CreatedBy = currentUser.NetworkID;
             db.SaveChanges();
 
             group = (from a in db.VendorGroups where a.ID == ID select a).First();
@@ -196,7 +200,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Edit(int ID)
         {
-            VendorGroup group = (from a in db.VendorGroups where a.ID == ID select a).First();
+            VendorGroup group = db.VendorGroups.Where(vg => vg.ID == ID).First();
 
             return View(group);
         }
@@ -205,12 +209,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Edit(VendorGroup model)
         {
             model.CreateDate = DateTime.Now;
-            model.CreatedBy = User.Identity.Name;
+            model.CreatedBy = currentUser.NetworkID;
 
             db.Entry(model).State = System.Data.EntityState.Modified;
             db.SaveChanges();
             return RedirectToAction("Index");
-
         }
 
         public ActionResult EditLeadTime(int ID, int ZoneID)
@@ -226,7 +229,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.Entry(model).State = System.Data.EntityState.Modified;
             db.SaveChanges();
             return RedirectToAction("Details", new { ID = model.VendorGroupID });
-
         }
 
         /// <summary>
@@ -339,7 +341,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 errorList = (List<VendorGroupDetail>)Session["errorList"];
             }
 
-
             Aspose.Excel.License license = new Aspose.Excel.License();
             //Set the license 
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
@@ -359,9 +360,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             excelDocument.Save("VendorGroupErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
-
         }
-
-
     }
 }

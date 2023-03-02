@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.VendorGroup>
+﻿@model IEnumerable<VendorGroup>
 
 @{
     ViewBag.Title = "Direct to Store Vendor Groupings";
@@ -9,6 +9,7 @@
 { 
     @Html.Raw("<font color=\"Red\">" + ViewData["message"] + "</font><br>")
 }
+
 @using (Html.BeginForm("Create","DTSVendorGroup",FormMethod.Get)) {
     <fieldset>
         @Html.TextBox("Name")
@@ -21,39 +22,36 @@
         .Columns(columns =>
         {
             columns.Bound(o => o.Name).Width(125);
-            columns.Bound(o => o.Comment).Width(125);
-            columns.Bound(o => o.Count);
-            columns.Bound(o => o.CreatedBy);
-            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(120);
+            columns.Bound(o => o.Comment);
+            columns.Bound(o => o.Count).Width(125);
+            columns.Bound(o => o.CreatedBy).Width(125);
+            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy h:mm:ss tt}").Width(220);
             columns.Command(commands =>
             {
-                commands
-                .Custom("Edit")
-                .Text("Edit")
-                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
-                .Ajax(false)
-                .Action("Edit", "DTSVendorGroup");
-                commands
-                .Custom("Details")
-                .Text("Details")
-                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
-                .Ajax(false)
-                .Action("Details", "DTSVendorGroup");
-                commands
-                .Custom("Delete")
-                .Text("Delete")
-                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
-                .Ajax(false)
-                .Action("Delete", "DTSVendorGroup").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
-            }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
-        })
-            .DataBinding(dataBinding =>
-            {
-                dataBinding.Server();
-                //dataBinding.Ajax().Select("_RefreshBTSGrid", "StoreBTS").Enabled(true);
+                commands.Custom("Edit")
+                    .Text("Edit")
+                    .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                    .Ajax(false)
+                    .Action("Edit", "DTSVendorGroup");
+                commands.Custom("Details")
+                    .Text("Details")
+                    .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                    .Ajax(false)
+                    .Action("Details", "DTSVendorGroup");
+                commands.Custom("Delete")
+                    .Text("Delete")
+                    .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                    .Ajax(false)
+                    .Action("Delete", "DTSVendorGroup").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
             })
+            .HtmlAttributes(new { style = "text-align: left" }).Width(300);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Server();
+            //dataBinding.Ajax().Select("_RefreshBTSGrid", "StoreBTS").Enabled(true);
+        })
         .Sortable()
         .Pageable()
-        .Filterable()) 
-
-
+        .Filterable()
+) 

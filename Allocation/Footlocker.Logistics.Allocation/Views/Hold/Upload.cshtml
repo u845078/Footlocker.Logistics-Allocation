@@ -62,7 +62,11 @@
 
     function onError(e) {
         var message = e.XMLHttpRequest.responseText;
-        $('#message').empty().append("<font color='red'>" + message + "</font>");
+        if (message.indexOf("Incorrectly formatted or missing header row") != -1)
+            $('#message').empty().append("<font color='red'>" + message + "</font>");
+        else
+            $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='DownloadErrors'>Download Errors</a>");
+
         e.preventDefault();
     }
 

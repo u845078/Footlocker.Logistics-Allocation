@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.VendorGroupDetailsModel
+﻿@model VendorGroupDetailsModel
 
 @{
     ViewBag.Title = "Details";
@@ -9,6 +9,7 @@
 { 
     @Html.Raw("<font color=\"Red\">" + ViewData["message"] + "</font><br>")
 }
+
 @using (Html.BeginForm("AddDetail", "DTSVendorGroup", FormMethod.Get))
 {
     <fieldset>
@@ -17,74 +18,35 @@
         <input type="submit" value="Add" class="t-button" />
     </fieldset>
 }
-@*<table>
-    <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.VendorNumber)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.VendorName)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CreatedBy)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CreateDate)
-        </th>
-        <th></th>
-    </tr>
-
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.VendorNumber)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.VendorName)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CreatedBy)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CreateDate)
-        </td>
-        <td>
-            @Html.ActionLink("Delete", "DeleteDetail", new { ID = item.GroupID, vendorNumber = item.VendorNumber }, new { onclick="return confirm('Are you sure?');"})
-        </td>
-    </tr>
-}
-
-</table>*@
 
 @if (Model.HasDetails)
 {
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.VendorGroupDetail>()
-        .Name("VendorGroupDetails")
-        .Columns(columns =>
-        {
-            columns.Bound(o => o.VendorNumber).Width(100);
-            columns.Bound(o => o.VendorName).Width(200);
-            columns.Bound(o => o.CreatedBy);
-            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(120);
-            columns.Command(commands =>
+    @(Html.Telerik().Grid<VendorGroupDetail>()
+            .Name("VendorGroupDetails")
+            .Columns(columns =>
             {
-                commands
-                .Custom("Delete")
-                .Text("Delete")
-                .DataRouteValues(route => { route.Add(o => o.VendorNumber).RouteKey("vendorNumber"); route.Add(o => o.GroupID).RouteKey("ID"); })
-                .Ajax(false)
-                .Action("DeleteDetail", "DTSVendorGroup").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
-            }).HtmlAttributes(new { style = "text-align: left" }).Width(100);
+                columns.Bound(o => o.VendorNumber).Width(100);
+                columns.Bound(o => o.VendorName);
+                columns.Bound(o => o.CreatedBy).Width(200);
+                columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy h:mm:ss tt}").Width(220);
+                columns.Command(commands =>
+                {
+                    commands.Custom("Delete")
+                        .Text("Delete")
+                        .DataRouteValues(route => { route.Add(o => o.VendorNumber).RouteKey("vendorNumber"); route.Add(o => o.GroupID).RouteKey("ID"); })
+                        .Ajax(false)
+                        .Action("DeleteDetail", "DTSVendorGroup").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+                }).HtmlAttributes(new { style = "text-align: left" }).Width(100);
 
-        })
+            })
             .DataBinding(dataBinding =>
             {
                 dataBinding.Ajax().Select("_RefreshGrid", "DTSVendorGroup", new { ID = ViewData["GroupID"] }).Enabled(true);
             })
-        .Sortable()
-        .Pageable()
-        .Filterable()
-) 
+            .Sortable()
+            .Pageable()
+            .Filterable()
+    ) 
 }
 <br />
 <fieldset>
@@ -105,7 +67,7 @@
         )
         <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
         <br />
-        <h4> <div id="message"></div> </h4>
+        <div id="message"></div>
 </fieldset>
      <script type="text/javascript">
 

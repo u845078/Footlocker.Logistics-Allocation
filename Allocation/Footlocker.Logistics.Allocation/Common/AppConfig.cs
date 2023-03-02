@@ -132,6 +132,18 @@ namespace Footlocker.Logistics.Allocation.Common
             }
         }
 
+        public string HoldsUploadTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_holdsUploadTemplate))
+                    _holdsUploadTemplate = ConfigurationManager.AppSettings["HoldsUploadTemplate"].ToString();
+
+                return _holdsUploadTemplate;
+            }
+        }
+
+
         public string AsposeLicenseFile 
         { 
             get
