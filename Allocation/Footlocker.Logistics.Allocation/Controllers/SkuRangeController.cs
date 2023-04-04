@@ -2518,7 +2518,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 det.Store = s.Store;
                 det.Division = s.Division;
                 det.CreateDate = createDate;
-                det.CreatedBy = User.Identity.Name;
+                det.CreatedBy = currentUser.NetworkID;
                 details.Add(det);
             }
 
@@ -3004,17 +3004,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #region OrderPlanningRequest
         public ActionResult CreateOrderPlanningRequest(long planID)
         {
-            OrderPlanningRequest model = new OrderPlanningRequest()
-            {                
-                PlanID = planID
-            };
-
             RangePlan rangePlan = rangePlanDAO.GetRangePlan(planID);
             int instanceID = configService.GetInstance(rangePlan.Division);
             DateTime start = configService.GetControlDate(instanceID);
 
-            model.StartSend = start.AddDays(2);
-            model.EndSend = start.AddDays(12);
+            OrderPlanningRequest model = new OrderPlanningRequest()
+            {                
+                PlanID = planID,
+                StartSend = start,
+                EndSend = start.AddDays(12)
+            };
+
             return View(model);
         }
 
@@ -3040,14 +3040,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             int instanceID = configService.GetInstance(rangePlan.Division);
             DateTime start = configService.GetControlDate(instanceID);
 
-            if (model.StartSend < start.AddDays(2))
+            if (model.StartSend < start)
             {
                 if (!currentUser.HasUserRole(AppName, "IT"))
                 {
-                    if (!edit)
-                    {
-                        return "Earliest start date is " + start.AddDays(2);
-                    }
+                    if (!edit)                    
+                        return "Earliest start date is " + start;                    
                 }
             }
 
