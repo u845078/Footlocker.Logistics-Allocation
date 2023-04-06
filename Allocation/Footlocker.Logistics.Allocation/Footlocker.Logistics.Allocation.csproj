@@ -231,6 +231,7 @@
     <Compile Include="Common\HoldsUploadSpreadsheet.cs" />
     <Compile Include="Common\JsonResultData.cs" />
     <Compile Include="Common\RingFenceDeleteSpreadsheet.cs" />
+    <Compile Include="Common\RingFenceUploadSpreadsheet.cs" />
     <Compile Include="Common\SkuAttributeSpreadsheet.cs" />
     <Compile Include="Common\SKURangePlanDGSpreadsheet.cs" />
     <Compile Include="Common\SkuRangeSpreadsheet.cs" />
@@ -553,6 +554,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\Templates\SkuAttributeUploadTemplate.xls" />
+    <Content Include="Content\Templates\RingFenceUploadTemplate.xls" />
     <None Include="Content\Templates\SkuIdUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -19,12 +19,14 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         Database _databaseEurope;
         AllocationLibraryContext db = new AllocationLibraryContext();
         private Repository<ItemMaster> skuRespository;
+        public List<DistributionCenter> distributionCenters = new List<DistributionCenter>();        
 
         public RingFenceDAO()
         {
             _database = DatabaseFactory.CreateDatabase("DB2PROD");
             _databaseEurope = DatabaseFactory.CreateDatabase("DB2EURP");
             skuRespository = new Repository<ItemMaster>(new AllocationLibraryContext());
+            distributionCenters = db.DistributionCenters.ToList();
         }
 
         /// <summary>
@@ -34,23 +36,51 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         /// <returns></returns>
         public List<RingFence> GetValidRingFences(List<string> validDivisions)
         {
-            List<RingFence> list = (from a in db.RingFences
-                                    where a.Qty > 0 &&
-                                    validDivisions.Contains(a.Division) 
-                                    select a).ToList();
+            List<RingFence> rfList = db.RingFences.Where(rf => rf.Qty > 0 && validDivisions.Contains(rf.Division)).ToList();
 
-            //list = (from a in list
-            //        join d in validDivisions 
-            //        on a.Division equals d.DivCode
-            //        select a).OrderByDescending(x => x.CreateDate).ToList();
+            return rfList.OrderByDescending(x => x.CreateDate).ToList();
+        }
 
-            return list.OrderByDescending(x => x.CreateDate).ToList();
+        public List<GroupedRingFence> GetValidRingFenceGroups(List<string> validDivisions)
+        {
+            List<GroupedRingFence> rfList = db.GroupedRingFences.Where(rf => rf.TotalQuantity > 0 && 
+                                                                             validDivisions.Contains(rf.Division)).ToList();
+
+            return rfList.OrderByDescending(x => x.CreateDate).ToList();
+        }
+
+        /// <summary>
+        /// Use this to calculate the value for a ring fence header quantity
+        /// </summary>
+        /// <param name="uniqueCaselotNameQtys">This is a tuple with the caselot name and the total quantity. Item1 => the ItemPack's name (caselot size i.e. "00009"). Item2 => the ItemPack's TotalQty
+        /// </param>
+        /// <param name="ringFenceDetails">All the ring fence detail records for a header</param>
+        /// <returns></returns>
+        public int CalculateHeaderQty(List<Tuple<string, int>> uniqueCaselotNameQtys, List<RingFenceDetail> ringFenceDetails)
+        {
+            int totalQuantity = 0;
+            foreach (var rfd in ringFenceDetails)
+            {
+                if (rfd.ActiveInd.Equals("1"))
+                {
+                    if (rfd.Size.Length.Equals(5))
+                    {                        
+                        var caselotDetail = uniqueCaselotNameQtys.Where(ucq => ucq.Item1 == rfd.Size).FirstOrDefault();
+                        
+                        if (caselotDetail != null)                        
+                            totalQuantity += rfd.Qty * caselotDetail.Item2;                        
+                    }
+                    else                    
+                        totalQuantity += rfd.Qty;                    
+                }
+            }
+            return totalQuantity;
         }
 
         public RingFenceDetail BuildFutureRingFenceDetail(string sku, string stockSizeNumber, string warehouseCode, 
             long currentRingfenceID, string poNumber, string priorityCode, //List<RingFenceSummary> rfSummaryList, 
             int allocatableQty, DateTime expectedDeliveryDate, List<InventoryReductions> reductionData,
-            List<RingFenceDetail> ringFenceDetails, List<DistributionCenter> distributionCenters)
+            List<RingFenceDetail> ringFenceDetails)
         {
             RingFenceDetail det = new RingFenceDetail();
             DistributionCenter dc;
@@ -421,12 +451,11 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
                 List<InventoryReductions> reductionData = new List<InventoryReductions>();
                 List<RingFenceDetail> ringFenceDetails = new List<RingFenceDetail>();
-                List<DistributionCenter> distributionCenters = new List<DistributionCenter>();
 
                 var uniqueCombos = futureInventory.Select(fi => Tuple.Create(rf.Sku, Convert.ToString(fi["STK_SIZE_NUM"]), Convert.ToString(fi["WHSE_ID_NUM"]), Convert.ToString(fi["PO_NUM"]))).Distinct().ToList();
 
                 // populate lists to pass into BuildFutureRingFenceDetails
-                this.PopulateFutureRingFenceData(ref reductionData, ref ringFenceDetails,  ref distributionCenters, uniqueCombos, rf);
+                this.PopulateFutureRingFenceData(ref reductionData, ref ringFenceDetails, uniqueCombos, rf);
 
                 foreach (DataRow dr in futureInventory)
                 {
@@ -434,7 +463,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                  Convert.ToString(dr["WHSE_ID_NUM"]), rf.ID, Convert.ToString(dr["PO_NUM"]),
                                  Convert.ToString(dr["PRIORITY_CODE"]), //list, 
                                  Convert.ToInt32(dr["due_in"]),
-                                 Convert.ToDateTime(dr["EXPECTED_DELV_DATE"]), reductionData, ringFenceDetails, distributionCenters);
+                                 Convert.ToDateTime(dr["EXPECTED_DELV_DATE"]), reductionData, ringFenceDetails);
 
                     _que.Add(det);
                 }
@@ -449,7 +478,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
          * Item3 => DCID
          * Item4 => PO
          */
-        public void PopulateFutureRingFenceData(ref List<InventoryReductions> reductionData, ref List<RingFenceDetail> ringFenceDetails, ref List<DistributionCenter> distributionCenters, List<Tuple<string, string, string, string>> uniqueCombos, RingFence rf)
+        public void PopulateFutureRingFenceData(ref List<InventoryReductions> reductionData, ref List<RingFenceDetail> ringFenceDetails, List<Tuple<string, string, string, string>> uniqueCombos, RingFence rf)
         {
             // retrieve reduction data
             var baseReductionData = db.InventoryReductions.Where(ir => ir.Sku.Equals(rf.Sku)).ToList();
@@ -459,11 +488,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                                                                      uc.Item4.Equals(br.PO))).ToList();
 
             // retrieve current ringfencedetail data
-            ringFenceDetails = db.RingFenceDetails.Where(rfd => rfd.RingFenceID.Equals(rf.ID)).ToList();
-
-            // retrieve distributioncenters
-            List<string> uniqueDistributionCenters = uniqueCombos.Select(uc => uc.Item3).Distinct().ToList();
-            distributionCenters = db.DistributionCenters.Where(d => uniqueDistributionCenters.Any(udc => d.MFCode.Equals(udc))).ToList();
+            ringFenceDetails = db.RingFenceDetails.Where(rfd => rfd.RingFenceID.Equals(rf.ID)).ToList();          
         }
         
         public List<RingFenceDetail> GetTransloadPOs(RingFence rf)
@@ -511,7 +536,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
                 List<InventoryReductions> reductionData = new List<InventoryReductions>();
                 List<RingFenceDetail> ringFenceDetails = new List<RingFenceDetail>();
-                List<DistributionCenter> distributionCenters = new List<DistributionCenter>();
 
                 var uniqueCombos = futureInventory.Select(fi => Tuple.Create(rf.Sku,
                                                                         Convert.ToString(fi["Size"]), 
@@ -520,7 +544,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                                   .Distinct().ToList();
 
                 // populate lists to pass into BuildFutureRingFenceDetails
-                this.PopulateFutureRingFenceData(ref reductionData, ref ringFenceDetails, ref distributionCenters, uniqueCombos, rf);
+                this.PopulateFutureRingFenceData(ref reductionData, ref ringFenceDetails, uniqueCombos, rf);
 
                 foreach (DataRow dr in futureInventory)
                 {
@@ -530,9 +554,9 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
                     det = BuildFutureRingFenceDetail(rf.Sku, Convert.ToString(dr["Size"]),
                                     Convert.ToString(dr["Store"]), rf.ID, 
-                                    Convert.ToString(dr["InventoryID"]).Split('-')[0], "", // null,
+                                    Convert.ToString(dr["InventoryID"]).Split('-')[0], "", 
                                     Convert.ToInt32(dr["StockQty"]), availableDate, reductionData,
-                                    ringFenceDetails, distributionCenters);
+                                    ringFenceDetails);
                     _que.Add(det);
                 }
             }
@@ -778,6 +802,25 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             return rfDetailData;
         }
 
+        public bool CanUserUpdateRingFence(RingFence rf, WebUser user, string appName, out string errorMessage)
+        {
+            bool result = true;
+            errorMessage = "";
+
+            if (!user.HasDivision(appName, rf.Division))
+            {
+                result = false;
+                errorMessage = string.Format("You do not have permission to ring fence for division {0}", rf.Division);
+            }
+            else if (!user.HasDivDept(appName, rf.Division, rf.Department))
+            {
+                result = false;
+                errorMessage = string.Format("You do not have permission to ring fence for department {0}", rf.Department);
+            }
+
+            return result;
+        }
+
         public bool canUserUpdateRingFence(RingFence rf, string userName, out string errorMessage)
         {
             bool result = true;
@@ -800,10 +843,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
         public bool isEcommWarehouse(string division, string store)
         {
-            return (from a in db.EcommWarehouses
-                    where ((a.Division == division) &&
-                            (a.Store == store))
-                    select a).Count() > 0;
+            return db.EcommWarehouses.Where(ew => ew.Division == division && ew.Store == store).Count() > 0;
         }
 
         public bool isValidRingFence(RingFence rf, string userName, out string errorMessage)
@@ -832,86 +872,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
             return result;
         }
-
-        //public void UpdateRingFence(RingFence rf, string user)
-        //{
-        //    // not sure if we should keep setting these create columns
-        //    rf.CreateDate = DateTime.Now;
-        //    rf.CreatedBy = user;
-
-        //    rf.LastModifiedDate = DateTime.Now;
-        //    rf.LastModifiedUser = user;
-            
-        //    db.Entry(rf).State = EntityState.Modified;
-
-        //    RingFenceHistory history = new RingFenceHistory()
-        //    {
-        //        RingFenceID = rf.ID,
-        //        Qty = rf.Qty,
-        //        Division = rf.Division,
-        //        EndDate = rf.EndDate,
-        //        Size = rf.Size,
-        //        Sku = rf.Sku,
-        //        StartDate = rf.StartDate,
-        //        Store = rf.Store,
-        //        Action = "Update",
-        //        CreateDate = DateTime.Now,
-        //        CreatedBy = user
-        //    };
-
-        //    db.RingFenceHistory.Add(history);
-        //    db.SaveChanges();
-        //}
-
-        //public int GetRingFenceDetailTotalQuantity(long ringFenceID)
-        //{
-        //    int newQty;
-
-        //    newQty = (from a in db.RingFenceDetails
-        //              where a.RingFenceID == ringFenceID &&
-        //                    a.ActiveInd == "1"
-        //              select a.Qty).Sum();
-
-        //    return newQty;
-        //}
-
-        //public void UpdateRingFenceDetail(RingFenceDetail det, string user)
-        //{
-        //    db.Entry(det).State = EntityState.Modified;
-        //    db.SaveChanges();
-
-        //    RingFence rf = (from a in db.RingFences
-        //                    where a.ID == det.RingFenceID
-        //                    select a).First();
-
-        //    RingFenceHistory history = new RingFenceHistory()
-        //    {
-        //        RingFenceID = det.RingFenceID,
-        //        Division = rf.Division,
-        //        Store = rf.Store,
-        //        Sku = rf.Sku,
-        //        Size = det.Size,
-        //        DCID = det.DCID,
-        //        PO = det.PO,
-        //        Qty = det.Qty,
-        //        StartDate = rf.StartDate,
-        //        EndDate = rf.EndDate,
-        //        Action = "Update Det",
-        //        CreateDate = DateTime.Now,
-        //        CreatedBy = user
-        //    };
-
-        //    db.RingFenceHistory.Add(history);
-        //    db.SaveChanges();
-
-        //    int newQty = GetRingFenceDetailTotalQuantity(det.RingFenceID);
-
-        //    if (rf.Qty != newQty)
-        //    {
-        //        rf.Qty = newQty;
-        //        UpdateRingFence(rf, user);
-        //    }           
-        //}
 
         public static void SetRingFenceHeaderQtyAndHistory(List<long> ringfences, string user)
         {

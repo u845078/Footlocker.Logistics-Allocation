@@ -27,6 +27,7 @@ namespace Footlocker.Logistics.Allocation.Common
         private string _rerankStoresTemplate;
         private string _skuAttributeTemplate;
         private string _crossdockLinkTemplate;
+        private string _ringFenceUploadTemplate;
 
         public string AppName;
         public string AppPath;
@@ -143,6 +144,16 @@ namespace Footlocker.Logistics.Allocation.Common
             }
         }
 
+        public string RingFenceUploadTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_ringFenceUploadTemplate))
+                    _ringFenceUploadTemplate = ConfigurationManager.AppSettings["RingFenceUploadTemplate"].ToString();
+
+                return _ringFenceUploadTemplate;
+            }
+        }
 
         public string AsposeLicenseFile 
         { 

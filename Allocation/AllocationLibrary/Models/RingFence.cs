@@ -93,6 +93,9 @@ namespace Footlocker.Logistics.Allocation.Models
         public string MFCode { get; set; }
 
         [NotMapped]
+        public virtual DistributionCenter DistributionCenter { get; set; }
+
+        [NotMapped]
         [Display(Name = "Bin Qty")]
         public int BinQty { get; set; }
 
@@ -241,48 +244,6 @@ namespace Footlocker.Logistics.Allocation.Models
             this.ItemMaster = null;
             this.RingFenceType = null;
             this.Type = 1;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the RingFence class.
-        /// </summary>
-        /// <param name="id">The initial value for the identifier property.</param>
-        /// <param name="division">The initial value for the division property.</param>
-        /// <param name="store">The initial value for the store property.</param>
-        /// <param name="sku">The initial value for the stock keeping unit property.</param>
-        /// <param name="size">The initial value for the size property.</param>
-        /// <param name="qty">The initial value for the quantity property.</param>
-        /// <param name="startDate">The initial value for the start date property.</param>
-        /// <param name="endDate">The initial value for the end date property.</param>
-        /// <param name="createdBy">The initial value for the created by property.</param>
-        /// <param name="createDate">The initial value for the create date property.</param>
-        /// <param name="itemId">The initial value for the item identifier property.</param>
-        /// <param name="itemMaster">The initial value for the item master property.</param>
-        /// <param name="ringFenceType">The initial value for the ring fence type property.</param>
-        /// <param name="type">The initial value for the type property.</param>
-        public RingFence(Int64 id, string division, string store, string sku, string size, string po, string MFCode, Int32 binQty, Int32 caseQty, Int32 qty, DateTime startDate
-                , DateTime? endDate, string createdBy, DateTime? createDate, Int64 itemId, ItemMaster itemMaster
-                , RingFenceType ringFenceType, Int32 type)
-            : this()
-        {
-            this.ID = id;
-            this.Division = division;
-            this.Store = store;
-            this.Sku = sku;
-            this.Size = size;
-            this.PO = po;
-            this.MFCode = MFCode;
-            this.BinQty = binQty;
-            this.CaseQty = caseQty;
-            this.Qty = qty;
-            this.StartDate = startDate;
-            this.EndDate = endDate;
-            this.CreatedBy = createdBy;
-            this.CreateDate = createDate;
-            this.ItemID = itemId;
-            this.ItemMaster = itemMaster;
-            this.RingFenceType = ringFenceType;
-            this.Type = type;
         }
     }
 }

@@ -82,7 +82,7 @@ namespace Footlocker.Logistics.Allocation.Services
 
         public DbSet<Country> Countries { get; set; }
         public DbSet<State> States { get; set; }
-
+        public DbSet<GroupedRingFence> GroupedRingFences { get; set; }
         public DbSet<CPSkuSizesXref> CPSkuSizesXrefs { get; set; }
 
         public AllocationLibraryContext()
@@ -112,9 +112,9 @@ namespace Footlocker.Logistics.Allocation.Services
             // NOTE: RuleSet->RuleSelectedStore relationship is 1 to many, defined on specified FK field
             modelBuilder.Entity<RuleSet>().HasMany(rss => rss.Stores).WithRequired().HasForeignKey(rss => rss.RuleSetID);
 
-            modelBuilder.Entity<VendorGroupLeadTime>().HasRequired(o => o.Zone).WithMany().HasForeignKey(c => c.ZoneID);
+            //modelBuilder.Entity<VendorGroupLeadTime>().HasRequired(o => o.Zone).WithMany().HasForeignKey(c => c.ZoneID);
 
-            modelBuilder.Entity<VendorGroupLeadTime>().HasRequired(o => o.Group).WithMany().HasForeignKey(c => c.VendorGroupID);
+            //modelBuilder.Entity<VendorGroupLeadTime>().HasRequired(o => o.Group).WithMany().HasForeignKey(c => c.VendorGroupID);
 
             modelBuilder.Entity<RDQ>().HasRequired(o => o.DistributionCenter).WithMany().HasForeignKey(c => c.DCID);
             //modelBuilder.Entity<RDQ>().HasOptional(x => x.QuantumRecordType).WithMany().HasForeignKey(c => c.RecordType);
