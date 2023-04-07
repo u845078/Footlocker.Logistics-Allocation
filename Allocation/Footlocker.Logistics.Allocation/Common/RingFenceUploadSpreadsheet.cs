@@ -7,6 +7,7 @@ using Microsoft.Practices.EnterpriseLibrary.Common.Utility;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Drawing;
 using System.Linq;
 using System.Web;
@@ -93,7 +94,7 @@ namespace Footlocker.Logistics.Allocation.Common
 
             validStores = config.db.vValidStores.ToList();
 
-            List<string> uniqueStores = parsedRingFences.Where(rf => rf.Store != "00800")
+            List<string> uniqueStores = parsedRingFences.Where(rf => rf.Store != "00800" && !string.IsNullOrEmpty(rf.Store))
                                                         .Select(rf => string.Format("{0}-{1}", rf.Division, rf.Store)).Distinct().ToList();
             List<string> invalidStoreList = uniqueStores.Where(us => !validStores.Any(s => string.Format("{0}-{1}", s.Division, s.Store) == us)).ToList();
 
@@ -313,13 +314,17 @@ namespace Footlocker.Logistics.Allocation.Common
                 {
                     Division = grf.Division,
                     Store = grf.Store,
-                    Sku = grf.Sku,
-                    EndDate = grf.Details.Select(g => Convert.ToDateTime(g.EndDate)).FirstOrDefault(),
+                    Sku = grf.Sku,                                        
                     CreateDate = DateTime.Now,
                     CreatedBy = config.currentUser.NetworkID,
                     LastModifiedDate = DateTime.Now,
                     LastModifiedUser = config.currentUser.NetworkID
                 };
+
+                if (string.IsNullOrEmpty(grf.Details.FirstOrDefault().EndDate))
+                    rf.EndDate = null;
+                else
+                    rf.EndDate = DateTime.ParseExact(grf.Details.FirstOrDefault().EndDate, "d/M/yyyy", CultureInfo.InvariantCulture);
 
                 rf.ItemID = skuItemIDMapping.Where(r => r.Sku == rf.Sku).Select(r => r.ItemID).FirstOrDefault();
                 rf.StartDate = divisionControlDateMapping.Where(cd => cd.Division == rf.Division).Select(cd => cd.RunDate).FirstOrDefault().AddDays(1);

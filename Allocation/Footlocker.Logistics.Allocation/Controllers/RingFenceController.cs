@@ -2237,7 +2237,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             msg = string.Format("{0} successfully uploaded", ringFenceDeleteSpreadsheet.validRingFenceDeletes.Count.ToString());
-            return Json(new { successMessage = msg }, "application/json");
+            return Json(new { message = msg }, "application/json");
         }
 
         public ActionResult DownloadDeleteErrors()
@@ -2280,7 +2280,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult SaveRingFences(IEnumerable<HttpPostedFileBase> attachments, bool accumulateQuantity)
         {
             RingFenceUploadSpreadsheet ringFenceUploadSpreadsheet = new RingFenceUploadSpreadsheet(appConfig, configService, dao);
-            string msg;
+            string message;
 
             foreach (HttpPostedFileBase file in attachments)
             {
@@ -2294,16 +2294,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         Session["errorList"] = ringFenceUploadSpreadsheet.errorList;
 
-                        msg = string.Format("{0} lines were processed successfully. {1} warnings and {2} errors were found.", ringFenceUploadSpreadsheet.validRingFences.Count.ToString(),
+                        message = string.Format("{0} lines were processed successfully. {1} warnings and {2} errors were found.", ringFenceUploadSpreadsheet.validRingFences.Count.ToString(),
                             ringFenceUploadSpreadsheet.warnings.Count.ToString(), ringFenceUploadSpreadsheet.errors.Count.ToString());
 
-                        return Content(msg);
+                        return Content(message);
                     }
                 }
             }
 
-            msg = string.Format("{0} successfully uploaded", ringFenceUploadSpreadsheet.validRingFences.Count.ToString());
-            return Json(new { successMessage = msg }, "application/json");
+            message = string.Format("{0} successfully uploaded", ringFenceUploadSpreadsheet.validRingFences.Count.ToString());
+            return Json(new { message }, "application/json");
         }
 
         public ActionResult DownloadErrors()
