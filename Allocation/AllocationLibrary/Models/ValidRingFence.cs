@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.SqlTypes;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
@@ -11,12 +12,24 @@ namespace Footlocker.Logistics.Allocation.Models
     public class ValidRingFence
     {
         [Key]
-        [Column("ID")]
+        [Column("ID", Order = 0)]      
         public long RingFenceID { get; set; }
+        
+        [Key]
+        [Column(Order = 1)]
         public string Division { get; set; }
+        
+        [Key]
+        [Column(Order = 2)]
         public string Store { get; set; }
+        
+        [Key]
+        [Column(Order = 3)]
         public string SKU { get; set; }
         public long ItemID { get; set; }
+
+        [Key]
+        [Column(Order = 4)]
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
 
@@ -26,8 +39,12 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public virtual RingFenceType RingFenceType { get; set; }
 
+        [Key]
+        [Column(Order = 5)]
         public string Size { get; set; }
-        
+
+        [Key]
+        [Column(Order = 6)]
         [ForeignKey("DistributionCenter")]
         public int DCID { get; set; }
                 
