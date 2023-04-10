@@ -111,6 +111,8 @@ namespace Footlocker.Logistics.Allocation.DAO
         public DbSet<Renumber> Renumbers { get; set; }
         public DbSet<InventoryReductions> InventoryReductions { get; set; }
         public DbSet<POCrossdockData> POCrossdocks { get; set; }
+        public DbSet<GroupedRingFence> GroupedRingFences { get; set; }
+        public DbSet<ValidRingFence> ValidRingFences { get; set; }
 
         public DbSet<DistributionCenterRestrictions> DistributionCenterRestrictions { get; set; }
 

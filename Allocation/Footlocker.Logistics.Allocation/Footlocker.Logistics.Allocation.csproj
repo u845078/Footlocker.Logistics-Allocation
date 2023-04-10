@@ -224,12 +224,14 @@
     <Compile Include="Common\CrossdockLinkSpreadsheet.cs" />
     <Compile Include="Common\DeleteValidationException.cs" />
     <Compile Include="Common\ExistsValidationException.cs" />
+    <Compile Include="Common\ExportSpreadsheet.cs" />
     <Compile Include="Common\Extensions.cs" />
     <Compile Include="Common\Filters\HandleAjaxError.cs" />
     <Compile Include="Common\Filters\HandleAjaxValidationError.cs" />
     <Compile Include="Common\Filters\LogError.cs" />
     <Compile Include="Common\HoldsUploadSpreadsheet.cs" />
     <Compile Include="Common\JsonResultData.cs" />
+    <Compile Include="Common\RingFenceByDestExport.cs" />
     <Compile Include="Common\RingFenceDeleteSpreadsheet.cs" />
     <Compile Include="Common\RingFenceUploadSpreadsheet.cs" />
     <Compile Include="Common\SkuAttributeSpreadsheet.cs" />

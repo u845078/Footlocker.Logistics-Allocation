@@ -263,6 +263,7 @@
     <Compile Include="Models\TeamCodes.cs" />
     <Compile Include="Models\UploadRequest.cs" />
     <Compile Include="Models\ValidationSession.cs" />
+    <Compile Include="Models\ValidRingFence.cs" />
     <Compile Include="Models\ValidStoreLookup.cs" />
     <Compile Include="Models\VendorGroup.cs" />
     <Compile Include="Models\VendorGroupDetail.cs" />
