@@ -15,10 +15,10 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 {
     public class RingFenceDAO
     {
-        Database _database;
-        Database _databaseEurope;
-        AllocationLibraryContext db = new AllocationLibraryContext();
-        private Repository<ItemMaster> skuRespository;
+        readonly Database _database;
+        readonly Database _databaseEurope;
+        readonly AllocationLibraryContext db = new AllocationLibraryContext();
+        readonly Repository<ItemMaster> skuRespository;
         public List<DistributionCenter> distributionCenters = new List<DistributionCenter>();        
 
         public RingFenceDAO()
@@ -34,11 +34,18 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         /// </summary>
         /// <param name="validDivisions">A list of divisions that you want to match the ring fences against</param>
         /// <returns></returns>
-        public List<RingFence> GetValidRingFences(List<string> validDivisions)
+        public List<RingFence> GetRingFences(List<string> validDivisions)
         {
             List<RingFence> rfList = db.RingFences.Where(rf => rf.Qty > 0 && validDivisions.Contains(rf.Division)).ToList();
 
             return rfList.OrderByDescending(x => x.CreateDate).ToList();
+        }
+
+        public IQueryable<ValidRingFence> GetValidRingFences(List<string> validDivisions)
+        {            
+            List<ValidRingFence> rfList = db.ValidRingFences.Where(rf => rf.Quantity > 0 && validDivisions.Contains(rf.Division)).ToList();
+
+            return rfList.AsQueryable();
         }
 
         public List<GroupedRingFence> GetValidRingFenceGroups(List<string> validDivisions)

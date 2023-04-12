@@ -85,6 +85,8 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<GroupedRingFence> GroupedRingFences { get; set; }
         public DbSet<CPSkuSizesXref> CPSkuSizesXrefs { get; set; }
 
+        public DbSet<ValidRingFence> ValidRingFences { get; set; }
+
         public AllocationLibraryContext()
             : base("AllocationContext")
         {

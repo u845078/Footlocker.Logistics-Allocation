@@ -14,6 +14,8 @@ using Aspose.Excel;
 using System.IO;
 using Footlocker.Logistics.Allocation.Common;
 using System.Web.Services.Description;
+using Footlocker.Common.Entities;
+using Telerik.Web.Mvc.Infrastructure;
 //using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Controllers
@@ -155,12 +157,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _RingFenceSummary()
         {
-            List<RingFence> list = dao.GetValidRingFences(currentUser.GetUserDivList(AppName));
+            List<RingFence> list = dao.GetRingFences(currentUser.GetUserDivList(AppName));
 
             var rfGroups = from rf in list
             group rf by new
             {
-                Sku = rf.Sku,
+                rf.Sku,
                 itemid = rf.ItemID,
             } into g
             select new RingFenceSummary()
@@ -170,7 +172,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 DC = "",
                 PO = "",
                 Qty = g.Sum(r => r.Qty),
-                CanPick = !(g.Any(r => !r.CanPick))
+                CanPick = !g.Any(r => !r.CanPick)
             };
 
             return PartialView(new GridModel(rfGroups.ToList()));
@@ -179,7 +181,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _RingFenceStores()
         {
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
             List<StoreLookup> list = (from a in db.RingFences
                                       join rfd in db.RingFenceDetails
                                         on a.ID equals rfd.RingFenceID
@@ -201,7 +203,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             div = div.Trim();
             store = store.Trim();
 
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
             List<FOB> list = (from a in db.RingFences 
                               join b in db.StoreLookups 
                               on new { a.Division, a.Store } equals new { b.Division, b.Store } 
@@ -226,7 +228,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _RingFences(string sku)
         {
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
             List<RingFence> list = db.RingFences.Where(rf => rf.Qty > 0 && rf.Sku == sku).ToList();
             list = (from a in list
                     join d in divs on a.Division equals d.DivCode
@@ -269,7 +271,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _RingFencesForStore(string div, string store)
         {
             List<RingFence> list;
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
             list = db.RingFences.Where(rf => rf.Qty > 0 && rf.Division == div && rf.Store == store).ToList();
 
             list = (from a in list
@@ -323,7 +325,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                List<Division> divs = currentUser.GetUserDivisions(AppName);
+                List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
                 list = (from a in db.RingFences 
                         join i in db.ItemMasters on a.ItemID equals i.ID
                         join b in db.FOBDepts on i.Dept equals b.Department
@@ -2191,6 +2193,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ViewData["errorMessage"] = message;
             return View();
+        }
+
+
+        [GridAction]
+        public ActionResult ExportGrid(GridCommand settings)
+        {
+            RingFenceExport exportRF = new RingFenceExport(appConfig, dao);
+            exportRF.WriteData(settings);
+            exportRF.excelDocument.Save("RingFences.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            return RedirectToAction("Index");
         }
 
         #region RingFence Delete mass load

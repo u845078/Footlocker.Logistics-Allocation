@@ -37,7 +37,6 @@
         //redirecting them to show them RDQs with ability to release them
         window.location = "/Ringfence/MassEditRingfence?sku=" + sku;
     }
-
 </script>
 
 <h2>Ring Fences</h2>
@@ -49,16 +48,17 @@
 </p>
 
 <div class="t-tabstrip-wrapper">
-<div id="tabstrip" data-role="tabstrip" tabindex="0" class="t-widget t-header t-tabstrip" role="tablist" aria-activedescendant="tabstrip_ts_active" style="width: 1200px">
+<div id="tabstrip" data-role="tabstrip" tabindex="0" class="t-widget t-header t-tabstrip" role="tablist" aria-activedescendant="tabstrip_ts_active" style="width: 100%">
     <ul class="t-tabstrip-items t-reset">
-        <li class="t-item t-state-default" role="tab" aria-controls="tabstrip-3"><span class="t-loading t-complete"></span><a class="t-link" href="/RingFence/Index">
-            All Ringfences
-        </a></li>                
-        <li class="t-item t-state-default t-first t-tab-on-top t-state-active" role="tab" aria-controls="tabstrip-1" aria-selected="true"><span class="t-loading t-complete"></span><a class="t-link" href="/RingFence/IndexSummary">
-            By Product
-        </a></li><li class="t-item t-state-default" role="tab" aria-controls="tabstrip-2"><span class="t-loading t-complete"></span><a class="t-link" href="/RingFence/IndexByStore">
-            By Destination
-        </a></li>
+        <li class="t-item t-state-default" role="tab" aria-controls="tabstrip-3"><span class="t-loading t-complete"></span>
+            <a class="t-link" href="/RingFence/Index">All Ringfences</a>
+        </li>                
+        <li class="t-item t-state-default t-first t-tab-on-top t-state-active" role="tab" aria-controls="tabstrip-1" aria-selected="true"><span class="t-loading t-complete"></span>
+            <a class="t-link" href="/RingFence/IndexSummary">By Product</a>
+        </li>
+        <li class="t-item t-state-default" role="tab" aria-controls="tabstrip-2"><span class="t-loading t-complete"></span>
+            <a class="t-link" href="/RingFence/IndexByStore">By Destination</a>
+        </li>
     </ul>
 <div class="t-content t-state-active" id="tabstrip-1" role="tabpanel" aria-expanded="true" style="display: block; opacity: 1;">
 <br />
@@ -95,9 +95,8 @@
         .Sortable(s =>
         {
             s.SortMode(GridSortMode.MultipleColumn);
-            //s.OrderBy(order => order.Add(rf => rf.CreateDate).Descending());
         })
-        .Pageable(p => p.PageSize(10))
+        .Pageable(p => p.PageSize(20))
         .Filterable()
         .Groupable(grouping => grouping.Enabled(false))
         .Footer(true)
@@ -155,8 +154,6 @@
                         .ToHtmlString()
                         ))
         )
-
-
 </div>                
 </div>
 </div>

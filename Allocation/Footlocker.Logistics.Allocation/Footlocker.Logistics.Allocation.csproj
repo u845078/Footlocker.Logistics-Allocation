@@ -233,6 +233,7 @@
     <Compile Include="Common\JsonResultData.cs" />
     <Compile Include="Common\RingFenceByDestExport.cs" />
     <Compile Include="Common\RingFenceDeleteSpreadsheet.cs" />
+    <Compile Include="Common\RingFenceExport.cs" />
     <Compile Include="Common\RingFenceUploadSpreadsheet.cs" />
     <Compile Include="Common\SkuAttributeSpreadsheet.cs" />
     <Compile Include="Common\SKURangePlanDGSpreadsheet.cs" />

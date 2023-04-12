@@ -12,6 +12,19 @@
             return true;
         }
     }
+
+    function exportSelected() {
+        var grid = $('#RingFenceGrid').data('tGrid');
+        if (grid.filterBy === "") {
+            $('#ExportGrid').attr('href', function () {
+                return "/RingFence/ExportGrid"
+            });
+        } else {
+            $('#ExportGrid').attr('href', function () {
+                return "/RingFence/ExportGrid?filter=" + grid.filterBy;
+            });
+        }
+    }
 </script>
 
 <h2>Ring Fences</h2>
@@ -38,10 +51,11 @@
                 <a class="t-link" href="/RingFence/IndexByStore">By Destination</a>
             </li>
         </ul>
-        <div class="t-content t-state-active" id="tabstrip-1" role="tabpanel" aria-expanded="true" style="display: block; opacity: 1;"><br />
+        <div class="t-content t-state-active" id="tabstrip-1" role="tabpanel" aria-expanded="true" style="display: block; opacity: 1;">
+            <br />
             @Html.Raw("<font color=red>" + ViewData["message"] + "</font>")
-                @(Html.Telerik().Grid<GroupedRingFence>(Model)
-                    .Name("VendorsGrid")
+            @(Html.Telerik().Grid<GroupedRingFence>(Model)
+                    .Name("RingFenceGrid")
                     .HtmlAttributes(new { @class = "details-grid" })
                     .HtmlAttributes(new { @style = "width : 100%" })
                     .Columns(columns =>
@@ -73,6 +87,24 @@
                                     </span>
                                 </text>)
                             .Width(250);
+                    })
+                    .ToolBar(toolbar =>
+                    {
+                        toolbar.Template(@<text>
+                            @Html.ActionLink(
+                                "Download Ring Fences",
+                                "ExportGrid",
+                                "RingFence",
+                                new {
+                                    filter = "__filterBy__"
+                                },
+                                new {
+                                    @class = "t-button",
+                                    @onclick = "exportSelected()",
+                                    id = "ExportGrid"
+                                }
+                            )
+                        </text>);
                     })
                     .Sortable(s =>
                     {
