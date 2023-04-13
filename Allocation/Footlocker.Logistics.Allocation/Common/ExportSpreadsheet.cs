@@ -19,16 +19,16 @@ namespace Footlocker.Logistics.Allocation.Common
         public string errorMessage;        
         public int headerRowNumber = 0;
         public int currentRow;
+        public long recordCount;
         public Excel excelDocument;
+        public int worksheetNum;
 
         public void WriteHeaderRecord()
         {
-            excelDocument = new Excel();
-
             currentRow = headerRowNumber;
 
             for (int i = 0; i < maxColumns; i++)            
-                excelDocument.Worksheets[0].Cells[headerRowNumber, i].PutValue(columns[i]);
+                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].PutValue(columns[i]);
 
             currentRow++;
         }
@@ -38,6 +38,11 @@ namespace Footlocker.Logistics.Allocation.Common
             this.config = config;
             license = new License();
             license.SetLicense(config.AsposeLicenseFile);
+            excelDocument = new Excel();
+
+            worksheetNum = 0;
+            currentRow = 0;
+            recordCount = 0;
         }
     }
 }
