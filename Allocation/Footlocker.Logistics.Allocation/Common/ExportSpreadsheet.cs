@@ -27,6 +27,9 @@ namespace Footlocker.Logistics.Allocation.Common
         {
             currentRow = headerRowNumber;
 
+            if (worksheetNum > 0)
+                excelDocument.Worksheets.Add();
+
             for (int i = 0; i < maxColumns; i++)            
                 excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].PutValue(columns[i]);
 
