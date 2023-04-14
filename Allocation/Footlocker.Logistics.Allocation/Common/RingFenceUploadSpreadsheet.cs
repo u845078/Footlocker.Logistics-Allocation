@@ -12,6 +12,7 @@ using System.Drawing;
 using System.Linq;
 using System.Web;
 using Telerik.Web.Mvc.Extensions;
+using System.Web.Services.Description;
 
 namespace Footlocker.Logistics.Allocation.Common
 {
@@ -24,7 +25,9 @@ namespace Footlocker.Logistics.Allocation.Common
         public List<RingFenceUploadModel> futureWarehouseRingFences = new List<RingFenceUploadModel>();
         public List<RingFenceUploadModel> ecomRingFences = new List<RingFenceUploadModel>();
         public List<RingFenceUploadModel> explodingEcomRingFences = new List<RingFenceUploadModel>();
+        public List<RingFenceUploadModel> allSizeRingFences = new List<RingFenceUploadModel>();
         readonly RingFenceDAO ringfenceDAO;
+        readonly LegacyFutureInventoryDAO futureInventoryDAO;
         List<EcommWarehouse> ecommWarehouses;
         int successfulCount;
         public List<RingFenceUploadModel> warnings;
@@ -40,8 +43,8 @@ namespace Footlocker.Logistics.Allocation.Common
                 EndDate = Convert.ToString(worksheet.Cells[row, 3].Value),
                 PO = Convert.ToString(worksheet.Cells[row, 4].Value),
                 Warehouse = Convert.ToString(worksheet.Cells[row, 5].Value).Trim().PadLeft(2, '0'),
-                Size = Convert.ToString(worksheet.Cells[row, 6].Value),
-                Quantity = Convert.ToInt32(worksheet.Cells[row, 7].Value),
+                Size = Convert.ToString(worksheet.Cells[row, 6].Value).ToUpper(),
+                QtyString = Convert.ToString(worksheet.Cells[row, 7].Value).ToUpper(),
                 Comments = Convert.ToString(worksheet.Cells[row, 8].Value)
             };
 
@@ -56,6 +59,7 @@ namespace Footlocker.Logistics.Allocation.Common
         private bool ValidateRow(RingFenceUploadModel inputData, out string errorMessage)
         {
             errorMessage = string.Empty;
+            bool canConvert;
 
             if (string.IsNullOrEmpty(inputData.Division))
                 errorMessage = "Division must be provided ";
@@ -72,12 +76,36 @@ namespace Footlocker.Logistics.Allocation.Common
                 if (inputData.Size.Length != 3 && inputData.Size.Length != 5)
                     errorMessage += string.Format("The size {0} is non-existent or invalid. ", inputData.Size);
 
-            if (inputData.Quantity <= 0)
-                errorMessage += "The quantity provided cannot be less than or equal to zero. ";
-
             if (inputData.PO != "")
+            {
                 if (inputData.PO.Length != 7)
                     errorMessage += "PO must be seven digits. ";
+            }                
+
+            if (inputData.QtyString == "ALL")
+            {
+                if (string.IsNullOrEmpty(inputData.PO) || inputData.Size != "ALL")
+                    errorMessage += "When using ALL Quantity, Size must also be ALL and a PO must be given. ";
+            }
+            else
+            {
+                int tempInt;
+                canConvert = int.TryParse(inputData.QtyString, out tempInt);
+
+                if (canConvert)
+                {
+                    inputData.Quantity = tempInt;
+
+                    if (inputData.Quantity <= 0)
+                        errorMessage += "The quantity provided cannot be less than or equal to zero. ";
+                }                    
+                else
+                    errorMessage += "Quantity is not ALL or numeric. ";
+            }
+
+            if (inputData.Size == "ALL")
+                if (string.IsNullOrEmpty(inputData.PO) || inputData.QtyString != "ALL")
+                    errorMessage += "When using ALL Size, Quantity must be ALL and a PO must be given. ";
 
             return string.IsNullOrEmpty(errorMessage);
         }
@@ -119,6 +147,28 @@ namespace Footlocker.Logistics.Allocation.Common
                                              pr.Warehouse == dup.DuplicateRF.Warehouse &&
                                              pr.Size == dup.DuplicateRF.Size)
                     .ForEach(pr => pr.ErrorMessage = string.Format("The following row of data was duplicated in the spreadsheet {0} times.  Please provide unique rows of data.", dup.Counter));
+            }
+
+            List<string> uniquePOs = parsedRingFences.Where(rf => !string.IsNullOrEmpty(rf.PO)).Select(rf => rf.PO).Distinct().ToList();
+            List<string> invalidPOList = uniquePOs.Where(up => !config.db.POs.Any(p => p.PO == up)).ToList();
+
+            parsedRingFences.Where(rf => invalidPOList.Contains(rf.PO)).ForEach(ip => ip.ErrorMessage = "PO was not found in PO table");
+
+            List<RingFenceUploadModel> poRingFences = parsedRingFences.Where(rf => string.IsNullOrEmpty(rf.ErrorMessage) &&
+                                                                                   !string.IsNullOrEmpty(rf.PO)).ToList();
+            foreach (RingFenceUploadModel poRF in poRingFences)
+            {
+                List<LegacyFutureInventory> poDetails = futureInventoryDAO.GetPOInventoryData(poRF.Division, poRF.PO);
+                if (poDetails.Count == 0)
+                    poRF.ErrorMessage = "PO information not found for division";
+                else
+                {
+                    if (poDetails.Where(p => p.Sku == poRF.SKU).Count() == 0)
+                        poRF.ErrorMessage = "Ring Fence SKU does not match the PO SKU";
+
+                    if (poDetails.Where(p => p.Store == poRF.Warehouse).Count() == 0)
+                        poRF.ErrorMessage = "Ring Fence Warehouse does not match the PO warehouse";
+                }
             }
         }
 
@@ -437,7 +487,6 @@ namespace Footlocker.Logistics.Allocation.Common
                             config.db.Entry(rfd).State = EntityState.Added;
                         }
                     }
-
                 }
 
                 var endDate = groupedRF.Details.Select(d => d.EndDate).FirstOrDefault();
@@ -449,6 +498,34 @@ namespace Footlocker.Logistics.Allocation.Common
 
             // save the changes for the already existing ringfences
             config.db.SaveChangesBulk(config.currentUser.NetworkID);
+        }
+
+        private void ProcessAllSizeRingFences()
+        {
+            List<RingFenceUploadModel> expandedRFs = new List<RingFenceUploadModel>();
+
+            foreach (RingFenceUploadModel rf in allSizeRingFences)
+            {
+                List<LegacyFutureInventory> poDetails = futureInventoryDAO.GetPOInventoryData(rf.Division, rf.PO).Where(p => p.Sku == rf.SKU).ToList();
+
+                foreach (LegacyFutureInventory poRec in poDetails)
+                {
+                    expandedRFs.Add(new RingFenceUploadModel()
+                    {
+                        Division = rf.Division,
+                        Store = rf.Store, 
+                        SKU = rf.SKU,
+                        EndDate = rf.EndDate, 
+                        PO = rf.PO,
+                        Warehouse = rf.Warehouse,
+                        Size = poRec.Size, 
+                        Quantity = poRec.StockQty,
+                        Comments = rf.Comments
+                    });
+                }
+            }
+
+            validRingFences.AddRange(expandedRFs);
         }
 
         public void Save(HttpPostedFileBase attachment, bool accumulateQuantity)
@@ -491,17 +568,22 @@ namespace Footlocker.Logistics.Allocation.Common
                                 explodingEcomRingFences.Add(rf);
                             else
                             {
-                                validRingFences.Add(rf);
-
-                                if (ecommWarehouses.Any(ew => ew.Division == rf.Division && ew.Store == rf.Store))
-                                    ecomRingFences.Add(rf);
+                                if (rf.Size == "ALL")
+                                    allSizeRingFences.Add(rf);
                                 else
                                 {
-                                    if (string.IsNullOrEmpty(rf.PO))
-                                        warehouseRingFences.Add(rf);
+                                    validRingFences.Add(rf);
+
+                                    if (ecommWarehouses.Any(ew => ew.Division == rf.Division && ew.Store == rf.Store))
+                                        ecomRingFences.Add(rf);
                                     else
-                                        futureWarehouseRingFences.Add(rf);
-                                }                                    
+                                    {
+                                        if (string.IsNullOrEmpty(rf.PO))
+                                            warehouseRingFences.Add(rf);
+                                        else
+                                            futureWarehouseRingFences.Add(rf);
+                                    }
+                                }
                             }                                
                         }                            
                         else
@@ -509,6 +591,9 @@ namespace Footlocker.Logistics.Allocation.Common
                     }
 
                     ValidateInventory();
+
+                    if (allSizeRingFences.Count > 0)
+                        ProcessAllSizeRingFences();
 
                     if (validRingFences.Count > 0)
                     {
@@ -558,7 +643,12 @@ namespace Footlocker.Logistics.Allocation.Common
                     mySheet.Cells[row, 4].PutValue(p.PO);
                     mySheet.Cells[row, 5].PutValue(p.Warehouse);
                     mySheet.Cells[row, 6].PutValue(p.Size);
-                    mySheet.Cells[row, 7].PutValue(p.Quantity);
+
+                    if (p.QtyString == "ALL")
+                        mySheet.Cells[row, 7].PutValue(p.QtyString);
+                    else
+                        mySheet.Cells[row, 7].PutValue(p.Quantity);
+
                     mySheet.Cells[row, 8].PutValue(p.Comments);
                     mySheet.Cells[row, 9].PutValue(p.ErrorMessage);
                     mySheet.Cells[row, 9].Style.Font.Color = Color.Red;
@@ -576,7 +666,8 @@ namespace Footlocker.Logistics.Allocation.Common
             }
         }
 
-        public RingFenceUploadSpreadsheet(AppConfig config, ConfigService configService, RingFenceDAO ringFenceDAO) : base(config, configService)
+        public RingFenceUploadSpreadsheet(AppConfig config, ConfigService configService, RingFenceDAO ringFenceDAO, 
+                                          LegacyFutureInventoryDAO legacyFutureInventoryDAO) : base(config, configService)
         {
             maxColumns = 9;
 
@@ -592,7 +683,7 @@ namespace Footlocker.Logistics.Allocation.Common
 
             templateFilename = config.RingFenceUploadTemplate;
             ringfenceDAO = ringFenceDAO;
+            futureInventoryDAO = legacyFutureInventoryDAO;
         }
-
     }
 }

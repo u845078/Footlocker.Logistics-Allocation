@@ -1828,7 +1828,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 Size = rfd.Size,
                 PO = rfd.PO,
                 Comments = rf.Comments,
-                Qty = Convert.ToString(rfd.Qty),
+                QtyString = Convert.ToString(rfd.Qty),
                 Store = rf.Store,
                 Warehouse = rfd.Warehouse,
                 Division = rf.Division,
@@ -2169,7 +2169,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 try
                 {
-                    ecomm.Qty = Convert.ToInt32(Math.Round(Convert.ToDecimal(model.Qty)));
+                    ecomm.Qty = Convert.ToInt32(Math.Round(Convert.ToDecimal(model.QtyString)));
                     if (ecomm.Qty < 0)
                         throw new Exception("Qty < 0");
 
@@ -2269,7 +2269,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #region Ring Fence mass load
         public ActionResult ExcelTemplate()
         {
-            RingFenceUploadSpreadsheet ringFenceUploadSpreadsheet = new RingFenceUploadSpreadsheet(appConfig, configService, dao);
+            RingFenceUploadSpreadsheet ringFenceUploadSpreadsheet = new RingFenceUploadSpreadsheet(appConfig, configService, dao, 
+                                                                                                   new LegacyFutureInventoryDAO());
             Excel excelDocument;
 
             excelDocument = ringFenceUploadSpreadsheet.GetTemplate();
@@ -2290,7 +2291,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult SaveRingFences(IEnumerable<HttpPostedFileBase> attachments, bool accumulateQuantity)
         {
-            RingFenceUploadSpreadsheet ringFenceUploadSpreadsheet = new RingFenceUploadSpreadsheet(appConfig, configService, dao);
+            RingFenceUploadSpreadsheet ringFenceUploadSpreadsheet = new RingFenceUploadSpreadsheet(appConfig, configService, dao, 
+                                                                                                   new LegacyFutureInventoryDAO());
             string message;
 
             foreach (HttpPostedFileBase file in attachments)
@@ -2321,7 +2323,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<RingFenceUploadModel> errors = (List<RingFenceUploadModel>)Session["errorList"];
             Excel excelDocument;
-            RingFenceUploadSpreadsheet ringFenceUploadSpreadsheet = new RingFenceUploadSpreadsheet(appConfig, configService, dao);
+            RingFenceUploadSpreadsheet ringFenceUploadSpreadsheet = new RingFenceUploadSpreadsheet(appConfig, configService, dao, 
+                                                                                                   new LegacyFutureInventoryDAO());
 
             if (errors != null)
             {

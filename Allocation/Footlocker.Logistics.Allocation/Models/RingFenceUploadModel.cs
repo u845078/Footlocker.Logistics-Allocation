@@ -68,7 +68,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public string EndDate { get; set; }
         public string Warehouse { get; set; }
         public string Size { get; set; }
-        public string Qty { get; set; }
+        public string QtyString { get; set; }
         public int Quantity { get; set; }
         public string Comments { get; set; }
         public string ErrorMessage { get; set; }

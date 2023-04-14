@@ -7,19 +7,20 @@ using System.Data.Common;
 using Microsoft.Practices.EnterpriseLibrary.Data;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Factories;
+using System.Linq;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
     public class LegacyFutureInventoryDAO
     {
-        Database _database;
+        readonly Database _database;
+        readonly AllocationLibraryContext db = new AllocationLibraryContext();
 
         public LegacyFutureInventoryDAO()
         {
             _database = DatabaseFactory.CreateDatabase("AllocationContext");
         }
 
-        
         public List<LegacyFutureInventory> GetLegacyFutureInventoryForSku(string sku)
         {
             List<LegacyFutureInventory> _que;
@@ -44,6 +45,16 @@ namespace Footlocker.Logistics.Allocation.Services
                 }
             }
             return _que;
+        }
+
+        public List<LegacyFutureInventory> GetPOInventoryData(string division, string PO)
+        {
+            string inventoryID = string.Format("{0}-{1}", PO, division);
+
+            return db.LegacyFutureInventory.Where(lfi => lfi.InventoryType == "PO" &&
+                                                         lfi.LocNodeType == "WAREHOUSE" &&
+                                                         lfi.Division == division &&
+                                                         lfi.InventoryID == inventoryID).ToList();
         }
     }
 }
