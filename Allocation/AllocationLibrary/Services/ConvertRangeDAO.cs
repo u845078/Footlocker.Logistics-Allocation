@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Data;
@@ -34,34 +33,12 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.ExecuteNonQuery(SQLCommandFinal);
         }
 
-        public void SaveEcommRingFences(List<EcommRingFence> list, string user, bool accumulateQuantity = true)
-        {
-            DbCommand SQLCommand;
-            string SQL;
-            SQL = "dbo.InsertEcommRingFences";
-
-            SQLCommand = _database.GetStoredProcCommand(SQL);
-            SQLCommand = _database.GetStoredProcCommand(SQL);
-            SQLCommand.CommandTimeout = 600;
-            StringWriter sw = new StringWriter();
-            XmlSerializer xs = new XmlSerializer(list.GetType());
-            xs.Serialize(sw, list);
-            String xout = sw.ToString();
-
-            _database.AddInParameter(SQLCommand, "@accumulateQuantity", DbType.Boolean, accumulateQuantity);
-            _database.AddInParameter(SQLCommand, "@xmlDetails", DbType.Xml, xout);
-            _database.AddInParameter(SQLCommand, "@user", DbType.String, user);
-
-            _database.ExecuteNonQuery(SQLCommand);
-        }
-
         public void PrepareEcommConversion(string division, string department)
         {
             DbCommand SQLCommand;
             string SQL;
             SQL = "dbo.[PrepareEcommConversion]";
 
-            SQLCommand = _database.GetStoredProcCommand(SQL);
             SQLCommand = _database.GetStoredProcCommand(SQL);
             SQLCommand.CommandTimeout = 600;
 

@@ -98,7 +98,6 @@ namespace Footlocker.Logistics.Allocation.Services
             objectContext.CommandTimeout = 300;
         }
 
-
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<RangePlan>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);

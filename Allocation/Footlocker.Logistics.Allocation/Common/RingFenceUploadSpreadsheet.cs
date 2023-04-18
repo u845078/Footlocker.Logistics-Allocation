@@ -608,9 +608,8 @@ namespace Footlocker.Logistics.Allocation.Common
                             ecomRFs.Add(new EcommRingFence(rf.SKU, rf.Size, rf.PO, rf.Quantity, rf.Comments));
                         }
 
-                        // process ecom explosion ringfences
-                        ConvertRangeDAO crDAO = new ConvertRangeDAO();
-                        crDAO.SaveEcommRingFences(ecomRFs, config.currentUser.NetworkID, accumulateQuantity);
+                        // process ecom explosion ringfences                        
+                        ringfenceDAO.SaveEcommRingFences(ecomRFs, config.currentUser.NetworkID, accumulateQuantity);
                     }
 
                     successfulCount = validRingFences.Count + ecomRFs.Count;

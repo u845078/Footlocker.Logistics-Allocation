@@ -10,6 +10,8 @@ using Footlocker.Logistics.Allocation.Factories;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Common;
 using System.Linq;
+using System.IO;
+using System.Xml.Serialization;
 
 namespace Footlocker.Logistics.Allocation.Models.Services
 {
@@ -828,32 +830,12 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             return result;
         }
 
-        public bool canUserUpdateRingFence(RingFence rf, string userName, out string errorMessage)
-        {
-            bool result = true;
-            errorMessage = "";
-
-            //TODO:  Do we want department level security???
-            if (!(WebSecurityService.UserHasDivision(userName, "Allocation", rf.Division)))
-            {
-                result = false;
-                errorMessage = "You do not have permission to ring fence for division " + rf.Division;
-            }
-            else if (!(WebSecurityService.UserHasDepartment(userName, "Allocation", rf.Division, rf.Department)))
-            {
-				result = false;
-				errorMessage = "You do not have permission to ring fence for department " + rf.Department;
-            }
-
-            return result;
-        }
-
         public bool isEcommWarehouse(string division, string store)
         {
             return db.EcommWarehouses.Where(ew => ew.Division == division && ew.Store == store).Count() > 0;
         }
 
-        public bool isValidRingFence(RingFence rf, string userName, out string errorMessage)
+        public bool isValidRingFence(RingFence rf, WebUser user, string appName, out string errorMessage)
         {
             bool result = true;
             errorMessage = "";
@@ -865,10 +847,8 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             }
             else
             {
-                if (!canUserUpdateRingFence(rf, userName, out errorMessage))
-                {
-                    return false;
-                }
+                if (!CanUserUpdateRingFence(rf, user, appName, out errorMessage))                
+                    return false;                
 
                 if (skuRespository.Get(sm => sm.MerchantSku == rf.Sku).Count() == 0)
                 {
@@ -895,6 +875,27 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
                 database.ExecuteNonQuery(SQLCommand);
             }
+        }
+
+        public void SaveEcommRingFences(List<EcommRingFence> list, string user, bool accumulateQuantity = true)
+        {
+            DbCommand SQLCommand;
+            string SQL;
+            SQL = "dbo.InsertEcommRingFences";
+
+            Database database = DatabaseFactory.CreateDatabase("AllocationContext");
+            SQLCommand = database.GetStoredProcCommand(SQL);
+            SQLCommand.CommandTimeout = 600;
+            StringWriter sw = new StringWriter();
+            XmlSerializer xs = new XmlSerializer(list.GetType());
+            xs.Serialize(sw, list);
+            string xout = sw.ToString();
+
+            database.AddInParameter(SQLCommand, "@accumulateQuantity", DbType.Boolean, accumulateQuantity);
+            database.AddInParameter(SQLCommand, "@xmlDetails", DbType.Xml, xout);
+            database.AddInParameter(SQLCommand, "@user", DbType.String, user);
+
+            database.ExecuteNonQuery(SQLCommand);
         }
     }
 }
