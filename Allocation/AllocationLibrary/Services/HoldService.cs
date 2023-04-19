@@ -70,6 +70,9 @@ namespace Footlocker.Logistics.Allocation.Services
             Regex levelExpression;
             string levelError;
 
+            if (Hold.Level == "All")
+                value = Hold.Store;
+
             instanceID = configService.GetInstance(Hold.Division);
             controlDate = configService.GetControlDate(instanceID);
 
@@ -94,7 +97,7 @@ namespace Footlocker.Logistics.Allocation.Services
                     }
                     else
                     {
-                        int divDepts = db.Departments.Where(d => d.divisionCode == Hold.Division).Count();
+                        int divDepts = DepartmentService.ListDepartments(Hold.Division).Count();
                         int enabledDepts = currentUser.GetUserDepartments(AppName).Where(m => m.DivCode == Hold.Division).Count();
 
                         if (divDepts != enabledDepts)

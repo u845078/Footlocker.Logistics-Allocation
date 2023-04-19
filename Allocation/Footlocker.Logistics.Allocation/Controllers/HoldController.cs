@@ -23,26 +23,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
     public class HoldController : AppController
     {
         #region Fields
-
         private readonly int _BIN_SIZE_VALUE_LENGTH = 3;
-        AllocationContext db = new AllocationContext();
-        ConfigService configService = new ConfigService();
+        readonly AllocationContext db = new AllocationContext();
+        readonly ConfigService configService = new ConfigService();
         HoldService holdService;
-
         #endregion
 
         public ActionResult Index(string duration, string message)
         {
-            if (string.IsNullOrEmpty(duration))
-            {
-                duration = "All";
-            }
+            if (string.IsNullOrEmpty(duration))            
+                duration = "All";            
 
             List<Division> divs = currentUser.GetUserDivisions(AppName);
-            List<Hold> list = db.Holds.ToList();
+            List<Hold> list = db.Holds.Where(h => h.Duration == duration || duration == "All").ToList();
             list = (from a in list
-                    join d in divs on a.Division equals d.DivCode 
-                    where a.Duration == duration || duration == "All" 
+                    join d in divs on a.Division equals d.DivCode                     
                     select a).ToList();
 
             //TODO:  Do we want dept level security on holds???
@@ -51,11 +46,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         public ActionResult IndexByProduct(string duration, string message)
-        {
-            if (string.IsNullOrEmpty(duration))
-            {
-                duration = "All";
-            }
+        {           
             //this is more for developer debugging
             //clear the cache when they go back to the index.
             Session["rdqgrouplist"] = null;
@@ -75,15 +66,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _Index(string duration)
         {
-            if (string.IsNullOrEmpty(duration))
-            {
+            if (string.IsNullOrEmpty(duration))            
                 duration = "All";
-            }
+            
             List<Division> divs = currentUser.GetUserDivisions(AppName);
-            List<Hold> list = db.Holds.ToList();
+            List<Hold> list = db.Holds.Where(h => h.Duration == duration || duration == "All").ToList();
             list = (from a in list
-                    join d in divs on a.Division equals d.DivCode
-                    where ((a.Duration == duration) || (duration == "All"))
+                    join d in divs on a.Division equals d.DivCode                    
                     select a).ToList();
 
             if (list.Count > 0)
@@ -390,7 +379,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             };
             
             string validationMessage = holdService.ValidateHold(model.RuleSetID > 0, false, false);
-            //string validationMessage = ValidateHold(model.Hold, (model.RuleSetID > 0), false);
+            
             if (model.ShowStoreSelector == "yes")
             {
                 if (model.RuleSetID < 1)
@@ -490,7 +479,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             bool needsave = false;
             foreach (RDQ rdq in list)
             {
-                if (!(h.ReserveInventoryBool))
+                if (!h.ReserveInventoryBool)
                 {
                     needsave = true;
                     rdq.Status = "REJECTED";
@@ -502,11 +491,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     rdq.Status = "HOLD-NEW";
                     db.Entry(rdq).State = System.Data.EntityState.Modified;
                 }
+
+                rdq.LastModifiedUser = currentUser.NetworkID;
             }
             if (needsave)
-            {
-                db.SaveChanges(UserName);
-            }
+                db.SaveChanges(currentUser.NetworkID);
         }
 
         public ActionResult Edit(int ID)
@@ -531,11 +520,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             };
             
             string validationMessage = holdService.ValidateHold(false, true, false);
-            //string validationMessage = ValidateHold(model.Hold, false, true);
-            if (model.OriginalStartDate > model.Hold.StartDate)
-            {
+            
+            if (model.OriginalStartDate > model.Hold.StartDate)            
                 validationMessage = "Start date must be after original start date of hold";
-            }
+            
             if (!string.IsNullOrEmpty(validationMessage))
             {
                 ViewData["message"] = validationMessage;
@@ -558,15 +546,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
             HoldModel model = new HoldModel();
             if (holdType.Contains("Reserve"))
             {
-                model.Hold = (from a in db.Holds 
-                              where ((a.Division == div) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 1)) 
-                              select a).First();
+                model.Hold = db.Holds.Where(h => h.Division == div && 
+                                                 h.Level == level && 
+                                                 h.Value == value && 
+                                                 h.ReserveInventory == 1).First();
             }
             else
             {
-                model.Hold = (from a in db.Holds
-                              where ((a.Division == div) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 0)) 
-                              select a).First();
+                model.Hold = db.Holds.Where(h => h.Division == div && 
+                                                 h.Level == level && 
+                                                 h.Value == value && 
+                                                 h.ReserveInventory == 0).First();
             }
             model.Hold.Comments = "";
             model.Divisions = currentUser.GetUserDivisions(AppName);
@@ -578,14 +568,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult MassEditStore(string div, string store, string holdType)
         {
             HoldModel model = new HoldModel();
-            if (holdType.Contains("Reserve"))
-            {
-                model.Hold = (from a in db.Holds where ((a.Division == div) && (a.Store == store) && (a.ReserveInventory == 1)) select a).First();
-            }
-            else
-            {
-                model.Hold = (from a in db.Holds where ((a.Division == div) && (a.Store == store) && (a.ReserveInventory == 0)) select a).First();
-            }
+
+            if (holdType.Contains("Reserve"))            
+                model.Hold = db.Holds.Where(h => h.Division == div && h.Store == store && h.ReserveInventory == 1).First();            
+            else            
+                model.Hold = db.Holds.Where(h => h.Division == div && h.Store == store && h.ReserveInventory == 0).First();
+            
             model.Hold.Comments = "";
             model.Divisions = currentUser.GetUserDivisions(AppName);
             model.OriginalStartDate = model.Hold.StartDate;
@@ -599,16 +587,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<Hold> holds;
             if (model.Hold.HoldType.Contains("Reserve"))
             {
-                holds = (from a in db.Holds 
-                         where ((a.Division == model.Hold.Division) && (a.Level == model.Hold.Level) && (a.Value == model.Hold.Value) && (a.ReserveInventory == 1)) 
-                         select a).ToList();
+                holds = db.Holds.Where(h => h.Division == model.Hold.Division && 
+                                            h.Level == model.Hold.Level && 
+                                            h.Value == model.Hold.Value && 
+                                            h.ReserveInventory == 1).ToList();
             }
             else
             {
-                holds = (from a in db.Holds 
-                         where ((a.Division == model.Hold.Division) && (a.Level == model.Hold.Level) && (a.Value == model.Hold.Value) && (a.ReserveInventory == 0)) 
-                         select a).ToList();
+                holds = db.Holds.Where(h => h.Division == model.Hold.Division && 
+                                            h.Level == model.Hold.Level && 
+                                            h.Value == model.Hold.Value && 
+                                            h.ReserveInventory == 0).ToList();
             }
+
             holdService = new HoldService(currentUser, configService);
             string validationMessage = "";
             List<Hold> updatedList = new List<Hold>();
@@ -619,27 +610,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 h.StartDate = model.Hold.StartDate;
                 h.EndDate = model.Hold.EndDate;
-                if (model.Hold.Comments != "")
-                {
-                    h.Comments = model.Hold.Comments;
-                }
+                if (model.Hold.Comments != "")                
+                    h.Comments = model.Hold.Comments;                
 
                 holdService.Hold = h;                
                 
                 string tempvalidationMessage = holdService.ValidateHold(false, true, false);
-                //string tempvalidationMessage = ValidateHold(h, false, true);
-                if (startdate > model.Hold.StartDate)
-                {
-                    tempvalidationMessage = "Start date must be after original start date of hold for store " + h.Store + "<br>";
-                }
+                
+                if (startdate > model.Hold.StartDate)                
+                    tempvalidationMessage = "Start date must be after original start date of hold for store " + h.Store + "<br>";                
 
-                if (tempvalidationMessage == "")
-                {
-                    updatedList.Add(h);
-                }
+                if (tempvalidationMessage == "")                
+                    updatedList.Add(h);                
 
                 validationMessage += tempvalidationMessage;
             }
+
             if (validationMessage != "")
             {
                 ViewData["message"] = validationMessage;
@@ -651,7 +637,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 foreach (Hold uh in updatedList)
                 {
                     uh.CreateDate = DateTime.Now;
-                    uh.CreatedBy = User.Identity.Name;
+                    uh.CreatedBy = currentUser.NetworkID;
                     db.Entry(uh).State = System.Data.EntityState.Modified;
                 }
                 db.SaveChanges();
@@ -666,11 +652,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<Hold> holds;
             if (model.Hold.HoldType.Contains("Reserve"))
             {
-                holds = (from a in db.Holds where ((a.Division == model.Hold.Division) && (a.Store == model.Hold.Store) && (a.ReserveInventory == 1)) select a).ToList();
+                holds = db.Holds.Where(h => h.Division == model.Hold.Division && 
+                                            h.Store == model.Hold.Store && 
+                                            h.ReserveInventory == 1).ToList();
             }
             else
             {
-                holds = (from a in db.Holds where ((a.Division == model.Hold.Division) && (a.Store == model.Hold.Store) && (a.ReserveInventory == 0)) select a).ToList();
+                holds = db.Holds.Where(h => h.Division == model.Hold.Division && 
+                                            h.Store == model.Hold.Store && 
+                                            h.ReserveInventory == 0).ToList();
             }
 
             holdService = new HoldService(currentUser, configService);
@@ -683,23 +673,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 h.StartDate = model.Hold.StartDate;
                 h.EndDate = model.Hold.EndDate;
-                if (model.Hold.Comments != "")
-                {
-                    h.Comments = model.Hold.Comments;
-                }
+                if (model.Hold.Comments != "")                
+                    h.Comments = model.Hold.Comments;                
 
                 holdService.Hold = h;
                 string tempvalidationMessage = holdService.ValidateHold(false, true, false);
-                //string tempvalidationMessage = ValidateHold(h, false, true);
-                if (startdate > model.Hold.StartDate)
-                {
-                    tempvalidationMessage = "Start date must be after original start date of hold for store " + h.Store + "<br>";
-                }
+                
+                if (startdate > model.Hold.StartDate)                
+                    tempvalidationMessage = "Start date must be after original start date of hold for store " + h.Store + "<br>";                
 
-                if (tempvalidationMessage == "")
-                {
-                    updatedList.Add(h);
-                }
+                if (tempvalidationMessage == "")                
+                    updatedList.Add(h);                
 
                 validationMessage += tempvalidationMessage;
             }
@@ -714,7 +698,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 foreach (Hold uh in updatedList)
                 {
                     uh.CreateDate = DateTime.Now;
-                    uh.CreatedBy = User.Identity.Name;
+                    uh.CreatedBy = currentUser.NetworkID;
                     db.Entry(uh).State = System.Data.EntityState.Modified;
                 }
                 db.SaveChanges();
@@ -725,7 +709,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult ReleaseRDQs(int ID)
         {
-            Hold model = (from a in db.Holds where a.ID == ID select a).First();
+            Hold model = db.Holds.Where(h => h.ID == ID).First();
             DeleteHoldModel dh = new DeleteHoldModel();
             dh.Hold = model;
             ViewData["holdID"] = ID;
@@ -1649,30 +1633,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsErrorList.xlsx", ContentDisposition.Attachment, save);
 
             return View();
-        }
-
-
-        /// <summary>
-        /// Will check to ensure the data on the next row has data
-        /// </summary>
-        /// <param name="sheet"></param>
-        /// <param name="row"></param>
-        /// <returns></returns>
-        private bool HasDataOnRow(Aspose.Excel.Worksheet sheet, int row)
-        {
-            return sheet.Cells[row, 0].Value != null ||
-                   sheet.Cells[row, 1].Value != null ||
-                   sheet.Cells[row, 2].Value != null ||
-                   sheet.Cells[row, 3].Value != null ||
-                   sheet.Cells[row, 4].Value != null ||
-                   sheet.Cells[row, 5].Value != null ||
-                   sheet.Cells[row, 6].Value != null ||
-                   sheet.Cells[row, 7].Value != null ||
-                   sheet.Cells[row, 8].Value != null ||
-                   sheet.Cells[row, 9].Value != null ||
-                   sheet.Cells[row, 10].Value != null ||
-                   sheet.Cells[row, 11].Value != null ||
-                   sheet.Cells[row, 12].Value != null;
         }
         #endregion
     }

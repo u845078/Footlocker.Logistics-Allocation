@@ -53,16 +53,17 @@
 
 <div class="t-tabstrip-wrapper">
 <div id="tabstrip" data-role="tabstrip" tabindex="0" class="t-widget t-header t-tabstrip" role="tablist" aria-activedescendant="tabstrip_ts_active">
-                    <ul class="t-tabstrip-items t-reset">
-                        <li class="t-item t-state-default t-state-active" role="tab" aria-controls="tabstrip-3"><span class="t-loading t-complete"></span><a class="t-link" href="/Hold/Index">
-                            All Holds
-                        </a></li>                    
-                        <li class="t-item t-state-default t-first t-tab-on-top" role="tab" aria-controls="tabstrip-1" aria-selected="true"><span class="t-loading t-complete"></span><a class="t-link" href="/Hold/IndexByProduct">
-                            By Product
-                        </a></li><li class="t-item t-state-default" role="tab" aria-controls="tabstrip-2"><span class="t-loading t-complete"></span><a class="t-link" href="/Hold/IndexByStore">
-                            By Location
-                        </a></li>
-                        </ul>
+    <ul class="t-tabstrip-items t-reset">
+        <li class="t-item t-state-default t-state-active" role="tab" aria-controls="tabstrip-3"><span class="t-loading t-complete"></span>
+           <a class="t-link" href="/Hold/Index">All Holds</a>
+        </li>                    
+        <li class="t-item t-state-default t-first t-tab-on-top" role="tab" aria-controls="tabstrip-1" aria-selected="true"><span class="t-loading t-complete"></span>
+           <a class="t-link" href="/Hold/IndexByProduct">By Product</a>
+        </li>
+        <li class="t-item t-state-default" role="tab" aria-controls="tabstrip-2"><span class="t-loading t-complete"></span>
+           <a class="t-link" href="/Hold/IndexByStore">By Location</a>
+        </li>
+    </ul>
 <div class="t-content t-state-active" id="tabstrip-1" role="tabpanel" aria-expanded="true" style="display: block; opacity: 1;">
 <br />
 
@@ -96,7 +97,7 @@
                 + "<# if (ReserveInventoryBool) { #>"
                     + "<a class=\"t-button\" href='javascript:ReleaseGrid(\"<#= ID #>\");'>Release</a>"
                 + "<# } #>"
-                ).Width(300);
+                ).Width(150);
 
         })
         .ToolBar(toolbar =>
@@ -124,7 +125,7 @@
             dataBinding.Ajax().Select("_Index", "Hold");
         })
         .Sortable(sorting => sorting.Enabled(true))
-        .Pageable(paging => paging.Enabled(true))
+        .Pageable(paging => { paging.Enabled(true); paging.PageSize(20); })
         .Filterable(filtering => filtering.Enabled(true))
         .Groupable(grouping => grouping.Enabled(false))
             .Footer(true)
