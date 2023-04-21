@@ -67,10 +67,14 @@ namespace Footlocker.Logistics.Allocation.Common
 
                 if (currentRow >= 65535)
                 {
+                    AutofitColumns();
+
                     worksheetNum++;
                     WriteHeaderRecord();
                 }
             }
+
+            AutofitColumns();
         }
 
         public RingFenceExport(AppConfig config, RingFenceDAO ringFenceDAO) : base(config)

@@ -86,5 +86,59 @@ namespace Footlocker.Logistics.Allocation.Services
 
             _database.ExecuteNonQuery(SQLCommand);
         }
+
+        public List<StoreLookup> GetStoreLookupsForPlan(long planID)
+        {
+            RangePlan p = db.RangePlans.Where(rp => rp.Id == planID).FirstOrDefault();
+            string skuDivision = p.Sku.Substring(0, 2);
+
+            List<StoreLookup> list = (from store in db.StoreLookups
+                                      join det in db.RangePlanDetails
+                                      on new { store.Division, store.Store } equals new { det.Division, det.Store }
+                                      where det.ID == planID && det.Division == skuDivision
+                                      select store).ToList();
+
+            return list;
+        }
+
+        /// <summary>
+        /// This will update the range plan update date/by fields and save the change
+        /// </summary>
+        /// <param name="planID"></param>
+        /// <param name="userName"></param>
+        public void UpdateRangePlanDate(long planID, string userName)
+        {
+            RangePlan p = db.RangePlans.Where(rp => rp.Id == planID).FirstOrDefault();
+            p.UpdatedBy = userName;
+            p.UpdateDate = DateTime.Now;
+            db.SaveChanges(userName);
+        }
+
+        public void UpdateRangeHeader(long planID, WebUser user)
+        {
+            RangePlan p = db.RangePlans.Where(rp => rp.Id == planID).First();
+
+            try
+            {
+                p.StartDate = (from a in db.DeliveryGroups
+                               where a.PlanID == planID
+                               select a.StartDate).Min();
+            }
+            catch
+            { }
+
+            try
+            {
+                p.EndDate = (from a in db.RangePlanDetails
+                             where a.ID == planID
+                             select a.EndDate).Max();
+            }
+            catch
+            { }
+
+            p.UpdateDate = DateTime.Now;
+            p.UpdatedBy = user.NetworkID;
+            db.SaveChanges(user.NetworkID);
+        }
     }
 }

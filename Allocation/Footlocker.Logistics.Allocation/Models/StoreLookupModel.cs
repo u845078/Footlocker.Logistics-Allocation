@@ -22,13 +22,8 @@ namespace Footlocker.Logistics.Allocation.Models
             }
         }
 
-        public StoreLookupModel(StoreLookup s, Int64 currentPlan, Boolean inCurrentPlan)
+        public StoreLookupModel(StoreLookup s, long currentPlan, bool inCurrentPlan)
         {
-            //foreach (PropertyInfo prop in s.GetType().GetProperties())
-            //{
-            //    PropertyInfo prop2 = s.GetType().GetProperty(prop.Name);
-            //    prop2.SetValue(this, prop.GetValue(s, null), null);
-            //}
             this.AdHoc1 = s.AdHoc1;
             this.AdHoc2 = s.AdHoc2;
             this.AdHoc3 = s.AdHoc3;
@@ -43,7 +38,6 @@ namespace Footlocker.Logistics.Allocation.Models
             this.AdHoc12 = s.AdHoc12;
             this.City = s.City;
             this.Climate = s.Climate;
-            //this.Concept = s.Concept;
             this.DBA = s.DBA;
             this.Division = s.Division;
             this.ExcludeStore = s.ExcludeStore;
@@ -61,7 +55,7 @@ namespace Footlocker.Logistics.Allocation.Models
             this.CurrentPlan = currentPlan;
         }
 
-        public StoreLookupModel(StoreLookup s, Int64 currentPlan, Boolean inCurrentPlan, Boolean inSimilarRuleSet)
+        public StoreLookupModel(StoreLookup s, long currentPlan, bool inCurrentPlan, bool inSimilarRuleSet)
         {
             foreach (PropertyInfo prop in s.GetType().GetProperties())
             {
@@ -73,11 +67,11 @@ namespace Footlocker.Logistics.Allocation.Models
             this.InSimilarRuleSet = InSimilarRuleSet;
         }
 
-        public Boolean InCurrentPlan { get; set; }
-        public Int64 CurrentPlan { get; set; }
+        public bool InCurrentPlan { get; set; }
+        public long CurrentPlan { get; set; }
 
-        public Boolean InSimilarRuleSet { get; set; }
+        public bool InSimilarRuleSet { get; set; }
 
-        public Boolean InCurrentDeliveryGroup { get; set; }
+        public bool InCurrentDeliveryGroup { get; set; }
     }
 }

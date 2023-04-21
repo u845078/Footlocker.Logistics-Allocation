@@ -123,14 +123,6 @@ namespace Footlocker.Logistics.Allocation.Models
         {
             get
             {
-                //this breaks the storesnotinplan on range page
-                //if (_storeExtension == null)
-                //{
-                //    _storeExtension = new StoreExtension();
-                //    _storeExtension.Division = Division;
-                //    _storeExtension.Store = Store;
-
-                //}
                 return _storeExtension;
             }
             set
@@ -139,51 +131,24 @@ namespace Footlocker.Logistics.Allocation.Models
             }
         }
 
-        //private string _concept;
-        //[NotMapped]
-        //public string Concept { 
-        //    get {
-        //        try
-        //        {
-        //            if (_concept == null)
-        //            {
-        //                _concept = StoreExtension.ConceptType.Name;
-        //            }
-        //            return _concept;
-        //        }
-        //        catch
-        //        {
-        //            return "";
-        //        }
-        //    }
-        //    set {
-        //        _concept = value;
-        //    }
-        //}
-
-        private Boolean? _excludeStore;
+        private bool? _excludeStore;
 
         [NotMapped]
-        public Boolean ExcludeStore
+        public bool ExcludeStore
         {
             get
             {
                 if (_excludeStore == null)
                 {
-                    if (StoreExtension != null)
-                    {
-                        _excludeStore = StoreExtension.ExcludeStore;
-                    }
-                    else
-                    {
-                        _excludeStore = false;
-                    }                    
+                    if (StoreExtension != null)                    
+                        _excludeStore = StoreExtension.ExcludeStore;                    
+                    else                    
+                        _excludeStore = false;                                     
                 }
 
-                if (_excludeStore != null)
-                {
-                    return (Boolean)_excludeStore;
-                }
+                if (_excludeStore != null)                
+                    return (bool)_excludeStore;
+                
                 return false;
             }
             set
@@ -191,10 +156,12 @@ namespace Footlocker.Logistics.Allocation.Models
                 _excludeStore = value;
                 if (StoreExtension == null)
                 {
-                    StoreExtension = new StoreExtension();
-                    StoreExtension.Division = Division;
-                    StoreExtension.Store = Store;
-                    StoreExtension.ExcludeStore = value;
+                    StoreExtension = new StoreExtension()
+                    {
+                        Division = Division,
+                        Store = Store,
+                        ExcludeStore = value
+                    };
                 }
             }
         }
@@ -208,10 +175,8 @@ namespace Footlocker.Logistics.Allocation.Models
             {
                 if (_firstReceipt == null)
                 {
-                    if (StoreExtension != null)
-                    {
-                        _firstReceipt = StoreExtension.FirstReceipt;
-                    }
+                    if (StoreExtension != null)                    
+                        _firstReceipt = StoreExtension.FirstReceipt;                    
                 }
                 return _firstReceipt;
             }
@@ -220,29 +185,16 @@ namespace Footlocker.Logistics.Allocation.Models
                 _firstReceipt = value;
                 if (StoreExtension == null)
                 {
-                    StoreExtension = new StoreExtension();
-                    StoreExtension.Division = Division;
-                    StoreExtension.Store = Store;
-                    StoreExtension.FirstReceipt = value;
+                    StoreExtension = new StoreExtension()
+                    {
+                        Division = Division,
+                        Store = Store,
+                        FirstReceipt = value
+                    };
                 }
             }
         }
 
-        //public static IsInPlan<Func<T, bool>> AdHoc<T>(string columnName, object compValue)
-        //{
-        //    //  Determine type of parameter
-        //    ParameterExpression parameter = Expression.Parameter(typeof(T), "x");
-        //    //  Target to compare to
-        //    Expression property = Expression.Property(parameter, columnName);
-        //    //  The value to match
-        //    Expression constant = Expression.Constant(compValue, compValue.GetType());
-
-        //    Expression equality = Expression.Equal(property, constant);
-        //    Expression<Func<T, bool>> predicate =
-        //    Expression.Lambda<Func<T, bool>>(equality, parameter);
-
-        //    return predicate;
-        //}
         public XmlNode ToXmlNode(XmlNode parentNode)
         {
             XmlNode xmlDetail;
@@ -262,6 +214,5 @@ namespace Footlocker.Logistics.Allocation.Models
 
             return xmlDetail;
         }
-
     }
 }

@@ -60,7 +60,6 @@ namespace Footlocker.Logistics.Allocation.Services
         {
             return true;
         }
-
         
         public List<DeliveryGroup> GetBadDeliveryGroups()
         {
@@ -155,28 +154,30 @@ namespace Footlocker.Logistics.Allocation.Services
             SQLCommand = _database.GetStoredProcCommand(SQL);
             _database.AddInParameter(SQLCommand, "@sku", DbType.String, sku);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _database.ExecuteDataSet(SQLCommand);
-
 
             if (data.Tables.Count > 0)
             {
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    BulkRange dg = new BulkRange();
-                    dg.BaseDemand = Convert.ToString(dr["BaseDemand"]);
-                    dg.Max = Convert.ToString(dr["Max"]);
-                    dg.Min = Convert.ToString(dr["Min"]);
-                    dg.MinEndDaysOverride = Convert.ToString(dr["MinEndDays"]);
-                    dg.Range = Convert.ToString(dr["Range"]);
-                    dg.RangeStartDate = Convert.ToString(dr["RangeStartDate"]);
-                    dg.Size = Convert.ToString(dr["Size"]);
-                    dg.Sku = Convert.ToString(dr["MerchantSku"]);
-                    dg.Store = Convert.ToString(dr["Store"]);
-                    dg.Division = Convert.ToString(dr["Division"]);
-                    dg.DeliveryGroupName = Convert.ToString(dr["deliverygroupname"]);
-                    dg.League = Convert.ToString(dr["League"]);
-                    dg.Region = Convert.ToString(dr["Region"]);
+                    BulkRange dg = new BulkRange()
+                    {
+                        BaseDemand = Convert.ToString(dr["BaseDemand"]),
+                        Max = Convert.ToString(dr["Max"]),
+                        Min = Convert.ToString(dr["Min"]),
+                        MinEndDaysOverride = Convert.ToString(dr["MinEndDays"]),
+                        Range = Convert.ToString(dr["Range"]),
+                        RangeStartDate = Convert.ToString(dr["RangeStartDate"]),
+                        Size = Convert.ToString(dr["Size"]),
+                        Sku = Convert.ToString(dr["MerchantSku"]),
+                        Store = Convert.ToString(dr["Store"]),
+                        Division = Convert.ToString(dr["Division"]),
+                        DeliveryGroupName = Convert.ToString(dr["deliverygroupname"]),
+                        League = Convert.ToString(dr["League"]),
+                        Region = Convert.ToString(dr["Region"])
+                    };
+
                     _que.Add(dg);
                 }
             }

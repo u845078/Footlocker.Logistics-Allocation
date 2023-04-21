@@ -326,7 +326,11 @@ namespace Footlocker.Logistics.Allocation.Services
 
         public int SaveChanges(string user)
         {
-            var audits = this.ChangeTracker.Entries().Where(p => ((p.State == System.Data.EntityState.Added || p.State == System.Data.EntityState.Deleted || p.State == System.Data.EntityState.Modified) && (p.Entity.GetType().Name.StartsWith("RingFence") || p.Entity.GetType().Name.StartsWith("RDQ"))));
+            var audits = this.ChangeTracker.Entries().Where(p => (p.State == System.Data.EntityState.Added || 
+                                                                  p.State == System.Data.EntityState.Deleted || 
+                                                                  p.State == System.Data.EntityState.Modified) && 
+                                                                 (p.Entity.GetType().Name.StartsWith("RingFence") || 
+                                                                  p.Entity.GetType().Name.StartsWith("RDQ")));
 
             if (audits.Count() == 0)
             {
@@ -335,7 +339,9 @@ namespace Footlocker.Logistics.Allocation.Services
             List<object> auditRecords = new List<object>();
             List<System.Data.EntityState> states = new List<System.Data.EntityState>();
 
-            foreach (var ent in this.ChangeTracker.Entries().Where(p => p.State == System.Data.EntityState.Added || p.State == System.Data.EntityState.Deleted || p.State == System.Data.EntityState.Modified))
+            foreach (var ent in this.ChangeTracker.Entries().Where(p => p.State == System.Data.EntityState.Added || 
+                                                                        p.State == System.Data.EntityState.Deleted || 
+                                                                        p.State == System.Data.EntityState.Modified))
             {
                 if (ent.Entity.GetType().Name.StartsWith("RingFenceHistory"))
                 { }
@@ -351,7 +357,7 @@ namespace Footlocker.Logistics.Allocation.Services
                     states.Add(ent.State);
                 }
             }
-            if ((user == "unknown") && ((auditRecords.Count() > 0)))
+            if (user == "unknown" && auditRecords.Count() > 0)
             {
                 throw new Exception("Must call SaveChanges with Userid for this recordtype");
             }
@@ -362,18 +368,12 @@ namespace Footlocker.Logistics.Allocation.Services
                 int i = 0;
                 foreach (object obj in auditRecords)
                 {
-                    if (obj.GetType().Name.StartsWith("RingFenceDetail"))
-                    {
-                        HistoryRingFenceDetail((RingFenceDetail)obj, user, states[i]);
-                    }
-                    else if (obj.GetType().Name.StartsWith("RingFence"))
-                    {
-                        HistoryRingFence((RingFence)obj, user, states[i]);
-                    }
-                    else if (obj.GetType().Name.StartsWith("RDQ"))
-                    {
-                        AuditRDQ((RDQ)obj, user, states[i]);
-                    }
+                    if (obj.GetType().Name.StartsWith("RingFenceDetail"))                    
+                        HistoryRingFenceDetail((RingFenceDetail)obj, user, states[i]);                    
+                    else if (obj.GetType().Name.StartsWith("RingFence"))                    
+                        HistoryRingFence((RingFence)obj, user, states[i]);                    
+                    else if (obj.GetType().Name.StartsWith("RDQ"))                    
+                        AuditRDQ((RDQ)obj, user, states[i]);                    
 
                     returnVal = base.SaveChanges();
                     i++;

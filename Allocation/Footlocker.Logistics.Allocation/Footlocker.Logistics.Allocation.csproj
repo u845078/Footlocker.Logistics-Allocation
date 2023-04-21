@@ -237,9 +237,11 @@
     <Compile Include="Common\RingFenceExport.cs" />
     <Compile Include="Common\RingFenceUploadSpreadsheet.cs" />
     <Compile Include="Common\SkuAttributeSpreadsheet.cs" />
+    <Compile Include="Common\SKURangeDeliveryGroupExport.cs" />
     <Compile Include="Common\SKURangeExport.cs" />
     <Compile Include="Common\SKURangePlanDGSpreadsheet.cs" />
     <Compile Include="Common\SkuRangeSpreadsheet.cs" />
+    <Compile Include="Common\SKURangeStoreExport.cs" />
     <Compile Include="Common\UploadSpreadsheet.cs" />
     <Compile Include="Common\WebPickSpreadsheet.cs" />
     <Compile Include="Controllers\AppController.cs" />

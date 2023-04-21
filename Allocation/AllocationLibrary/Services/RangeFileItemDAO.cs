@@ -126,7 +126,7 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.ExecuteNonQuery(SQLCommand);
         }
 
-        public void BulkLoad(Int32 instanceid)
+        public void BulkLoad(int instanceid)
         {
             //using SQL server authentication, because bulk insert accross network doesn't work with integrated authentication
             Database bulkdatabase = Footlocker.Common.DatabaseService.GetSqlDatabase("AllocationBulk");
@@ -141,7 +141,7 @@ namespace Footlocker.Logistics.Allocation.Services
             bulkdatabase.ExecuteNonQuery(SQLCommand);
         }
 
-        public void SetFirstReceiptDates(Int32 instanceid)
+        public void SetFirstReceiptDates(int instanceid)
         {
             DbCommand SQLCommand;
             string SQL;
@@ -154,7 +154,7 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.ExecuteNonQuery(SQLCommand);
         }
 
-        public void SetFirstReceiptDates(Int32 instanceid, string sku)
+        public void SetFirstReceiptDates(int instanceid, string sku)
         {
             DbCommand SQLCommand;
             string SQL;

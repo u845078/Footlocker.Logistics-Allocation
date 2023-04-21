@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.RangePlan
+﻿@model RangePlan
 
 @{
     ViewBag.Title = "Edit";
@@ -85,6 +85,7 @@
 
 <div>
     @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+    @Html.ActionLink("Range Details", "PresentationQuantities", new { planID = Model.Id }, new { @class = "t-button" })
 </div>
 
 @section Scripts {

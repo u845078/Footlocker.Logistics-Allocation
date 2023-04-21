@@ -28,10 +28,21 @@ namespace Footlocker.Logistics.Allocation.Common
             if (worksheetNum > 0)
                 excelDocument.Worksheets.Add();
 
-            for (int i = 0; i < maxColumns; i++)            
+            for (int i = 0; i < maxColumns; i++)
+            {
                 excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].PutValue(columns[i]);
+                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].Style.Font.IsBold = true;
+            }                          
 
             currentRow++;
+        }
+
+        public void AutofitColumns()
+        {
+            for (int i = 0; i < maxColumns; i++)
+            {
+                excelDocument.Worksheets[worksheetNum].AutoFitColumn(i);
+            }
         }
 
         protected ExportSpreadsheet(AppConfig config) : base (config) 

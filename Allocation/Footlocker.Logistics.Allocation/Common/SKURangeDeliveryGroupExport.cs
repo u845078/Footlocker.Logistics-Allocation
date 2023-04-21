@@ -1,5 +1,4 @@
 ﻿using Footlocker.Logistics.Allocation.Models;
-using Footlocker.Logistics.Allocation.Models.Services;
 using Footlocker.Logistics.Allocation.Services;
 using System;
 using System.Collections.Generic;
@@ -8,17 +7,32 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Common
 {
-    public class SKURangeExport : ExportSpreadsheet
+    public class SKURangeDeliveryGroupExport : ExportSpreadsheet
     {
         readonly RangePlanDetailDAO rangePlanDAO;
+        public string SKU;
+        public string DGName;
 
-        public void WriteData(string sku)
+        public void WriteData(int deliveryGroupID)
         {
+            List<BulkRange> rangePlanList;
             List<BulkRange> outputList;
 
             excelDocument = GetTemplate();
 
-            outputList = rangePlanDAO.GetBulkRangesForSku(sku);
+            // retrieve specific delivery group
+            DeliveryGroup dg = config.db.DeliveryGroups.Where(d => d.ID == deliveryGroupID).FirstOrDefault();
+            DGName = dg.Name;
+
+            // retrieve sku for delivery group to feed into stored procedure
+            SKU = config.db.RangePlans.Where(rp => rp.Id == dg.PlanID).Select(rp => rp.Sku).FirstOrDefault();
+
+            rangePlanList = rangePlanDAO.GetBulkRangesForSku(SKU);
+
+            outputList = rangePlanList.Where(q => q.DeliveryGroupName == DGName)
+                                      .OrderBy(br => br.Division).ThenBy(br => br.Store).ThenBy(br => br.Size)
+                                      .ToList();
+
             currentRow = 1;
 
             foreach (BulkRange range in outputList)
@@ -41,11 +55,11 @@ namespace Footlocker.Logistics.Allocation.Common
 
                 currentRow++;
             }
-
+            
             AutofitColumns();
         }
 
-        public SKURangeExport(AppConfig config, RangePlanDetailDAO rangePlanDetailDAO) : base(config)
+        public SKURangeDeliveryGroupExport(AppConfig config, RangePlanDetailDAO rangePlanDetailDAO) : base(config)
         {
             maxColumns = 13;
 

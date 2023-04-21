@@ -1,10 +1,8 @@
-﻿@model Footlocker.Logistics.Allocation.Models.SkuSetupModel
+﻿@model SkuSetupModel
 
 @{
     ViewBag.Title = "Pres Qty " + Model.RangePlan.Sku;
 }
-@*@Html.EditorFor(model => Model.Plan)
-*@
 
 <style>
     body {
@@ -97,6 +95,7 @@
             </span>
         </td>
     </tr>
+
     @if (Model.RangePlan.Launch)
     {
         <tr>
@@ -112,11 +111,11 @@
                 @Html.Raw("<br><font color='red'><b>The start date must be the launch date.</b></font>")
             </td>
         </tr>
-
     }
-
 </table>
-
+<br />
+@Html.ActionLink("Edit Range", "Edit", new { planID = Model.RangePlan.Id }, new { @class = "t-button", @style = "margin-bottom: 5px;" })
+<hr />
 <br />
 <script type="text/javascript">
 
@@ -138,11 +137,9 @@
         $('#FilterRules').hide();
         $('#UploadRules').show();
     }
-
 </script>
 
-@*@Html.ActionLink("Export to Excel", "ExcelSizeAllocation", new {planID = Model.Plan.Id}, new { @class="t-button"})*@
-@if ((ViewData["message"] != null) && (ViewData["message"] != ""))
+@if ((ViewData["message"] != null) && (ViewData["message"].ToString() != ""))
 {
     @Html.Raw("<font color='red'><b>" + ViewData["message"] + "</b></font><br><br>")
 }
@@ -172,8 +169,6 @@
             columns.Bound(o => o.StoreCount).Width(60);
             columns.Bound(o => o.StartDate).Format("{0:MM/dd/yyyy}").Width(60);
             columns.Bound(o => o.EndDate).Format("{0:MM/dd/yyyy}").Width(60);
-            //columns.Bound(o => o.MinStart).Format("{0:MM/dd/yyyy}").Width(60).Title("Min Start");
-            //columns.Bound(o => o.MinEnd).Format("{0:MM/dd/yyyy}").Width(60).Title("Min End");
             columns.Bound(o => o.MinEndDays).Width(100).Title("Min End Days");
             columns.Command(commands =>
             {
