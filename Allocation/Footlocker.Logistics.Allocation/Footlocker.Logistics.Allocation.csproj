@@ -221,6 +221,7 @@
     <Compile Include="Common\AppConfig.cs" />
     <Compile Include="Common\ARConstraintsSpreadsheet.cs" />
     <Compile Include="Common\ARSKUSpreadsheet.cs" />
+    <Compile Include="Common\BaseSpreadsheet.cs" />
     <Compile Include="Common\CrossdockLinkSpreadsheet.cs" />
     <Compile Include="Common\DeleteValidationException.cs" />
     <Compile Include="Common\ExistsValidationException.cs" />
@@ -236,6 +237,7 @@
     <Compile Include="Common\RingFenceExport.cs" />
     <Compile Include="Common\RingFenceUploadSpreadsheet.cs" />
     <Compile Include="Common\SkuAttributeSpreadsheet.cs" />
+    <Compile Include="Common\SKURangeExport.cs" />
     <Compile Include="Common\SKURangePlanDGSpreadsheet.cs" />
     <Compile Include="Common\SkuRangeSpreadsheet.cs" />
     <Compile Include="Common\UploadSpreadsheet.cs" />

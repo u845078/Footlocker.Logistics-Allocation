@@ -12,25 +12,22 @@
     { 
         <font color="red">@Html.Raw(ViewData["message"])</font>
     }
-<fieldset>
-@Html.Raw("<input name=\"RingFence.ID\" type=\"hidden\" value=\"" + Model.RingFence.ID + "\"/>")
-@Html.Raw("Click on quantity value(s) below to update.  Click &quot;Save&quot; to create ring fence(s).<br><br>")
-@Html.LabelFor(model => model.RingFence.Sku)
-@Html.DisplayFor(model => model.RingFence.Sku)
-<br />
-@Html.LabelFor(model => model.RingFence.Store)
-@Html.DisplayFor(model => model.RingFence.Store)
-<br><br>
-    
-@Html.Partial(@Url.Content("~/Views/RingFence/PartialWarehouseDetails.cshtml"), null, ViewData)
-@Html.Partial(@Url.Content("~/Views/RingFence/PartialFutureDetails.cshtml"), null, ViewData)
-
-@*<p>
-    <input type="submit" value="Save" class="t-button"/>
-</p>*@
-</fieldset>
+    <fieldset>
+        @Html.Raw("<input name=\"RingFence.ID\" type=\"hidden\" value=\"" + Model.RingFence.ID + "\"/>")
+        @Html.Raw("Click on quantity value(s) below to update.  Click &quot;Save&quot; to create ring fence(s).<br><br>")
+        @Html.LabelFor(model => model.RingFence.Sku)
+        @Html.DisplayFor(model => model.RingFence.Sku)
+        <br />
+        @Html.LabelFor(model => model.RingFence.Store)
+        @Html.DisplayFor(model => model.RingFence.Store)
+        <br>
+        <br>    
+        @Html.Partial(@Url.Content("~/Views/RingFence/PartialWarehouseDetails.cshtml"), null, ViewData)
+        @Html.Partial(@Url.Content("~/Views/RingFence/PartialFutureDetails.cshtml"), null, ViewData)
+    </fieldset>
 }
 
 <div>
-    @Html.ActionLink("Back to List", "Index", null, new { @class="t-button" })
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
+    @Html.ActionLink("Create Next Ring Fence", "Create", null, new { @class = "t-button" })
 </div>

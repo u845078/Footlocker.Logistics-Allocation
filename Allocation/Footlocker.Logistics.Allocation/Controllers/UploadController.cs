@@ -71,7 +71,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return _userName;
             }
         }
-
         #endregion
 
         public UploadController()
@@ -281,14 +280,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
-
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult ProductTypeUpload()
         {
             return View();
         }
-
-
 
         [CheckPermission(Roles = "Admin,Support")]
         public ActionResult NetworkUpload()
@@ -409,7 +405,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             
             return Content("");
         }
-
 
         public ActionResult DownloadProductErrors()
         {
@@ -1821,7 +1816,5 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         #endregion
-
-
     }
 }

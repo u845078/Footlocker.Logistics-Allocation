@@ -25,7 +25,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     {
         #region Fields
 
-        Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        DAO.AllocationContext db = new DAO.AllocationContext();
         readonly RingFenceDAO dao = new RingFenceDAO();
         readonly ConfigService configService = new ConfigService();
 
@@ -1291,7 +1291,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         db.SaveChanges(currentUser.NetworkID);
                         count++;
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         errorCount++;
                     }
@@ -1509,10 +1509,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                           where a.Division == model.Div && a.Store == model.Store && d.Name == model.FOB && d.Division == model.Div
                           select a).ToList();
             }
-            else
-            {
-                rfList = db.RingFences.Where(rf => rf.Division == model.Div && rf.Store == model.Store).ToList();
-            }
+            else            
+                rfList = db.RingFences.Where(rf => rf.Division == model.Div && rf.Store == model.Store).ToList();            
 
             string message;
             message = SaveMassEditRingFence(model, rfList);
@@ -1540,25 +1538,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _SelectBatchEditing(long ringFenceID)
         {
             // Get Ring Fence data
-            var details = GetRingFenceDetails(ringFenceID);
+            List<RingFenceDetail> details = GetRingFenceDetails(ringFenceID);
             RingFence rf = db.RingFences.Where(r => r.ID == ringFenceID).First();
             
             List<RingFenceDetail> stillAvailable = GetWarehouseAvailable(rf);
 
-            stillAvailable.AddRange(dao.GetFuturePOs(rf));
-            RingFenceDetail existing;
+            stillAvailable.AddRange(dao.GetFuturePOs(rf));            
             foreach (RingFenceDetail det in stillAvailable)
             {
-                var query = (from a in details
-                             where a.Size == det.Size && 
-                                   a.PO == det.PO && 
-                                   a.Warehouse == det.Warehouse
-                             select a);
-                if (query.Count() > 0)
-                {
-                    existing = query.First();
-                    det.Qty = existing.Qty;
-                    det.RingFenceID = existing.RingFenceID;
+                RingFenceDetail detailRec = details.Where(rfd => rfd.Size == det.Size &&
+                                                                 rfd.PO == det.PO &&
+                                                                 rfd.Warehouse == det.Warehouse).FirstOrDefault();
+                if (detailRec != null)
+                {                    
+                    det.Qty = detailRec.Qty;
+                    det.RingFenceID = detailRec.RingFenceID;
                 }
             }
             return View(new GridModel(stillAvailable));
@@ -1576,7 +1570,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             RingFence ringFence = db.RingFences.Where(rf => rf.ID == ringFenceID).FirstOrDefault();
             return View(new GridModel(GetFutureAvailable(ringFence)));
-            //return View();
         }
 
         [AcceptVerbs(HttpVerbs.Post)]
@@ -1586,13 +1579,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             string errorMessage;
             RingFenceDAO rfDAO = new RingFenceDAO();
 
-            long ringFenceID = (from a in updated select a.RingFenceID).First();
+            long ringFenceID = updated.First().RingFenceID;
             RingFence ringFence = null;
             List<RingFenceDetail> available = null;
 
-            ringFence = (from a in db.RingFences
-                         where a.ID == ringFenceID
-                         select a).First();
+            ringFence = db.RingFences.Where(rf => rf.ID == ringFenceID).First();
 
             available = GetWarehouseAvailable(ringFence);
             available.AddRange(GetFutureAvailable(ringFence));
@@ -1603,16 +1594,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     det.Message = "";
 
-                    if (!rfDAO.CanUserUpdateRingFence(ringFence, currentUser, AppName, out errorMessage))
-                    {                        
-                        det.Message += errorMessage;
-                    }
+                    if (!rfDAO.CanUserUpdateRingFence(ringFence, currentUser, AppName, out errorMessage))                                            
+                        det.Message += errorMessage;                    
 
-                    det.AvailableQty = (from a in available
-                                        where a.PO == det.PO &&
-                                              a.Warehouse == det.Warehouse &&
-                                              a.Size == det.Size
-                                        select a.AvailableQty).FirstOrDefault();
+                    det.AvailableQty = available.Where(a => a.PO == det.PO &&
+                                                            a.Warehouse == det.Warehouse &&
+                                                            a.Size == det.Size)
+                                                .Select(a => a.AvailableQty)
+                                                .FirstOrDefault();
 
                     if (IsRingFenceDetailValid(det))
                     {
@@ -1634,20 +1623,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 detailRec.Qty = det.Qty;                                
                                 db.Entry(detailRec).State = EntityState.Modified;
                             }
-                            else
-                            {
-                                db.Entry(det).State = EntityState.Added;
-                            }
+                            else                            
+                                db.Entry(det).State = EntityState.Added;                            
 
                             det.LastModifiedDate = DateTime.Now;
                             det.LastModifiedUser = currentUser.NetworkID;                            
                         }
                         else if (det.Qty == 0)
                         {
-                            if (detailRec != null)
-                            {
-                                db.Entry(detailRec).State = EntityState.Deleted;
-                            }
+                            if (detailRec != null)                            
+                                db.Entry(detailRec).State = EntityState.Deleted;                            
                         }
 
                         db.SaveChanges(currentUser.NetworkID);

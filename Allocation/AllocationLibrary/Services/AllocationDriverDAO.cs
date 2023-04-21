@@ -56,7 +56,7 @@ namespace Footlocker.Logistics.Allocation.Services
                     SQLCommandMF = db.GetSqlStringCommand(SQLMF);
                     db.ExecuteNonQuery(SQLCommandMF);
                 }
-                catch (Exception ex)
+                catch
                 {
                     SQLMF = "update " + _prefix + "TCQTM001 set ";
                     SQLMF = SQLMF + " convert_date = '" + objectToSave.ConvertDate.ToString("yyyy-MM-dd") + "', ";
@@ -68,7 +68,6 @@ namespace Footlocker.Logistics.Allocation.Services
 
                     SQLCommandMF = db.GetSqlStringCommand(SQLMF);
                     db.ExecuteNonQuery(SQLCommandMF);
-
                 }
             }
 

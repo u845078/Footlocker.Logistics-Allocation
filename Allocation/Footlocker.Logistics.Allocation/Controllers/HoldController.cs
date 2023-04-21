@@ -99,15 +99,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _IndexByProduct(string duration)
         {
-            if (string.IsNullOrEmpty(duration))
-            {
+            if (string.IsNullOrEmpty(duration))            
                 duration = "All";
-            }
+            
             List<Division> divs = currentUser.GetUserDivisions(AppName);
-            List<Hold> list = db.Holds.ToList();
+            List<Hold> list = db.Holds.Where(h => h.Duration == duration || duration == "All").ToList();
+
             list = (from a in list
-                    join d in divs on a.Division equals d.DivCode
-                    where ((a.Duration == duration) || (duration == "All"))
+                    join d in divs on a.Division equals d.DivCode            
                     select a).ToList();
 
             if (list.Count > 0)
@@ -137,15 +136,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _IndexByStore(string duration)
         {
-            if (string.IsNullOrEmpty(duration))
-            {
+            if (string.IsNullOrEmpty(duration))            
                 duration = "All";
-            }
+            
             List<Division> divs = currentUser.GetUserDivisions(AppName);
-            List<Hold> list = db.Holds.ToList();
+            List<Hold> list = db.Holds.Where(h => h.Duration == duration || duration == "All").ToList();
             list = (from a in list
                     join d in divs on a.Division equals d.DivCode
-                    where ((a.Duration == duration) || (duration == "All"))
                     select a).ToList();
 
             //TODO:  Do we want dept level security on holds???
@@ -164,15 +161,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 duration = "All";
             }
             List<Division> divs = currentUser.GetUserDivisions(AppName);
-            List<Hold> list = db.Holds.ToList();
+            List<Hold> list = db.Holds.Where(h => (h.Duration == duration || duration == "All") &&
+                                                  h.Division == div &&
+                                                  h.Level == level &&
+                                                  h.Value == value &&
+                                                  h.HoldType == holdType).ToList();
             list = (from a in list
                     join d in divs on a.Division equals d.DivCode
-                    where (((a.Duration == duration) || (duration == "All"))
-                    && (a.Division == div)
-                    && (a.Level == level)
-                    && (a.Value == value)
-                    && (a.HoldType == holdType)
-                    )
                     select a).ToList();
             //TODO:  Do we want dept level security on holds???
 
@@ -199,19 +194,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _HoldStoreDetails(string div, string store, string holdType, string duration)
         {
-            if (string.IsNullOrEmpty(duration))
-            {
+            if (string.IsNullOrEmpty(duration))            
                 duration = "All";
-            }
+            
             List<Division> divs = currentUser.GetUserDivisions(AppName);
-            List<Hold> list = db.Holds.ToList();
+            List<Hold> list = db.Holds.Where(h => (h.Duration == duration || duration == "All") && 
+                                                  h.Division == div &&
+                                                  h.HoldType == holdType &&
+                                                  (h.Store == store || string.IsNullOrEmpty(h.Store))).ToList();
             list = (from a in list
                     join d in divs 
                     on a.Division equals d.DivCode
-                    where (a.Duration == duration || duration == "All") && 
-                          (a.Division == div) &&
-                          (a.HoldType == holdType) &&
-                          (a.Store == store || string.IsNullOrEmpty(a.Store))                 
                     select a).ToList();
 
             if (list.Count > 0)
@@ -237,21 +230,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult ExportGrid(GridCommand settings, string duration)
         {
-            if (string.IsNullOrEmpty(duration))
-            {
+            if (string.IsNullOrEmpty(duration))            
                 duration = "All";
-            }
+            
             List<Division> divs = currentUser.GetUserDivisions(AppName);
-            List<Hold> list = db.Holds.ToList();
+            List<Hold> list = db.Holds.Where(h => h.Duration == duration || duration == "All").ToList();
+
             IQueryable<Hold> holds = (from a in list
                                       join d in divs on a.Division equals d.DivCode
-                                      where ((a.Duration == duration) || (duration == "All"))
                                       select a).AsQueryable();
 
-            if (settings.FilterDescriptors.Any())
-            {
+            if (settings.FilterDescriptors.Any())            
                 holds = holds.ApplyFilters(settings.FilterDescriptors);
-            }
+            
             Workbook excelDocument = CreateHoldsExport(holds.ToList());
 
             OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
@@ -403,6 +394,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.Divisions = currentUser.GetUserDivisions(AppName);
                 return View(model);
             }
+
             if (!string.IsNullOrEmpty(validationMessage))
             {
                 ViewData["message"] = validationMessage;
@@ -416,7 +408,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 //TODO:  Do we want dept level security on holds???
                 if (currentUser.GetUserDivisions(AppName).Exists(d => d.DivCode == model.Hold.Division))
                 {
-                    if ((model.Hold.Level == "Sku") && (model.Hold.Division != model.Hold.Value.Substring(0, 2)))
+                    if (model.Hold.Level == "Sku" && model.Hold.Division != model.Hold.Value.Substring(0, 2))
                     {
                         ViewData["message"] = "Invalid Sku, division does not match selection.";
                         model.Divisions = currentUser.GetUserDivisions(AppName);
@@ -709,12 +701,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult ReleaseRDQs(int ID)
         {
-            Hold model = db.Holds.Where(h => h.ID == ID).First();
-            DeleteHoldModel dh = new DeleteHoldModel();
-            dh.Hold = model;
             ViewData["holdID"] = ID;
-            RDQDAO dao = new RDQDAO();
-
+            Hold model = db.Holds.Where(h => h.ID == ID).First();
+            DeleteHoldModel dh = new DeleteHoldModel()
+            {
+                Hold = model
+            };
+            
             //probably want stored proc so we can join for category
             dh.CurrentRDQs = GetRDQsForSession(ID);
 
@@ -1136,21 +1129,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private List<RDQ> GetRDQsInSession()
         {
-            if (Session["rdqgrouplist"] != null)
-            {
-                return (List<RDQ>)Session["rdqgrouplist"];
-            }
-            else
-            {
-                return new List<RDQ>();
-            }
+            if (Session["rdqgrouplist"] != null)            
+                return (List<RDQ>)Session["rdqgrouplist"];            
+            else            
+                return new List<RDQ>();            
         }
 
         private List<RDQ> GetRDQsForSession(string div, string level, string value)
         {
             List<RDQ> model;
             if ((Session["rdqgrouplist"] != null) &&
-                ((String)Session["holdgrouprdq"] == div + "|" + level + "|" + value))
+                ((string)Session["holdgrouprdq"] == string.Format("{0}|{1}|{2}", div, level, value)))
             {
                 model = (List<RDQ>)Session["rdqgrouplist"];
             }
@@ -1169,10 +1158,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         updateList.Add(r);
                         caselots.Add(r.Size);
                     }
-                    else
-                    {
-                        r.UnitQty = r.Qty;
-                    }
+                    else                    
+                        r.UnitQty = r.Qty;                    
                 }
 
                 List<ItemPack> qtyPerCase = db.ItemPacks.Where(p => caselots.Contains(p.Name)).ToList();
@@ -1191,18 +1178,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 Session["holdgrouprdq"] = div + "|" + level + "|" + value;
                 Session["rdqgrouplist"] = model;
             }
-            return model;
 
+            return model;
         }
 
         private List<RDQ> GetRDQsForSession(string div, string store)
         {
             List<RDQ> model;
-            if ((Session["rdqgrouplist"] != null) &&
-                ((String)Session["holdgrouprdq"] == div + "|" + store))
-            {
-                model = (List<RDQ>)Session["rdqgrouplist"];
-            }
+            if ((Session["rdqgrouplist"] != null) && ((string)Session["holdgrouprdq"] == string.Format("{0}|{1}", div, store)))            
+                model = (List<RDQ>)Session["rdqgrouplist"];            
             else
             {
                 RDQDAO dao = new RDQDAO();
@@ -1248,11 +1232,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private List<RDQ> GetRDQsForSession(long holdID)
         {
             List<RDQ> model;
-            if ((Session["holdrdq"] != null) &&
-                ((Int64)Session["holdrdq"] == holdID))
-            {
-                model = (List<RDQ>)Session["holdrdqlist"];
-            }
+            if ((Session["holdrdq"] != null) && ((long)Session["holdrdq"] == holdID))            
+                model = (List<RDQ>)Session["holdrdqlist"];            
             else
             {
                 RDQDAO dao = new RDQDAO();
@@ -1268,10 +1249,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         updateList.Add(r);
                         caselots.Add(r.Size);
                     }
-                    else
-                    {
-                        r.UnitQty = r.Qty;
-                    }
+                    else                    
+                        r.UnitQty = r.Qty;                    
                 }
 
                 List<ItemPack> qtyPerCase = db.ItemPacks.Where(p => caselots.Contains(p.Name)).ToList();
@@ -1279,7 +1258,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     try
                     {
-                        r.UnitQty = (from a in qtyPerCase where a.Name == r.Size select a.TotalQty).First() * r.Qty;
+                        r.UnitQty = (from a in qtyPerCase 
+                                     where a.Name == r.Size 
+                                     select a.TotalQty).First() * r.Qty;
                     }
                     catch
                     {
@@ -1293,9 +1274,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return model;
         }
 
-
         [GridAction]
-        public ActionResult _RDQs(Int32 holdID)
+        public ActionResult _RDQs(int holdID)
         {
             ViewData["holdID"] = holdID;
             RDQDAO dao = new RDQDAO();
@@ -1374,7 +1354,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     .ThenBy(g => g.Sku)));
         }
 
-
         [HttpPost]
         public ActionResult DeleteReleaseTo(DeleteHoldModel model)
         {
@@ -1384,7 +1363,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.SaveChanges();
             return RedirectToAction("Index");
         }
-
 
         #region Holds Upload
 

@@ -9,17 +9,14 @@ using Footlocker.Logistics.Allocation.Services;
 
 namespace Footlocker.Logistics.Allocation.Common
 {
-    abstract public class UploadSpreadsheet
+    abstract public class UploadSpreadsheet : BaseSpreadsheet
     {
-        public AppConfig config;
-        readonly License license;
         public string message = string.Empty;
         public Worksheet worksheet;
         public Dictionary<int, string> columns = new Dictionary<int, string>();
         public int maxColumns;
         public ConfigService configService;
         public string errorMessage;
-        public string templateFilename;
         public int headerRowNumber = 0;
 
         public bool HasValidHeaderRow()
@@ -48,19 +45,6 @@ namespace Footlocker.Logistics.Allocation.Common
             return hasData;
         }
 
-        public Excel GetTemplate()
-        {
-            Excel excelDocument = new Excel();
-            FileStream file = new FileStream(config.AppPath + templateFilename, FileMode.Open, FileAccess.Read);
-
-            byte[] data1 = new byte[file.Length];
-            file.Read(data1, 0, data1.Length);
-            file.Close();
-            MemoryStream memoryStream1 = new MemoryStream(data1);
-            excelDocument.Open(memoryStream1);
-            return excelDocument;
-        }
-
         public void LoadAttachment(HttpPostedFileBase attachment)
         {
             Excel workbook = new Excel();
@@ -72,12 +56,9 @@ namespace Footlocker.Logistics.Allocation.Common
             worksheet = workbook.Worksheets[0];
         }
 
-        protected UploadSpreadsheet(AppConfig config, ConfigService configService)
-        {
-            this.config = config;
+        protected UploadSpreadsheet(AppConfig config, ConfigService configService) : base(config)
+        {            
             this.configService = configService;
-            license = new License();
-            license.SetLicense(config.AsposeLicenseFile);
         }
     }
 }

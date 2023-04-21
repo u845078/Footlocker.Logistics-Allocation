@@ -7,10 +7,8 @@ using Aspose.Excel;
 
 namespace Footlocker.Logistics.Allocation.Common
 {
-    abstract public class ExportSpreadsheet
+    abstract public class ExportSpreadsheet : BaseSpreadsheet
     {
-        public AppConfig config;
-        readonly License license;
         public string message = string.Empty;
         public Worksheet worksheet;
         public Dictionary<int, string> columns = new Dictionary<int, string>();
@@ -20,7 +18,7 @@ namespace Footlocker.Logistics.Allocation.Common
         public int headerRowNumber = 0;
         public int currentRow;
         public long recordCount;
-        public Excel excelDocument;
+
         public int worksheetNum;
 
         public void WriteHeaderRecord()
@@ -36,13 +34,8 @@ namespace Footlocker.Logistics.Allocation.Common
             currentRow++;
         }
 
-        protected ExportSpreadsheet(AppConfig config)
-        {
-            this.config = config;
-            license = new License();
-            license.SetLicense(config.AsposeLicenseFile);
-            excelDocument = new Excel();
-
+        protected ExportSpreadsheet(AppConfig config) : base (config) 
+        {            
             worksheetNum = 0;
             currentRow = 0;
             recordCount = 0;

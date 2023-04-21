@@ -275,10 +275,7 @@ namespace Footlocker.Logistics.Allocation.Services
                     }
                 }
             }
-            if (qty == null)
-            {
-                qty = 0;
-            }
+
             return qty;
         }
 
