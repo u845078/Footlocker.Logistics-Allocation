@@ -141,7 +141,7 @@ namespace Footlocker.Logistics.Allocation.Services
             StringWriter sw = new StringWriter();
             XmlSerializer xs = new XmlSerializer(stores.GetType());
             xs.Serialize(sw, stores);
-            String xout = sw.ToString();
+            string xout = sw.ToString();
 
             _database.AddInParameter(SQLCommand, "@xmlDetails", DbType.Xml, xout);
             _database.AddInParameter(SQLCommand, "@planid", DbType.String, planid);

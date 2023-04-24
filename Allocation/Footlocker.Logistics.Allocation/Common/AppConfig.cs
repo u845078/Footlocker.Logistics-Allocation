@@ -28,6 +28,7 @@ namespace Footlocker.Logistics.Allocation.Common
         private string _skuAttributeTemplate;
         private string _crossdockLinkTemplate;
         private string _ringFenceUploadTemplate;
+        private string _storeTemplate;
 
         public string AppName;
         public string AppPath;
@@ -152,6 +153,17 @@ namespace Footlocker.Logistics.Allocation.Common
                     _ringFenceUploadTemplate = ConfigurationManager.AppSettings["RingFenceUploadTemplate"].ToString();
 
                 return _ringFenceUploadTemplate;
+            }
+        }
+
+        public string StoreTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_storeTemplate))
+                    _storeTemplate = ConfigurationManager.AppSettings["StoreTemplate"].ToString();
+
+                return _storeTemplate;
             }
         }
 

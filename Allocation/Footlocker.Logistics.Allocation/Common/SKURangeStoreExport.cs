@@ -54,8 +54,8 @@ namespace Footlocker.Logistics.Allocation.Common
         {
             maxColumns = 11;
 
-            columns.Add(0, "Div (##)");
-            columns.Add(1, "Store (#####)");
+            columns.Add(0, "Div");
+            columns.Add(1, "Store");
             columns.Add(2, "Region");
             columns.Add(3, "League");
             columns.Add(4, "Mall");

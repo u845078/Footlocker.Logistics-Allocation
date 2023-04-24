@@ -1,21 +1,23 @@
-﻿@model Footlocker.Logistics.Allocation.Models.EditStoreModel
+﻿@model EditStoreModel
 @{
     ViewBag.Title = "Edit Stores " + Model.plan.Sku;
 }
-<h2>
-<table><tr><td>
-<img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.plan.Sku)"/>
-</td><td>
-    Add / Remove Stores
-    <br />
-    @Html.Raw(Model.plan.Sku) -
-    @if (Model.plan.ItemMaster != null)
-    {
-        @Html.Raw(Model.plan.ItemMaster.Description)
-    }<br />
-    @Html.Raw(Model.plan.Description)
-</td></tr></table>
-</h2>
+<table>
+    <tr>
+       <td><img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.plan.Sku)"/></td>
+       <td>
+           <h2>Add / Remove Stores <br />
+            @Html.Raw(Model.plan.Sku) -
+            @if (Model.plan.ItemMaster != null)
+            {
+                @Html.Raw(Model.plan.ItemMaster.Description)
+            }<br />
+            @Html.Raw(Model.plan.Description)
+           </h2>
+       </td>
+     </tr>
+</table>
+
 <fieldset>
     <b>Upload .xls: </b><span id="message">(Spreadsheet columns should be Div, Store)</span>
     @Html.ActionLink("Template", "StoreTemplate", null, new { @class = "t-button" })   
@@ -24,15 +26,15 @@
         .Multiple(true)
         .Async(async => async
             .Save("UploadStores", "SkuRange", new {planID = ViewData["planID"]})
-            .AutoUpload(true))
-            .ShowFileList(false)
+            .AutoUpload(false))
+        .ShowFileList(true)
         .ClientEvents(events => events
             .OnError("onError")
             .OnSelect("onSelect")
-                    .OnSuccess("onSuccess")
-            ).HtmlAttributes(new {style="display:inline"})
-        )
-        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
+            .OnSuccess("onSuccess")
+        ).HtmlAttributes(new {style="display:inline"})
+     )
+     <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
 </fieldset>
 @if (ViewData["message"] != null)
 {
@@ -90,4 +92,3 @@
 @Html.ActionLink("Remove All Stores", "RemoveAllStores", new { planID = Model.plan.Id }, new { @class = "t-button", onclick="return confirm('Are you sure you want to clear all stores from this sku range?  (there is no undo)')"})
 &nbsp;
 @Html.ActionLink("Details", "PresentationQuantities", new { planID = Model.plan.Id }, new { @class = "t-button" })
-

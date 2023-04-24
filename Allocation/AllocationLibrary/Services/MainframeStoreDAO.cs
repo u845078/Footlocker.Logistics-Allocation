@@ -12,17 +12,15 @@ namespace Footlocker.Logistics.Allocation.Services
 {
     public class MainframeStoreDAO
     {
-        Database _database;
         Database _USdatabase;
         Database _Europedatabase;
-        string _prefix;
+        //string _prefix;
 
         public MainframeStoreDAO()
         {
             _USdatabase = DatabaseFactory.CreateDatabase("DB2PROD_DRIVER");
             _Europedatabase = DatabaseFactory.CreateDatabase("DB2PROD_DRIVER");
-            //_prefix = "DB2TEST.";
-            _prefix = System.Configuration.ConfigurationManager.AppSettings["DB2PREFIX"];
+            //_prefix = System.Configuration.ConfigurationManager.AppSettings["DB2PREFIX"];
         }
 
 

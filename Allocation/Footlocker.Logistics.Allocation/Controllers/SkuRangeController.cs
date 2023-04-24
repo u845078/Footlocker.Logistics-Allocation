@@ -575,57 +575,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("PresentationQuantities", "SkuRange", new { planID });
         }
 
-        //public ActionResult ExcelSizeAllocation(long planID)
-        //{
-        //    SizeAllocationDAO dao = new SizeAllocationDAO();
-        //    List<SizeAllocation> allocations = dao.GetSizeAllocationList(planID);
-
-        //    Aspose.Excel.License license = new Aspose.Excel.License();
-        //    //Set the license 
-        //    license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-        //    Excel excelDocument = new Excel();
-
-        //    Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
-
-        //    mySheet.Cells[0, 0].PutValue("PlanID");
-        //    mySheet.Cells[0, 0].Style.Font.IsBold = true;
-        //    mySheet.Cells[0, 1].PutValue("Div");
-        //    mySheet.Cells[0, 1].Style.Font.IsBold = true;
-        //    mySheet.Cells[0, 2].PutValue("Store");
-        //    mySheet.Cells[0, 2].Style.Font.IsBold = true;
-        //    mySheet.Cells[0, 3].PutValue("Size");
-        //    mySheet.Cells[0, 3].Style.Font.IsBold = true;
-        //    mySheet.Cells[0, 4].PutValue("Min");
-        //    mySheet.Cells[0, 4].Style.Font.IsBold = true;
-        //    mySheet.Cells[0, 5].PutValue("Max");
-        //    mySheet.Cells[0, 5].Style.Font.IsBold = true;
-        //    mySheet.Cells[0, 6].PutValue("Days");
-        //    mySheet.Cells[0, 6].Style.Font.IsBold = true;
-
-        //    int row = 1;
-        //    foreach (SizeAllocation sa in allocations)
-        //    {
-        //        mySheet.Cells[row, 0].PutValue(sa.PlanID);
-        //        mySheet.Cells[row, 1].PutValue(sa.Division);
-        //        mySheet.Cells[row, 2].PutValue(sa.Store);
-        //        mySheet.Cells[row, 3].PutValue(sa.Size);
-        //        mySheet.Cells[row, 4].PutValue(sa.Min);
-        //        mySheet.Cells[row, 5].PutValue(sa.Max);
-        //        mySheet.Cells[row, 6].PutValue(sa.Days);
-
-        //        row++;
-        //    }
-
-        //    for (int i = 0; i < 8; i++)
-        //    {
-        //        mySheet.AutoFitColumn(i);
-        //    }
-
-        //    excelDocument.Save("SizeAllocation" + planID + ".xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
-        //    return View();
-        //}
-
         public ActionResult SaveStoreSizeAllocation(IList<SizeAllocation> list)
         {
             long planID = 1;
@@ -1866,116 +1815,32 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <returns></returns>
         public ActionResult UploadStores(IEnumerable<HttpPostedFileBase> attachments, long planID)
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-            int errors = 0;
-            List<StoreBase> list = new List<StoreBase>();
-            RangePlan p = (from a in db.RangePlans where a.Id == planID select a).First();
+            StoreSpreadsheet storeSpreadsheet = new StoreSpreadsheet(appConfig, configService, rangePlanDAO, new RuleDAO());
 
-            try
+            string message = string.Empty;
+            int successCount = 0;
+
+            foreach (HttpPostedFileBase file in attachments)
             {
-                foreach (HttpPostedFileBase file in attachments)
-                {
-                    //Instantiate a Workbook object that represents an Excel file
-                    Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                    Byte[] data1 = new Byte[file.InputStream.Length];
-                    file.InputStream.Read(data1, 0, data1.Length);
-                    file.InputStream.Close();
-                    MemoryStream memoryStream1 = new MemoryStream(data1);
-                    workbook.Open(memoryStream1);
-                    Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+                storeSpreadsheet.Save(file, planID);
 
-                    int row = 1;
-                    string rangeType;
-                    if ((mySheet.Cells[0, 0].Value.ToString().Contains("Div")) && (mySheet.Cells[0, 1].Value.ToString().Contains("Store")))
-                    {
-                        while (mySheet.Cells[row, 0].Value != null)
-                        {
-                            try
-                            {
-                                StoreBase newDet = new StoreBase();
-                                newDet.Division = mySheet.Cells[row, 0].Value.ToString().PadLeft(2, '0');
-                                newDet.Store = mySheet.Cells[row, 1].Value.ToString().PadLeft(5, '0');
-                                if (mySheet.Cells[row, 2].Value != null)
-                                {
-                                    rangeType = mySheet.Cells[row, 2].Value.ToString();
-                                }
-                                else
-                                {
-                                    rangeType = "ALR";
-                                }
+                if (!string.IsNullOrEmpty(storeSpreadsheet.message))
+                    return Content(storeSpreadsheet.message);
 
-                                if ((rangeType == "ALR") || (rangeType == "OP"))
-                                {
-                                    newDet.RangeType = rangeType;
-                                }
-
-                                //always default to "Both"
-                                if (string.IsNullOrEmpty(newDet.RangeType))
-                                {
-                                    newDet.RangeType = "Both";
-                                }
-
-                                Regex validStoreNumber = new Regex("^[0-9][0-9][0-9][0-9][0-9]$");
-
-                                if ((newDet.Store != "00000") && (p.Division == newDet.Division) && (validStoreNumber.IsMatch(newDet.Store)))
-                                {
-                                    list.Add(newDet);
-                                }
-                                else
-                                {
-                                    errors++;
-                                }
-                            }
-                            catch 
-                            {
-                                errors++;
-                            }
-                            row++;
-                        }
-                    }
-                    else
-                    {
-                        return Content("Incorrect header, first column must be \"Div\", next \"Store\".");
-                    }
-                }
-
-                if (list.Count > 0)
-                {
-                    RuleDAO ruleDAO = new RuleDAO();
-                    ruleDAO.AddStoresToPlan(list, planID);
-                }
-
-                string returnMessage = "Upload complete, added " + list.Count() + " stores";
-                if (errors > 0)
-                {
-                    returnMessage += ", " + errors + " errors";
-                }
-
-                db.UpdateRangePlanDate(planID, currentUser.NetworkID);
-                return Content(returnMessage);
+                successCount += storeSpreadsheet.validStores.Count();
             }
-            catch (Exception ex)
-            {
-                return Content(ex.Message);
-            }
+
+            return Json(new { message = string.Format("Upload complete. Added {0} store(s)", successCount) }, "application/json");
         }
 
         public ActionResult StoreTemplate()
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            StoreSpreadsheet storeSpreadsheet = new StoreSpreadsheet(appConfig, configService, rangePlanDAO, new RuleDAO());
+            Excel excelDocument;
 
-            Excel excelDocument = new Excel();
+            excelDocument = storeSpreadsheet.GetTemplate();
 
-            excelDocument.Worksheets[0].Cells[0, 0].PutValue("Div (##)");
-            excelDocument.Worksheets[0].Cells[0, 1].PutValue("Store (#####)");
-            excelDocument.Worksheets[0].Cells[0, 0].Style.Font.IsBold = true;
-            excelDocument.Worksheets[0].Cells[0, 1].Style.Font.IsBold = true;
-
-            excelDocument.Save("StoreTemplate.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("StoreTemplate.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
 
@@ -2126,11 +1991,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                RuleSet rs = new RuleSet();
-                rs.PlanID = planID;
-                rs.Type = ruleType;
-                rs.CreatedBy = User.Identity.Name;
-                rs.CreateDate = DateTime.Now;
+                RuleSet rs = new RuleSet()
+                {
+                    PlanID = planID,
+                    Type = ruleType,
+                    CreatedBy = currentUser.NetworkID,
+                    CreateDate = DateTime.Now
+                };
+
                 db.RuleSets.Add(rs);
                 db.SaveChanges();
                 model.RuleSetID = rs.RuleSetID;
@@ -2138,9 +2006,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ViewData["ruleSetID"] = model.RuleSetID;
 
             model.PlanID = planID;
-            model.Plan = (from a in db.RangePlans
-                          where a.Id == planID
-                          select a).First();
+            model.Plan = db.RangePlans.Where(rp => rp.Id == planID).First();
 
             db.UpdateRangePlanDate(planID, currentUser.NetworkID);            
 
@@ -2149,14 +2015,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void ShowError(Exception ex)
         {
-            if (ex.Message.Contains("rule"))
-            {
-                ViewData["rulemessage"] = ex.Message;
-            }
-            else
-            {
-                ViewData["rulemessage"] = "invalidly formatted rule!";
-            }
+            if (ex.Message.Contains("rule"))            
+                ViewData["rulemessage"] = ex.Message;            
+            else            
+                ViewData["rulemessage"] = "invalidly formatted rule!";            
         }
 
         /// <summary>
@@ -2170,34 +2032,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <summary>
         /// Add 'and','or','not', '(', ')' to rule list
         /// </summary>
-        public ActionResult AddConjuction(string value, Int64 planID, string ruleType)
+        public ActionResult AddConjuction(string value, long planID, string ruleType)
         {
             Rule newRule = new Rule();
-            newRule.RuleSetID = (new RuleDAO()).GetRuleSetID(planID, ruleType, User.Identity.Name);
+            newRule.RuleSetID = (new RuleDAO()).GetRuleSetID(planID, ruleType, currentUser.NetworkID);
             newRule.Compare = value.Trim();
-            newRule.Sort = (from r in db.Rules where r.RuleSetID == newRule.RuleSetID select r).Count() + 1;
+            newRule.Sort = db.Rules.Where(r => r.RuleSetID == newRule.RuleSetID).Count() + 1;
 
             db.Rules.Add(newRule);
             db.SaveChanges();
 
-            RuleSet rs = (from a in db.RuleSets where a.RuleSetID == newRule.RuleSetID select a).First();
-            if (rs.Type == "SizeAlc")
-            {
-                return RedirectToAction("PresentationQuantities", new { planID = planID });
-            }
-            else
-            {
-                return RedirectToAction("AddStoresByRule", new { planID = planID });
-            }
+            RuleSet rs = db.RuleSets.Where(r => r.RuleSetID == newRule.RuleSetID).First();
+            if (rs.Type == "SizeAlc")            
+                return RedirectToAction("PresentationQuantities", new { planID = planID });            
+            else            
+                return RedirectToAction("AddStoresByRule", new { planID = planID });            
         }
 
         /// <summary>
         /// delete all rules
         /// </summary>
-        public ActionResult ClearRules(string value, Int64 planID, string ruleType)
+        public ActionResult ClearRules(string value, long planID, string ruleType)
         {
             Rule newRule = new Rule();
-            long ruleSetID = (new RuleDAO()).GetRuleSetID(planID, ruleType, User.Identity.Name);
+            long ruleSetID = (new RuleDAO()).GetRuleSetID(planID, ruleType, currentUser.NetworkID);
 
             IEnumerable<Rule> rules = (from a in db.Rules where a.RuleSetID == ruleSetID select a);
             RuleDAO dao = new RuleDAO();
@@ -2284,7 +2142,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// Add only the stores that are visible in the filtered grid to the planID
         /// TODO:  this is not implemented, it would need to create a lambda expression based on the filter.
         /// </summary>
-        public JsonResult AddFilteredStores(Int64 planID, string filter, string ruleType)
+        public JsonResult AddFilteredStores(long planID, string filter, string ruleType)
         {
             List<Rule> RulesForPlan = db.GetRulesForPlan(planID, ruleType);
 
@@ -2315,7 +2173,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <summary>
         /// Add a store to the range plan (planID)
         /// </summary>
-        public JsonResult AddStore(string store, string div, Int64 planID)
+        public JsonResult AddStore(string store, string div, long planID)
         {
             try
             {
@@ -3282,7 +3140,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult SaveSkuRPDG(IEnumerable<HttpPostedFileBase> attachments)
         {
-            SKURangePlanDGSpreadsheet skuRangePlanDGSpreadsheet = new SKURangePlanDGSpreadsheet(appConfig, configService, new RangePlanDAO());
+            SKURangePlanDGSpreadsheet skuRangePlanDGSpreadsheet = new SKURangePlanDGSpreadsheet(appConfig, configService, rangePlanDAO);
 
             foreach (HttpPostedFileBase file in attachments)
             {
@@ -3307,7 +3165,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Merchandiser, Head Merchandiser, Buyer Planner, Director of Allocation, Admin, Support")]
         public ActionResult ExcelSkuRangePlanDGUploadTemplate()
         {
-            SKURangePlanDGSpreadsheet skuRangePlanDGSpreadsheet = new SKURangePlanDGSpreadsheet(appConfig, configService, new RangePlanDAO());
+            SKURangePlanDGSpreadsheet skuRangePlanDGSpreadsheet = new SKURangePlanDGSpreadsheet(appConfig, configService, rangePlanDAO);
             Excel excelDocument;
 
             excelDocument = skuRangePlanDGSpreadsheet.GetTemplate();
