@@ -145,6 +145,9 @@ namespace Footlocker.Logistics.Allocation.Models
         public string ActiveAR { get; set; }
 
         [NotMapped]
+        public bool ActiveOP { get; set; }
+
+        [NotMapped]
         [DefaultValue("No")]
         public string PreSaleSKU { get; set; }
 
@@ -173,6 +176,7 @@ namespace Footlocker.Logistics.Allocation.Models
             this.ItemID = new Int64?();
             this.StoreCount = 0;
             this.ItemMaster = null;            
+            ActiveOP = false;
         }
     }
 }

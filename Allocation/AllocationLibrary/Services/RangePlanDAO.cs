@@ -140,5 +140,46 @@ namespace Footlocker.Logistics.Allocation.Services
             p.UpdatedBy = user.NetworkID;
             db.SaveChanges(user.NetworkID);
         }
+
+        public List<RangePlan> GetRangesForUser(WebUser webUser, string appName)
+        {
+            List<string> userDivDepts = webUser.GetUserDivDept(appName);
+            List<string> divs = webUser.GetUserDivList(appName);
+
+            var query = (from rp in db.RangePlans
+                         join im in db.ItemMasters
+                         on rp.ItemID equals im.ID
+                         join di in divs
+                         on im.Div equals di
+                         join cd in db.ControlDates
+                         on im.InstanceID equals cd.InstanceID
+                         join opr in db.OrderPlanningRequests
+                         on rp.Id equals opr.PlanID into opj
+                         from outerjoin in opj.DefaultIfEmpty()
+                         select new { RangePlan = rp, Division = im.Div, Department = im.Dept, cd.RunDate, outerjoin.StartSend, outerjoin.EndSend }).ToList();
+
+            foreach (var queryRow in query)
+            {
+                queryRow.RangePlan.ActiveOP = false;
+
+                if (queryRow.RangePlan.EvergreenSKU)
+                    queryRow.RangePlan.ActiveOP = true;
+                else
+                {
+                    if (queryRow.StartSend.HasValue && queryRow.EndSend.HasValue)
+                    {
+                        if (queryRow.RunDate >= queryRow.StartSend.Value && queryRow.RunDate <= queryRow.EndSend.Value)
+                            queryRow.RangePlan.ActiveOP = true;
+                    }
+                }
+            }
+
+            List<RangePlan> model = query.Where(q => userDivDepts.Contains(q.Division + "-" + q.Department))
+                                          .Select(q => q.RangePlan)
+                                          .OrderBy(q => q.Sku)
+                                          .ToList();
+
+            return model;
+        }
     }
 }

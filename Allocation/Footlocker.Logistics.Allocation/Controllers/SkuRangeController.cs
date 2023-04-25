@@ -39,7 +39,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Index(string message)
         {
             ViewData["message"] = message;
-            List<RangePlan> model = GetRangesForUser();
+            List<RangePlan> model = rangePlanDAO.GetRangesForUser(currentUser, AppName);
 
             if (model.Count > 0)
             {
@@ -77,24 +77,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Refresh()
         {
             return RedirectToAction("Index");
-        }
-
-        private List<RangePlan> GetRangesForUser()
-        {
-            List<string> userDivDepts = currentUser.GetUserDivDept(AppName);
-            List<string> divs = currentUser.GetUserDivList(AppName);
-
-            var query = (from rp in db.RangePlans
-                         join im in db.ItemMasters on rp.ItemID equals im.ID
-                         join di in divs on im.Div equals di
-                         select new { RangePlan = rp, Division = im.Div, Department = im.Dept }).ToList();
-
-            List<RangePlan> model = query.Where(q => userDivDepts.Contains(q.Division + "-" + q.Department))
-                                          .Select(q => q.RangePlan)
-                                          .OrderBy(q => q.Sku)
-                                          .ToList();
-
-            return model;
         }
 
         public ActionResult Manage()
@@ -889,7 +871,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                               select new { b.RouteID, b.ZoneID });
 
             var missingZones = (from a in zoneids
-                                where (!routeZones.Any(b => (b.ZoneID == a.ZoneID)))
+                                where !routeZones.Any(b => b.ZoneID == a.ZoneID)
                                 select a);
             List<RangeIssue> issues = new List<RangeIssue>();
             RangeIssue issue;
@@ -936,36 +918,38 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 else
                 {
                     futureStart++;
-                    issue = new RangeIssue();
-                    issue.Division = check.Division;
-                    issue.Store = check.Store;
-                    if (check.StartDate != null)
+                    issue = new RangeIssue()
                     {
-                        issue.Message = "start date (" + ((DateTime)check.StartDate).ToShortDateString() + ") before window " + check.RunDate.AddDays(0 - check.LeadTime).ToShortDateString();
-                    }
-                    else
-                    {
+                        Division = check.Division,
+                        Store = check.Store
+                    };
+
+                    if (check.StartDate != null)                    
+                        issue.Message = string.Format("start date ({0}) before window {1}", ((DateTime)check.StartDate).ToShortDateString(), check.RunDate.AddDays(0 - check.LeadTime).ToShortDateString());
+                    else                    
                         issue.Message = "start date is null";
-                    }
+                    
                     issues.Add(issue);
                 }
             }
 
             //On Range date has to be before off range date
             var startCheck = (from a in db.RangePlanDetails
-                              where ((a.ID == planID) && (a.EndDate != null) && (a.StartDate >= a.EndDate))
+                              where a.ID == planID && a.EndDate != null && a.StartDate >= a.EndDate
                               select a);
 
             if (startCheck.Count() > 0)
             {
                 foreach (var start in startCheck)
                 {
-                    issue = new RangeIssue();
-                    issue.Division = start.Division;
-                    issue.Store = start.Store;
-                    issue.Message = "end date on or before start date";
-                    issues.Add(issue);
+                    issue = new RangeIssue()
+                    {
+                        Division = start.Division,
+                        Store = start.Store,
+                        Message = "end date on or before start date"
+                    };
 
+                    issues.Add(issue);
                 }
             }
 
@@ -1510,21 +1494,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             newGroup.PlanID = planID;
             newGroup.Selected = true;
-            int count = (from a in db.DeliveryGroups where a.PlanID == planID select a).Count();
+            int count = db.DeliveryGroups.Where(dg => dg.PlanID == planID).Count();
             newGroup.Name = "Delivery Group " + (count + 1);
             newGroup.StoreCount = 0;
-            if (startDate != null)
-            {
-                newGroup.StartDate = (DateTime)startDate;
-            }
+
+            if (startDate != null)          
+                newGroup.StartDate = startDate.Value;
+            
             db.DeliveryGroups.Add(newGroup);
             db.SaveChanges();
 
-            RuleSet rs = new RuleSet();
-            rs.PlanID = planID;
-            rs.Type = "Delivery";
-            rs.CreateDate = DateTime.Now;
-            rs.CreatedBy = User.Identity.Name;
+            RuleSet rs = new RuleSet()
+            {
+                PlanID = planID,
+                Type = "Delivery",
+                CreateDate = DateTime.Now,
+                CreatedBy = currentUser.NetworkID
+            };
 
             db.RuleSets.Add(rs);
             db.SaveChanges();
@@ -1544,16 +1530,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult EditDeliveryGroup(long planID, long deliveryGroupID)
         {
-            DeliveryGroupModel model = new DeliveryGroupModel();
-            model.DeliveryGroup = (from a in db.DeliveryGroups where a.ID == deliveryGroupID select a).First();
+            DeliveryGroupModel model = new DeliveryGroupModel()
+            {
+                DeliveryGroup = db.DeliveryGroups.Where(dg => dg.ID == deliveryGroupID).First()
+            };            
 
             if (model.DeliveryGroup.RuleSetID == 0)
             {
-                RuleSet rs = new RuleSet();
-                rs.PlanID = planID;
-                rs.Type = "Delivery";
-                rs.CreateDate = DateTime.Now;
-                rs.CreatedBy = User.Identity.Name;
+                RuleSet rs = new RuleSet()
+                {
+                    PlanID = planID,
+                    Type = "Delivery",
+                    CreateDate = DateTime.Now,
+                    CreatedBy = currentUser.NetworkID
+                };
 
                 db.RuleSets.Add(rs);
                 db.SaveChanges();
@@ -1605,67 +1595,43 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private void UpdateStoreDates(string div, string store, long ruleSetID, long planID, string rangeType)
         {
             //always default to "Both"
-            if (string.IsNullOrEmpty(rangeType))
-            {
-                rangeType = "Both";
-            }
+            if (string.IsNullOrEmpty(rangeType))            
+                rangeType = "Both";            
 
-            MaxLeadTime lt = (from c in db.MaxLeadTimes
-                              where c.Store == store && c.Division == div
-                              select c).FirstOrDefault();
+            MaxLeadTime lt = db.MaxLeadTimes.Where(mlt => mlt.Store == store && mlt.Division == div).FirstOrDefault();
+
             if (lt == null)
             {
-                lt = new MaxLeadTime();
-                lt.LeadTime = 5;
-                lt.Division = div;
-                lt.Store = store;
+                lt = new MaxLeadTime()
+                {
+                    LeadTime = 5,
+                    Division = div,
+                    Store = store
+                };
             }
             SizeAllocationDAO dao = new SizeAllocationDAO();
-            List<RangePlanDetail> rangePlanDetails = (from a in db.RangePlanDetails
-                                                      where a.ID == planID
-                                                      select a).ToList();
+            List<RangePlanDetail> rangePlanDetails = db.RangePlanDetails.Where(rpd => rpd.ID == planID).ToList();
 
             var query = (from a in rangePlanDetails
-                         where ((a.Division == lt.Division) && (a.Store == lt.Store))
+                         where a.Division == lt.Division && a.Store == lt.Store
                          select a);
 
-            DeliveryGroup dg = (from a in db.DeliveryGroups
-                                where a.RuleSetID == ruleSetID
-                                select a).First();
+            DeliveryGroup dg = db.DeliveryGroups.Where(d => d.RuleSetID == ruleSetID).First();
 
             foreach (RangePlanDetail rpDet in query)
             {
                 rpDet.RangeType = rangeType;
                 db.Entry(rpDet).State = System.Data.EntityState.Modified;
                 //set start/end date
-                if (dg.StartDate != null)
-                {
-                    rpDet.StartDate = ((DateTime)dg.StartDate).AddDays(lt.LeadTime);
-                    //db.Entry(rpDet).State = System.Data.EntityState.Modified;
-                }
-                else
-                {
+                if (dg.StartDate != null)                
+                    rpDet.StartDate = ((DateTime)dg.StartDate).AddDays(lt.LeadTime);                
+                else                
                     rpDet.StartDate = null;
-                }
-                if (dg.EndDate != null)
-                {
-                    rpDet.EndDate = ((DateTime)dg.EndDate).AddDays(lt.LeadTime);
-                }
-                else
-                {
-                    rpDet.EndDate = null;
-                }
-            }
-        }
-
-        public void FixBadDeliveryGroups()
-        {
-            RangePlanDetailDAO dao = new RangePlanDetailDAO();
-            int count = 0;
-            foreach (DeliveryGroup dg in dao.GetBadDeliveryGroups())
-            {
-                UpdateDeliveryGroupDates(dg);
-                count++;
+                
+                if (dg.EndDate != null)                
+                    rpDet.EndDate = ((DateTime)dg.EndDate).AddDays(lt.LeadTime);                
+                else                
+                    rpDet.EndDate = null;                
             }
         }
 
@@ -1817,7 +1783,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             StoreSpreadsheet storeSpreadsheet = new StoreSpreadsheet(appConfig, configService, rangePlanDAO, new RuleDAO());
 
-            string message = string.Empty;
             int successCount = 0;
 
             foreach (HttpPostedFileBase file in attachments)
@@ -1880,7 +1845,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _RuleList(long planID)
         {
             long rulesetid = (new RuleDAO()).GetRuleSetID(planID, "main", currentUser.NetworkID);
-            List<Rule> rules = (from r in db.Rules where r.RuleSetID == rulesetid orderby r.Sort ascending select r).ToList();
+            List<Rule> rules = (from r in db.Rules 
+                                where r.RuleSetID == rulesetid 
+                                orderby r.Sort ascending 
+                                select r).ToList();
             return PartialView(new GridModel(rules));
         }
 
@@ -1893,7 +1861,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<StoreLookupModel> list;
             ViewData["planID"] = planID;
-            //ViewData["gridtype"] = filter;
+            
             if (gridtype == "AllStores")
             {
                 list = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
@@ -1946,10 +1914,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 List<StoreLookupModel> currStores = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
 
-                var currlist =
-                        from n in list
-                        join c in currStores on new { n.Division, n.Store } equals new { c.Division, c.Store }
-                        select n;
+                var currlist = from n in list
+                               join c in currStores 
+                               on new { n.Division, n.Store } equals new { c.Division, c.Store }
+                               select n;
                
                 foreach (StoreLookupModel m in currlist)
                 {
@@ -1973,22 +1941,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ViewData["planID"] = planID;
             ViewData["gridtype"] = "AddStoresByRule";
 
-            if (ruleType == null)
-            {
-                ruleType = "Main";
-            }
+            if (ruleType == null)            
+                ruleType = "Main";            
 
             ViewData["ruleType"] = ruleType;
             RuleModel model = new RuleModel();
 
             var ruleSetQuery = (from a in db.RuleSets
-                                where (a.PlanID == planID) && (a.Type == ruleType)
+                                where a.PlanID == planID && a.Type == ruleType
                                 select a.RuleSetID);
 
-            if (ruleSetQuery.Count() > 0)
-            {
-                model.RuleSetID = ruleSetQuery.First();
-            }
+            if (ruleSetQuery.Count() > 0)            
+                model.RuleSetID = ruleSetQuery.First();            
             else
             {
                 RuleSet rs = new RuleSet()
@@ -2092,24 +2056,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 db.Rules.Add(newRule.RuleToAdd);
                 db.SaveChanges();
             }
-            Int64 planID = (new RuleDAO()).GetPlanID(newRule.RuleToAdd.ID);
+            long planID = (new RuleDAO()).GetPlanID(newRule.RuleToAdd.ID);
 
-            RuleSet rs = (from a in db.RuleSets where a.RuleSetID == newRule.RuleToAdd.RuleSetID select a).FirstOrDefault();
+            RuleSet rs = db.RuleSets.Where(r => r.RuleSetID == newRule.RuleToAdd.RuleSetID).FirstOrDefault();
 
-            if (rs.Type == "SizeAlc")
-            {
-                return RedirectToAction("PresentationQuantities", new { planID = planID });
-            }
-            else
-            {
-                return RedirectToAction("AddStoresByRule", new { planID = planID });
-            }
+            if (rs.Type == "SizeAlc")            
+                return RedirectToAction("PresentationQuantities", new { planID });            
+            else            
+                return RedirectToAction("AddStoresByRule", new { planID });            
         }
 
         /// <summary>
         /// Add all the stores that meet the new rules to the range plan (planID)
         /// </summary>
-        public ActionResult AddAllStores(Int64 planID)
+        public ActionResult AddAllStores(long planID)
         {
             List<Rule> RulesForPlan = db.GetRulesForPlan(planID, "Main");
 
@@ -2153,12 +2113,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
             DateTime createDate = DateTime.Now;
             foreach (StoreLookupModel s in StoreList)
             {
-                det = new RangePlanDetail();
-                det.ID = planID;
-                det.Store = s.Store;
-                det.Division = s.Division;
-                det.CreateDate = createDate;
-                det.CreatedBy = currentUser.NetworkID;
+                det = new RangePlanDetail()
+                {
+                    ID = planID,
+                    Store = s.Store,
+                    Division = s.Division,
+                    CreateDate = createDate,
+                    CreatedBy = currentUser.NetworkID
+                };
+
                 details.Add(det);
             }
 
@@ -2236,12 +2199,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             try
             {
-                RangePlanDetail det = (from a in db.RangePlanDetails where ((a.Store == store) && (a.Division == div) && (a.ID == planID)) select a).First();
+                RangePlanDetail det = (from a in db.RangePlanDetails 
+                                       where a.Store == store && a.Division == div && a.ID == planID
+                                       select a).First();
 
                 db.RangePlanDetails.Remove(det);
                 db.SaveChanges();
 
-                var query2 = (from a in db.RuleSets join b in db.RuleSelectedStores on a.RuleSetID equals b.RuleSetID where ((a.PlanID == planID) && (b.Division == div) && (b.Store == store)) select b);
+                var query2 = (from a in db.RuleSets 
+                              join b in db.RuleSelectedStores 
+                              on a.RuleSetID equals b.RuleSetID 
+                              where (a.PlanID == planID) && (b.Division == div) && (b.Store == store)
+                              select b);
                 if (query2.Count() > 0)
                 {
                     //delete it
