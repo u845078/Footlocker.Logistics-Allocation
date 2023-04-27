@@ -934,10 +934,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             //On Range date has to be before off range date
-            var startCheck = (from a in db.RangePlanDetails
-                              where a.ID == planID && a.EndDate != null && a.StartDate >= a.EndDate
-                              select a);
-
+            var startCheck = db.RangePlanDetails.Where(rpd => rpd.ID == planID && 
+                                                              rpd.EndDate != null && 
+                                                              rpd.StartDate >= rpd.EndDate);
             if (startCheck.Count() > 0)
             {
                 foreach (var start in startCheck)
@@ -967,29 +966,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 if (end.RunDate.AddDays(end.LeadTime) > end.EndDate)
                 {
                     endCount++;
-                    issue = new RangeIssue();
-                    issue.Division = end.Division;
-                    issue.Store = end.Store;
-                    issue.Message = "not enough time (lead time days) before end date";
+                    issue = new RangeIssue()
+                    {
+                        Division = end.Division,
+                        Store = end.Store,
+                        Message = "not enough time (lead time days) before end date"
+                    };
                     issues.Add(issue);
                 }
             }
 
             //verify all the stores are in zones
-            var noZone = (from s in db.RangePlanDetails
-                          where
-                          (
-                              (s.ID == planID) &&
-                              (!db.NetworkZoneStores.Any(es => (es.Division == s.Division) && (es.Store == s.Store)))
-                          )
-                          select s);
+            var noZone = from s in db.RangePlanDetails
+                         where s.ID == planID &&
+                               !db.NetworkZoneStores.Any(es => es.Division == s.Division && es.Store == s.Store)                          
+                         select s;
 
             foreach (RangePlanDetail det in noZone)
             {
-                issue = new RangeIssue();
-                issue.Division = det.Division;
-                issue.Store = det.Store;
-                issue.Message = "Store not in any Zone";
+                issue = new RangeIssue()
+                {
+                    Division = det.Division,
+                    Store = det.Store,
+                    Message = "Store not in any Zone"
+                };
                 issues.Add(issue);
             }
 
@@ -1026,9 +1026,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("PresentationQuantities", new { planID = planID });
         }
 
-        public ActionResult PresentationQuantities(long planID, string message, string page, string show)
+        public ActionResult PresentationQuantities(long planID, string message, string page, string show, string storeCount)
         {
-            SkuSetupModel model = InitPresentationQtyModel(planID, message, page, show);
+            SkuSetupModel model = InitPresentationQtyModel(planID, message, page, storeCount);
             GetPresentationQtyDeliveryGroups(model);
 
             model.OrderPlanningRequest = db.OrderPlanningRequests.Where(opr => opr.PlanID == planID).FirstOrDefault();
@@ -1215,7 +1215,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <param name="page"></param>
         /// <param name="show"></param>
         /// <returns></returns>
-        private SkuSetupModel InitPresentationQtyModel(long planID, string message, string page, string show)
+        private SkuSetupModel InitPresentationQtyModel(long planID, string message, string page, string storeCount)
         {
             string ruleType = "SizeAlc";
 
@@ -1228,6 +1228,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ViewData["planID"] = planID;
             ViewData["ruleType"] = ruleType;
             ViewData["page"] = page;
+            ViewData["storeCount"] = storeCount;
             ItemMaster i = (from a in db.ItemMasters
                             join b in db.RangePlans
                             on a.ID equals b.ItemID

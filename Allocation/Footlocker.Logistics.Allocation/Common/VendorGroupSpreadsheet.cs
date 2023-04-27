@@ -32,12 +32,17 @@ namespace Footlocker.Logistics.Allocation.Common
         {
             string errorMessage = string.Empty;
 
-            VendorGroupDetail existing = config.db.VendorGroupDetails.Where(vgd => vgd.VendorNumber == rec.VendorNumber).FirstOrDefault();
-            if (existing != null)                            
-                errorMessage = string.Format("Already in group {0}", existing.GroupID);
-            else            
-                if (!vendorGroupDAO.IsVendorSetupForEDI(rec.VendorNumber))
-                    errorMessage = "Vendor must be setup for EDI before it can be added to a group.  Please email EDI.Support.";            
+            if (rec.VendorNumber == "00000")
+                errorMessage = "You must supply a valid Vendor Number that is not 00000";
+            else
+            {
+                VendorGroupDetail existing = config.db.VendorGroupDetails.Where(vgd => vgd.VendorNumber == rec.VendorNumber).FirstOrDefault();
+                if (existing != null)
+                    errorMessage = string.Format("Already in group {0}", existing.GroupID);
+                else
+                    if (!vendorGroupDAO.IsVendorSetupForEDI(rec.VendorNumber))
+                    errorMessage = "Vendor must be setup for EDI before it can be added to a group.  Please email EDI.Support.";
+            }
 
             return errorMessage;
         }

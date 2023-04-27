@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.SizeAllocation>
+﻿@model IEnumerable<SizeAllocation>
 
 <link rel="stylesheet" type="text/css" href="../../Content/gridscroll.css" />
 
@@ -22,7 +22,11 @@
     }
 
     function Page(pageid) {
-        window.location = "PresentationQuantities?planID=" + planID + "&page=" + pageid;
+        window.location = "PresentationQuantities?planID=" + planID + "&page=" + pageid + "&storeCount=" + $("#GridRows").val();
+    }
+
+    function ShowStoreCount() {
+        window.location = "PresentationQuantities?planID=" + planID + "&page=1&storeCount=" + $("#GridRows").val();
     }
 
     function disableFLPage() {
@@ -165,6 +169,10 @@
             GetMinDetTotals();
             //toggleMinEndDate();
             //toggleInitDemand();
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var storeCount = urlParams.get('storeCount');
+            $("#GridRows").val(storeCount);
         }
     );
 
@@ -201,15 +209,24 @@
             function toggleMinEndDate() {
                 $(".minEndDate").toggle();
             }
-
-
-</script>
+        </script>
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleRange()" checked>Range
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleMin()" checked>Min
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleMax()" checked>Max
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleInitDemand()">Base Demand
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleMinEndDays()">Min End Days Override
         <input type="checkbox" id="showMinEndDate" value="Min End Date" onclick="toggleMinEndDate()" checked>Min End Date
+
+        <div style="float: right;">
+            <label for="GridRows">Rows to view:</label> 
+            <select name="GridRows" id="GridRows" onchange="ShowStoreCount();">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+
         <div class="t-widget t-grid">
             <div class="scrollablearea" style="width: inherit">
                 <table class="scrolltable" style="width: inherit;" cellpadding=0 cellspacing=0>
@@ -256,8 +273,6 @@
 
                                 scriptContent1 += "var extra" + item.Size + " = Number(0);";
                                 @Html.Raw("</th>")
-
-
                             }
 
                             <th></th>
@@ -269,6 +284,11 @@
                             int count = 0;
                             int startCount = 0;
                             int storeCount = 0;
+                            int showStoreCount = Convert.ToInt32(ViewData["storeCount"]);
+                            if (showStoreCount == 0)
+                            {
+                                showStoreCount = 10;
+                            }
 
                             string pageString = Convert.ToString(ViewData["page"]);
 
@@ -279,8 +299,8 @@
 
                             int page = Convert.ToInt32(ViewData["page"]);
 
-                            int minStore = page * 10 - 10;
-                            int maxStore = page * 10 - 1;
+                            int minStore = page * showStoreCount - showStoreCount;
+                            int maxStore = page * showStoreCount - 1;
                             string scriptContent = "";
 
                             List<String> extraSizes = new List<String>();
@@ -309,6 +329,7 @@
                                     else
                                     {
                                         scriptContent += "var planID = " + item.PlanID + ";";
+                                        scriptContent += "var pageID = " + page + ";";
                                         scriptContent += "var breakIndexes=[];";
                                         scriptContent += "var minCell = -1;";
                                         scriptContent += "var maxCell=0;";
@@ -450,7 +471,7 @@
                                 int pageSet = Convert.ToInt32(((page - 1) / pagesInSet) + 1);
                                 int jpageSet;
                                 int storePageOffset = 1;
-                                int totalNumberOfPages = (storeCount / 10) + 1;
+                                int totalNumberOfPages = (storeCount / showStoreCount) + 1;
                                 int firstPageOfCurrentSet = (((page - 1) / pagesInSet) * pagesInSet) + 1;
                                 int priorPageSet = firstPageOfCurrentSet - 1;
 
@@ -477,10 +498,10 @@
                                         }
                                         <div class="t-numeric">
                                             @{
-                                                for (int j = 0; j <= storeCount; j += 10)
+                                                for (int j = 0; j <= storeCount; j += showStoreCount)
                                                 {
-                                                    storePageOffset = (j / 10) + 1;
-                                                    jpageSet = ((j / 10) / pagesInSet) + 1;
+                                                    storePageOffset = (j / showStoreCount) + 1;
+                                                    jpageSet = ((j / showStoreCount) / pagesInSet) + 1;
 
                                                     if (pageSet == jpageSet)
                                                     {
