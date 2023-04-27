@@ -19,7 +19,6 @@ namespace Footlocker.Logistics.Allocation.Services
             _database = DatabaseFactory.CreateDatabase("AllocationContext");
             _databaseDB2 = DatabaseFactory.CreateDatabase("DB2PROD");
         }
-
         
         public List<VendorGroupDetail> GetVendorGroupDetails(int ID)
         {
@@ -47,32 +46,26 @@ namespace Footlocker.Logistics.Allocation.Services
             return _que;
         }
 
-        public Boolean IsVendorSetupForEDI(string vendor)
+        public bool IsVendorSetupForEDI(string vendor)
         {
-            List<VendorGroupDetail> _que;
-            _que = new List<VendorGroupDetail>();
-
             DbCommand SQLCommand;
             string SQL = "select AUTO_APPROVAL_IND from TCEDI001 where ";
-            SQL = SQL + " VND_ID='" + vendor.PadLeft(5,'0') + "'";
+            SQL += " VND_ID='" + vendor.PadLeft(5,'0') + "'";
 
             SQLCommand = _databaseDB2.GetSqlStringCommand(SQL);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _databaseDB2.ExecuteDataSet(SQLCommand);
-
-            VendorGroupDetailFactory factory = new VendorGroupDetailFactory();
 
             if (data.Tables.Count > 0)
             {
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    if (Convert.ToString(dr["AUTO_APPROVAL_IND"]) == "Y")
-                    {
-                        return true;
-                    }
+                    if (Convert.ToString(dr["AUTO_APPROVAL_IND"]) == "Y")                    
+                        return true;                    
                 }
             }
+
             return false;
         }
     }

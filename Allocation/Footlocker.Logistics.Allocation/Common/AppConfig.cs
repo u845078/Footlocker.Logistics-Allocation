@@ -29,6 +29,7 @@ namespace Footlocker.Logistics.Allocation.Common
         private string _crossdockLinkTemplate;
         private string _ringFenceUploadTemplate;
         private string _storeTemplate;
+        private string _vendorGroupTemplate;
 
         public string AppName;
         public string AppPath;
@@ -164,6 +165,17 @@ namespace Footlocker.Logistics.Allocation.Common
                     _storeTemplate = ConfigurationManager.AppSettings["StoreTemplate"].ToString();
 
                 return _storeTemplate;
+            }
+        }
+
+        public string VendorGroupTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_vendorGroupTemplate))
+                    _vendorGroupTemplate = ConfigurationManager.AppSettings["VendorGroupTemplate"].ToString();
+
+                return _vendorGroupTemplate;
             }
         }
 

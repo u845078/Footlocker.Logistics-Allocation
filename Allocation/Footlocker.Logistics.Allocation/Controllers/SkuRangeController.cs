@@ -1041,12 +1041,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             if (Session["selectedDeliveryGroups"] != null)
             {
-                List<DeliveryGroup> groups = ((List<DeliveryGroup>)Session["selectedDeliveryGroups"]);
-                DeliveryGroup updated = (from a in groups where a.ID == DeliveryGroupID select a).First();
-                updated.Selected = !(updated.Selected);
+                List<DeliveryGroup> groups = (List<DeliveryGroup>)Session["selectedDeliveryGroups"];
+                DeliveryGroup updated = groups.Where(g => g.ID == DeliveryGroupID).First();
+                updated.Selected = !updated.Selected;
                 Session["selectedDeliveryGroups"] = groups;
             }
-            return RedirectToAction("PresentationQuantities", new { planID = planID });
+            return RedirectToAction("PresentationQuantities", new { planID });
         }
 
         private void GetPresentationQtyModelDetails(SkuSetupModel model, string show)
@@ -1170,12 +1170,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void GetPresentationQtyDeliveryGroups(SkuSetupModel model)
         {
-            model.DeliveryGroups = (from a in db.DeliveryGroups
-                                    where a.PlanID == model.RangePlan.Id
-                                    select a).ToList();
+            model.DeliveryGroups = db.DeliveryGroups.Where(dg => dg.PlanID == model.RangePlan.Id).ToList();
 
             InitializeDeliveryGroups(model);
-
 
             if (Session["selectedDeliveryGroups"] == null)
             {
@@ -1186,10 +1183,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 bool resetSelected = model.RangePlan.Id != ((List<DeliveryGroup>)Session["selectedDeliveryGroups"])[0].PlanID;
 
-                if (resetSelected)
-                {
-                    model.DeliveryGroups.ForEach(dg => { dg.Selected = true; });
-                }
+                if (resetSelected)                
+                    model.DeliveryGroups.ForEach(dg => { dg.Selected = true; });                
                 else
                 {
                     List<DeliveryGroup> groups = ((List<DeliveryGroup>)Session["selectedDeliveryGroups"]);
@@ -1197,10 +1192,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         // retrieve dg from session
                         var sessiondg = groups.Where(d => d.ID.Equals(dg.ID)).FirstOrDefault();
-                        if (sessiondg != null)
-                        {
-                            dg.Selected = sessiondg.Selected;
-                        }
+                        if (sessiondg != null)                        
+                            dg.Selected = sessiondg.Selected;                        
                         else
                         {
                             // session doesn't have delivery group (probably just created)
@@ -1226,15 +1219,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             string ruleType = "SizeAlc";
 
-            if (Request.UserAgent.Contains("Chrome") || Request.UserAgent.Contains("Firefox"))
-            {
-                ViewData["Chrome"] = "true";
-            }
+            if (Request.UserAgent.Contains("Chrome") || Request.UserAgent.Contains("Firefox"))            
+                ViewData["Chrome"] = "true";            
 
-            if (!string.IsNullOrEmpty(message))
-            {
+            if (!string.IsNullOrEmpty(message))            
                 ViewData["message"] = message;
-            }
+            
             ViewData["planID"] = planID;
             ViewData["ruleType"] = ruleType;
             ViewData["page"] = page;
@@ -1243,12 +1233,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             on a.ID equals b.ItemID
                             where b.Id == planID
                             select a).FirstOrDefault();
-            if (i != null)
-            {
+            if (i != null)            
                 ViewData["LifeCycle"] = i.LifeCycleDays;
-            }
-            SkuSetupModel model = new SkuSetupModel();
-            model.RangePlan = db.RangePlans.Where(rp => rp.Id == planID).First();
+
+            SkuSetupModel model = new SkuSetupModel()
+            {
+                RangePlan = db.RangePlans.Where(rp => rp.Id == planID).First()
+            };            
 
             model.RangePlan.PreSaleSKU = db.PreSaleSKUs.Where(pss => pss.ItemID == model.RangePlan.ItemID && pss.Active).Count() > 0 ? "True" : "False";
 
@@ -1257,10 +1248,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 orderby a.CreateDate descending
                                 select a).FirstOrDefault();
 
-            if (reInitStatus != null)
-            {
-                model.RangePlan.ReInitializeStatus = (reInitStatus.SkuExtracted) ? "SKU Extracted on " + reInitStatus.LastModifiedDate.ToShortDateString() : "Pending to be Extracted";
-            }
+            if (reInitStatus != null)            
+                model.RangePlan.ReInitializeStatus = reInitStatus.SkuExtracted ? "SKU Extracted on " + reInitStatus.LastModifiedDate.ToShortDateString() : "Pending to be Extracted";            
 
             if (model.RangePlan != null)
             {

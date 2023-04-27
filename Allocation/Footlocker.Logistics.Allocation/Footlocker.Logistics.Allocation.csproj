@@ -244,6 +244,7 @@
     <Compile Include="Common\SKURangeStoreExport.cs" />
     <Compile Include="Common\StoreSpreadsheet.cs" />
     <Compile Include="Common\UploadSpreadsheet.cs" />
+    <Compile Include="Common\VendorGroupSpreadsheet.cs" />
     <Compile Include="Common\WebPickSpreadsheet.cs" />
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ConceptTypeController.cs" />
@@ -571,6 +572,7 @@
     </None>
     <Content Include="Content\Templates\WebPickUploadTemplate.xls" />
     <Content Include="Content\Templates\StoreTemplate.xls" />
+    <Content Include="Content\Templates\VendorGroupTemplate.xls" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="readme.txt" />
     <Content Include="Views\Shared\EditorTemplates\Date.cshtml" />

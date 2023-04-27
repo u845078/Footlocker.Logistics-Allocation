@@ -269,11 +269,18 @@
                             int count = 0;
                             int startCount = 0;
                             int storeCount = 0;
-                            int page = Convert.ToInt32(ViewData["page"]) + 1;
+
+                            string pageString = Convert.ToString(ViewData["page"]);
+
+                            if (string.IsNullOrEmpty(pageString))
+                            {
+                                ViewData["page"] = "1";
+                            }
+
+                            int page = Convert.ToInt32(ViewData["page"]);
 
                             int minStore = page * 10 - 10;
                             int maxStore = page * 10 - 1;
-                            Int64 planID;
                             string scriptContent = "";
 
                             List<String> extraSizes = new List<String>();
@@ -281,11 +288,11 @@
 
                             foreach (var item in Model)
                             {
-                                if (!((prevDiv.Equals(item.Division)) && (prevStore.Equals(item.Store))))
+                                if (!(prevDiv == item.Division && prevStore == item.Store))
                                 {
-                                    if (!(prevDiv.Equals("FIRST")))
+                                    if (prevDiv != "FIRST")
                                     {
-                                        if ((storeCount >= minStore) && (storeCount <= maxStore))
+                                        if (storeCount >= minStore && storeCount <= maxStore)
                                         {
 
                                             @Html.Raw("<td nowrap class=\"long\"><div class=\"t-button\" onclick=\"SaveChanges('" + startCount + "', '" + count + "');\" >Save</div></td>")
@@ -408,8 +415,6 @@
                                     //scriptContent += "extra" + item.Size + " += Number(" + item.Min + ");";
                                 }
                                 count++;
-
-
                             }
 
                             <script type="text/javascript">
@@ -441,62 +446,65 @@
                                 @Html.Raw("</tr></table>");
 
                                 @Html.Raw("</div>");
-
+                                int pagesInSet = 25;
+                                int pageSet = Convert.ToInt32(((page - 1) / pagesInSet) + 1);
+                                int jpageSet;
+                                int storePageOffset = 1;
+                                int totalNumberOfPages = (storeCount / 10) + 1;
+                                int firstPageOfCurrentSet = (((page - 1) / pagesInSet) * pagesInSet) + 1;
+                                int priorPageSet = firstPageOfCurrentSet - 1;
 
                                 <div class="t-grid-pager t-grid-bottom">
                                     <div class="t-status"></div>
                                     <div class="t-pager t-reset">
-                                        <a class="t-link t-state-enabled" onclick="Page('0');">
-                                            <span class="t-icon t-arrow-first">first</span>
-                                        </a>
-                                        @if (page > 1)
+                                        @if (firstPageOfCurrentSet > 1)
                                         {
-                                            <a class="t-link t-state-enabled" onclick="Page('@((Convert.ToInt32((page - 1)/25)-1)*25)');">
+                                            <a class="t-link t-state-enabled" onclick="Page('1');">
+                                                <span class="t-icon t-arrow-first">first</span>
+                                            </a>
+                                            <a class="t-link t-state-enabled" onclick="Page('@priorPageSet');">
                                                 <span class="t-icon t-arrow-prev">prev</span>
                                             </a>
                                         }
                                         else
                                         {
                                             <a class="t-link t-state-disabled">
+                                                <span class="t-icon t-arrow-first">first</span>
+                                            </a>
+                                            <a class="t-link t-state-disabled">
                                                 <span class="t-icon t-arrow-prev">prev</span>
                                             </a>
                                         }
                                         <div class="t-numeric">
-
                                             @{
-                                                int numpages = 0;
-                                                int currentpage = 0;
-                                                int pageSet = Convert.ToInt32((page - 1) / 25);
-                                                int jpageSet;
                                                 for (int j = 0; j <= storeCount; j += 10)
                                                 {
-                                                    jpageSet = Convert.ToInt32((j / 10) / 25);
+                                                    storePageOffset = (j / 10) + 1;
+                                                    jpageSet = ((j / 10) / pagesInSet) + 1;
 
                                                     if (pageSet == jpageSet)
                                                     {
-                                                        if ((j / 10) == (page - 1))
+                                                        if (storePageOffset == page)
                                                         {
-                                                            @Html.Raw("<span class=\"t-state-active\" >" + j / 10 + "</span>")
-                                                            currentpage = j / 10;
+                                                            @Html.Raw("<span class=\"t-state-active\" >" + storePageOffset + "</span>")
                                                         }
                                                         else
                                                         {
-                                                            @Html.Raw("<div class=\"t-link\" onclick=\"Page('" + j / 10 + "');\" >" + j / 10 + "</div>")
+                                                            @Html.Raw("<div class=\"t-link\" onclick=\"Page('" + storePageOffset + "');\" >" + storePageOffset + "</div>")
                                                         }
                                                     }
-                                                    numpages = j / 10;
                                                 }
-                                                if (page < numpages)
+
+                                                int nextPageSet = (((page / pagesInSet) + 1) * pagesInSet) + 1;
+                                                if (page < nextPageSet && totalNumberOfPages >= nextPageSet)
                                                 {
-                                                    currentpage = currentpage + 1;
-                                                    <a class="t-link t-state-enabled" onclick="Page('@((Convert.ToInt32((currentpage - 1) / 25) + 1) * 25)');"><span class="t-icon t-arrow-next">next</span></a>
-                                                    <a class="t-link t-state-enabled" onclick="Page('@numpages ');"><span class="t-icon t-arrow-last">last</span></a>
+                                                    <a class="t-link t-state-enabled" onclick="Page('@nextPageSet');"><span class="t-icon t-arrow-next">next</span></a>
+                                                    <a class="t-link t-state-enabled" onclick="Page('@storePageOffset ');"><span class="t-icon t-arrow-last">last</span></a>
                                                 }
                                                 else
                                                 {
                                                     <a class="t-link t-state-disabled"><span class="t-icon t-arrow-next">next</span></a>
                                                     <a class="t-link t-state-disabled"><span class="t-icon t-arrow-last">last</span></a>
-
                                                 }
                                             }
                                         </div><div class="t-status-text"></div>

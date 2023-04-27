@@ -10,13 +10,17 @@ using Aspose.Excel;
 using Telerik.Web.Mvc;
 using Footlocker.Logistics.Allocation.Services;
 using System.Web.Helpers;
+using Footlocker.Logistics.Allocation.Common;
+using System.Web.ApplicationServices;
+using System.Web.Services.Description;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
     [CheckPermission(Roles = "Support,Logistics")]
     public class DTSVendorGroupController : AppController
     {
-        AllocationContext db = new AllocationContext();
+        readonly AllocationContext db = new AllocationContext();
+        readonly VendorGroupDetailDAO vendorGroupDetailDAO = new VendorGroupDetailDAO();
 
         public ActionResult Index(string message)
         {
@@ -90,19 +94,40 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _RefreshGrid(int ID)
         {
-            VendorGroupDetailDAO dao = new VendorGroupDetailDAO();
+            List<VendorGroupDetail> list = vendorGroupDetailDAO.GetVendorGroupDetails(ID);
 
-            List<VendorGroupDetail> list = dao.GetVendorGroupDetails(ID);
+            if (list.Count > 0)
+            {
+                List<string> uniqueNames = (from l in list
+                                            select l.CreatedBy).Distinct().ToList();
+                Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+
+                List<ApplicationUser> allUserNames = GetAllUserNamesFromDatabase();
+
+                foreach (var item in uniqueNames)
+                {
+                    if (!item.Contains(" ") && !string.IsNullOrEmpty(item))
+                    {
+                        string userLookup = item.Replace('\\', '/');
+                        userLookup = userLookup.Replace("CORP/", "");
+
+                        if (userLookup.Substring(0, 1) == "u")
+                            fullNamePairs.Add(item, allUserNames.Where(aun => aun.UserName == userLookup).Select(aun => aun.FullName).FirstOrDefault());
+                        else
+                            fullNamePairs.Add(item, item);
+                    }
+                    else
+                        fullNamePairs.Add(item, item);
+                }
+
+                foreach (var item in fullNamePairs)
+                {
+                    list.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+                }
+            }
 
             return View(new GridModel(list));
         }
-
-        //[GridAction]
-        //public ActionResult _RefreshLeadTimeGrid(int ID, string message)
-        //{
-        //    List<VendorGroupLeadTime> list = (from a in db.VendorGroupLeadTimes where a.VendorGroupID == ID select a).ToList();
-        //    return View(new GridModel(list));
-        //}
 
         public ActionResult DeleteDetail(int ID, string vendorNumber)
         {
@@ -110,10 +135,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.VendorGroupDetails.Remove(det);            
 
             VendorGroup group = db.VendorGroups.Where(vg => vg.ID == ID).First();
-            group.Count = group.Count - 1;
+            group.Count--;
             db.SaveChanges();
 
-            return RedirectToAction("Details", new { ID = ID});
+            return RedirectToAction("Details", new { ID});
         }
 
         public ActionResult AddDetail(int ID, string vendorNumber)
@@ -137,8 +162,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 try
                 {
-                    VendorGroupDetailDAO dao = new VendorGroupDetailDAO();
-                    if (dao.IsVendorSetupForEDI(vendorNumber))
+                    if (vendorGroupDetailDAO.IsVendorSetupForEDI(vendorNumber))
                     {
                         VendorGroupDetail det = new VendorGroupDetail()
                         {
@@ -154,10 +178,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         group.Count += 1;
                         db.SaveChanges();
                     }
-                    else
-                    {
-                        message = "Vendor must be setup for EDI before it can be added to a group.  Please email EDI.Support.";
-                    }
+                    else                    
+                        message = "Vendor must be setup for EDI before it can be added to a group.  Please email EDI.Support.";                    
                 }
                 catch (System.Data.Entity.Validation.DbEntityValidationException ex2)
                 {
@@ -180,22 +202,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult ConfirmMove(int ID, string vendorNumber)
         {
-            VendorGroupDetail det = (from a in db.VendorGroupDetails where (a.VendorNumber == vendorNumber) select a).First();
-            VendorGroup group = (from a in db.VendorGroups where a.ID == det.GroupID select a).First();
-            group.Count = group.Count - 1;
+            VendorGroupDetail det = db.VendorGroupDetails.Where(vgd => vgd.VendorNumber == vendorNumber).First();
+            VendorGroup group = db.VendorGroups.Where(vg => vg.ID == det.GroupID).First();
+            group.Count--;
             db.SaveChanges();
-
             
             det.GroupID = ID;
             det.CreateDate = DateTime.Now;
             det.CreatedBy = currentUser.NetworkID;
             db.SaveChanges();
 
-            group = (from a in db.VendorGroups where a.ID == ID select a).First();
-            group.Count = group.Count + 1;
+            group = db.VendorGroups.Where(vg => vg.ID == ID).First();
+            group.Count++;
             db.SaveChanges();
 
-            return RedirectToAction("Details", new { ID = ID });
+            return RedirectToAction("Details", new { ID });
         }
 
         public ActionResult Edit(int ID)
@@ -216,20 +237,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("Index");
         }
 
-        //public ActionResult EditLeadTime(int ID, int ZoneID)
-        //{
-        //    VendorGroupLeadTime group = (from a in db.VendorGroupLeadTimes where ((a.ZoneID == ZoneID) && (a.VendorGroupID == ID)) select a).First();
+        public ActionResult ExcelTemplate(int ID)
+        {
+            VendorGroupSpreadsheet vendorGroupSpreadsheet = new VendorGroupSpreadsheet(appConfig, new ConfigService(), vendorGroupDetailDAO);
+            Excel excelDocument;
 
-        //    return View(group);
-        //}
+            excelDocument = vendorGroupSpreadsheet.GetTemplate();
 
-        //[HttpPost]
-        //public ActionResult EditLeadTime(VendorGroupLeadTime model)
-        //{
-        //    db.Entry(model).State = System.Data.EntityState.Modified;
-        //    db.SaveChanges();
-        //    return RedirectToAction("Details", new { ID = model.VendorGroupID });
-        //}
+            excelDocument.Save("VendorGroupUpload.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            VendorGroupDetailsModel model = new VendorGroupDetailsModel()
+            {
+                HasDetails = db.VendorGroupDetails.Where(vgd => vgd.GroupID == ID).Any(),
+                Header = db.VendorGroups.Where(vg => vg.ID == ID).FirstOrDefault()
+            };
+            return View("Details", model);
+        }
 
         /// <summary>
         /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
@@ -238,127 +260,34 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <returns></returns>
         public ActionResult Save(IEnumerable<HttpPostedFileBase> attachments, int ID)
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-            List<VendorGroupDetail> errors = new List<VendorGroupDetail>();
-            int errorCount = 0;
-            int addedCount = 0;
-            VendorGroupDetailDAO dao = new VendorGroupDetailDAO();
-
+            VendorGroupSpreadsheet vendorGroupSpreadsheet = new VendorGroupSpreadsheet(appConfig, new ConfigService(), vendorGroupDetailDAO);
             foreach (HttpPostedFileBase file in attachments)
             {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-                int row = 1;
-                string vendornumber="";
-                if (Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Vendor"))
+                vendorGroupSpreadsheet.Save(file, ID);
+
+                if (vendorGroupSpreadsheet.errorList.Count() > 0)
                 {
-                    while (mySheet.Cells[row, 0].Value != null)
-                    {
-                        vendornumber = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(5,'0');
-                        var existing = (from a in db.VendorGroupDetails where (a.VendorNumber == vendornumber) select a);
-                        if (existing.Count() > 0)
-                        {
-                            errorCount++;
-                            VendorGroupDetail vgd = existing.First();
-                            vgd.ErrorMessage = "Already in group " + vgd.GroupID;
-                            errors.Add(vgd);
-                            try {
-                                vgd.ErrorMessage = "Already in group " + (from a in db.VendorGroups where a.ID == vgd.GroupID select a).First().Name;
-                            }
-                            catch {
-                            //if anything goes wrong with that sql, just ignore it.  The error will have the ID instead of the name
-                            }
-                        }
-                        else if (!(dao.IsVendorSetupForEDI(vendornumber)))
-                        {
-                            errorCount++;
-                            VendorGroupDetail det = new VendorGroupDetail();
-                            det.GroupID = ID;
-                            det.VendorNumber = vendornumber;
-                            det.ErrorMessage = "Vendor must be setup for EDI before it can be added to a group.  Please email EDI.Support.";
-                            errors.Add(det);
-                        }
-                        else
-                        {
-                            VendorGroupDetail det = new VendorGroupDetail();
-                            try
-                            {
-                                det.GroupID = ID;
-                                det.VendorNumber = vendornumber;
-                                det.CreateDate = DateTime.Now;
-                                det.CreatedBy = User.Identity.Name;
-                                db.VendorGroupDetails.Add(det);
-                                db.SaveChanges();
-
-                                addedCount++;
-                            }
-                            catch (Exception ex)
-                            {
-                                errorCount++;
-                                det.ErrorMessage = ex.Message;
-                                errors.Add(det);
-                            }
-                        }
-
-                        row++;
-                    }
-
-                    VendorGroup vg = (from a in db.VendorGroups where a.ID == ID select a).First();
-                    vg.Count = vg.Count + addedCount;
-                    db.SaveChanges();
-
-                }
-                else
-                {
-                    return Content("Incorrect header, first column must be Vendor.");
+                    Session["errorList"] = vendorGroupSpreadsheet.errorList;
+                    return Content(string.Format("{0} Errors on spreadsheet ({1} successfully uploaded)", vendorGroupSpreadsheet.errorList.Count(), vendorGroupSpreadsheet.validList.Count()));
                 }
             }
-            if (errors.Count > 0)
-            {
-                Session["errorList"] = errors;
-                return Content(errorCount + " Errors on spreadsheet (" + addedCount + " successfully uploaded)");
 
-            }
-            else
-            {
-                return Content("");
-            }
+            return Content("");
         }
 
         public ActionResult SeasonalityErrors()
         {
+            VendorGroupSpreadsheet vendorGroupSpreadsheet = new VendorGroupSpreadsheet(appConfig, new ConfigService(), vendorGroupDetailDAO);
+            Excel excelDocument;
+
             List<VendorGroupDetail> errorList = new List<VendorGroupDetail>();
+
             if (Session["errorList"] != null)
-            {
                 errorList = (List<VendorGroupDetail>)Session["errorList"];
-            }
 
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-            Excel excelDocument = new Excel();
-            Worksheet mySheet = excelDocument.Worksheets[0];
-            int row = 1;
-            mySheet.Cells[0, 0].PutValue("VendorNumber");
-            mySheet.Cells[0, 1].PutValue("ErrorMessage");
-            foreach (VendorGroupDetail p in errorList)
-            {
-                mySheet.Cells[row, 0].PutValue(p.VendorNumber);
-                mySheet.Cells[row, 1].PutValue(p.ErrorMessage);
-
-                row++;
-            }
-
+            excelDocument = vendorGroupSpreadsheet.GetErrors(errorList);
             excelDocument.Save("VendorGroupErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+
             return View();
         }
     }

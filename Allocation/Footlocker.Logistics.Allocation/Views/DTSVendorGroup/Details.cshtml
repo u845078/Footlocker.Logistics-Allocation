@@ -50,8 +50,11 @@
 }
 <br />
 <fieldset>
-    <legend> Upload Spreadsheet </legend>
-    First Spreadsheet column should be Vendor.  <br />
+    <legend>Upload Spreadsheet</legend>
+    <br />
+    @Html.ActionLink("Download Template", "ExcelTemplate", new { ID = Model.Header.ID }, new { @class = "t-button" })
+    <br />
+    <br />
     @(Html.Telerik().Upload()
         .Name("attachments")
         .Multiple(true)
@@ -65,9 +68,9 @@
                     .OnSuccess("onSuccess")
             )
         )
-        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
-        <br />
-        <div id="message"></div>
+    <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;" />
+    <br />
+    <div id="message"></div>
 </fieldset>
      <script type="text/javascript">
 
