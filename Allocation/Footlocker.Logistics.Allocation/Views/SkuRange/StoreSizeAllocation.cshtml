@@ -9,7 +9,7 @@
     
     .initdemand
     {
-        font-color:Red; 
+        /*color : red;  */
         background-color : #99FFCC;
     }
 </style>
@@ -163,12 +163,9 @@
 
     $(document).ready(
         function () {
-            //$('input').filter(function () { return new RegExp("^det.*Min$").test(this.name); }).blur(GetMinDetTotals);
             $('input').filter(function () { return /^det.*Min/.test(this.name); }).blur(GetMinDetTotals);
 
             GetMinDetTotals();
-            //toggleMinEndDate();
-            //toggleInitDemand();
 
             var urlParams = new URLSearchParams(window.location.search);
             var storeCount = urlParams.get('storeCount');
@@ -220,10 +217,10 @@
         <div style="float: right;">
             <label for="GridRows">Rows to view:</label> 
             <select name="GridRows" id="GridRows" onchange="ShowStoreCount();">
-                <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
+                <option value="200">200</option>
             </select>
         </div>
 
@@ -232,24 +229,19 @@
                 <table class="scrolltable" style="width: inherit;" cellpadding=0 cellspacing=0>
                     <tr>
                         <th nowrap class='headcolLeague'>
-                            @Html.DisplayNameFor(model => model.League)
-                            <br />
+                            @Html.DisplayNameFor(model => model.League)<br />
                         </th>
                         <th nowrap class='headcol'>
-                            @Html.DisplayNameFor(model => model.Store)
-                            <br />
+                            @Html.DisplayNameFor(model => model.Store)<br />
                         </th>
                         <th nowrap class='headcol2'>
-                            OnRange
-                            <br />
+                            OnRange<br />
                         </th>
                         <th nowrap class='headcol3'>
-                            End
-                            <br />
+                            End<br />
                         </th>
                         <th nowrap class='headcol5'>
-                            (<span class='total' id="DetTotal"></span>)
-                            <br />
+                            (<span class='total' id="DetTotal"></span>)<br />
                         </th>
                         @{
                             string prevStore = "";
@@ -267,15 +259,16 @@
                                 {
                                     break;
                                 }
-                                @Html.Raw("<th class='long' nowrap>")
-                                @Html.Raw(item.Size + "")
-                                @Html.Raw("&nbsp;(<span class='total' id='sizeTotal" + item.Size + "'></span>)")
+                                
+                                @Html.Raw("<th class='long' nowrap>");
+                                @Html.Raw(item.Size + "");
+                                @Html.Raw("&nbsp;(<span class='total' id='sizeTotal" + item.Size + "'></span>)");
 
                                 scriptContent1 += "var extra" + item.Size + " = Number(0);";
-                                @Html.Raw("</th>")
-                            }
-
+                                Html.Raw("</th>");
+                            }                            
                             <th></th>
+                            
                             @Html.Raw("</tr>")
 
                             prevStore = "FIRST";
@@ -287,7 +280,7 @@
                             int showStoreCount = Convert.ToInt32(ViewData["storeCount"]);
                             if (showStoreCount == 0)
                             {
-                                showStoreCount = 10;
+                                showStoreCount = 20;
                             }
 
                             string pageString = Convert.ToString(ViewData["page"]);
@@ -336,7 +329,7 @@
                                     }
                                     prevDiv = item.Division;
                                     prevStore = item.Store;
-                                    if ((storeCount >= minStore) && (storeCount <= maxStore))
+                                    if (storeCount >= minStore && storeCount <= maxStore)
                                     {
                                         if (alternate)
                                         {
@@ -412,12 +405,6 @@
                                     @Html.Raw("<input class=\"minEndDays\"name=\"det[" + count + "].MnEndDays\" hidden=true type=\"text\" value=\"" + item.MinEndDays + "\" style=\"Width:28px\" onchange=\"checkForChange(this.name)\" onkeyup=\"checkForChange(this.name)\" onpaste=\"checkForChange(this.name)\" />")
                                     @Html.Raw("&nbsp;")
                                     @Html.Raw("<span class=\"minEndDate\">" + (item.CalculatedMinEndDate == null ? "" : "(" + item.CalculatedMinEndDate + ")") + "</span>")
-                                    @*@(Html.Telerik().DatePicker()
-                                                            .Name("det[" + count + "].MnEndDate")
-                                                            .HtmlAttributes(new { style = "display:none;width:90px", hidden="true", id = "DatePicker_wrapper", title = "Override of delivery group min end date", @class="minEndDate" })
-                                                                .Value(item.MinEndDate).Enable(true).Format("MM/dd/yyyy")
-
-                                    )*@
                                     @Html.Raw("</td>")
                                 }
                                 else
@@ -432,23 +419,18 @@
                                         extraQty[extraSizes.IndexOf(item.Size)] += Convert.ToInt32(item.Min);
                                         extraQty.Add(Convert.ToInt32(item.Min));
                                     }
-
-                                    //scriptContent += "extra" + item.Size + " += Number(" + item.Min + ");";
                                 }
                                 count++;
                             }
 
                             <script type="text/javascript">
-        @Html.Raw(scriptContent1)
-                            </script>
-                            <script>
-            @foreach (string size in extraSizes)
-            {
-                scriptContent += "extra" + size + " += Number(" + extraQty[extraSizes.IndexOf(size)] + ");";
-            }
+                                @Html.Raw(scriptContent1)
+                                @foreach (string size in extraSizes)
+                                {
+                                    scriptContent += "extra" + size + " += Number(" + extraQty[extraSizes.IndexOf(size)] + ");";
+                                }
 
-            @Html.Raw(scriptContent)
-
+                                @Html.Raw(scriptContent)
                             </script>
 
                             if (!(prevDiv.Equals("FIRST")))
@@ -457,13 +439,13 @@
                                 {
                                     @Html.Raw("<td class=\"scrolltd\"><div class=\"t-button\" onclick=\"SaveChanges('" + startCount + "', '" + count + "');\" >Save</div></td>")
                                     <script>
-                maxCell = @count;
-                if (minCell == -1)
-                {
-                    minCell = @startCount;
-                }
+                                        maxCell = @count;
+                                        if (minCell == -1)
+                                        {
+                                            minCell = @startCount;
+                                        }
                                     </script>
-                                }
+                                }                                
                                 @Html.Raw("</tr></table>");
 
                                 @Html.Raw("</div>");
@@ -516,7 +498,7 @@
                                                     }
                                                 }
 
-                                                int nextPageSet = (((page / pagesInSet) + 1) * pagesInSet) + 1;
+                                                int nextPageSet = ((((page - 1) / pagesInSet) + 1) * pagesInSet) + 1;
                                                 if (page < nextPageSet && totalNumberOfPages >= nextPageSet)
                                                 {
                                                     <a class="t-link t-state-enabled" onclick="Page('@nextPageSet');"><span class="t-icon t-arrow-next">next</span></a>
@@ -534,7 +516,6 @@
                                 </div>
                                 <br />
                                 @Html.Raw("<div class=\"t-button\" style=\"margin-bottom: 5px;\" onclick=\"SaveChanges(minCell,maxCell);\" >Save All Changes</div>")
-
                             }
                         }
             </div>
@@ -546,24 +527,17 @@
 
 @if (ViewData["LifeCycle"] != null)
 { 
-<script type="text/javascript">
-    var ss_days = @ViewData["LifeCycle"];
-</script>
+    <script type="text/javascript">
+        var ss_days = @ViewData["LifeCycle"];
+    </script>
 }
 else
 { 
-<script type="text/javascript">
-    var ss_days = 365;
-</script>
-
+    <script type="text/javascript">
+        var ss_days = 365;
+    </script>
 }
 <script type="text/javascript">
-//    Date.prototype.addDays = function (days) {
-//        var dat = new Date(this.valueOf());
-//        dat.setDate(dat.getDate() + days);
-//        return dat;
-//    }
-
     function setEndDate(e) {
         //alert(e.target.id.replace('Start', 'End'));
         var start = e.target.id;
