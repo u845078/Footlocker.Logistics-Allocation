@@ -178,7 +178,15 @@
     })
     .DataBinding(dataBinding =>
     {
-        dataBinding.Ajax().Select("_BulkRDQs", "WebPick", new { instanceID = Model.Instance, div = Model.Division, department = Model.Department, category = Model.Category, sku = Model.Sku, status = Model.Status, po = Model.PO, store = Model.Store, ruleset = Model.RuleSetID }).Enabled(true);
+        dataBinding.Ajax().Select("_BulkRDQs", "WebPick", new { instanceID = Model.Instance, 
+                                                                div = Model.Division, 
+                                                                department = Model.Department, 
+                                                                category = Model.Category, 
+                                                                sku = Model.Sku, 
+                                                                status = Model.Status, 
+                                                                po = Model.PO, 
+                                                                store = Model.Store, 
+                                                                ruleset = Model.RuleSetID }).Enabled(true);
     })
     .ClientEvents(events => events.OnRowDataBound("onRowDataBound"))
     .Scrollable(scrolling => scrolling.Enabled(false))

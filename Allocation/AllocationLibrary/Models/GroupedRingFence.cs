@@ -20,6 +20,18 @@ namespace Footlocker.Logistics.Allocation.Models
         public long ItemID { get; set; }
         public virtual ItemMaster ItemMaster { get; set; }
 
+        [NotMapped]
+        public string SKUDescription
+        {
+            get
+            {
+                if (ItemMaster == null)
+                    return string.Empty;
+                else
+                    return ItemMaster.Description;
+            }
+        }
+
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
 
@@ -29,10 +41,34 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public virtual RingFenceType RingFenceType { get; set; }
 
+        [NotMapped]
+        public string RingFenceTypeDescription
+        {
+            get
+            {
+                if (RingFenceType == null)
+                    return string.Empty;
+                else
+                    return RingFenceType.Description;
+            }
+        }
+
         [ForeignKey("DistributionCenter")] 
         public int DCID { get; set; }
 
         public virtual DistributionCenter DistributionCenter { get; set; }
+
+        [NotMapped]
+        public string DCDisplayName 
+        { 
+            get
+            {
+                if (DistributionCenter != null)
+                    return DistributionCenter.displayValue;
+                else
+                    return string.Empty;
+            }
+        }
 
         [Column("TotalQty")]
         public int TotalQuantity { get; set; }

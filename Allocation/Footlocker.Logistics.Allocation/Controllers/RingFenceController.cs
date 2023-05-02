@@ -488,18 +488,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<RingFenceSizeSummary> sizes = new List<RingFenceSizeSummary>();
 
-            List<RingFenceDetail> details = (from a in db.RingFenceDetails
-                                             where a.RingFenceID == ID &&
-                                                   a.ActiveInd == "1" && 
-                                                   a.Size.Length == _CASELOT_SIZE_INDICATOR_VALUE_LENGTH
-                                             select a).ToList();
-            List<RingFenceDetail> caselotDetails = (from a in db.RingFenceDetails
-                                                    where a.RingFenceID == ID &&
-                                                          a.ActiveInd == "1" &&
-                                                          a.Size.Length > _CASELOT_SIZE_INDICATOR_VALUE_LENGTH
-                                                    select a).ToList();
+            List<RingFenceDetail> details = db.RingFenceDetails.Where(rfd => rfd.RingFenceID == ID && rfd.ActiveInd == "1").ToList();
 
-            RingFenceSizeSummary currentSize = new RingFenceSizeSummary();
+            List<RingFenceDetail> binDetails = details.Where(rfd => rfd.Size.Length == _CASELOT_SIZE_INDICATOR_VALUE_LENGTH).ToList();
+            
+            RingFenceSizeSummary currentSize;
 
             foreach (RingFenceDetail det in details)
             { 
@@ -525,6 +518,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             long ringFenceItemID = (from a in db.RingFences
                                     where a.ID == ID
                                     select a.ItemID).First();
+            
+            List<RingFenceDetail> caselotDetails = details.Where(rfd => rfd.Size.Length > _CASELOT_SIZE_INDICATOR_VALUE_LENGTH).ToList();
 
             foreach (RingFenceDetail det in caselotDetails)
             {

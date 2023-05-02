@@ -31,7 +31,7 @@ namespace Footlocker.Logistics.Allocation.Common
             // parse "raw" filters into uniform filters of type FilterDescriptor (Raw filters come with both CompositeFilterDescriptors and FilterDescriptors)
             List<FilterDescriptor> filters = ParseFilters(rawFilters);
 
-            foreach (var filter in filters)
+            foreach (FilterDescriptor filter in filters)
             {
                 Type propertyType = typeof(T).GetProperty(filter.Member.ToString()).PropertyType;
                 left = Expression.Property(sParam, typeof(T).GetProperty(filter.Member.ToString()));

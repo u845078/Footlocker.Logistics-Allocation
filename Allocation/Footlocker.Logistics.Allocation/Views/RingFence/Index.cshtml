@@ -62,16 +62,16 @@
                     {
                         columns.Bound(rf => rf.Division).Width(30).Title("Div").Visible(true);
                         columns.Bound(rf => rf.Store).Width(30).Visible(true);
-                        columns.Bound(rf => rf.DistributionCenter.displayValue).Width(150).Title("Warehouse");
+                        columns.Bound(rf => rf.DCDisplayName).Width(150).Title("Warehouse");
                         columns.Bound(rf => rf.SKU).Width(170).Visible(true);
-                        columns.Bound(rf => rf.ItemMaster.Description).Visible(true).FooterTemplate(@<text>@Html.Raw("Filtered Qty:  ")</text>);
+                        columns.Bound(rf => rf.SKUDescription).Visible(true).FooterTemplate(@<text>@Html.Raw("Filtered Qty:  ")</text>);
                         columns.Bound(rf => rf.TotalQuantity).Aggregate(aggreages => aggreages.Sum()).Width(10).Title("Qty")
                                .ClientFooterTemplate("<#= Sum #>").FooterTemplate(@<text>
                                         @Html.Raw(item.Sum)
                                 </text>);
                         columns.Bound(rf => rf.StartDate).Format("{0:MM/dd/yyyy}").Title("Start Date").Width(30).Visible(true);
                         columns.Bound(rf => rf.EndDate).Format("{0:MM/dd/yyyy}").Title("End Date").Width(30).Visible(true);
-                        columns.Bound(rf => rf.RingFenceType.Description).Width(10).Visible(true).Title("Type");
+                        columns.Bound(rf => rf.RingFenceTypeDescription).Width(10).Visible(true).Title("Type");
                         columns.Bound(rf => rf.Comments);
                         columns.Bound(rf => rf.LastModifiedUser).Title("Updated By").Width(150).Visible(true);
                         columns.Bound(rf => rf.LastModifiedDate).Format("{0:MM/dd/yyyy h:mm tt}").Width(200).Title("Update Date").Visible(true);
