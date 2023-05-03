@@ -48,39 +48,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return list;
         }
 
-        private List<RingFenceDetail> GetRingFenceDetails(long ringFenceID)
-        {
-            // Get ring fence data...
-            // HACK: Should really be relational, and pulled in on a single query from EF
-            var ringFenceItemName = db.RingFences.AsNoTracking().Single(rf => rf.ID == ringFenceID).Sku;
-            var ringFenceItemID = db.ItemMasters.Single(i => i.MerchantSku == ringFenceItemName).ID;
-            var ringFenceDetails = db.RingFenceDetails.AsNoTracking().Where(d => d.RingFenceID == ringFenceID && 
-                                                                                 d.ActiveInd == "1").ToList();
-            var dcs = db.DistributionCenters.ToList();
-            foreach (var det in ringFenceDetails)
-            {
-                // Determine if ring fence detail record is for caselot or bin
-                if (det.Size.Length > _CASELOT_SIZE_INDICATOR_VALUE_LENGTH)
-                {
-                    // Load sizes of caselot/pack
-                    try
-                    {
-                        var itemPack = db.ItemPacks.Include("Details").Single(p => p.ItemID == ringFenceItemID && p.Name == det.Size);
-                        det.PackDetails = itemPack.Details.ToList();
-                    }
-                    catch 
-                    {
-                        det.PackDetails = new List<ItemPackDetail>();
-                    }
-                }
-
-                // Load warehouse
-                det.Warehouse = dcs.Where(d => d.ID == det.DCID).First().Name;
-            }
-
-            return ringFenceDetails;
-        }
-
         private List<RingFenceDetail> GetWarehouseAvailable(RingFence ringFence)
         {
             return dao.GetWarehouseAvailable(ringFence.Sku, ringFence.Size, ringFence.ID)
@@ -620,14 +587,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     newDetail.Units = newDetail.Qty;
                 }
 
-                newDetail.Warehouse = (from a in dcs
-                                       where a.ID == newDetail.DCID
-                                       select a).First().Name;
+                newDetail.Warehouse = dcs.Where(d => d.ID == newDetail.DCID).First().Name;
 
-                if (includeDetail)
-                {
-                    model.Add(newDetail);
-                }
+                if (includeDetail)                
+                    model.Add(newDetail);                
             }
 
             return View(new GridModel(model));
@@ -845,7 +808,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RingFencePickModel model = new RingFencePickModel()
             {
                 RingFence = rf,
-                Details = GetRingFenceDetails(rf.ID),
+                Details = dao.GetRingFenceDetails(rf.ID),
                 Divisions = currentUser.GetUserDivisions(AppName)
             };
 
@@ -1533,7 +1496,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _SelectBatchEditing(long ringFenceID)
         {
             // Get Ring Fence data
-            List<RingFenceDetail> details = GetRingFenceDetails(ringFenceID);
+            List<RingFenceDetail> details = dao.GetRingFenceDetails(ringFenceID);
             RingFence rf = db.RingFences.Where(r => r.ID == ringFenceID).First();
             
             List<RingFenceDetail> stillAvailable = GetWarehouseAvailable(rf);

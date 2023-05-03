@@ -21,7 +21,10 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         readonly Database _databaseEurope;
         readonly AllocationLibraryContext db = new AllocationLibraryContext();
         readonly Repository<ItemMaster> skuRespository;
-        public List<DistributionCenter> distributionCenters = new List<DistributionCenter>();        
+        public List<DistributionCenter> distributionCenters = new List<DistributionCenter>();
+        
+        // NOTE: Both caselot name and size are stored in the same varchar db column, if value is more than 3 digits, we know it is a caselot....
+        public static int _CASELOT_SIZE_INDICATOR_VALUE_LENGTH = 3;
 
         public RingFenceDAO()
         {
@@ -896,6 +899,39 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             database.AddInParameter(SQLCommand, "@user", DbType.String, user);
 
             database.ExecuteNonQuery(SQLCommand);
+        }
+
+        public List<RingFenceDetail> GetRingFenceDetails(long ringFenceID)
+        {
+            // Get ring fence data...
+            // HACK: Should really be relational, and pulled in on a single query from EF
+            var ringFenceItemName = db.RingFences.AsNoTracking().Single(rf => rf.ID == ringFenceID).Sku;
+            var ringFenceItemID = db.ItemMasters.Single(i => i.MerchantSku == ringFenceItemName).ID;
+            var ringFenceDetails = db.RingFenceDetails.AsNoTracking().Where(d => d.RingFenceID == ringFenceID &&
+                                                                                 d.ActiveInd == "1").ToList();
+            var dcs = db.DistributionCenters.ToList();
+            foreach (var det in ringFenceDetails)
+            {
+                // Determine if ring fence detail record is for caselot or bin
+                if (det.Size.Length > _CASELOT_SIZE_INDICATOR_VALUE_LENGTH)
+                {
+                    // Load sizes of caselot/pack
+                    try
+                    {
+                        var itemPack = db.ItemPacks.Include("Details").Single(p => p.ItemID == ringFenceItemID && p.Name == det.Size);
+                        det.PackDetails = itemPack.Details.ToList();
+                    }
+                    catch
+                    {
+                        det.PackDetails = new List<ItemPackDetail>();
+                    }
+                }
+
+                // Load warehouse
+                det.Warehouse = dcs.Where(d => d.ID == det.DCID).First().Name;
+            }
+
+            return ringFenceDetails;
         }
     }
 }
