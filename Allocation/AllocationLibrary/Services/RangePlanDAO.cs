@@ -162,15 +162,10 @@ namespace Footlocker.Logistics.Allocation.Services
             {
                 queryRow.RangePlan.ActiveOP = false;
 
-                if (queryRow.RangePlan.EvergreenSKU)
-                    queryRow.RangePlan.ActiveOP = true;
-                else
+                if (queryRow.StartSend.HasValue && queryRow.EndSend.HasValue)
                 {
-                    if (queryRow.StartSend.HasValue && queryRow.EndSend.HasValue)
-                    {
-                        if (queryRow.RunDate >= queryRow.StartSend.Value && queryRow.RunDate <= queryRow.EndSend.Value)
-                            queryRow.RangePlan.ActiveOP = true;
-                    }
+                    if (queryRow.RunDate >= queryRow.StartSend.Value && queryRow.RunDate <= queryRow.EndSend.Value)
+                        queryRow.RangePlan.ActiveOP = true;
                 }
             }
 
