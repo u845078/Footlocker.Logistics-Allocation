@@ -2169,7 +2169,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         Session["errorList"] = ringFenceUploadSpreadsheet.errorList;
 
-                        message = string.Format("{0} lines were processed successfully. {1} warnings and {2} errors were found.", ringFenceUploadSpreadsheet.validRingFences.Count.ToString(),
+                        message = string.Format("{0} lines were processed successfully. {1} warnings and {2} errors were found.", ringFenceUploadSpreadsheet.successfulCount.ToString(),
                             ringFenceUploadSpreadsheet.warnings.Count.ToString(), ringFenceUploadSpreadsheet.errors.Count.ToString());
 
                         return Content(message);
@@ -2177,7 +2177,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
-            message = string.Format("{0} successfully uploaded", ringFenceUploadSpreadsheet.validRingFences.Count.ToString());
+            message = string.Format("{0} successfully uploaded", ringFenceUploadSpreadsheet.successfulCount.ToString());
             return Json(new { message }, "application/json");
         }
 

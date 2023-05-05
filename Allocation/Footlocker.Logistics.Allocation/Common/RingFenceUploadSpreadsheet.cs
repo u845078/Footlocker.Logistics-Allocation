@@ -29,7 +29,7 @@ namespace Footlocker.Logistics.Allocation.Common
         readonly RingFenceDAO ringfenceDAO;
         readonly LegacyFutureInventoryDAO futureInventoryDAO;
         List<EcommWarehouse> ecommWarehouses;
-        int successfulCount;
+        public int successfulCount;
         public List<RingFenceUploadModel> warnings;
         public List<RingFenceUploadModel> errors;
 
