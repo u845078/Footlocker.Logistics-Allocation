@@ -478,7 +478,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 if (rec.RingFence.CreatedBy.Contains("CORP"))
                     fullName = getFullUserNameFromDatabase(rec.RingFence.CreatedBy.Replace('\\', '/'));
                 else
-                    fullName = rec.RingFence.CreatedBy;
+                    fullName = getFullUserNameFromDatabase(rec.RingFence.CreatedBy);
 
                 newRingFences.Where(r => r.RingFence.CreatedBy == rec.RingFence.CreatedBy).ToList().ForEach(x => x.RingFence.CreatedBy = fullName);
             }
@@ -511,9 +511,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 int packQty = (from ip in db.ItemPacks
                                 where ip.Name == rf.Size &&
-                                        ip.ItemID == rf.ItemID
+                                      ip.ItemID == rf.ItemID
                                 select ip.TotalQty).FirstOrDefault();
-                rf.Qty = rf.Qty * packQty;
+                rf.Qty *= packQty;
             }
 
             return View(new GridModel(ringFences));
