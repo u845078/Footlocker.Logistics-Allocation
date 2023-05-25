@@ -517,7 +517,7 @@ namespace Footlocker.Logistics.Allocation.Common
                     if (preExistingRFs.Count > 0)
                     {
                         if (preExistingRFs.Exists(pre => pre.Size == poRec.Size))
-                            allocatedAmt = preExistingRFs.Where(pre => pre.Size == poRec.Size).Select(pre => pre.Quantity).FirstOrDefault();
+                            allocatedAmt = preExistingRFs.Where(pre => pre.Size == poRec.Size).Select(pre => pre.Quantity).Sum();
                     }
 
                     if (poRec.StockQty - allocatedAmt > 0)
