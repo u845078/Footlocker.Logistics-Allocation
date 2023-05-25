@@ -508,20 +508,33 @@ namespace Footlocker.Logistics.Allocation.Common
             {
                 List<LegacyFutureInventory> poDetails = futureInventoryDAO.GetPOInventoryData(rf.Division, rf.PO).Where(p => p.Sku == rf.SKU).ToList();
 
+                List<ValidRingFence> preExistingRFs = config.db.ValidRingFences.Where(vrf => vrf.SKU == rf.SKU && vrf.PO == rf.PO).ToList();
+
                 foreach (LegacyFutureInventory poRec in poDetails)
                 {
-                    expandedRFs.Add(new RingFenceUploadModel()
+                    int allocatedAmt = 0;
+
+                    if (preExistingRFs.Count > 0)
                     {
-                        Division = rf.Division,
-                        Store = rf.Store, 
-                        SKU = rf.SKU,
-                        EndDate = rf.EndDate, 
-                        PO = rf.PO,
-                        Warehouse = rf.Warehouse,
-                        Size = poRec.Size, 
-                        Quantity = poRec.StockQty,
-                        Comments = rf.Comments
-                    });
+                        if (preExistingRFs.Exists(pre => pre.Size == poRec.Size))
+                            allocatedAmt = preExistingRFs.Where(pre => pre.Size == poRec.Size).Select(pre => pre.Quantity).FirstOrDefault();
+                    }
+
+                    if (poRec.StockQty - allocatedAmt > 0)
+                    {
+                        expandedRFs.Add(new RingFenceUploadModel()
+                        {
+                            Division = rf.Division,
+                            Store = rf.Store,
+                            SKU = rf.SKU,
+                            EndDate = rf.EndDate,
+                            PO = rf.PO,
+                            Warehouse = rf.Warehouse,
+                            Size = poRec.Size,
+                            Quantity = poRec.StockQty - allocatedAmt,
+                            Comments = rf.Comments
+                        });
+                    }
                 }
             }
 
