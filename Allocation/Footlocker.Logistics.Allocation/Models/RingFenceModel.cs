@@ -11,11 +11,6 @@ namespace Footlocker.Logistics.Allocation.Models
     {
         public RingFenceModel() { }
 
-        //public RingFenceModel(RingFence rf)
-        //{
-        //    this.RingFence = rf;
-        //}
-
         public RingFence RingFence { get; set; }
 
         public List<Division> Divisions { get; set; }

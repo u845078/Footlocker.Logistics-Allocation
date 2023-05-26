@@ -202,20 +202,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void UpdateTroubleShootStoreModel(TroubleshootStoreModel model)
         {
-            if (model.Division == null)
-            {
+            if (model.Division == null)            
                 model.Division = "";
-            }
-            if (model.Store == null)
-            {
-                model.Store = "";
-            }
-            DateTime today = (from a in db.ControlDates 
-                              join b in db.InstanceDivisions 
-                              on a.InstanceID equals b.InstanceID 
-                              where b.Division == model.Division 
-                              select a.RunDate).FirstOrDefault();
             
+            if (model.Store == null)            
+                model.Store = "";
+
+            int instanceID = configService.GetInstance(model.Division);
+
+            DateTime today = configService.GetControlDate(instanceID);            
 
             model.Divisions = currentUser.GetUserDivisions(AppName);
 
@@ -224,25 +219,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             model.StoreLookup = db.StoreLookups.Where(sl => sl.Division == model.Division && sl.Store == model.Store).FirstOrDefault();
 
-            if (model.StoreLookup == null)
-            {
-                model.Message = "Store not found";
-            }
+            if (model.StoreLookup == null)            
+                model.Message = "Store not found";            
 
             model.StoreExtension = (from a in db.StoreExtensions.Include("ConceptType").Include("StrategyType").Include("CustomerType") 
-                                    where ((a.Division == model.Division) && (a.Store == model.Store)) 
+                                    where a.Division == model.Division && 
+                                          a.Store == model.Store
                                     select a).FirstOrDefault();
 
             model.StoreSeasonality = (from a in db.StoreSeasonality 
                                       join b in db.StoreSeasonalityDetails 
                                       on a.ID equals b.GroupID 
-                                      where (b.Division == model.Division) && (b.Store == model.Store)
+                                      where b.Division == model.Division && 
+                                            b.Store == model.Store
                                       select a).FirstOrDefault();
 
             model.Zone = (from a in db.NetworkZones 
                           join b in db.NetworkZoneStores 
                           on a.ID equals b.ZoneID 
-                          where (b.Division == model.Division) && (b.Store == model.Store)
+                          where b.Division == model.Division && 
+                                b.Store == model.Store
                           select a).FirstOrDefault();
         }
 
@@ -251,8 +247,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _POOverrides(string sku)
         {
             List<ExpeditePO> model = (from a in db.ExpeditePOs
-                                      where
-                                          a.Sku == sku
+                                      where a.Sku == sku
                                       select a).ToList();
 
             return View(new GridModel(model));
@@ -483,7 +478,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 if (rec.RingFence.CreatedBy.Contains("CORP"))
                     fullName = getFullUserNameFromDatabase(rec.RingFence.CreatedBy.Replace('\\', '/'));
                 else
-                    fullName = rec.RingFence.CreatedBy;
+                    fullName = getFullUserNameFromDatabase(rec.RingFence.CreatedBy);
 
                 newRingFences.Where(r => r.RingFence.CreatedBy == rec.RingFence.CreatedBy).ToList().ForEach(x => x.RingFence.CreatedBy = fullName);
             }
@@ -516,9 +511,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 int packQty = (from ip in db.ItemPacks
                                 where ip.Name == rf.Size &&
-                                        ip.ItemID == rf.ItemID
+                                      ip.ItemID == rf.ItemID
                                 select ip.TotalQty).FirstOrDefault();
-                rf.Qty = rf.Qty * packQty;
+                rf.Qty *= packQty;
             }
 
             return View(new GridModel(ringFences));

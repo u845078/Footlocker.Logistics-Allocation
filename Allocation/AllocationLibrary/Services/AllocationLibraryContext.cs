@@ -5,6 +5,7 @@ using System.Data.Entity;
 using Footlocker.Logistics.Allocation.Models;
 using System.Data.Entity.Infrastructure;
 using System.Data;
+using System.Runtime.InteropServices;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
@@ -83,6 +84,7 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<Country> Countries { get; set; }
         public DbSet<State> States { get; set; }
         public DbSet<GroupedRingFence> GroupedRingFences { get; set; }
+        public DbSet<GroupedPORingFence> GroupedPORingFences { get; set; }
         public DbSet<CPSkuSizesXref> CPSkuSizesXrefs { get; set; }
 
         public DbSet<ValidRingFence> ValidRingFences { get; set; }
@@ -103,7 +105,6 @@ namespace Footlocker.Logistics.Allocation.Services
             modelBuilder.Entity<RangePlan>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
             modelBuilder.Entity<DirectToStoreSku>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
             modelBuilder.Entity<RingFence>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
-
 
             // NOTE: StoreLookup->StoreExtension relationship defined on constraint that IS ALL of principal's compositePK, so optional, unilateral (1to 1) relationship...
             modelBuilder.Entity<StoreLookup>().HasOptional(sl => sl.StoreExtension).WithRequired();

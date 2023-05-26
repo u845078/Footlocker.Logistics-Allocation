@@ -19,6 +19,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
     {
         readonly Database _database;
         readonly Database _databaseEurope;
+        readonly Database allocationDatabase;
         readonly AllocationLibraryContext db = new AllocationLibraryContext();
         readonly Repository<ItemMaster> skuRespository;
         public List<DistributionCenter> distributionCenters = new List<DistributionCenter>();
@@ -30,6 +31,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         {
             _database = DatabaseFactory.CreateDatabase("DB2PROD");
             _databaseEurope = DatabaseFactory.CreateDatabase("DB2EURP");
+            allocationDatabase = DatabaseFactory.CreateDatabase("AllocationContext");
             skuRespository = new Repository<ItemMaster>(new AllocationLibraryContext());
             distributionCenters = db.DistributionCenters.ToList();
         }
@@ -59,6 +61,38 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                                                              validDivisions.Contains(rf.Division)).ToList();
 
             return rfList.OrderByDescending(x => x.CreateDate).ToList();
+        }
+
+        public List<GroupedPORingFence> GetPORingFenceGroups(string division, string department, int distributionCenterID, string store, long ruleSetID, string sku, string po, int ringFenceType)
+        {
+            List<GroupedPORingFence> resultSet = db.GroupedPORingFences.Include("ItemMaster").Where(rf => rf.Division == division).ToList();
+
+            if (department != "00")
+                resultSet = resultSet.Where(r => r.ItemMaster.Dept == department).ToList();
+
+            if (distributionCenterID != 0)
+                resultSet = resultSet.Where(r => r.DCID == distributionCenterID).ToList();
+
+            if (!string.IsNullOrEmpty(store))
+                resultSet = resultSet.Where(r => r.Store == store).ToList();
+
+            if (!string.IsNullOrEmpty(sku))
+                resultSet = resultSet.Where(r => r.SKU == sku).ToList();
+
+            if (!string.IsNullOrEmpty(po))
+                resultSet = resultSet.Where(r => r.PO == po).ToList();
+
+            if (ringFenceType != 0)
+                resultSet = resultSet.Where(r => r.RingFenceTypeCode == ringFenceType).ToList();
+
+            if (ruleSetID > 0)
+            {
+                List<string> storeList = db.RuleSelectedStores.Where(rss => rss.RuleSetID == ruleSetID)
+                                                              .Select(rss => rss.Store).ToList();
+                resultSet = resultSet.Where(r => storeList.Contains(r.Store)).ToList();
+            }
+
+            return resultSet;
         }
 
         /// <summary>

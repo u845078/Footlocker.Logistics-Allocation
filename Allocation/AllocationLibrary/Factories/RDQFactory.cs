@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Data;
 using Footlocker.Logistics.Allocation.Models;
+using Footlocker.Logistics.Allocation.Services;
+using System.Security.Cryptography;
 
 namespace Footlocker.Logistics.Allocation.Factories
 {
@@ -23,45 +25,29 @@ namespace Footlocker.Logistics.Allocation.Factories
                 Qty = Convert.ToInt32(dr["Qty"])
             };
 
-            if (dr.Table.Columns.Contains("type"))
-            {
-                _newObject.Type = Convert.ToString(dr["type"]);
-            }
+            if (dr.Table.Columns.Contains("type"))            
+                _newObject.Type = Convert.ToString(dr["type"]);            
 
             if (dr.Table.Columns.Contains("Size"))
-            {
                 _newObject.Size = Convert.ToString(dr["Size"]);
-            }
 
             if (dr.Table.Columns.Contains("Sku"))
-            {
                 _newObject.Sku = Convert.ToString(dr["Sku"]);
-            }
             
             if (dr.Table.Columns.Contains("Store"))
-            {
                 _newObject.Store = Convert.ToString(dr["Store"]);
-            }
             
             if (dr.Table.Columns.Contains("Name"))
-            {
                 _newObject.WarehouseName = Convert.ToString(dr["Name"]);
-            }
             
             if (dr.Table.Columns.Contains("DestinationType"))
-            {
                 _newObject.DestinationType = Convert.ToString(dr["DestinationType"]);
-            }
             
             if (dr.Table.Columns.Contains("Status"))
-            {
                 _newObject.Status = Convert.ToString(dr["Status"]);
-            }
             
             if (dr.Table.Columns.Contains("Category"))
-            {
                 _newObject.Category = Convert.ToString(dr["Category"]);
-            }
 
             return _newObject;
         }
@@ -89,52 +75,34 @@ namespace Footlocker.Logistics.Allocation.Factories
             };
 
 			if (dr.Table.Columns.Contains("type"))
-            {
                 _newObject.Type = Convert.ToString(dr["type"]);
-            }
 
             if (dr.Table.Columns.Contains("Size"))
-            {
                 _newObject.Size = Convert.ToString(dr["Size"]);
-            }
 
             if (dr.Table.Columns.Contains("Sku"))
-            {
                 _newObject.Sku = Convert.ToString(dr["Sku"]);
-            }
 
             if (dr.Table.Columns.Contains("Store"))
-            {
                 _newObject.Store = Convert.ToString(dr["Store"]);
-            }
 
             if (dr.Table.Columns.Contains("Name"))
-            {
                 _newObject.WarehouseName = Convert.ToString(dr["Name"]);
-            }
 
             if (dr.Table.Columns.Contains("DestinationType"))
-            {
                 _newObject.DestinationType = Convert.ToString(dr["DestinationType"]);
-            }
 
             if (dr.Table.Columns.Contains("Status"))
-            {
                 _newObject.Status = Convert.ToString(dr["Status"]);
-            }
 
             if (dr.Table.Columns.Contains("Category"))
-            {
                 _newObject.Category = Convert.ToString(dr["Category"]);
-            }
             
             if (dr.Table.Columns.Contains("RDQRejectReasonCode"))
             {
                 int reasonCode;
-                if (int.TryParse(dr["RDQRejectReasonCode"].ToString(), out reasonCode))
-                {
-                    _newObject.RDQRejectedReasonCode = reasonCode;
-                }
+                if (int.TryParse(dr["RDQRejectReasonCode"].ToString(), out reasonCode))                
+                    _newObject.RDQRejectedReasonCode = reasonCode;                
             }
             return _newObject;
         }
@@ -167,6 +135,39 @@ namespace Footlocker.Logistics.Allocation.Factories
                 _newObject.RDQRejectedReasonCode = Convert.ToInt32(dr["RDQRejectReasonCode"]);
 
             return _newObject;
+        }
+
+        public static RDQ CreateFromRingFence(RingFence ringFence, RingFenceDetail ringFenceDetail, WebUser user)
+        {
+            ItemDAO itemDAO = new ItemDAO();
+            long itemID = itemDAO.GetItemID(ringFence.Sku);
+
+            RDQ newRDQ = new RDQ()
+            {
+                Sku = ringFence.Sku,
+                Size = ringFenceDetail.Size,
+                Qty = ringFenceDetail.Qty,
+                Store = ringFence.Store,
+                Type = "user",
+                Status = "WEB PICK",
+                PO = ringFenceDetail.PO,
+                Division = ringFence.Division,
+                DCID = ringFenceDetail.DCID,
+                ItemID = itemID,
+                CreatedBy = user.NetworkID,
+                CreateDate = DateTime.Now,
+                LastModifiedUser = user.NetworkID
+            };
+
+            if (!string.IsNullOrEmpty(ringFenceDetail.PO))
+            {
+                newRDQ.DestinationType = "CROSSDOCK";
+                newRDQ.Status = "HOLD-XDC";
+            }
+            else            
+                newRDQ.DestinationType = "WAREHOUSE";            
+
+            return newRDQ;
         }
     }
 }

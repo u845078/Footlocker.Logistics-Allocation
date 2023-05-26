@@ -81,12 +81,18 @@
 
         public long GetCPID(string sku)
         {
+            string cpidString;
             long cpid;
 
-            cpid =  db.CPSkuSizesXrefs.Where(cp => cp.LegacySku == sku)
-                                     .Select(cp => cp.CPID)
-                                     .FirstOrDefault();
+            cpidString =  db.CPSkuSizesXrefs.Where(cp => cp.LegacySku == sku)
+                                            .Select(cp => cp.CPID)
+                                            .FirstOrDefault();
 
+            if (cpidString != null)
+                cpid = Convert.ToInt64(cpidString);
+            else
+                cpid = 0;
+            
             return cpid;
         }
     }

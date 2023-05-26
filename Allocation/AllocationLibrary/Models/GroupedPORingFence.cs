@@ -7,8 +7,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
-    [Table("vGroupedRingFences")]
-    public class GroupedRingFence
+    [Table("vGroupedPORingFences")]
+    public class GroupedPORingFence
     {
         [Key]
         [Column(Order = 1)]
@@ -16,7 +16,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Division { get; set; }
         public string Store { get; set; }
         public string SKU { get; set; }
-        
+
         [ForeignKey("ItemMaster")]
         public long ItemID { get; set; }
         public virtual ItemMaster ItemMaster { get; set; }
@@ -54,16 +54,20 @@ namespace Footlocker.Logistics.Allocation.Models
             }
         }
 
-        [ForeignKey("DistributionCenter")]
         [Key]
         [Column(Order = 2)]
+        public string PO { get; set; }
+
+        [ForeignKey("DistributionCenter")]
+        [Key]
+        [Column(Order = 3)]
         public int DCID { get; set; }
 
         public virtual DistributionCenter DistributionCenter { get; set; }
 
         [NotMapped]
-        public string DCDisplayName 
-        { 
+        public string DCDisplayName
+        {
             get
             {
                 if (DistributionCenter != null)
@@ -97,5 +101,6 @@ namespace Footlocker.Logistics.Allocation.Models
                 return result;
             }
         }
+
     }
 }
