@@ -12,6 +12,7 @@ using Footlocker.Common;
 using System.Linq;
 using System.IO;
 using System.Xml.Serialization;
+using System.Text.RegularExpressions;
 
 namespace Footlocker.Logistics.Allocation.Models.Services
 {
@@ -935,6 +936,11 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             database.ExecuteNonQuery(SQLCommand);
         }
 
+        public RingFence GetRingFence(long ringFenceID)
+        {
+            return db.RingFences.Where(rf => rf.ID == ringFenceID).FirstOrDefault();
+        }
+
         public List<RingFenceDetail> GetRingFenceDetails(long ringFenceID)
         {
             // Get ring fence data...
@@ -966,6 +972,22 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             }
 
             return ringFenceDetails;
+        }
+
+        public void DeleteRingFenceDetail(RingFenceDetail detailRec)
+        {
+            db.RingFenceDetails.Attach(detailRec);
+            db.RingFenceDetails.Remove(detailRec);
+        }
+
+        public void DeleteRingFenceHeader(RingFence rf)
+        {            
+            db.RingFences.Remove(db.RingFences.Where(r => r.ID == rf.ID).First());
+        }
+
+        public void SaveChanges(WebUser webUser)
+        {
+            db.SaveChanges(webUser.NetworkID);
         }
     }
 }

@@ -266,7 +266,7 @@ namespace Footlocker.Logistics.Allocation.Services
                 {
                     try
                     {
-                        var query = ((from a in this.ItemPacks where (a.Name == det.Size) select a.TotalQty));
+                        var query = ((from a in this.ItemPacks where a.Name == det.Size select a.TotalQty));
 
                         qty += (det.Qty * query.First());
                     }
@@ -282,15 +282,16 @@ namespace Footlocker.Logistics.Allocation.Services
 
         public void PreCommitRingFenceDetail(RingFenceDetail det, string user, System.Data.EntityState state)
         {
-            RingFence rf = (from a in this.RingFences where a.ID == det.RingFenceID select a).First();
+            RingFence rf = this.RingFences.Where(r => r.ID == det.RingFenceID).First();
 
             rf.Qty = GetQtyForRingFenceWithChange(det, rf, state);
-            rf.CreateDate = DateTime.Now;
-            rf.CreatedBy = user;
+            rf.LastModifiedDate = DateTime.Now;
+            rf.LastModifiedUser = user;
 
-            if (this.Entry(rf).State != System.Data.EntityState.Modified)
+            if (this.Entry(rf).State != System.Data.EntityState.Deleted)
             {
-                this.Entry(rf).State = System.Data.EntityState.Modified;
+                if (this.Entry(rf).State != System.Data.EntityState.Modified)                
+                    this.Entry(rf).State = System.Data.EntityState.Modified;                
             }
         }
 

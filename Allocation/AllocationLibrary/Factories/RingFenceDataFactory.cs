@@ -77,21 +77,6 @@ namespace Footlocker.Logistics.Allocation.Factories
             return rfh;
         }
 
-        //public GroupedRingFence CreatedGroupedRFFromRec(DataRow dataRow)
-        //{
 
-        //    GroupedRingFence grf = new GroupedRingFence()
-        //    {
-        //        ID = Convert.ToInt64(dataRow["ID"]),
-        //        Store = dataRow["store"].ToString(), 
-        //        SKU = dataRow["Sku"].ToString(),
-        //        ItemID = Convert.ToInt64(dataRow["ItemID"]),
-        //        StartDate = Convert.ToDateTime(dataRow["StartDate"]),
-        //        EndDate = Convert.ToDateTime(dataRow["EndDate"]),
-        //        RingFenceTypeCode = Convert.ToInt32(dataRow["Type"])
-        //    };
-
-        //    return grf;
-        //}
     }
 }

@@ -177,20 +177,20 @@
                          </text>)
         .ClientTemplate(
             "<# if (CanPick) { #>"
-                + "<a class=\"t-button\" href='javascript:ReleaseRingFences({ Division: \"<#= Division #>\", Dept: \"<#= Department #>\", DCID: \"<#= DistributionCenter #>\", Sku: \"<#= SKU #>\", RingFenceType: \"<#= RingFenceType #>\", PO: \"<#= PO #>\", Store: \"<#= Store #>\", RuleSetID: <#= RuleSetID #>  });'>This Store</a>"
+                + "<a class=\"t-button\" href='javascript:ReleaseRingFences({ ID: \"<#= ID #>\", Division: \"<#= Division #>\", Store: \"<#= Store #>\", SKU: \"<#= SKU #>\", PO: \"<#= PO #>\", DCID: \"<#= DCID #>\" });'>This Store</a>"
             + "<# } #>"
-            + "<a class=\"t-button\" href='javascript:ReleaseRingFencesToWarehouse({ Division: \"<#= Division #>\", Dept: \"<#= Department #>\", DCID: \"<#= DistributionCenter #>\", Sku: \"<#= SKU #>\", RingFenceType: \"<#= RingFenceType #>\", PO: \"<#= PO #>\", Store: \"<#= Store #>\", RuleSetID: <#= RuleSetID #> });'>Warehouse</a>").Title("Detail Release");
+            + "<a class=\"t-button\" href='javascript:ReleaseRingFencesToWarehouse({ ID: \"<#= ID #>\", Division: \"<#= Division #>\", Store: \"<#= Store #>\", SKU: \"<#= SKU #>\", PO: \"<#= PO #>\", DCID: \"<#= DCID #>\" });'>Warehouse</a>").Title("Detail Release");
     })
     .DataBinding(dataBinding =>
     {
         dataBinding.Ajax().Select("_BulkRingFences", "RingFence", new { div = Model.Division,
-                                                                        department = Model.Department,
-                                                                        dcid = Model.DistributionCenter,
-                                                                        sku = Model.SKU,
-                                                                        ringFenceType = Model.RingFenceType,
-                                                                        po = Model.PO,
-                                                                        store = Model.Store,
-                                                                        ruleset = Model.RuleSetID }).Enabled(true);
+            department = Model.Department,
+            dcid = Model.DistributionCenter,
+            sku = Model.SKU,
+            ringFenceType = Model.RingFenceType,
+            po = Model.PO,
+            store = Model.Store,
+            ruleset = Model.RuleSetID }).Enabled(true);
     })
     .ClientEvents(events => events.OnRowDataBound("onRowDataBound"))
     .Scrollable(scrolling => scrolling.Enabled(false))
@@ -236,14 +236,12 @@
 </script>
 
 <script type="text/javascript">
-        function ReleaseRingFences(ringFence) {
-            //make a call to server
-            var rfType = '@Model.RingFenceType';
-            var grid = $("#RingFenceGrid").data("tGrid");
+        function ReleaseRingFences(groupedPORingFence) {
+            var grid = $("#ReleaseRingFenceGrid").data("tGrid");
             $('.t-status .t-icon', grid.element).addClass('t-loading');
             $.ajax({
-                url: "/WebPick/ReleaseRDQGroup",
-                data: JSON.stringify({ rdqGroup: ringFence, rfType: rfType }),
+                url: "/RingFence/ReleasePOGroupRF",
+                data: JSON.stringify({ rfGroup: groupedPORingFence }),
                 contentType: 'application/json; charset=utf-8',
                 type: 'POST',
                 dataType: 'json',
@@ -251,19 +249,20 @@
                     alert(status);
                     $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
                 },
-                success: function (result) {
-                        grid.ajaxRequest();
+                success: function (result) {                    
+                    alert("This ring fence group was picked.See the Release Held RDQs page for the status of the picks. \r\n\r\n" + result.Message);
+                    grid.ajaxRequest();
                 }
             });
         }
 
-        function ReleaseRingFencesToWarehouse(ringFence) {
+        function ReleaseRingFencesToWarehouse(groupedPORingFence) {
             //make a call to server
-            var grid = $("#RingFenceGrid").data("tGrid");
+            var grid = $("#ReleaseRingFenceGrid").data("tGrid");
             $('.t-status .t-icon', grid.element).addClass('t-loading');
             $.ajax({
-                url: "/WebPick/ReleaseRDQGroupToWarehouse",
-                data: JSON.stringify({ rdqGroup: rdqGroup }),
+                url: "/RingFence/DeletePOGroupRF",
+                data: JSON.stringify({ rfGroup: groupedPORingFence }),
                 contentType: 'application/json; charset=utf-8',
                 type: 'POST',
                 dataType: 'json',
@@ -272,7 +271,8 @@
                     $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
                 },
                 success: function (result) {
-                        grid.ajaxRequest();
+                    alert(result.Message);
+                    grid.ajaxRequest();
                 }
             });
         }

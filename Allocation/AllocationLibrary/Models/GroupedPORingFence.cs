@@ -93,10 +93,15 @@ namespace Footlocker.Logistics.Allocation.Models
             {
                 bool result;
 
-                if (!EndDate.HasValue)
-                    result = true;
+                if (RingFenceTypeCode == 1)
+                {
+                    if (!EndDate.HasValue)
+                        result = true;
+                    else
+                        result = EndDate.Value >= DateTime.Now;
+                }
                 else
-                    result = EndDate.Value >= DateTime.Now;
+                    result = false;
 
                 return result;
             }

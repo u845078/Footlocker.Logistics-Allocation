@@ -208,9 +208,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (model.Store == null)            
                 model.Store = "";
 
-            int instanceID = configService.GetInstance(model.Division);
-
-            DateTime today = configService.GetControlDate(instanceID);            
+            DateTime today = configService.GetControlDate(model.Division);            
 
             model.Divisions = currentUser.GetUserDivisions(AppName);
 

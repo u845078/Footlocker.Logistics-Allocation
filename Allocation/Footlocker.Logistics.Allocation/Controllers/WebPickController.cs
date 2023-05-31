@@ -748,14 +748,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //performance was really bad via entity framework, we'll just run a quick stored proc and update records in memory
             rdqDAO.ReleaseRDQs(groupRDQs, currentUser.NetworkID);
 
-            if (status == "All")
-            {
-                groupRDQs.ForEach(rdq => { rdq.Status = "HOLD-REL"; });
-            }
-            else
-            {
-                groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
-            }
+            if (status == "All")            
+                groupRDQs.ForEach(rdq => { rdq.Status = "HOLD-REL"; });            
+            else            
+                groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));            
            
             // Return JSON representing Success
             return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };

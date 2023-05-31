@@ -79,6 +79,12 @@
             return controlDate;
         }
 
+        public DateTime GetControlDate(string division)
+        {
+            int instanceID = GetInstance(division);
+            return GetControlDate(instanceID);
+        }
+
         public long GetCPID(string sku)
         {
             string cpidString;

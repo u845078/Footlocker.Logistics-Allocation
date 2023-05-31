@@ -2223,7 +2223,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #endregion
         #endregion
 
-
         #region Get Store List from Rule List
         private Boolean ValidateRules(List<Rule> rules)
         {
@@ -2244,25 +2243,28 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <summary>
         /// Finds what stores meet the rules criteria
         /// </summary>
-        private List<StoreLookupModel> GetStoresForRules(List<Rule> rules, Int64 planID)
+        private List<StoreLookupModel> GetStoresForRules(List<Rule> rules, long planID)
         {
             List<StoreLookupModel> list = new List<StoreLookupModel>();
             List<Rule> finalRules = new List<Rule>();
 
-            RangePlan p = (from a in db.RangePlans
-                           where a.Id == planID
-                           select a).First();
+            RangePlan p = db.RangePlans.Where(rp => rp.Id == planID).First();
 
             //add division criteria to rules
-            Rule divRule = new Rule();
-            divRule.Compare = "Equals";
-            divRule.Field = "Division";
-            divRule.Value = p.Sku.Substring(0, 2);
+            Rule divRule = new Rule()
+            {
+                Compare = "Equals",
+                Field = "Division",
+                Value = p.Sku.Substring(0, 2)
+            };
 
             finalRules.Add(divRule);
 
-            divRule = new Rule();
-            divRule.Compare = "and";
+            divRule = new Rule()
+            {
+                Compare = "and"
+            };
+            
             finalRules.Add(divRule);
 
             foreach (Rule r in rules)
@@ -2284,7 +2286,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // ***** End Where ***** 
 
             IQueryable<StoreLookup> results = queryableData.Provider.CreateQuery<StoreLookup>(whereCallExpression);
-
 
             foreach (StoreLookup s in results)
             {
@@ -2385,24 +2386,28 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if (rule.Field == "RangePlan")
                 {
-                    Int64 planID;
+                    long planID;
                     string sku = Convert.ToString(rule.Value);
 
                     string myInClause = currentUser.GetUserDivisionsString(AppName);
                     try
                     {
-                        planID = (from x in db.RangePlans where (x.Sku == sku) select x).First().Id;
+                        planID = (from x in db.RangePlans where x.Sku == sku select x).First().Id;
                     }
                     catch
                     {
                         stores = new List<string>();
                         planID = -1;
                     }
-                    stores = (from rp in db.RangePlanDetails where ((rp.ID == planID) && (myInClause.Contains(rp.Division))) select rp.Division + rp.Store).Distinct().ToList();
+                    stores = (from rp in db.RangePlanDetails 
+                              where rp.ID == planID && myInClause.Contains(rp.Division) 
+                              select rp.Division + rp.Store).Distinct().ToList();
                 }
                 else
                 {
-                    stores = (from rp in db.StorePlans where rp.PlanName == rule.Value select rp.Division + rp.Store).Distinct().ToList();
+                    stores = (from rp in db.StorePlans 
+                              where rp.PlanName == rule.Value 
+                              select rp.Division + rp.Store).Distinct().ToList();
                 }
 
                 ConstantExpression foreignKeysParameter = Expression.Constant(stores, typeof(List<string>));
@@ -2495,13 +2500,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     throw new Exception("invalid rule, missing predicate.");
                 }
             }
-
         }
 
         private List<StoreLookupModel> Example(List<Rule> rules)
         {
             List<StoreLookupModel> list = new List<StoreLookupModel>();
-
 
             // Add a using directive for System.Linq.Expressions. 
 
@@ -2602,9 +2605,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private string ValidateOrderPlanningRequest(OrderPlanningRequest model, bool edit)
         {
-            RangePlan rangePlan = rangePlanDAO.GetRangePlan(model.PlanID);
-            int instanceID = configService.GetInstance(rangePlan.Division);
-            DateTime start = configService.GetControlDate(instanceID);
+            RangePlan rangePlan = rangePlanDAO.GetRangePlan(model.PlanID);            
+            DateTime start = configService.GetControlDate(rangePlan.Division);
 
             if (model.StartSend < start)
             {
