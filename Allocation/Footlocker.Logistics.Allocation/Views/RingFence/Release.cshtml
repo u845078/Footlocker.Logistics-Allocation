@@ -72,9 +72,9 @@
 
             <span id="pickedStores">
                 @if (Model.RuleSetID > 0)
-                 {
+                {
                     @Html.Raw("(Stores are specified)")
-                 }
+                }
             </span>
             <input type="button" value="Select Stores" class="t-button" onclick="return showStoreSelector()" />
         </div>
@@ -103,6 +103,14 @@
             @Html.ValidationMessageFor(model => model.RingFenceType)
         </div>
 
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RingFenceStatus)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.RingFenceStatus, new SelectList(Model.RingFenceStatusList, "ringFenceStatusCode", "ringFenceStatusDesc"))
+            @Html.ValidationMessageFor(model => model.RingFenceStatus)
+        </div>
+
         @Html.HiddenFor(model => model.RuleSetID)
 
         <p>
@@ -113,7 +121,7 @@
     @if (Model.HaveResults)
     {
         @Html.Raw("<table><tr><td colspan=2>Release All To:</td></tr><tr><td>")
-        using (Html.BeginForm("ReleaseAll", "WebPick"))
+        using (Html.BeginForm("ReleaseAll", "RingFence"))
         {
             @Html.HiddenFor(model => model.Instance)
             @Html.HiddenFor(model => model.Division)
@@ -122,6 +130,7 @@
             @Html.HiddenFor(model => model.SKU)
             @Html.HiddenFor(model => model.PO)
             @Html.HiddenFor(model => model.RingFenceType)
+            @Html.HiddenFor(model => model.RingFenceStatus)
             @Html.HiddenFor(model => model.RuleSetID)
             @Html.HiddenFor(model => model.Store)
 
@@ -129,7 +138,7 @@
         }
 
         @Html.Raw("</td><td>")
-        using (Html.BeginForm("ReleaseAllToWarehouse", "WebPick"))
+        using (Html.BeginForm("ReleaseAllToWarehouse", "RingFence"))
         {
             @Html.HiddenFor(model => model.Instance)
             @Html.HiddenFor(model => model.Division)
@@ -138,6 +147,7 @@
             @Html.HiddenFor(model => model.SKU)
             @Html.HiddenFor(model => model.PO)
             @Html.HiddenFor(model => model.RingFenceType)
+            @Html.HiddenFor(model => model.RingFenceStatus)
             @Html.HiddenFor(model => model.RuleSetID)
             @Html.HiddenFor(model => model.Store)
 
@@ -168,6 +178,7 @@
         columns.Bound(rf => rf.StartDate).Format("{0:MM/dd/yyyy}").Title("Start Date").Width(30).Visible(true);
         columns.Bound(rf => rf.EndDate).Format("{0:MM/dd/yyyy}").Title("End Date").Width(30).Visible(true);
         columns.Bound(rf => rf.RingFenceTypeDescription).Width(10).Visible(true).Title("Type");
+        columns.Bound(rf => rf.RingFenceStatusDescription).Width(10).Visible(true).Title("Status");
         columns.Bound(rf => rf.Comments);
         columns.Bound(rf => rf.LastModifiedUser).Title("Updated By").Width(150).Visible(true);
         columns.Bound(rf => rf.LastModifiedDate).Format("{0:MM/dd/yyyy h:mm tt}").Width(200).Title("Update Date").Visible(true);
@@ -177,9 +188,9 @@
                          </text>)
         .ClientTemplate(
             "<# if (CanPick) { #>"
-                + "<a class=\"t-button\" href='javascript:ReleaseRingFences({ ID: \"<#= ID #>\", Division: \"<#= Division #>\", Store: \"<#= Store #>\", SKU: \"<#= SKU #>\", PO: \"<#= PO #>\", DCID: \"<#= DCID #>\" });'>This Store</a>"
+                + "<a class=\"t-button\" href='javascript:ReleaseRingFences({ ID: \"<#= ID #>\", Division: \"<#= Division #>\", Store: \"<#= Store #>\", SKU: \"<#= SKU #>\", PO: \"<#= PO #>\", DCID: \"<#= DCID #>\", Status: \"<#= RingFenceStatus #>\" });'>This Store</a>"
             + "<# } #>"
-            + "<a class=\"t-button\" href='javascript:ReleaseRingFencesToWarehouse({ ID: \"<#= ID #>\", Division: \"<#= Division #>\", Store: \"<#= Store #>\", SKU: \"<#= SKU #>\", PO: \"<#= PO #>\", DCID: \"<#= DCID #>\" });'>Warehouse</a>").Title("Detail Release");
+            + "<a class=\"t-button\" href='javascript:ReleaseRingFencesToWarehouse({ ID: \"<#= ID #>\", Division: \"<#= Division #>\", Store: \"<#= Store #>\", SKU: \"<#= SKU #>\", PO: \"<#= PO #>\", DCID: \"<#= DCID #>\", Status: \"<#= RingFenceStatus #>\" });'>Warehouse</a>").Title("Detail Release");
     })
     .DataBinding(dataBinding =>
     {
@@ -188,11 +199,11 @@
             dcid = Model.DistributionCenter,
             sku = Model.SKU,
             ringFenceType = Model.RingFenceType,
+            ringFenceStatus = Model.RingFenceStatus,
             po = Model.PO,
             store = Model.Store,
             ruleset = Model.RuleSetID }).Enabled(true);
     })
-    .ClientEvents(events => events.OnRowDataBound("onRowDataBound"))
     .Scrollable(scrolling => scrolling.Enabled(false))
     .Sortable(sorting => sorting.Enabled(true))
     .Pageable(paging => paging.Enabled(true))
@@ -225,13 +236,6 @@
 
     function saveChanges() {
         $('#RDQs').data('tGrid').submitChanges();
-    }
-
-    function onRowDataBound(e) {
-        var isHoldRel = e.dataItem.Status === 'HOLD-REL';
-        if (isHoldRel) {
-            e.row.style.color = "blue";
-        }
     }
 </script>
 
@@ -272,47 +276,6 @@
                 },
                 success: function (result) {
                     alert(result.Message);
-                    grid.ajaxRequest();
-                }
-            });
-        }
-
-        function ReleaseRDQ(id) {
-            //make a call to server
-            var rfType = '@Model.RingFenceType';
-            var grid = $("#RDQGrid").data("tGrid");
-            $('.t-status .t-icon', grid.element).addClass('t-loading');
-            $.ajax({
-                url: "/WebPick/ReleaseRDQ",
-                data: JSON.stringify({ id: id }),
-                contentType: 'application/json; charset=utf-8',
-                type: 'POST',
-                dataType: 'json',
-                error: function (xhr, status) {
-                    alert(status);
-                    $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
-                },
-                success: function (result) {
-                    grid.ajaxRequest();
-                }
-            });
-        }
-
-        function ReleaseRDQToWarehouse(id) {
-            //make a call to server
-            var grid = $("#RDQGrid").data("tGrid");
-            $('.t-status .t-icon', grid.element).addClass('t-loading');
-            $.ajax({
-                url: "/WebPick/ReleaseRDQToWarehouse",
-                data: JSON.stringify({ id: id }),
-                contentType: 'application/json; charset=utf-8',
-                type: 'POST',
-                dataType: 'json',
-                error: function (xhr, status) {
-                    alert(status);
-                    $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
-                },
-                success: function (result) {
                     grid.ajaxRequest();
                 }
             });

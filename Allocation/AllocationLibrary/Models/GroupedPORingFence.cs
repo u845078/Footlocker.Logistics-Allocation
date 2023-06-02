@@ -55,6 +55,24 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         [Key]
+        [Column(Order = 4)]
+        [ForeignKey("RingFenceStatus")]
+        public string RingFenceStatusCode { get; set; }
+        public virtual RingFenceStatusCodes RingFenceStatus { get; set; }
+
+        [NotMapped]
+        public string RingFenceStatusDescription
+        {
+            get
+            {
+                if (RingFenceStatus == null)
+                    return string.Empty;
+                else
+                    return RingFenceStatus.ringFenceStatusDesc;
+            }
+        }
+
+        [Key]
         [Column(Order = 2)]
         public string PO { get; set; }
 

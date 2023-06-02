@@ -15,6 +15,8 @@ namespace Footlocker.Logistics.Allocation.Models
         public List<DistributionCenter> DistributionCenterList { get; set; }
         public List<RingFenceType> RingFenceTypeList { get; set; }
 
+        public List<RingFenceStatusCodes> RingFenceStatusList { get; set; }
+
         public int Instance { get; set; }        
         public string Division { get; set; }
         public string Department { get; set; }
@@ -25,6 +27,10 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [Display(Name = "Ring Fence Type")]
         public string RingFenceType { get; set; }
+
+        [Display(Name = "Ring Fence Status")]
+        public string RingFenceStatus { get; set; }
+
         public string ShowStoreSelector { get; set; }
 
         public bool HaveResults { get; set; }

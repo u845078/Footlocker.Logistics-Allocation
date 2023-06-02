@@ -64,7 +64,8 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             return rfList.OrderByDescending(x => x.CreateDate).ToList();
         }
 
-        public List<GroupedPORingFence> GetPORingFenceGroups(string division, string department, int distributionCenterID, string store, long ruleSetID, string sku, string po, int ringFenceType)
+        public List<GroupedPORingFence> GetPORingFenceGroups(string division, string department, int distributionCenterID, string store, long ruleSetID, 
+            string sku, string po, int ringFenceType, string ringFenceStatus)
         {
             List<GroupedPORingFence> resultSet = db.GroupedPORingFences.Include("ItemMaster").Where(rf => rf.Division == division).ToList();
 
@@ -92,6 +93,9 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                                                               .Select(rss => rss.Store).ToList();
                 resultSet = resultSet.Where(r => storeList.Contains(r.Store)).ToList();
             }
+
+            if (ringFenceStatus != "0")
+                resultSet = resultSet.Where(r => r.RingFenceStatusCode == ringFenceStatus).ToList();
 
             return resultSet;
         }
