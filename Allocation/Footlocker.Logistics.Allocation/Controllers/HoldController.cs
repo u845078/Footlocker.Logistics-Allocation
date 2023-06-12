@@ -196,11 +196,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             if (string.IsNullOrEmpty(duration))            
                 duration = "All";
-            
+
+            short holdTypeCode;
+            if (holdType == "Cancel Inventory")
+                holdTypeCode = 0;
+            else
+                holdTypeCode = 1;
+
             List<Division> divs = currentUser.GetUserDivisions(AppName);
             List<Hold> list = db.Holds.Where(h => (h.Duration == duration || duration == "All") && 
                                                   h.Division == div &&
-                                                  h.HoldType == holdType &&
+                                                  h.ReserveInventory == holdTypeCode &&
                                                   (h.Store == store || string.IsNullOrEmpty(h.Store))).ToList();
             list = (from a in list
                     join d in divs 
