@@ -20,7 +20,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
     {
         readonly Database _database;
         readonly Database _databaseEurope;
-        readonly Database allocationDatabase;
+        readonly Microsoft.Practices.EnterpriseLibrary.Data.Database allocationDatabase;
         readonly AllocationLibraryContext db = new AllocationLibraryContext();
         readonly Repository<ItemMaster> skuRespository;
         public List<DistributionCenter> distributionCenters = new List<DistributionCenter>();
@@ -980,7 +980,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
         public void DeleteRingFenceDetail(RingFenceDetail detailRec)
         {
-            db.RingFenceDetails.Attach(detailRec);
+            //db.RingFenceDetails.Attach(detailRec);
             db.RingFenceDetails.Remove(detailRec);
         }
 
@@ -992,6 +992,59 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         public void SaveChanges(WebUser webUser)
         {
             db.SaveChanges(webUser.NetworkID);
+        }
+
+        public List<RDQ> BulkPickRingFences(string division, string department, int distributionCenterID, string store, long ruleSetID,
+            string sku, string po, int ringFenceType, string ringFenceStatus, WebUser webUser)
+        {
+            List<RDQ> rdqList = new List<RDQ>();
+                       
+            DbCommand SQLCommand;
+            string SQL = "[dbo].[PickRingFences]";
+
+            SQLCommand = allocationDatabase.GetStoredProcCommand(SQL);
+            allocationDatabase.AddInParameter(SQLCommand, "@division", DbType.String, division);
+            allocationDatabase.AddInParameter(SQLCommand, "@department", DbType.String, department);
+            allocationDatabase.AddInParameter(SQLCommand, "@distCenterID", DbType.Int32, distributionCenterID);
+            allocationDatabase.AddInParameter(SQLCommand, "@store", DbType.String, store);
+            allocationDatabase.AddInParameter(SQLCommand, "@ruleSetID", DbType.Int64, ruleSetID);
+            allocationDatabase.AddInParameter(SQLCommand, "@sku", DbType.String, sku);
+            allocationDatabase.AddInParameter(SQLCommand, "@po", DbType.String, po);
+            allocationDatabase.AddInParameter(SQLCommand, "@ringFenceType", DbType.Int32, ringFenceType);
+            allocationDatabase.AddInParameter(SQLCommand, "@ringFenceStatus", DbType.String, ringFenceStatus);
+            allocationDatabase.AddInParameter(SQLCommand, "@userID", DbType.String, webUser.NetworkID);
+
+            DataSet data = allocationDatabase.ExecuteDataSet(SQLCommand);
+
+            if (data.Tables.Count > 0)
+            {
+                foreach (DataRow dr in data.Tables[0].Rows)
+                {
+                    rdqList.Add(new RDQ() { ID = Convert.ToInt64(dr["ID"]) });
+                }
+            }
+            return rdqList;
+        }
+
+        public void BulkDeleteRingFences(string division, string department, int distributionCenterID, string store, long ruleSetID,
+            string sku, string po, int ringFenceType, string ringFenceStatus, WebUser webUser)
+        {
+            DbCommand SQLCommand;
+            string SQL = "[dbo].[DeleteRingFences]";
+
+            SQLCommand = allocationDatabase.GetStoredProcCommand(SQL);
+            allocationDatabase.AddInParameter(SQLCommand, "@division", DbType.String, division);
+            allocationDatabase.AddInParameter(SQLCommand, "@department", DbType.String, department);
+            allocationDatabase.AddInParameter(SQLCommand, "@distCenterID", DbType.Int32, distributionCenterID);
+            allocationDatabase.AddInParameter(SQLCommand, "@store", DbType.String, store);
+            allocationDatabase.AddInParameter(SQLCommand, "@ruleSetID", DbType.Int64, ruleSetID);
+            allocationDatabase.AddInParameter(SQLCommand, "@sku", DbType.String, sku);
+            allocationDatabase.AddInParameter(SQLCommand, "@po", DbType.String, po);
+            allocationDatabase.AddInParameter(SQLCommand, "@ringFenceType", DbType.Int32, ringFenceType);
+            allocationDatabase.AddInParameter(SQLCommand, "@ringFenceStatus", DbType.String, ringFenceStatus);
+            allocationDatabase.AddInParameter(SQLCommand, "@userID", DbType.String, webUser.NetworkID);
+
+            allocationDatabase.ExecuteNonQuery(SQLCommand);
         }
     }
 }

@@ -188,9 +188,9 @@
                          </text>)
         .ClientTemplate(
             "<# if (CanPick) { #>"
-                + "<a class=\"t-button\" href='javascript:ReleaseRingFences({ ID: \"<#= ID #>\", Division: \"<#= Division #>\", Store: \"<#= Store #>\", SKU: \"<#= SKU #>\", PO: \"<#= PO #>\", DCID: \"<#= DCID #>\", Status: \"<#= RingFenceStatus #>\" });'>This Store</a>"
+                + "<a class=\"t-button\" href='javascript:ReleaseRingFences({ ID: \"<#= ID #>\", Division: \"<#= Division #>\", Store: \"<#= Store #>\", SKU: \"<#= SKU #>\", PO: \"<#= PO #>\", DCID: \"<#= DCID #>\", RingFenceStatusCode: \"<#= RingFenceStatusCode #>\" });'>This Store</a>"
             + "<# } #>"
-            + "<a class=\"t-button\" href='javascript:ReleaseRingFencesToWarehouse({ ID: \"<#= ID #>\", Division: \"<#= Division #>\", Store: \"<#= Store #>\", SKU: \"<#= SKU #>\", PO: \"<#= PO #>\", DCID: \"<#= DCID #>\", Status: \"<#= RingFenceStatus #>\" });'>Warehouse</a>").Title("Detail Release");
+            + "<a class=\"t-button\" href='javascript:ReleaseRingFencesToWarehouse({ ID: \"<#= ID #>\", Division: \"<#= Division #>\", Store: \"<#= Store #>\", SKU: \"<#= SKU #>\", PO: \"<#= PO #>\", DCID: \"<#= DCID #>\", RingFenceStatusCode: \"<#= RingFenceStatusCode #>\" });'>Warehouse</a>").Title("Detail Release");
     })
     .DataBinding(dataBinding =>
     {
