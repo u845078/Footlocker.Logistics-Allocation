@@ -786,8 +786,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             outputMessage = BulkPickRingFence(model.Division, model.Department, model.DistributionCenter, model.Store, model.RuleSetID,
                                               model.SKU, model.PO, Convert.ToInt32(model.RingFenceType), model.RingFenceStatus);
-            
-            ViewBag.message = string.Format("Filtered ring fences were picked. {0)", outputMessage);
+
+            if (!string.IsNullOrEmpty(outputMessage))
+                ViewBag.message = string.Format("Filtered ring fence group(s) were picked with the exception of the following errors. \r\n\r\n{0}", outputMessage);
+            else
+                ViewBag.message = "Filtered ring fence group(s) were picked. ";
 
             InitializeDivisions(model);
             InitializeDepartments(model, false);
