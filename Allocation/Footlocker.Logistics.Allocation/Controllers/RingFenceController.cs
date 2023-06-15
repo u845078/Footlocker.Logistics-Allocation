@@ -1300,8 +1300,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
             div = div.Trim();
             store = store.Trim();
 
-            List<RingFence> rfList = db.RingFences.Where(rf => rf.Division == div && rf.Store == store && rf.CanPick).ToList();
-            string message = BulkPickRingFence(div + "-" + store, rfList, true);
+            List<RingFence> rfList = db.RingFences.Where(rf => rf.Division == div && rf.Store == store).ToList();
+            List<RingFence> rfPickList = new List<RingFence>();
+
+            foreach (RingFence rf in rfList)
+            {
+                if (rf.CanPick)
+                    rfPickList.Add(rf);
+            }
+
+            string message = BulkPickRingFence(div + "-" + store, rfPickList, true);
 
             return RedirectToAction("IndexByStore", new { message });
         }
