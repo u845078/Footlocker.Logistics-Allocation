@@ -490,7 +490,12 @@ namespace Footlocker.Logistics.Allocation.Common
                 }
 
                 var endDate = groupedRF.Details.Select(d => d.EndDate).FirstOrDefault();
-                erf.EndDate = Convert.ToDateTime(endDate);
+
+                if (!string.IsNullOrEmpty(endDate))
+                    erf.EndDate = Convert.ToDateTime(endDate);
+                else
+                    erf.EndDate = null;
+
                 config.db.Entry(erf).State = EntityState.Modified;
                 erf.Qty = ringfenceDAO.CalculateHeaderQty(uniqueCaselotNameQtys, erf.ringFenceDetails);
                 erf.Comments = groupedRF.Details.FirstOrDefault().Comments;
