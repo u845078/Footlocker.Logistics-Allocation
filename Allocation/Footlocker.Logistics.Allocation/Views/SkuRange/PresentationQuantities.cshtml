@@ -43,6 +43,14 @@
             <br />
             <br />
             <span class="editor-label">
+                <b>@Html.LabelFor(model => model.RangePlan.ItemMaster.ServiceCode):</b>
+            </span>
+            <span class="editor-field">
+                @Html.Raw(Model.RangePlan.ItemMaster.ServiceCode)
+            </span>
+            <br />
+            <br />
+            <span class="editor-label">
                 <b>Evergreen SKU:</b>
             </span>
             <span class="editor-field">
@@ -115,6 +123,7 @@
 </table>
 <br />
 @Html.ActionLink("Edit Range", "Edit", new { planID = Model.RangePlan.Id }, new { @class = "t-button", @style = "margin-bottom: 5px;" })
+@Html.ActionLink("Troubleshoot Item", "Troubleshoot", "Item", new { sku = Model.RangePlan.Sku }, new { @class = "t-button", @style = "margin-bottom: 5px;", target="_blank" })
 <hr />
 <br />
 <script type="text/javascript">
