@@ -6,6 +6,7 @@ using Footlocker.Logistics.Allocation.Models;
 using System.Data.Entity.Infrastructure;
 using System.Data;
 using System.Runtime.InteropServices;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
@@ -89,6 +90,7 @@ namespace Footlocker.Logistics.Allocation.Services
 
         public DbSet<ValidRingFence> ValidRingFences { get; set; }
         public DbSet<LegacyFutureInventory> LegacyFutureInventory { get; set; }
+        public DbSet<FootLockerCountryCode> FLCountryCodes { get; set; }
 
         public AllocationLibraryContext()
             : base("AllocationContext")

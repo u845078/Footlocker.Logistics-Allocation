@@ -101,5 +101,16 @@
 
             return cpid;
         }
+
+        public string GetDivisionalCurrencyCode(string division)
+        {
+            string flCountryCode;
+            string currencyCode;
+
+            flCountryCode = db.AllocationDivisions.Where(ad => ad.DivisionCode == division).Select(ad => ad.DefaultCountryCode).FirstOrDefault();
+            currencyCode = db.FLCountryCodes.Where(cc => cc.CountryCode == flCountryCode).Select(cc => cc.ISOCurrencyCode).FirstOrDefault();
+
+            return currencyCode;
+        }
     }
 }
