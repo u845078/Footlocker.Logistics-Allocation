@@ -10,8 +10,8 @@ namespace Footlocker.Logistics.Allocation.Models
     public class SizeAllocationTotal : SizeAllocation
     {
         [NotMapped]
-        public Boolean ModifiedStore { get; set; }
+        public bool ModifiedStore { get; set; }
         [NotMapped]
-        public Boolean ModifiedDates { get; set; }
+        public bool ModifiedDates { get; set; }
     }
 }

@@ -18,16 +18,11 @@ namespace Footlocker.Logistics.Allocation.Models
         {
             get
             {
-                if (this.DeliveryGroups != null)
-                {
-                    return DeliveryGroups.Sum(dg => dg.StoreCount);
-                }
-                else
-                {
-                    return 0;
-                }
+                if (DeliveryGroups != null)                
+                    return DeliveryGroups.Sum(dg => dg.StoreCount);                
+                else                
+                    return 0;                
             }
         }
-
     }
 }

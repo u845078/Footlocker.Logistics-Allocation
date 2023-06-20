@@ -8,7 +8,7 @@ namespace Footlocker.Logistics.Allocation.Models
     {
         [Key]
         [Column(Order = 0)]
-        public Int64 PlanID { get; set; }
+        public long PlanID { get; set; }
 
         [Key]
         [Column(Order = 1)]
@@ -22,15 +22,15 @@ namespace Footlocker.Logistics.Allocation.Models
         [Column(Order = 3)]
         public string Size { get; set; }
 
-        public Int32? Min { get; set; }
+        public int? Min { get; set; }
 
-        public Int32? Max { get; set; }
+        public int? Max { get; set; }
 
         public decimal? InitialDemand { get; set; }
 
-        public Int32? Days { get; set; }
+        public int? Days { get; set; }
 
-        public Int16 RangeFromDB 
+        public short RangeFromDB 
         {
             get
             {
@@ -74,7 +74,10 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         [NotMapped]
-        public Boolean Range { get; set; }
+        public bool Range { get; set; }
+
+        [NotMapped]
+        public bool Fringe { get; set; }
 
         [NotMapped]
         public string League { get; set; }

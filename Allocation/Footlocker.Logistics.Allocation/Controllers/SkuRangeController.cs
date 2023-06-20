@@ -1054,20 +1054,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
             string ruleType = "SizeAlc";
             #region ruleModel
 
-            var existingRuleSet = (from a in db.RuleSets
-                                   where (a.PlanID == model.RangePlan.Id) && (a.Type == ruleType)
-                                   select a.RuleSetID);
-            if (existingRuleSet.Count() > 0)
-            {
-                model.RuleSetID = existingRuleSet.First();
-            }
+            var existingRuleSet = from a in db.RuleSets
+                                   where a.PlanID == model.RangePlan.Id && 
+                                         a.Type == ruleType
+                                   select a.RuleSetID;
+            if (existingRuleSet.Count() > 0)            
+                model.RuleSetID = existingRuleSet.First();            
             else
             {
-                RuleSet rs = new RuleSet();
-                rs.PlanID = model.RangePlan.Id;
-                rs.Type = ruleType;
-                rs.CreatedBy = User.Identity.Name;
-                rs.CreateDate = DateTime.Now;
+                RuleSet rs = new RuleSet()
+                {
+                    PlanID = model.RangePlan.Id,
+                    Type = ruleType,
+                    CreatedBy = currentUser.NetworkID,
+                    CreateDate = DateTime.Now
+                };
+
                 db.RuleSets.Add(rs);
                 db.SaveChanges();
                 model.RuleSetID = rs.RuleSetID;
@@ -1081,7 +1083,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             List<SizeAllocation> allocs = dao.GetSizeAllocationList(model.RangePlan.Id);
             //find stores in selected delivery groups
-            List<DeliveryGroup> selected = ((List<DeliveryGroup>)Session["selectedDeliveryGroups"]);
+            List<DeliveryGroup> selected = (List<DeliveryGroup>)Session["selectedDeliveryGroups"];
             List<RuleSelectedStore> selectedStores = new List<RuleSelectedStore>();
             foreach (DeliveryGroup dg in selected)
             {
@@ -1102,9 +1104,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (model.Rules.Count() == 0)
             {
                 //add a temp rule so we can show the and/etc.
-                Rule r = new Rule();
-                r.RuleSetID = model.RuleSetID;//(new RuleDAO()).GetRuleSetID(model.PlanID, "SizeAlc", User.Identity.Name);
-
+                Rule r = new Rule()
+                {
+                    RuleSetID = model.RuleSetID
+                };
+                
                 model.Rules = new List<Rule>();
                 model.Rules.Add(r);
                 model.RuleToAdd.RuleSetID = r.RuleSetID;
@@ -1155,12 +1159,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             ViewData["show"] = show;
-            if (show == "emptyStartDates")
-            {
-                model.SizeAllocations = (from a in model.SizeAllocations
-                                         where (a.StartDate == null)
-                                         select a).ToList();
-            }
+            if (show == "emptyStartDates")            
+                model.SizeAllocations = model.SizeAllocations.Where(sa => sa.StartDate == null).ToList();            
 
             model.RuleToAdd.Sort = model.Rules.Count() + 1;
             #endregion
