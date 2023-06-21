@@ -206,16 +206,20 @@
             function toggleMinEndDate() {
                 $(".minEndDate").toggle();
             }
+            function toggleFringeSizes() {
+                $(".fringe").toggle();
+            }
         </script>
-        <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleRange()" checked>Range
-        <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleMin()" checked>Min
-        <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleMax()" checked>Max
+        <input type="checkbox" id="showRange" value="Range" onclick="toggleRange()" checked>Range
+        <input type="checkbox" id="showMin" value="Min" onclick="toggleMin()" checked>Min
+        <input type="checkbox" id="showMax" value="Max" onclick="toggleMax()" checked>Max
         <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleInitDemand()">Base Demand
-        <input type="checkbox" id="showInitDemand" value="Initial Demand" onclick="toggleMinEndDays()">Min End Days Override
+        <input type="checkbox" id="showMinEndDays" value="Min End Days" onclick="toggleMinEndDays()">Min End Days Override
         <input type="checkbox" id="showMinEndDate" value="Min End Date" onclick="toggleMinEndDate()" checked>Min End Date
+        <input type="checkbox" id="showFringeSizes" value="Fringe Sizes" onclick="toggleFringeSizes()" checked>Fringe Sizes
 
         <div style="float: right;">
-            <label for="GridRows">Rows to view:</label> 
+            <label for="GridRows">Rows to view:</label>
             <select name="GridRows" id="GridRows" onchange="ShowStoreCount();">
                 <option value="20">20</option>
                 <option value="50">50</option>
@@ -246,6 +250,7 @@
                         @{
                             string prevStore = "";
                             string prevDiv = "";
+                            string fringeSize = "";
                             if (Model.Count() > 0)
                             {
                                 prevStore = Model.First().Store;
@@ -259,16 +264,27 @@
                                 {
                                     break;
                                 }
-                                
-                                @Html.Raw("<th class='long' nowrap>");
+
+                                if (item.Fringe)
+                                {
+                                    fringeSize = "fringe";
+                                }
+                                else
+                                {
+                                    fringeSize = "";
+                                }
+
+                                @Html.Raw("<th class='long ");
+                                @Html.Raw(fringeSize);
+                                @Html.Raw("' nowrap>");
                                 @Html.Raw(item.Size + "");
                                 @Html.Raw("&nbsp;(<span class='total' id='sizeTotal" + item.Size + "'></span>)");
 
                                 scriptContent1 += "var extra" + item.Size + " = Number(0);";
                                 Html.Raw("</th>");
-                            }                            
+                            }
                             <th></th>
-                            
+
                             @Html.Raw("</tr>")
 
                             prevStore = "FIRST";
@@ -301,6 +317,15 @@
 
                             foreach (var item in Model)
                             {
+                                if (item.Fringe)
+                                {
+                                    fringeSize = "fringe";
+                                }
+                                else
+                                {
+                                    fringeSize = "";
+                                }
+
                                 if (!(prevDiv == item.Division && prevStore == item.Store))
                                 {
                                     if (prevDiv != "FIRST")
@@ -384,7 +409,8 @@
 
                                 if ((storeCount >= minStore) && (storeCount <= maxStore))
                                 {
-                                    @Html.Raw("<td nowrap  class=\"long\">")
+                                    @Html.Raw("<td nowrap class='long " + fringeSize + "'>")
+
 
                                     @Html.Raw("<input name=\"det[" + count + "].PlanID\" type=\"hidden\" value=\"" + item.PlanID + "\"/>")
                                     @Html.Raw("<input name=\"det[" + count + "].Division\" type=\"hidden\" value=\"" + item.Division + "\"/>")
@@ -445,7 +471,7 @@
                                             minCell = @startCount;
                                         }
                                     </script>
-                                }                                
+                                }
                                 @Html.Raw("</tr></table>");
 
                                 @Html.Raw("</div>");

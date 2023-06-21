@@ -5,6 +5,8 @@ using System.Data.Entity;
 using Footlocker.Logistics.Allocation.Models;
 using System.Data.Entity.Infrastructure;
 using System.Data;
+using System.Runtime.InteropServices;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
@@ -83,10 +85,12 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<Country> Countries { get; set; }
         public DbSet<State> States { get; set; }
         public DbSet<GroupedRingFence> GroupedRingFences { get; set; }
+        public DbSet<GroupedPORingFence> GroupedPORingFences { get; set; }
         public DbSet<CPSkuSizesXref> CPSkuSizesXrefs { get; set; }
 
         public DbSet<ValidRingFence> ValidRingFences { get; set; }
         public DbSet<LegacyFutureInventory> LegacyFutureInventory { get; set; }
+        public DbSet<FootLockerCountryCode> FLCountryCodes { get; set; }
 
         public AllocationLibraryContext()
             : base("AllocationContext")
@@ -103,7 +107,6 @@ namespace Footlocker.Logistics.Allocation.Services
             modelBuilder.Entity<RangePlan>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
             modelBuilder.Entity<DirectToStoreSku>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
             modelBuilder.Entity<RingFence>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
-
 
             // NOTE: StoreLookup->StoreExtension relationship defined on constraint that IS ALL of principal's compositePK, so optional, unilateral (1to 1) relationship...
             modelBuilder.Entity<StoreLookup>().HasOptional(sl => sl.StoreExtension).WithRequired();
@@ -265,7 +268,7 @@ namespace Footlocker.Logistics.Allocation.Services
                 {
                     try
                     {
-                        var query = ((from a in this.ItemPacks where (a.Name == det.Size) select a.TotalQty));
+                        var query = ((from a in this.ItemPacks where a.Name == det.Size select a.TotalQty));
 
                         qty += (det.Qty * query.First());
                     }
@@ -281,15 +284,16 @@ namespace Footlocker.Logistics.Allocation.Services
 
         public void PreCommitRingFenceDetail(RingFenceDetail det, string user, System.Data.EntityState state)
         {
-            RingFence rf = (from a in this.RingFences where a.ID == det.RingFenceID select a).First();
+            RingFence rf = this.RingFences.Where(r => r.ID == det.RingFenceID).First();
 
             rf.Qty = GetQtyForRingFenceWithChange(det, rf, state);
-            rf.CreateDate = DateTime.Now;
-            rf.CreatedBy = user;
+            rf.LastModifiedDate = DateTime.Now;
+            rf.LastModifiedUser = user;
 
-            if (this.Entry(rf).State != System.Data.EntityState.Modified)
+            if (this.Entry(rf).State != System.Data.EntityState.Deleted)
             {
-                this.Entry(rf).State = System.Data.EntityState.Modified;
+                if (this.Entry(rf).State != System.Data.EntityState.Modified)                
+                    this.Entry(rf).State = System.Data.EntityState.Modified;                
             }
         }
 

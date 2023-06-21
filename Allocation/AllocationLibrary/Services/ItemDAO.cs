@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Data;
@@ -8,17 +7,22 @@ using Microsoft.Practices.EnterpriseLibrary.Data;
 using Footlocker.Logistics.Allocation.Factories;
 using Footlocker.Logistics.Allocation.Models;
 using System.Linq;
+using System.Data.SqlClient;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
     public class ItemDAO
     {
         private readonly Database _database;
+        Database _USdatabase;
+        Database _Europedatabase;
         readonly AllocationLibraryContext db = new AllocationLibraryContext();
 
         public ItemDAO()
         {
             _database = DatabaseFactory.CreateDatabase("AllocationContext");
+            _USdatabase = DatabaseFactory.CreateDatabase("DB2PROD_DRIVER");
+            _Europedatabase = DatabaseFactory.CreateDatabase("DB2EURP_DRIVER");
         }
         
         public void CreateItemMaster(string sku, int instance)
@@ -115,11 +119,52 @@ namespace Footlocker.Logistics.Allocation.Services
             sizeCount += (from a in db.ItemPacks
                           join b in db.ItemMasters
                             on a.ItemID equals b.ID
-                         where (b.MerchantSku == sku) &&
-                               (a.Name == size)
+                         where b.MerchantSku == sku &&
+                               a.Name == size
                      select a).Count();
 
             return sizeCount > 0;
+        }
+
+        public decimal GetLocalPrice(string sku)
+        {
+            string div;
+            string dept;
+            string stock;
+            string color;
+            Database currentDB;
+            DbCommand SQLCommand;
+            decimal price = 0.0M;
+
+            string[] tokens = sku.Split('-');
+            div = tokens[0];
+            dept = tokens[1];
+            stock = tokens[2];
+            color = tokens[3];
+
+            if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(div))
+                currentDB = _Europedatabase;            
+            else
+                currentDB = _USdatabase;
+
+            string SQL = "select stock_xvat_price from TCISR003 ";
+            SQL += " where RETL_OPER_DIV_CODE = '" + div + "' and ";
+            SQL += "  STK_DEPT_NUM = '" + dept + "' and ";
+            SQL += "  STK_NUM = '" + stock + "' and ";
+            SQL += "  STK_WDTH_COLOR_NUM = '" + color + "' ";
+
+            SQLCommand = currentDB.GetSqlStringCommand(SQL);
+
+            DataSet data;
+            data = currentDB.ExecuteDataSet(SQLCommand);
+
+            if (data.Tables.Count > 0)
+            {
+                DataRow dr = data.Tables[0].Rows[0];
+                price = Convert.ToDecimal(dr["stock_xvat_price"]);
+            }
+
+            return price;
         }
     }
 }

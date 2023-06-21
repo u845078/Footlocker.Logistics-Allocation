@@ -45,6 +45,7 @@
       <siteMapNode title="Override PO" controller="OverridePO" action="Index" />
       <siteMapNode title="Release Held RDQs" controller="WebPick" action="BulkAdmin" />
       <siteMapNode title="Ring Fencing" controller="RingFence" action="Index" />
+      <siteMapNode title="Release Ring Fences" controller="RingFence" action="Release" />
       <siteMapNode title="WSM" controller="SkuAttribute" action="Index" />
       <siteMapNode title="SKU Review" controller="Item" action="Troubleshoot" />
 		  <siteMapNode title="SKU Setup" controller="SkuRange" action="Index" />
@@ -71,7 +72,6 @@
 		  <siteMapNode title="Service Type" controller="Upload" action="SkuTypeUpload" />
       <siteMapNode title="SKU Id" controller="Upload" action="SkuIdUpload" />
       <siteMapNode title="SKU Setup Upload" controller="SkuRange" action="UploadRange" />
-      <siteMapNode title="Crossdock Link Upload" controller="Upload" action="CrossdockLinkUpload" />
     </siteMapNode>
 
 	  <siteMapNode title="About" controller="Home" action="About" />

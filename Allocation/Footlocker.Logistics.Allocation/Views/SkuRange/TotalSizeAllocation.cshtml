@@ -97,9 +97,9 @@ else
                                 Boolean alternate = false;
                                 foreach (var item in Model)
                                 {
-                                            @Html.Raw("<th class='t-header'>")
-                                                @Html.Raw(item.Size)
-                                            @Html.Raw("</th>")        
+                                    @Html.Raw("<th class='t-header'>")
+                                        @Html.Raw(item.Size)
+                                    @Html.Raw("</th>")        
                                 }
                             }
                         </tr>
@@ -111,9 +111,9 @@ else
                         int count = 0;
                         foreach (var item in Model)
                         {
-                            if (!((prevDiv.Equals(item.Division)) && (prevStore.Equals(item.Store))))
+                            if (!(prevDiv == item.Division && prevStore == item.Store))
                             {
-                                if (!(prevDiv.Equals("FIRST")))
+                                if (!prevDiv.Equals("FIRST"))
                                 {
                                     @Html.Raw("</tr>");
                                 }

@@ -17,7 +17,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public string LifeCycle { get; set; }
         public DateTime? FirstReceipt { get; set; }
 
-        [Display(Name = "Service Code")]
+        [Display(Name = "Service Type")]
         public string ServiceCode { get; set; }
         public string WarehouseReceived { get; set; }
         public string TargetSku { get; set; }

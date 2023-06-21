@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using Footlocker.Logistics.Allocation.Models;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
@@ -147,8 +148,13 @@ namespace Footlocker.Logistics.Allocation.Models
         }
         public bool ValidItem { get; set; }
         public AllocationDriver AllocationDriver { get; set; }
-        public ControlDate ControlDate { get; set; }
+        public DateTime ControlDate { get; set; }
         public long CPID { get; set; }
+
+        public string RetailPriceCurrency { get; set; }
+
+        [DisplayName("Retail Price")]
+        public decimal RetailPrice { get; set; }
 
         public List<RDQ> RDQs { get; set; }
     }

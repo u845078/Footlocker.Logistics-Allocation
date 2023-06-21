@@ -1,0 +1,283 @@
+﻿@model RingFenceReleaseModel
+
+@{
+    ViewBag.Title = "Release";
+}
+
+<h2>Ring Fence Release</h2>
+@if (Model.ShowStoreSelector == "yes")
+{
+    <div id="ruletab" style="margin-left:100px;margin-right:200px;" class="fieldset">
+        @Html.Partial(@Url.Content("~/Views/Rule/RuleFilter.cshtml"), Model.RuleModel, ViewData)
+        <br />
+    </div>
+    @Html.Raw("<div id=\"maintab\" style=\"display:none;\">")
+}
+
+<fieldset>
+    <legend>Ring Fence Filter Criteria</legend>
+
+    @using (Html.BeginForm("RefreshDivisions", "RingFence"))
+    {
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Instance)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.Instance, new SelectList(Model.Instances, "ID", "Name"), new { onchange = "this.form.submit()" })
+            @Html.ValidationMessageFor(model => model.Instance)
+        </div>
+    }
+
+    @using (Html.BeginForm("RefreshDepartments", "RingFence"))
+    {
+        @Html.HiddenFor(model => model.Instance)
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Division)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.Division, new SelectList(Model.Divisions, "DivCode", "DisplayName"), new { onchange = "this.form.submit()" })
+            @Html.ValidationMessageFor(model => model.Division)
+        </div>
+    }
+
+    @using (Html.BeginForm("Release", "RingFence", FormMethod.Post, new { id = "BulkAdminForm" }))
+    {
+        @Html.HiddenFor(model => model.Instance)
+        @Html.HiddenFor(model => model.Division)
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Department)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.Department, new SelectList(Model.Departments, "DeptNumber", "DisplayName"))
+            @Html.ValidationMessageFor(model => model.Departments)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.DistributionCenter)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.DistributionCenter, new SelectList(Model.DistributionCenterList, "ID", "displayValue"))
+            @Html.ValidationMessageFor(model => model.DistributionCenter)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Store) (optional)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Store)
+            @Html.ValidationMessageFor(model => model.Store)
+            @Html.HiddenFor(model => model.ShowStoreSelector)
+
+            <span id="pickedStores">
+                @if (Model.RuleSetID > 0)
+                {
+                    @Html.Raw("(Stores are specified)")
+                }
+            </span>
+            <input type="button" value="Select Stores" class="t-button" onclick="return showStoreSelector()" />
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.SKU)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.SKU)
+            @Html.ValidationMessageFor(model => model.SKU)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.PO)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.PO)
+            @Html.ValidationMessageFor(model => model.PO)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RingFenceType)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.RingFenceType, new SelectList(Model.RingFenceTypeList, "ID", "Description"))
+            @Html.ValidationMessageFor(model => model.RingFenceType)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RingFenceStatus)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.RingFenceStatus, new SelectList(Model.RingFenceStatusList, "ringFenceStatusCode", "ringFenceStatusDesc"))
+            @Html.ValidationMessageFor(model => model.RingFenceStatus)
+        </div>
+
+        @Html.HiddenFor(model => model.RuleSetID)
+
+        <p>
+            <input type="submit" value="Submit" class="t-button" />
+        </p>
+    }
+
+    @if (Model.HaveResults)
+    {
+        @Html.Raw("<table><tr><td colspan=2>Release All To:</td></tr><tr><td>")
+        using (Html.BeginForm("ReleaseAll", "RingFence"))
+        {
+            @Html.HiddenFor(model => model.Instance)
+            @Html.HiddenFor(model => model.Division)
+            @Html.HiddenFor(model => model.Department)
+            @Html.HiddenFor(model => model.DistributionCenter)
+            @Html.HiddenFor(model => model.SKU)
+            @Html.HiddenFor(model => model.PO)
+            @Html.HiddenFor(model => model.RingFenceType)
+            @Html.HiddenFor(model => model.RingFenceStatus)
+            @Html.HiddenFor(model => model.RuleSetID)
+            @Html.HiddenFor(model => model.Store)
+
+            <input type="submit" value="Specified Store" onclick="return confirm('Are you sure you want to pick ALL the Ring Fences below?');" class="t-button" />
+        }
+
+        @Html.Raw("</td><td>")
+        using (Html.BeginForm("ReleaseAllToWarehouse", "RingFence"))
+        {
+            @Html.HiddenFor(model => model.Instance)
+            @Html.HiddenFor(model => model.Division)
+            @Html.HiddenFor(model => model.Department)
+            @Html.HiddenFor(model => model.DistributionCenter)
+            @Html.HiddenFor(model => model.SKU)
+            @Html.HiddenFor(model => model.PO)
+            @Html.HiddenFor(model => model.RingFenceType)
+            @Html.HiddenFor(model => model.RingFenceStatus)
+            @Html.HiddenFor(model => model.RuleSetID)
+            @Html.HiddenFor(model => model.Store)
+
+            <input type="submit" value="Warehouse" onclick="return confirm('Are you sure you want to release ALL Ring Fences below to warehouse available?');" class="t-button" />
+        }
+
+        @Html.Raw("</td></tr></table>")
+    }
+</fieldset>
+
+<font color="red">@Html.Raw(ViewData["message"])</font>
+@if (Model.HaveResults)
+{
+    @Html.Raw("Selected Ring Fences:<br>")
+
+    @(Html.Telerik().Grid<GroupedPORingFence>()
+    .Name("ReleaseRingFenceGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(rf => rf.Division).Width(30).Title("Div").Visible(true);
+        columns.Bound(rf => rf.Store).Width(30).Visible(true);
+        columns.Bound(rf => rf.DCDisplayName).Width(150).Title("Warehouse");
+        columns.Bound(rf => rf.SKU).Width(170).Visible(true);
+        columns.Bound(rf => rf.PO).Width(170).Visible(true);
+        columns.Bound(rf => rf.SKUDescription).Visible(true).FooterTemplate(@<text>@Html.Raw("Filtered Qty: ")</text>);
+        columns.Bound(rf => rf.TotalQuantity).Aggregate(aggreages => aggreages.Sum()).Width(10).Title("Qty")
+                .ClientFooterTemplate("<#= Sum #>").FooterTemplate(@<text>@Html.Raw(item.Sum)</text>);
+        columns.Bound(rf => rf.StartDate).Format("{0:MM/dd/yyyy}").Title("Start Date").Width(30).Visible(true);
+        columns.Bound(rf => rf.EndDate).Format("{0:MM/dd/yyyy}").Title("End Date").Width(30).Visible(true);
+        columns.Bound(rf => rf.RingFenceTypeDescription).Width(10).Visible(true).Title("Type");
+        columns.Bound(rf => rf.RingFenceStatusDescription).Width(10).Visible(true).Title("Status");
+        columns.Bound(rf => rf.Comments);
+        columns.Bound(rf => rf.LastModifiedUser).Title("Updated By").Width(150).Visible(true);
+        columns.Bound(rf => rf.LastModifiedDate).Format("{0:MM/dd/yyyy h:mm tt}").Width(200).Title("Update Date").Visible(true);
+        columns.Template(@<text>
+                            @Html.Raw("<a class=\"t-button\" href='javascript:ReleaseRingFences(item);'>This Store</a>")
+                            @Html.Raw("<a class=\"t-button\" href='javascript:ReleaseRingFencesToWarehouse(item);'>Warehouse</a>")
+                         </text>)
+        .ClientTemplate(
+            "<# if (CanPick) { #>"
+                + "<a class=\"t-button\" href='javascript:ReleaseRingFences({ ID: \"<#= ID #>\", Division: \"<#= Division #>\", Store: \"<#= Store #>\", SKU: \"<#= SKU #>\", PO: \"<#= PO #>\", DCID: \"<#= DCID #>\", RingFenceStatusCode: \"<#= RingFenceStatusCode #>\" });'>This Store</a>"
+            + "<# } #>"
+            + "<a class=\"t-button\" href='javascript:ReleaseRingFencesToWarehouse({ ID: \"<#= ID #>\", Division: \"<#= Division #>\", Store: \"<#= Store #>\", SKU: \"<#= SKU #>\", PO: \"<#= PO #>\", DCID: \"<#= DCID #>\", RingFenceStatusCode: \"<#= RingFenceStatusCode #>\" });'>Warehouse</a>").Title("Detail Release");
+    })
+    .DataBinding(dataBinding =>
+    {
+        dataBinding.Ajax().Select("_BulkRingFences", "RingFence", new { div = Model.Division,
+            department = Model.Department,
+            dcid = Model.DistributionCenter,
+            sku = Model.SKU,
+            ringFenceType = Model.RingFenceType,
+            ringFenceStatus = Model.RingFenceStatus,
+            po = Model.PO,
+            store = Model.Store,
+            ruleset = Model.RuleSetID }).Enabled(true);
+    })
+    .Scrollable(scrolling => scrolling.Enabled(false))
+    .Sortable(sorting => sorting.Enabled(true))
+    .Pageable(paging => paging.Enabled(true))
+    .Filterable(filtering => filtering.Enabled(true))
+    .Groupable(grouping => grouping.Enabled(false))
+    .Footer(true)
+)
+}
+
+@if (Model.ShowStoreSelector == "yes")
+{
+    @Html.Raw("</div>")
+}
+
+<script type="text/javascript">
+    function showStoreSelector() {
+        $("#ShowStoreSelector").val("yes");
+        $('#Hold_Store').hide();
+        $('form#BulkAdminForm').submit();
+    }
+
+    function hideStoreSelector() {
+        $("#ShowStoreSelector").val("no");
+        $('#RuleSetID').val($('#RuleToAdd_RuleSetID').val());
+
+        $('#ruletab').hide();
+        $('#Hold_Store').hide();
+        $('#maintab').show();
+    }
+
+    function saveChanges() {
+        $('#RDQs').data('tGrid').submitChanges();
+    }
+</script>
+
+<script type="text/javascript">
+        function ReleaseRingFences(groupedPORingFence) {
+            var grid = $("#ReleaseRingFenceGrid").data("tGrid");
+            $('.t-status .t-icon', grid.element).addClass('t-loading');
+            $.ajax({
+                url: "/RingFence/ReleasePOGroupRF",
+                data: JSON.stringify({ rfGroup: groupedPORingFence }),
+                contentType: 'application/json; charset=utf-8',
+                type: 'POST',
+                dataType: 'json',
+                error: function (xhr, status) {
+                    alert(status);
+                    $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+                },
+                success: function (result) {                    
+                    alert("This ring fence group was picked.See the Release Held RDQs page for the status of the picks. \r\n\r\n" + result.Message);
+                    grid.ajaxRequest();
+                }
+            });
+        }
+
+        function ReleaseRingFencesToWarehouse(groupedPORingFence) {
+            //make a call to server
+            var grid = $("#ReleaseRingFenceGrid").data("tGrid");
+            $('.t-status .t-icon', grid.element).addClass('t-loading');
+            $.ajax({
+                url: "/RingFence/DeletePOGroupRF",
+                data: JSON.stringify({ rfGroup: groupedPORingFence }),
+                contentType: 'application/json; charset=utf-8',
+                type: 'POST',
+                dataType: 'json',
+                error: function (xhr, status) {
+                    alert(status);
+                    $('.t-status .t-icon t-loading', grid.element).removeClass('t-loading');
+                },
+                success: function (result) {
+                    alert(result.Message);
+                    grid.ajaxRequest();
+                }
+            });
+        }
+</script>

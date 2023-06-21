@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Security.Cryptography;
+using System.Data;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 
@@ -9,7 +10,7 @@ namespace Footlocker.Logistics.Allocation.Factories
 {
     public class RingFenceDataFactory
     {
-        AllocationLibraryContext db = new AllocationLibraryContext();
+        private readonly AllocationLibraryContext db = new AllocationLibraryContext();
 
         public List<RingFenceDetail> CreateRFDetailsFromWarehouseInventory(List<WarehouseInventory> warehouseInventory, long? ringFenceID)
         {
@@ -20,12 +21,10 @@ namespace Footlocker.Logistics.Allocation.Factories
             if (ringFenceID != null)
             {
                 // if you're editing a ring fence, we want to figure out the current quantity to take it out since it may be changed
-                existingDetails = (from r in db.RingFenceDetails
-                                   where r.RingFenceID == ringFenceID &&
-                                         r.ActiveInd == "1" &&
-                                         r.ringFenceStatusCode == "4" &&
-                                         r.PO == ""
-                                   select r).ToList();
+                existingDetails = db.RingFenceDetails.Where(rf => rf.RingFenceID == ringFenceID &&
+                                                                  rf.ActiveInd == "1" &&
+                                                                  rf.ringFenceStatusCode == "4" &&
+                                                                  rf.PO == "").ToList();
             }
 
             foreach (WarehouseInventory wi in warehouseInventory)
@@ -60,5 +59,24 @@ namespace Footlocker.Logistics.Allocation.Factories
 
             return newList;
         }
+
+        public RingFenceHistory CreateRingFenceHistory(RingFence ringFence, RingFenceDetail ringFenceDetail, WebUser user)
+        {
+            RingFenceHistory rfh = new RingFenceHistory()
+            {
+                RingFenceID = ringFenceDetail.RingFenceID,
+                Division = ringFence.Division,
+                Store = ringFence.Store,
+                DCID = ringFenceDetail.DCID,
+                PO = ringFenceDetail.PO,
+                Qty = ringFenceDetail.Qty,                
+                CreateDate = DateTime.Now,
+                CreatedBy = user.NetworkID
+            };
+
+            return rfh;
+        }
+
+
     }
 }

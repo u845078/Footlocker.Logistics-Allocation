@@ -17,6 +17,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     {
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
         ConfigService configService = new ConfigService();
+        ItemDAO itemDAO = new ItemDAO();
 
         [CheckPermission(Roles = "Support,IT")]
         public ActionResult Lookup()
@@ -71,7 +72,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return View(model);
         }
-
         
         [HttpPost]
         public ActionResult Troubleshoot(TroubleshootModel model)
@@ -163,9 +163,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.AllocationDriver = dao.GetAllocationDriverList(item.Div).Where(adl => adl.Department == item.Dept).FirstOrDefault();
 
                 instanceID = configService.GetInstance(div);
-                model.ControlDate = db.ControlDates.Where(cd => cd.InstanceID == instanceID).FirstOrDefault();
+                model.ControlDate = configService.GetControlDate(div);                
 
                 model.CPID = configService.GetCPID(model.ItemMaster.MerchantSku);
+                model.RetailPriceCurrency = configService.GetDivisionalCurrencyCode(div);
+                model.RetailPrice = itemDAO.GetLocalPrice(model.Sku);
 
                 model.ValidItem = true;
 
@@ -208,9 +210,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (model.Store == null)            
                 model.Store = "";
 
-            int instanceID = configService.GetInstance(model.Division);
-
-            DateTime today = configService.GetControlDate(instanceID);            
+            DateTime today = configService.GetControlDate(model.Division);            
 
             model.Divisions = currentUser.GetUserDivisions(AppName);
 

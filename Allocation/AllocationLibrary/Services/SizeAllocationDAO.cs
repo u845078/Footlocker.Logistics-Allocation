@@ -20,9 +20,8 @@ namespace Footlocker.Logistics.Allocation.Services
         {
             _database = DatabaseFactory.CreateDatabase("AllocationContext");
         }
-
         
-        public List<SizeAllocation> GetSizeAllocationList(Int64 planID)
+        public List<SizeAllocation> GetSizeAllocationList(long planID)
         {
             List<SizeAllocation> _que;
             _que = new List<SizeAllocation>();
@@ -33,7 +32,7 @@ namespace Footlocker.Logistics.Allocation.Services
             SQLCommand = _database.GetStoredProcCommand(SQL);
             _database.AddInParameter(SQLCommand, "@plan", DbType.String, planID);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _database.ExecuteDataSet(SQLCommand);
 
             SizeAllocationFactory factory = new SizeAllocationFactory();

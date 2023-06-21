@@ -1054,20 +1054,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
             string ruleType = "SizeAlc";
             #region ruleModel
 
-            var existingRuleSet = (from a in db.RuleSets
-                                   where (a.PlanID == model.RangePlan.Id) && (a.Type == ruleType)
-                                   select a.RuleSetID);
-            if (existingRuleSet.Count() > 0)
-            {
-                model.RuleSetID = existingRuleSet.First();
-            }
+            var existingRuleSet = from a in db.RuleSets
+                                   where a.PlanID == model.RangePlan.Id && 
+                                         a.Type == ruleType
+                                   select a.RuleSetID;
+            if (existingRuleSet.Count() > 0)            
+                model.RuleSetID = existingRuleSet.First();            
             else
             {
-                RuleSet rs = new RuleSet();
-                rs.PlanID = model.RangePlan.Id;
-                rs.Type = ruleType;
-                rs.CreatedBy = User.Identity.Name;
-                rs.CreateDate = DateTime.Now;
+                RuleSet rs = new RuleSet()
+                {
+                    PlanID = model.RangePlan.Id,
+                    Type = ruleType,
+                    CreatedBy = currentUser.NetworkID,
+                    CreateDate = DateTime.Now
+                };
+
                 db.RuleSets.Add(rs);
                 db.SaveChanges();
                 model.RuleSetID = rs.RuleSetID;
@@ -1081,7 +1083,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             List<SizeAllocation> allocs = dao.GetSizeAllocationList(model.RangePlan.Id);
             //find stores in selected delivery groups
-            List<DeliveryGroup> selected = ((List<DeliveryGroup>)Session["selectedDeliveryGroups"]);
+            List<DeliveryGroup> selected = (List<DeliveryGroup>)Session["selectedDeliveryGroups"];
             List<RuleSelectedStore> selectedStores = new List<RuleSelectedStore>();
             foreach (DeliveryGroup dg in selected)
             {
@@ -1102,9 +1104,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (model.Rules.Count() == 0)
             {
                 //add a temp rule so we can show the and/etc.
-                Rule r = new Rule();
-                r.RuleSetID = model.RuleSetID;//(new RuleDAO()).GetRuleSetID(model.PlanID, "SizeAlc", User.Identity.Name);
-
+                Rule r = new Rule()
+                {
+                    RuleSetID = model.RuleSetID
+                };
+                
                 model.Rules = new List<Rule>();
                 model.Rules.Add(r);
                 model.RuleToAdd.RuleSetID = r.RuleSetID;
@@ -1155,12 +1159,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             ViewData["show"] = show;
-            if (show == "emptyStartDates")
-            {
-                model.SizeAllocations = (from a in model.SizeAllocations
-                                         where (a.StartDate == null)
-                                         select a).ToList();
-            }
+            if (show == "emptyStartDates")            
+                model.SizeAllocations = model.SizeAllocations.Where(sa => sa.StartDate == null).ToList();            
 
             model.RuleToAdd.Sort = model.Rules.Count() + 1;
             #endregion
@@ -2223,7 +2223,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #endregion
         #endregion
 
-
         #region Get Store List from Rule List
         private Boolean ValidateRules(List<Rule> rules)
         {
@@ -2244,25 +2243,28 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <summary>
         /// Finds what stores meet the rules criteria
         /// </summary>
-        private List<StoreLookupModel> GetStoresForRules(List<Rule> rules, Int64 planID)
+        private List<StoreLookupModel> GetStoresForRules(List<Rule> rules, long planID)
         {
             List<StoreLookupModel> list = new List<StoreLookupModel>();
             List<Rule> finalRules = new List<Rule>();
 
-            RangePlan p = (from a in db.RangePlans
-                           where a.Id == planID
-                           select a).First();
+            RangePlan p = db.RangePlans.Where(rp => rp.Id == planID).First();
 
             //add division criteria to rules
-            Rule divRule = new Rule();
-            divRule.Compare = "Equals";
-            divRule.Field = "Division";
-            divRule.Value = p.Sku.Substring(0, 2);
+            Rule divRule = new Rule()
+            {
+                Compare = "Equals",
+                Field = "Division",
+                Value = p.Sku.Substring(0, 2)
+            };
 
             finalRules.Add(divRule);
 
-            divRule = new Rule();
-            divRule.Compare = "and";
+            divRule = new Rule()
+            {
+                Compare = "and"
+            };
+            
             finalRules.Add(divRule);
 
             foreach (Rule r in rules)
@@ -2284,7 +2286,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // ***** End Where ***** 
 
             IQueryable<StoreLookup> results = queryableData.Provider.CreateQuery<StoreLookup>(whereCallExpression);
-
 
             foreach (StoreLookup s in results)
             {
@@ -2385,24 +2386,28 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 if (rule.Field == "RangePlan")
                 {
-                    Int64 planID;
+                    long planID;
                     string sku = Convert.ToString(rule.Value);
 
                     string myInClause = currentUser.GetUserDivisionsString(AppName);
                     try
                     {
-                        planID = (from x in db.RangePlans where (x.Sku == sku) select x).First().Id;
+                        planID = (from x in db.RangePlans where x.Sku == sku select x).First().Id;
                     }
                     catch
                     {
                         stores = new List<string>();
                         planID = -1;
                     }
-                    stores = (from rp in db.RangePlanDetails where ((rp.ID == planID) && (myInClause.Contains(rp.Division))) select rp.Division + rp.Store).Distinct().ToList();
+                    stores = (from rp in db.RangePlanDetails 
+                              where rp.ID == planID && myInClause.Contains(rp.Division) 
+                              select rp.Division + rp.Store).Distinct().ToList();
                 }
                 else
                 {
-                    stores = (from rp in db.StorePlans where rp.PlanName == rule.Value select rp.Division + rp.Store).Distinct().ToList();
+                    stores = (from rp in db.StorePlans 
+                              where rp.PlanName == rule.Value 
+                              select rp.Division + rp.Store).Distinct().ToList();
                 }
 
                 ConstantExpression foreignKeysParameter = Expression.Constant(stores, typeof(List<string>));
@@ -2495,13 +2500,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     throw new Exception("invalid rule, missing predicate.");
                 }
             }
-
         }
 
         private List<StoreLookupModel> Example(List<Rule> rules)
         {
             List<StoreLookupModel> list = new List<StoreLookupModel>();
-
 
             // Add a using directive for System.Linq.Expressions. 
 
@@ -2602,9 +2605,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private string ValidateOrderPlanningRequest(OrderPlanningRequest model, bool edit)
         {
-            RangePlan rangePlan = rangePlanDAO.GetRangePlan(model.PlanID);
-            int instanceID = configService.GetInstance(rangePlan.Division);
-            DateTime start = configService.GetControlDate(instanceID);
+            RangePlan rangePlan = rangePlanDAO.GetRangePlan(model.PlanID);            
+            DateTime start = configService.GetControlDate(rangePlan.Division);
 
             if (model.StartSend < start)
             {

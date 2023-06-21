@@ -53,6 +53,8 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public virtual DistributionCenterRestrictions DistributionCenterRestriction { get; set; }
 
+        public List<InstanceDistributionCenter> InstanceDistributionCenters { get; set; }
+
         [Column("TransmitRDQsToKafkaInd")]
         [Display(Name="Transmit RDQs To Kafka")]
         public bool TransmitRDQsToKafka { get; set; }

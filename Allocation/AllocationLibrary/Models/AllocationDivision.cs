@@ -25,9 +25,9 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public string DefaultCountryCode { get; set; }
 
-        public Int16 StartDateOffset { get; set; }
+        public short StartDateOffset { get; set; }
 
-        public Int16 EndDateOffset { get; set; }
+        public short EndDateOffset { get; set; }
 
         [Column("BlanketPOCapableInd")]
         public bool BlanketPOCapable { get; set; }

@@ -65,7 +65,6 @@ namespace Footlocker.Logistics.Allocation.Services
         {
             string returnMessage = "";
             string value = Hold.Value + "";
-            int instanceID;
             DateTime controlDate;
             Regex levelExpression;
             string levelError;
@@ -73,8 +72,7 @@ namespace Footlocker.Logistics.Allocation.Services
             if (Hold.Level == "All")
                 value = Hold.Store;
 
-            instanceID = configService.GetInstance(Hold.Division);
-            controlDate = configService.GetControlDate(instanceID);
+            controlDate = configService.GetControlDate(Hold.Division);
 
             returnMessage = CheckHoldPermission(currentUser);
 

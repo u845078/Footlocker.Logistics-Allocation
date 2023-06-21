@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.TroubleshootModel
+﻿@model TroubleshootModel
 
 @{
     ViewBag.Title = "Troubleshoot";
@@ -69,11 +69,11 @@
                         }
                     }
                 </td>
-                @if (Model.AllocationDriver.AllocateDate <= Model.ControlDate.RunDate)
+                @if (Model.AllocationDriver.AllocateDate <= Model.ControlDate)
                 {
                     <td colspan=4>This item is on Q Allocation</td>
                 }
-                else if (Model.AllocationDriver.ConvertDate <= Model.ControlDate.RunDate)
+                else if (Model.AllocationDriver.ConvertDate <= Model.ControlDate)
                 {
                     <td colspan=4><font color="red">This item is converted, but not yet allocating from Q</font></td>
                 }
@@ -92,8 +92,8 @@
         <tr>
             <td><strong>@Html.LabelFor(m => Model.CPID)</strong></td>
             <td>@Html.DisplayFor(m => Model.CPID)</td>
-            <td><strong></strong></td>
-            <td></td>
+            <td><strong>@Html.LabelFor(m => Model.RetailPrice)</strong></td>
+            <td>@Html.DisplayFor(m => Model.RetailPrice) (in @Html.DisplayFor(m => Model.RetailPriceCurrency))</td>
         </tr>
         <tr>
             <td><strong>@Html.LabelFor(m => Model.ItemMaster.ServiceCode)</strong></td>

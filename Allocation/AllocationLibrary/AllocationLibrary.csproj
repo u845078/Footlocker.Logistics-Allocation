@@ -152,6 +152,8 @@
     <Compile Include="Models\Departments.cs" />
     <Compile Include="Models\DistributionCenterRestrictions.cs" />
     <Compile Include="Models\EcomCustomerFulfillmentXref.cs" />
+    <Compile Include="Models\FootLockerCountryCode.cs" />
+    <Compile Include="Models\GroupedPORingFence.cs" />
     <Compile Include="Models\GroupedRingFence.cs" />
     <Compile Include="Models\HierarchyItem.cs" />
     <Compile Include="Models\InstanceDistributionCenter.cs" />

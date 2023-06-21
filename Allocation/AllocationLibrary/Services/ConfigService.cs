@@ -79,21 +79,38 @@
             return controlDate;
         }
 
+        public DateTime GetControlDate(string division)
+        {
+            int instanceID = GetInstance(division);
+            return GetControlDate(instanceID);
+        }
+
         public long GetCPID(string sku)
         {
-            //string cpidString;
+            string cpidString;
             long cpid;
 
-            cpid =  db.CPSkuSizesXrefs.Where(cp => cp.LegacySku == sku)
+            cpidString =  db.CPSkuSizesXrefs.Where(cp => cp.LegacySku == sku)
                                             .Select(cp => cp.CPID)
                                             .FirstOrDefault();
 
-            //if (cpidString != null)
-            //    cpid = Convert.ToInt64(cpidString);
-            //else
-            //    cpid = 0;
-            
+            if (cpidString != null)
+                cpid = Convert.ToInt64(cpidString);
+            else
+                cpid = 0;
+
             return cpid;
+        }
+
+        public string GetDivisionalCurrencyCode(string division)
+        {
+            string flCountryCode;
+            string currencyCode;
+
+            flCountryCode = db.AllocationDivisions.Where(ad => ad.DivisionCode == division).Select(ad => ad.DefaultCountryCode).FirstOrDefault();
+            currencyCode = db.FLCountryCodes.Where(cc => cc.CountryCode == flCountryCode).Select(cc => cc.ISOCurrencyCode).FirstOrDefault();
+
+            return currencyCode;
         }
     }
 }
