@@ -210,7 +210,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 return itemDAO.GetItemID(SKU);
             }
-        }
+        }        
 
         private Dictionary<string, string> ValidateCopyRangeRecord(CopyRangePlanModel copyRangeRec)
         {
@@ -234,27 +234,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (errors.Count == 0)
             {
                 if (copyRangeRec.FromSku.Substring(0, 2) != copyRangeRec.ToSku.Substring(0, 2))                
-                    errors.Add("FromSKU", "You can only copy from a sku in the same division.");                
+                    errors.Add("FromSKU", "You can only copy from a sku in the same division.");
 
                 //verify the sizes match on old/new sku
-                List<string> ToSizes = (from a in db.Sizes
-                                        where a.Sku == copyRangeRec.ToSku
-                                        select a.Size).OrderBy(p => p).ToList();
-                List<string> FromSizes = (from a in db.Sizes
-                                          where a.Sku == copyRangeRec.FromRangePlan.Sku
-                                          select a.Size).OrderBy(p => p).ToList();
+                //List<string> ToSizes = (from a in db.Sizes
+                //                        where a.Sku == copyRangeRec.ToSku
+                //                        select a.Size).OrderBy(p => p).ToList();
+                //List<string> FromSizes = (from a in db.Sizes
+                //                          where a.Sku == copyRangeRec.FromRangePlan.Sku
+                //                          select a.Size).OrderBy(p => p).ToList();
 
-                if (ToSizes.Count != FromSizes.Count)
-                    errors.Add("", "These skus have different sizes, cannot copy");
-                else
-                {
-                    for (int i = 0; i < ToSizes.Count; i++)
-                    {
-                        if (errors.Count == 0)
-                            if (ToSizes[i] != FromSizes[i])                        
-                                errors.Add("", "These skus have different sizes, cannot copy");                        
-                    }
-                }
+                //if (ToSizes.Count != FromSizes.Count)
+                //    errors.Add("", "These skus have different sizes, cannot copy");
+                //else
+                //{
+                //    for (int i = 0; i < ToSizes.Count; i++)
+                //    {
+                //        if (errors.Count == 0)
+                //            if (ToSizes[i] != FromSizes[i])                        
+                //                errors.Add("", "These skus have different sizes, cannot copy");                        
+                //    }
+                //}
             }
 
             if (string.IsNullOrEmpty(copyRangeRec.FromSku))
@@ -270,7 +270,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult CopyRangePlan()
         {
-            return View();
+            return View(new CopyRangePlanModel()
+            {
+                HaveSizes = false
+            });
         }
 
         [HttpPost]
@@ -298,9 +301,67 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ModelState.AddModelError("", ex.Message);
                 return View(model);
             }
-            
+
+            List<string> fromSizes = itemDAO.GetSKUSizes(model.FromSku);
+            List<string> toSizes = itemDAO.GetSKUSizes(model.ToSku);
+
+            List<SizeElement> fromSizesList = new List<SizeElement>();
+            List<SizeElement> toSizesList = new List<SizeElement>();
+
+            bool found;
+
+            foreach (string size in fromSizes)
+            {
+                if (toSizes.Contains(size))
+                    found = true;
+                else
+                    found = false;
+
+                fromSizesList.Add(new SizeElement()
+                {
+                    Size = size,
+                    IsChecked = found
+                });
+            }
+
+            foreach (string size in toSizes)
+            {
+                if (fromSizes.Contains(size))
+                    found = true;
+                else
+                    found = false;
+
+                toSizesList.Add(new SizeElement()
+                {
+                    Size = size,
+                    IsChecked = found
+                });
+            }
+
+            model.FromSizes = fromSizesList.Select(l => new SizeElement
+                                                        {  
+                                                            Size = l.Size, 
+                                                            IsChecked = l.IsChecked
+                                                        });
+            model.ToSizes = toSizesList.Select(l => new SizeElement
+            {
+                Size = l.Size,
+                IsChecked = l.IsChecked
+            });
+
+            model.HaveSizes = true;
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult CopyRangeSizes(CopyRangePlanModel model)
+        {
+            long itemID;
+
             try
             {
+                itemID = itemDAO.GetItemID(model.ToSku);
                 rangePlanDAO.CopyRangePlan(model.FromSku, model.ToSku, itemID, model.ToDescription, model.CopyOPRequest, currentUser.NetworkID);
 
                 return RedirectToAction("Index", new { message = string.Format("Copied from {0} to {1}", model.FromSku, model.ToSku) });
@@ -1374,13 +1435,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 //no ruleset yet, see if there's a delivery group created today
                 DeliveryGroup newGroup;
                 DateTime today = DateTime.Now.Date;
-                var query = (from a in db.DeliveryGroups
-                             where ((a.StartDate == today) && (a.PlanID == planID))
-                             select a);
-                if (query.Count() > 0)
-                {
-                    newGroup = query.First();
-                }
+                var query = from a in db.DeliveryGroups
+                            where a.StartDate == today && 
+                                  a.PlanID == planID
+                            select a;
+                if (query.Count() > 0)                
+                    newGroup = query.First();                
                 else
                 {
                     newGroup = new DeliveryGroup();
@@ -1389,17 +1449,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ruleSetID = newGroup.RuleSetID;
             }
 
-            RuleSelectedStore rss = new RuleSelectedStore();
-            rss.Division = div;
-            rss.Store = store;
-            rss.RuleSetID = ruleSetID;
-            rss.CreatedBy = currentUser.NetworkID;
-            rss.CreateDate = DateTime.Now;
+            RuleSelectedStore rss = new RuleSelectedStore()
+            {
+                Division = div,
+                Store = store,
+                RuleSetID = ruleSetID,
+                CreatedBy = currentUser.NetworkID,
+                CreateDate = DateTime.Now
+            };
 
             if ((from a in db.RuleSelectedStores
-                 where ((a.Store == rss.Store) &&
-                        (a.RuleSetID == rss.RuleSetID) &&
-                        (a.Division == rss.Division))
+                 where a.Store == rss.Store &&
+                       a.RuleSetID == rss.RuleSetID &&
+                       a.Division == rss.Division
                  select a).Count() == 0)
             {
                 db.RuleSelectedStores.Add(rss);
@@ -1420,19 +1482,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 db.RuleSelectedStores.Remove(delete);
             }
 
-
             UpdateStoreDates(div, store, ruleSetID, planID, string.Empty);
             db.SaveChanges(UserName);
             rangePlanDAO.UpdateRangeHeader(planID, currentUser);
 
-            return RedirectToAction("ShowStoresWithoutDeliveryGroup", new { planID = planID });
+            return RedirectToAction("ShowStoresWithoutDeliveryGroup", new { planID });
         }
 
         public ActionResult ShowStoresWithoutDeliveryGroup(int planID)
         {
-            DeliveryGroupMissingModel model = new DeliveryGroupMissingModel();
-            model.PlanID = planID;
-            model.DeliveryGroups = db.DeliveryGroups.Where(dg => dg.PlanID == planID).ToList();
+            DeliveryGroupMissingModel model = new DeliveryGroupMissingModel()
+            {
+                PlanID = planID,
+                DeliveryGroups = db.DeliveryGroups.Where(dg => dg.PlanID == planID).ToList()
+            };                       
 
             DeliveryGroup newGroup = new DeliveryGroup()
             {
@@ -2781,10 +2844,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return View(model);
             }
 
-            PreSaleSKU preSale = new PreSaleSKU();
-
-            preSale.LastModifiedDate = DateTime.Now;
-            preSale.LastModifiedUser = currentUser.NetworkID;
+            PreSaleSKU preSale = new PreSaleSKU()
+            {
+                LastModifiedDate = DateTime.Now,
+                LastModifiedUser = currentUser.NetworkID
+            };
 
             preSale.ItemID = ValidatePreSaleSKU(model.SKU);
             preSale.InventoryArrivalDate = model.preSaleSKU.InventoryArrivalDate;
@@ -2792,7 +2856,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (preSale.ItemID == 0)
             {
-                ViewData["message"] = "SKU does not exists.";
+                ViewData["message"] = "SKU does not exist.";
                 return View(model);
             }
             else if (preSale.InventoryArrivalDate >= DateTime.Now.AddDays(30))

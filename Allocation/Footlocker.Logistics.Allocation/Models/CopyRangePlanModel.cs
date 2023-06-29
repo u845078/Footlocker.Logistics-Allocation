@@ -6,6 +6,12 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
+    public class SizeElement
+    {
+        public string Size { get; set; }
+        public bool IsChecked { get; set; }
+    }
+
     public class CopyRangePlanModel
     {
         [Display(Name = "From SKU")]
@@ -29,5 +35,9 @@ namespace Footlocker.Logistics.Allocation.Models
         public bool CopyOPRequest { get; set; }
 
         public RangePlan FromRangePlan { get; set; }
+
+        public bool HaveSizes { get; set; }
+        public IEnumerable<SizeElement> FromSizes { get; set; }
+        public IEnumerable<SizeElement> ToSizes { get; set; }
     }
 }

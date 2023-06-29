@@ -156,10 +156,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _HoldDetails(string div, string level, string value, string holdType, string duration)
         {
-            if (string.IsNullOrEmpty(duration))
-            {
-                duration = "All";
-            }
+            if (string.IsNullOrEmpty(duration))            
+                duration = "All";            
 
             short holdTypeCode;
             if (holdType == "Cancel Inventory")

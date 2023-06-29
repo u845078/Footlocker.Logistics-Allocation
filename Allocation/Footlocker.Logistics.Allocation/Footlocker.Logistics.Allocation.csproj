@@ -813,6 +813,7 @@
     <Content Include="Views\SkuRange\EditPreSale.cshtml" />
     <Content Include="Views\SkuRange\ReInitializeSKU.cshtml" />
     <Content Include="Views\Upload\CrossdockLinkUpload.cshtml" />
+    <Content Include="Views\SkuRange\EditorTemplates\SizeElement.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
