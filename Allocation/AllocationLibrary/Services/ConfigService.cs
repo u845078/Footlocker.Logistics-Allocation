@@ -87,17 +87,17 @@
 
         public long GetCPID(string sku)
         {
-            string cpidString;
+            //string cpidString;
             long cpid;
 
-            cpidString =  db.CPSkuSizesXrefs.Where(cp => cp.LegacySku == sku)
+            cpid =  db.CPSkuSizesXrefs.Where(cp => cp.LegacySku == sku)
                                             .Select(cp => cp.CPID)
                                             .FirstOrDefault();
 
-            if (cpidString != null)
-                cpid = Convert.ToInt64(cpidString);
-            else
-                cpid = 0;
+            //if (cpidString != null)
+            //    cpid = Convert.ToInt64(cpidString);
+            //else
+            //    cpid = 0;
 
             return cpid;
         }
