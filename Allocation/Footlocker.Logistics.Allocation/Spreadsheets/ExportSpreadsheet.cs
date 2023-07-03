@@ -32,6 +32,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheet
             {
                 excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].PutValue(columns[i]);
                 excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].Style.Font.IsBold = true;
+                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].Style.Font.Underline = FontUnderlineType.Single;
             }                          
 
             currentRow++;

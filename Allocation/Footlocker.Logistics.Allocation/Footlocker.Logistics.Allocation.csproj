@@ -243,6 +243,7 @@
     <Compile Include="Spreadsheets\SkuRangeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SKURangeStoreExport.cs" />
     <Compile Include="Spreadsheets\StoreSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\TroubleshootRDQExport.cs" />
     <Compile Include="Spreadsheets\UploadSpreadsheet.cs" />
     <Compile Include="Spreadsheets\VendorGroupSpreadsheet.cs" />
     <Compile Include="Spreadsheets\WebPickSpreadsheet.cs" />
