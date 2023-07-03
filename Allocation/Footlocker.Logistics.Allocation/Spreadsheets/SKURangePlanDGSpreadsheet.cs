@@ -3,14 +3,14 @@ using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using Footlocker.Logistics.Allocation.Common;
 using System.Linq;
 using System.Web;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using Footlocker.Common;
 
-namespace Footlocker.Logistics.Allocation.Common
+namespace Footlocker.Logistics.Allocation.Spreadsheet
 {
     public class SKURangePlanDGSpreadsheet : UploadSpreadsheet
     {

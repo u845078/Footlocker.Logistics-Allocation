@@ -4,8 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using Footlocker.Logistics.Allocation.Common;
 
-namespace Footlocker.Logistics.Allocation.Common
+namespace Footlocker.Logistics.Allocation.Spreadsheet
 {
     public class SKURangeDeliveryGroupExport : ExportSpreadsheet
     {

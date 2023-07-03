@@ -7,7 +7,7 @@ using Aspose.Excel;
 using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.Services;
 
-namespace Footlocker.Logistics.Allocation.Common
+namespace Footlocker.Logistics.Allocation.Spreadsheet
 {
     abstract public class UploadSpreadsheet : BaseSpreadsheet
     {

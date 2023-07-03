@@ -1,6 +1,7 @@
 ﻿using Aspose.Excel;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
+using Footlocker.Logistics.Allocation.Common;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,7 +10,7 @@ using System.Web;
 using System.Text.RegularExpressions;
 using System.Globalization;
 
-namespace Footlocker.Logistics.Allocation.Common
+namespace Footlocker.Logistics.Allocation.Spreadsheet
 {
     public class SkuRangeSpreadsheet : UploadSpreadsheet
     {

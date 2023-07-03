@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
-using System.Web.UI.WebControls.Expressions;
+using Footlocker.Logistics.Allocation.Common;
 
-namespace Footlocker.Logistics.Allocation.Common
+namespace Footlocker.Logistics.Allocation.Spreadsheet
 {
     public class StoreSpreadsheet : UploadSpreadsheet
     {
