@@ -16,7 +16,6 @@
 
     <fieldset>
         <legend>Download Data For</legend>
-
         <div class="editor-label">
             @Html.LabelFor(model => model.Sku)
         </div>
@@ -26,19 +25,12 @@
             @Html.RadioButtonFor(model => model.includeinvalidrecords, false)Show Only Valid matches
             @Html.RadioButtonFor(model => model.includeinvalidrecords, true)Show All matches
         </div>
-
-        <p>
-            
+        <p>            
             <button type="submit" name="submitAction" value="WSMextract" onclick="Submit_OnClick()">Download WSM Extract</button>
             <button type="submit" name="submitAction" value="LostSales" onclick="Submit_OnClick()">Download Lost Sales</button>
         </p>
-
-
     </fieldset>
 }
-
-
-
 
 <script type="text/javascript">
     function Submit_OnClick() {

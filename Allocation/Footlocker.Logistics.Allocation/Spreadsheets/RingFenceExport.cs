@@ -66,7 +66,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheet
                 currentRow++;
                 recordCount++;
 
-                if (currentRow >= 65535)
+                if (currentRow >= maxSpreadsheetRows)
                 {
                     AutofitColumns();
 

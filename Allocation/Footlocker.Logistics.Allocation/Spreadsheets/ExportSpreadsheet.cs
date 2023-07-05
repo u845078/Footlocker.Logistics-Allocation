@@ -18,6 +18,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheet
         public int headerRowNumber = 0;
         public int currentRow;
         public long recordCount;
+        public int maxSpreadsheetRows = 65535;
 
         public int worksheetNum;
 

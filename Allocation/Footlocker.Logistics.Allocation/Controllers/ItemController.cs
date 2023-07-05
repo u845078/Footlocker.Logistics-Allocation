@@ -17,8 +17,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
     public class ItemController : AppController
     {
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
-        ConfigService configService = new ConfigService();
-        ItemDAO itemDAO = new ItemDAO();
+        readonly ConfigService configService = new ConfigService();
+        readonly ItemDAO itemDAO = new ItemDAO();
 
         [CheckPermission(Roles = "Support,IT")]
         public ActionResult Lookup()
@@ -40,8 +40,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 model.noSizeItems = db.ItemMasters.Where(im => im.ID == itemid).ToList();
             }
-            else if (model.MerchantSku != null)            
-                model.noSizeItems = db.ItemMasters.Where(im => im.MerchantSku == model.MerchantSku).ToList();
+            else 
+                if (model.MerchantSku != null)            
+                    model.noSizeItems = db.ItemMasters.Where(im => im.MerchantSku == model.MerchantSku).ToList();
             
             return View(model);
         }
@@ -172,10 +173,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 model.ValidItem = true;
 
-                if (item.Category.StartsWith("99") || item.Category.Equals("098") || (Convert.ToInt32(item.ServiceCode) > 2))
-                {
-                    model.ValidItem = false;
-                }
+                if (item.Category.StartsWith("99") || item.Category.Equals("098") || (Convert.ToInt32(item.ServiceCode) > 2))                
+                    model.ValidItem = false;                
             }
             catch 
             {
@@ -268,10 +267,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             foreach (string overridePO in overridePOsForSku)
             {
                 bool isPresent = model.Any(po => po.PO == overridePO);
-                if (!isPresent)
-                {
-                    model.AddRange(dao.GetExistingPO(division, overridePO));
-                }
+                if (!isPresent)                
+                    model.AddRange(dao.GetExistingPO(division, overridePO));                
             }
 
             List<POStatus> poStatusCodes = db.POStatusCodes.ToList();
@@ -445,8 +442,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //lazy loading was causing invalid circular references
             db.Configuration.ProxyCreationEnabled = false;
 
-            List<RingFenceStatusCodes> rfStatusCodes = (from rfs in db.RingFenceStatusCodes
-                                                        select rfs).ToList();
+            List<RingFenceStatusCodes> rfStatusCodes = db.RingFenceStatusCodes.ToList();
 
             List<RingFenceSummary> ringFences = new List<RingFenceSummary>();
 
@@ -690,80 +686,52 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return View(new GridModel(model));
         }
-
         
         [GridAction]
         public ActionResult _LegacyInventory(string sku)
         {
-
             List<LegacyInventory> model;
-            if (sku != null)
-            {
-                model = (from a in db.LegacyInventory
-                         where
-                             ((a.Sku == sku) &&
-                             (a.LocationTypeCode == "W"))
-                         select a).ToList();
-            }
-            else
-            {
-                model = new List<LegacyInventory>();
-            }
 
+            if (sku != null)            
+                model = db.LegacyInventory.Where(li => li.Sku == sku && li.LocationTypeCode == "W").ToList();            
+            else            
+                model = new List<LegacyInventory>();
+            
             return View(new GridModel(model));
         }
 
         [GridAction]
         public ActionResult _LegacyFutureInventory(string sku)
         {
-
             List<LegacyFutureInventory> model;
-            if (sku != null)
-            {
-                model = (from a in db.LegacyFutureInventory
-                         where
-                             ((a.Sku == sku) )
-                         select a).ToList();
-            }
-            else
-            {
+            if (sku != null)            
+                model = db.LegacyFutureInventory.Where(lfi => lfi.Sku == sku).ToList();            
+            else            
                 model = new List<LegacyFutureInventory>();
-            }
-
+            
             return View(new GridModel(model));
         }
-
 
         [GridAction]
         public ActionResult _LegacyInventoryFinal(string sku)
         {
-
             List<LegacyInventory> model;
-            if (sku != null)
-            {
-                model = (new LegacyInventoryDAO()).GetLegacyInventoryForSku(sku);
-            }
-            else
-            {
+            if (sku != null)            
+                model = (new LegacyInventoryDAO()).GetLegacyInventoryForSku(sku);            
+            else            
                 model = new List<LegacyInventory>();
-            }
-
+            
             return View(new GridModel(model));
         }
 
         [GridAction]
         public ActionResult _LegacyFutureInventoryFinal(string sku)
         {
-
             List<LegacyFutureInventory> model;
-            if (sku != null)
-            {
-                model = (new LegacyFutureInventoryDAO()).GetLegacyFutureInventoryForSku(sku);
-            }
-            else
-            {
-                model = new List<LegacyFutureInventory>();
-            }
+            if (sku != null)            
+                model = (new LegacyFutureInventoryDAO()).GetLegacyFutureInventoryForSku(sku);            
+            else            
+                model = new List<LegacyFutureInventory>();            
 
             return View(new GridModel(model));
         }
@@ -774,22 +742,31 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning")]
         public ActionResult TroubleshootRDQ(string instanceID)
         {
-            TroubleshootRDQModel model = new TroubleshootRDQModel();
-            model.AvailableInstances = (from a in db.Instances select a).ToList();
-            Instance inst = new Instance();
-            inst.Name = "";
+            TroubleshootRDQModel model = new TroubleshootRDQModel()
+            {
+                AvailableInstances = db.Instances.ToList()
+            };
+
+            Instance inst = new Instance()
+            {
+                Name = ""
+            };
+            
             model.AvailableInstances.Insert(0, inst);
             model.InstanceID = Convert.ToInt32(instanceID);
-            model.ControlDate = (from a in db.ControlDates where a.InstanceID == model.InstanceID select a.RunDate).FirstOrDefault();
+            model.ControlDate = configService.GetControlDate(model.InstanceID);
             return View(model);
         }
 
         [HttpPost]
         public ActionResult TroubleshootRDQ(TroubleshootRDQModel model)
         {
-            model.AvailableInstances = (from a in db.Instances select a).ToList();
-            Instance inst = new Instance();
-            inst.Name = "";
+            model.AvailableInstances = db.Instances.ToList();
+            Instance inst = new Instance()
+            {
+                Name = ""
+            };
+            
             model.AvailableInstances.Insert(0, inst);
             return View(model);
         }
@@ -797,7 +774,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _TroubleshootRDQToMF(int instance, DateTime controldate)
         {
-
             List<RDQ> model;
 
             RDQDAO dao = new RDQDAO();
@@ -816,7 +792,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<RDQ> model;
             if ((Session["rdqExtract"] != null) &&
-                ((String)Session["rdqdate"] == (instance + "-" + controldate.ToShortDateString())))
+                ((string)Session["rdqdate"] == (instance + "-" + controldate.ToShortDateString())))
             {
                 model = (List<RDQ>)Session["rdqExtract"];
             }
@@ -826,13 +802,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 model = dao.GetRDQExtractForDate(instance, controldate);
 
-                Session["rdqdate"] = (instance + "-" + controldate.ToShortDateString());
+                Session["rdqdate"] = instance + "-" + controldate.ToShortDateString();
                 Session["rdqExtract"] = model;
             }
             return model;
         }
-
-
         #endregion  
 
         #region TroubleShoot RDQs for Sku
@@ -897,7 +871,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #endregion  
 
         #region Quantum Data Download
-
         [CheckPermission(Roles = "Support,IT, Advanced Merchandiser Processes, Head Merchandiser")]
         public ActionResult QuantumDataDownload()
         {
@@ -908,260 +881,36 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult QuantumDataDownload(QuantumDataDownloadModel model, string submitAction)
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-            Excel excelDocument = new Excel();
-
             QuantumDAO dao = new QuantumDAO();
-
-            LostSalesRequest request = new LostSalesRequest();
-
-            int row = 1;
-            int page = 0;
 
             if (submitAction == "LostSales")
             {
-                DateTime start; //Day 1 of the 14 day span to initialize excel headings
-                Double weeklySales = 0; //Variable to store prior week lost sales
-                
-                request = dao.GetLostSales(model.Sku);
+                LostSalesExtract lostSalesExtract = new LostSalesExtract(appConfig, dao);
+                lostSalesExtract.WriteData(model.Sku);
 
-                //If lost sales query returns no results then inform user
-                if (!request.LostSales.Any()) 
+                if (!string.IsNullOrEmpty(lostSalesExtract.errorMessage))
                 {
-                    ViewBag.NoDataFound = "There was no data found for Sku " + model.Sku;
+                    ViewBag.NoDataFound = lostSalesExtract.errorMessage;
                     return View(model);
                 }
 
-                start = request.BeginDate;
-                Worksheet mySheet = InitializeNewLostSalesSheet(excelDocument, page, start);
-
-                foreach (LostSalesInstance ls in request.LostSales)
-                {
-                    //eliminate 'S' and 'division' from location id, then put in store location column
-                    mySheet.Cells[row, 0].PutValue(ls.LocationId.Substring(3)); 
-
-                    //add shoe size from product id to end of sku, then put in sku column
-                    mySheet.Cells[row, 1].PutValue(model.Sku + ls.ProductId.Substring(7));
-
-                    //sum weekly lost sales from daily lost sales array, then put in appropriate column
-                    for (int i = 0; i < 7; i++ )
-                    {
-                        weeklySales += ls.DailySales[request.WeeklySalesEndIndex - i];
-                    }
-                    mySheet.Cells[row, 2].PutValue(weeklySales);
-                    //reset for the next lostsalesinstance
-                    weeklySales = 0;
-
-                    //put daily lost sales in the appropriate day column
-                    for (int i = 0; i < 14; i++)
-                    {
-                       mySheet.Cells[row, i + 3].PutValue(ls.DailySales[i]); 
-                    }
-                    row++;
-                    if (row > 60000)
-                    {
-                        //new page
-                        row = 1;
-                        page++;
-
-                        //auto fit columns of current sheet before adding a new sheet
-                        for (int i = 0; i < 17; i++)
-                        {
-                            mySheet.AutoFitColumn(i);
-                        }
-                        mySheet = InitializeNewLostSalesSheet(excelDocument, page, start);
-                    }
-                }
-
-                //auto fit columns of current sheet before creating the excel file
-                for (int i = 0; i < 17; i++)
-                {
-                    mySheet.AutoFitColumn(i);
-                }
-
-                excelDocument.Save(model.Sku + "-LostSales.xls", SaveType.OpenInExcel, FileFormatType.Default,
-                    System.Web.HttpContext.Current.Response);
-            } else if (submitAction == "WSM")
-            {
-                List<WSM> wsmList = dao.GetWSM(model.Sku);
-
-                //If wsm query returns no results then inform user
-                if (!wsmList.Any())
-                {
-                    ViewBag.NoDataFound = "There was no data found for Sku " + model.Sku;
-                    return View(model);
-                }
-
-                Worksheet mySheet = InitializeNewWSMSheet(excelDocument, page);
-
-                foreach (WSM w in wsmList)
-                {
-                    mySheet.Cells[row, 0].PutValue(w.RunDate);
-                    mySheet.Cells[row, 1].PutValue(w.TargetProduct);
-                    mySheet.Cells[row, 2].PutValue(w.TargetProductId);
-                    mySheet.Cells[row, 3].PutValue(w.TargetLocation);
-                    mySheet.Cells[row, 4].PutValue(w.MatchProduct);
-                    mySheet.Cells[row, 5].PutValue(w.MatchProductId);
-                    mySheet.Cells[row, 6].PutValue(w.ProductWeight);
-                    mySheet.Cells[row, 7].PutValue(w.MatchLocation);
-                    mySheet.Cells[row, 8].PutValue(w.LocationWeight);
-                    mySheet.Cells[row, 9].PutValue(w.FinalMatchWeight);
-                    mySheet.Cells[row, 10].PutValue(w.FinalMatchDemand);
-                    mySheet.Cells[row, 11].PutValue(w.LastCapturedDemand);
-                    mySheet.Cells[row, 12].PutValue(w.StatusCode);
-                    row++;
-                    if (row > 60000)
-                    {
-                        //new page
-                        row = 1;
-                        page++;
-
-                        //auto fit columns before adding a new sheet
-                        for (int i = 0; i < 12; i++)
-                        {
-                            mySheet.AutoFitColumn(i);
-                        }
-                        mySheet = InitializeNewWSMSheet(excelDocument, page);
-                    }
-                }
-
-                //auto fit columns 
-                for (int i = 0; i < 12; i++)
-                {
-                    mySheet.AutoFitColumn(i);
-                }
-
-                excelDocument.Save(model.Sku + "-WSM.xls", SaveType.OpenInExcel, FileFormatType.Default,
-                    System.Web.HttpContext.Current.Response);
-            }
+                lostSalesExtract.excelDocument.Save(model.Sku + "-LostSales.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            } 
             else if (submitAction == "WSMextract")
             {
-                List<WSM> wsmList = dao.GetWSMextract(model.Sku, model.includeinvalidrecords);
+                WSMExtract wsmExtract = new WSMExtract(appConfig, dao);
+                wsmExtract.WriteData(model.Sku, model.includeinvalidrecords);
 
-                //If wsm query returns no results then inform user
-                if (!wsmList.Any())
+                if (!string.IsNullOrEmpty(wsmExtract.errorMessage))
                 {
-                    ViewBag.NoDataFound = "There was no data found for Sku " + model.Sku;
+                    ViewBag.NoDataFound = wsmExtract.errorMessage;
                     return View(model);
                 }
 
-                Worksheet mySheet = InitializeNewWSMSheet(excelDocument, page);
-
-                foreach (WSM w in wsmList)
-                {
-                    mySheet.Cells[row, 0].PutValue(w.RunDate);
-                    mySheet.Cells[row, 1].PutValue(w.TargetProduct);
-                    mySheet.Cells[row, 2].PutValue(w.TargetProductId);
-                    mySheet.Cells[row, 3].PutValue(w.TargetLocation);
-                    mySheet.Cells[row, 4].PutValue(w.MatchProduct);
-                    mySheet.Cells[row, 5].PutValue(w.MatchProductId);
-                    mySheet.Cells[row, 6].PutValue(w.ProductWeight);
-                    mySheet.Cells[row, 7].PutValue(w.MatchLocation);
-                    mySheet.Cells[row, 8].PutValue(w.LocationWeight);
-                    mySheet.Cells[row, 9].PutValue(w.FinalMatchWeight);
-                    mySheet.Cells[row, 10].PutValue(w.FinalMatchDemand);
-                    mySheet.Cells[row, 11].PutValue(w.LastCapturedDemand);
-                    mySheet.Cells[row, 12].PutValue(w.StatusCode);
-                    row++;
-                    if (row > 60000)
-                    {
-                        //new page
-                        row = 1;
-                        page++;
-
-                        //auto fit columns before adding a new sheet
-                        for (int i = 0; i < 12; i++)
-                        {
-                            mySheet.AutoFitColumn(i);
-                        }
-                        mySheet = InitializeNewWSMSheet(excelDocument, page);
-                    }
-                }
-
-                //auto fit columns 
-                for (int i = 0; i < 12; i++)
-                {
-                    mySheet.AutoFitColumn(i);
-                }
-
-                excelDocument.Save(model.Sku + "-WSMextract.xls", SaveType.OpenInExcel, FileFormatType.Default,
-                    System.Web.HttpContext.Current.Response);
+                wsmExtract.excelDocument.Save(model.Sku + "-WSMextract.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             }
             return View(model);
         }
-
-        //method to create a new excel worksheet for lost sales
-        private Worksheet InitializeNewLostSalesSheet(Excel excelDocument, int page, DateTime start)
-        {
-            if (page > 0)
-            {
-                excelDocument.Worksheets.Add();
-            }
-            Worksheet mySheet = excelDocument.Worksheets[page];
-
-            //assign header names
-            for (int i = 0; i < 17; i++)
-            {
-                //make the headers of excel sheet bold
-                mySheet.Cells[0, i].Style.Font.IsBold = true;
-
-                if (i == 0) //column 1 header
-                {
-                    mySheet.Cells[0, 0].PutValue("Location Id");
-                }
-                else if (i == 1) //column 2 header
-                {
-                    mySheet.Cells[0, 1].PutValue("Sku");
-                }
-                else if (i == 2) //column 3 header
-                {
-                    mySheet.Cells[0, 2].PutValue("Prior Week Lost Sales");
-                }
-                else //all other column headers
-                {
-                    //format cells to datetime type
-                    mySheet.Cells[0, i].Style.Number = 14;
-                    mySheet.Cells[0, i].PutValue(start.AddDays(i - 3));
-                }
-            }
-            return mySheet;
-        }
-
-        //method to create a new excel worksheet for wsm
-        private Worksheet InitializeNewWSMSheet(Excel excelDocument, int page)
-        {
-            if (page > 0)
-            {
-                excelDocument.Worksheets.Add();
-            }
-            Worksheet mySheet = excelDocument.Worksheets[page];
-
-            //make the headers of excel sheet bold
-            for (int i = 0; i < 12; i++)
-            {
-                mySheet.Cells[0, i].Style.Font.IsBold = true;
-            }
-
-            //assign header names
-            mySheet.Cells[0, 0].PutValue("RunDate");
-            mySheet.Cells[0, 1].PutValue("TargetProduct");
-            mySheet.Cells[0, 2].PutValue("TargetProductID");
-            mySheet.Cells[0, 3].PutValue("TargetLocation");
-            mySheet.Cells[0, 4].PutValue("MatchProduct");
-            mySheet.Cells[0, 5].PutValue("MatchProductID");
-            mySheet.Cells[0, 6].PutValue("ProductWeight");
-            mySheet.Cells[0, 7].PutValue("MatchLocation");
-            mySheet.Cells[0, 8].PutValue("LocationWeight");
-            mySheet.Cells[0, 9].PutValue("FinalMatchWeight");
-            mySheet.Cells[0, 10].PutValue("FinalMatchDemand");
-            mySheet.Cells[0, 11].PutValue("LastCapturedDemand");
-            mySheet.Cells[0, 12].PutValue("StatusCode");
-            return mySheet;
-        }
-
         #endregion
     }
 }
