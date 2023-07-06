@@ -85,21 +85,18 @@
             return GetControlDate(instanceID);
         }
 
-        public long GetCPID(string sku)
+        public string GetCPID(string sku)
         {
             string cpidString;
-            long cpid;
 
             cpidString =  db.CPSkuSizesXrefs.Where(cp => cp.LegacySku == sku)
                                             .Select(cp => cp.CPID)
                                             .FirstOrDefault();
 
-            if (cpidString != null)
-                cpid = Convert.ToInt64(cpidString);
-            else
-                cpid = 0;
+            if (cpidString == null)
+                cpidString = "";
 
-            return cpid;
+            return cpidString;
         }
 
         public string GetDivisionalCurrencyCode(string division)

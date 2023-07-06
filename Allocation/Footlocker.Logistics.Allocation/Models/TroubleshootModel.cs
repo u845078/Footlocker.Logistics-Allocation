@@ -149,7 +149,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public bool ValidItem { get; set; }
         public AllocationDriver AllocationDriver { get; set; }
         public DateTime ControlDate { get; set; }
-        public long CPID { get; set; }
+        public string CPID { get; set; }
 
         public string RetailPriceCurrency { get; set; }
 
