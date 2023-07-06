@@ -139,7 +139,7 @@ namespace Footlocker.Logistics.Allocation.Services
             string div;
             string dept;
             string stock;
-            string color;
+            string divCountryCode;
             Database currentDB;
             DbCommand SQLCommand;
             decimal price = 0.0M;
@@ -148,18 +148,30 @@ namespace Footlocker.Logistics.Allocation.Services
             div = tokens[0];
             dept = tokens[1];
             stock = tokens[2];
-            color = tokens[3];
+
+            divCountryCode = (from ad in db.AllocationDivisions
+                              where ad.DivisionCode == div
+                              select ad.DefaultCountryCode).FirstOrDefault();
 
             if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(div))
                 currentDB = _Europedatabase;            
             else
                 currentDB = _USdatabase;
 
-            string SQL = "select stock_xvat_price from TCISR003 ";
-            SQL += " where RETL_OPER_DIV_CODE = '" + div + "' and ";
-            SQL += "  STK_DEPT_NUM = '" + dept + "' and ";
-            SQL += "  STK_NUM = '" + stock + "' and ";
-            SQL += "  STK_WDTH_COLOR_NUM = '" + color + "' ";
+            string SQL = "SELECT A.CURR_RETL_PRICE AS RETAIL ";
+            SQL += "  FROM TCMPS016 A ";
+            SQL += " WHERE A.RETL_OPER_DIV_CODE = '" + div + "' and ";
+            SQL += "  A.STK_DEPT_NUM = '" + dept + "' and ";
+            SQL += "  A.STK_NUM = '" + stock + "' and ";
+            SQL += "  A.PRICE_GROUP_CODE = '01' and ";
+            SQL += "  A.COUNTRY_CODE = '" + divCountryCode + "' and ";
+            SQL += "  A.RPA_EFF_DATE = (SELECT MAX(B.RPA_EFF_DATE) ";
+            SQL += "     FROM TCMPS016 B";
+            SQL += "  WHERE B.RETL_OPER_DIV_CODE =  A.RETL_OPER_DIV_CODE and ";
+            SQL += "        B.COUNTRY_CODE       =  A.COUNTRY_CODE and ";
+            SQL += "        B.PRICE_GROUP_CODE   =  A.PRICE_GROUP_CODE and ";
+            SQL += "        B.STK_DEPT_NUM       =  A.STK_DEPT_NUM and ";
+            SQL += "        B.STK_NUM            =  A.STK_NUM)";
 
             SQLCommand = currentDB.GetSqlStringCommand(SQL);
 
@@ -169,7 +181,7 @@ namespace Footlocker.Logistics.Allocation.Services
             if (data.Tables.Count > 0)
             {
                 DataRow dr = data.Tables[0].Rows[0];
-                price = Convert.ToDecimal(dr["stock_xvat_price"]);
+                price = Convert.ToDecimal(dr["RETAIL"]);
             }
 
             return price;
