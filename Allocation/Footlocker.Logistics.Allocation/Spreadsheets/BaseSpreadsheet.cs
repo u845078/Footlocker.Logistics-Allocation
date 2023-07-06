@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using Aspose.Excel;
-using Footlocker.Logistics.Allocation.Models;
+using Footlocker.Logistics.Allocation.Common;
 
-namespace Footlocker.Logistics.Allocation.Common
+namespace Footlocker.Logistics.Allocation.Spreadsheet
 {
     abstract public class BaseSpreadsheet
     {

@@ -1,0 +1,5 @@
+﻿@model Footlocker.Logistics.Allocation.Models.SizeElement
+
+@Html.CheckBoxFor(x => x.IsChecked)
+@Html.LabelFor(x => x.Size, Model.Size)
+@Html.HiddenFor(x => x.Size)

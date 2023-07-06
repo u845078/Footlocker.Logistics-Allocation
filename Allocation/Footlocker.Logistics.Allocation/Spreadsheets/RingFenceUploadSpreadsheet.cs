@@ -3,6 +3,7 @@ using Footlocker.Common.Entities;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Models.Services;
 using Footlocker.Logistics.Allocation.Services;
+using Footlocker.Logistics.Allocation.Common;
 using Microsoft.Practices.EnterpriseLibrary.Common.Utility;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ using System.Web;
 using Telerik.Web.Mvc.Extensions;
 using System.Web.Services.Description;
 
-namespace Footlocker.Logistics.Allocation.Common
+namespace Footlocker.Logistics.Allocation.Spreadsheet
 {
     public class RingFenceUploadSpreadsheet : UploadSpreadsheet
     {

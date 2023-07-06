@@ -219,33 +219,35 @@
     <Compile Include="Common\ActionResultCode.cs" />
     <Compile Include="Common\AjaxValidationException.cs" />
     <Compile Include="Common\AppConfig.cs" />
-    <Compile Include="Common\ARConstraintsSpreadsheet.cs" />
-    <Compile Include="Common\ARSKUSpreadsheet.cs" />
-    <Compile Include="Common\BaseSpreadsheet.cs" />
-    <Compile Include="Common\CrossdockLinkSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\ARConstraintsSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\ARSKUSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\BaseSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\CrossdockLinkSpreadsheet.cs" />
     <Compile Include="Common\DeleteValidationException.cs" />
     <Compile Include="Common\ExistsValidationException.cs" />
-    <Compile Include="Common\ExportSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\ExportSpreadsheet.cs" />
     <Compile Include="Common\Extensions.cs" />
     <Compile Include="Common\Filters\HandleAjaxError.cs" />
     <Compile Include="Common\Filters\HandleAjaxValidationError.cs" />
     <Compile Include="Common\Filters\LogError.cs" />
-    <Compile Include="Common\HoldsUploadSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\HoldsUploadSpreadsheet.cs" />
     <Compile Include="Common\JsonResultData.cs" />
-    <Compile Include="Common\RingFenceByDestExport.cs" />
-    <Compile Include="Common\RingFenceDeleteSpreadsheet.cs" />
-    <Compile Include="Common\RingFenceExport.cs" />
-    <Compile Include="Common\RingFenceUploadSpreadsheet.cs" />
-    <Compile Include="Common\SkuAttributeSpreadsheet.cs" />
-    <Compile Include="Common\SKURangeDeliveryGroupExport.cs" />
-    <Compile Include="Common\SKURangeExport.cs" />
-    <Compile Include="Common\SKURangePlanDGSpreadsheet.cs" />
-    <Compile Include="Common\SkuRangeSpreadsheet.cs" />
-    <Compile Include="Common\SKURangeStoreExport.cs" />
-    <Compile Include="Common\StoreSpreadsheet.cs" />
-    <Compile Include="Common\UploadSpreadsheet.cs" />
-    <Compile Include="Common\VendorGroupSpreadsheet.cs" />
-    <Compile Include="Common\WebPickSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\LostSalesExtract.cs" />
+    <Compile Include="Spreadsheets\RingFenceByDestExport.cs" />
+    <Compile Include="Spreadsheets\RingFenceDeleteSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\RingFenceExport.cs" />
+    <Compile Include="Spreadsheets\RingFenceUploadSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\SkuAttributeSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\SKURangeDeliveryGroupExport.cs" />
+    <Compile Include="Spreadsheets\SKURangeExport.cs" />
+    <Compile Include="Spreadsheets\SKURangePlanDGSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\SkuRangeSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\SKURangeStoreExport.cs" />
+    <Compile Include="Spreadsheets\StoreSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\TroubleshootRDQExport.cs" />
+    <Compile Include="Spreadsheets\UploadSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\VendorGroupSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\WebPickSpreadsheet.cs" />
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ConceptTypeController.cs" />
     <Compile Include="Controllers\ConfigController.cs" />
@@ -377,6 +379,7 @@
     <Compile Include="Models\WarehouseBlackoutModel.cs" />
     <Compile Include="Models\WebPickModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Spreadsheets\WSMExtract.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\gridscroll.css" />
@@ -813,6 +816,7 @@
     <Content Include="Views\SkuRange\EditPreSale.cshtml" />
     <Content Include="Views\SkuRange\ReInitializeSKU.cshtml" />
     <Content Include="Views\Upload\CrossdockLinkUpload.cshtml" />
+    <Content Include="Views\SkuRange\EditorTemplates\SizeElement.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

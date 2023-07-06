@@ -7,109 +7,156 @@
 <h2>Copy Range Plan</h2>
 <script type="text/javascript">
 
-        function changeSkuValue(e) {
-            $('#FromSku').val(e.value);
-        }
-        function changeDescValue(e) {
-            $('#FromDescription').val(e.value);
-        }
+    function changeSkuValue(e) {
+        $('#FromSku').val(e.value);
+    }
+    function changeDescValue(e) {
+        $('#FromDescription').val(e.value);
+    }
 </script>
 
 @if (Model != null)
 {
-@Html.Raw("<font color='red'>" + Model.Message + "</font>")
+    @Html.Raw("<font color='red'>" + Model.Message + "</font>")
 }
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
 
-<fieldset>
-    <legend>Copy Range Plan Details</legend>
-    <div class="editor-label">
-        @Html.LabelFor(model => model.PlanType)
-    </div>
-    <div class="editor-field">
-        @Html.DropDownListFor(model => model.PlanType, new List<SelectListItem> { new SelectListItem{Text="ALR",Value="ALR"},
-                                                                                new SelectListItem{Text="FOP",Value="FOP"}})
-    </div>
+    <fieldset>
+        <legend>Copy Range Plan Details</legend>
+        @*<div class="editor-label">
+                @Html.LabelFor(model => model.PlanType)
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(model => model.PlanType, new List<SelectListItem> { new SelectListItem{Text="ALR",Value="ALR"},
+                                                                                        new SelectListItem{Text="FOP",Value="FOP"}})
+            </div>*@
 
-    <div class="editor-label">
-        @Html.LabelFor(model => model.FromSku)
-    </div>
-    <div class="editor-field">
+        <div class="editor-label">
+            @Html.LabelFor(model => model.FromSku)
+        </div>
+        <div class="editor-field">
+            @Html.HiddenFor(model => model.FromSku)
+            @if (!Model.HaveSizes)
+            {
+                @(Html.Telerik().AutoComplete()
+                            .Name("AjaxSku")
+                            .AutoFill(true)
+                            .DataBinding(binding => binding.Ajax()
+                                                            .Select("_AutoCompleteSku", "SkuRange")
+                                                            .Delay(400)
+                                                            .Cache(true)
+                            )
+                            .Filterable(filtering =>
+                            {
+                                filtering.FilterMode((AutoCompleteFilterMode)Enum.Parse(typeof(AutoCompleteFilterMode),
+                                    "StartsWith"));
+                                filtering.MinimumChars(1);
+                            })
+                            .Multiple(multi => multi.Enabled(false))
+                            .HighlightFirstMatch(true)
+                            .ClientEvents(events => events.OnChange("changeSkuValue")))
+            }
+            else
+            {
+                @Html.EditorFor(model => model.FromSku)
+            }
+
+            @Html.ValidationMessageFor(model => model.FromSku)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.FromDescription)
+        </div>
+        <div class="editor-field">
+            @Html.HiddenFor(model => model.FromDescription)
+            @if (!Model.HaveSizes)
+            {
+                @(Html.Telerik().AutoComplete()
+                    .Name("AjaxDescription")
+                    .AutoFill(true)
+                    .DataBinding(binding => binding.Ajax()
+                    .Select("_AutoCompleteDescription", "SkuRange")
+                    .Delay(400)
+                    .Cache(true)
+                    )
+                    .Filterable(filtering =>
+                    {
+                        filtering.FilterMode((AutoCompleteFilterMode)Enum.Parse(typeof(AutoCompleteFilterMode),
+                            "StartsWith"));
+                        filtering.MinimumChars(1);
+                    })
+                    .Multiple(multi => multi.Enabled(false))
+                    .HighlightFirstMatch(true)
+                    .ClientEvents(events => events.OnChange("changeDescValue")))
+            }
+            else
+            {
+                @Html.EditorFor(model => model.FromDescription)
+            }
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.ToSku)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.ToSku)
+            @Html.ValidationMessageFor(model => model.ToSku)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.ToDescription)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.ToDescription)
+            @Html.ValidationMessageFor(model => model.ToDescription)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.CopyOPRequest)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.CopyOPRequest)
+        </div>
+    </fieldset>
+
+    if (!Model.HaveSizes)
+    {
+        <input type="submit" value="Load Sizes" />
+        <br /><br />
+    }
+}
+
+@if (Model.HaveSizes)
+{
+    using (Html.BeginForm("CopyRangeSizes", "SkuRange"))
+    {
+        <table>
+            <tr>
+                <th>From Sizes</th>
+                <th>To Sizes</th>
+            </tr>
+            <tr>
+                <td>
+                    @Html.EditorFor(m => m.FromSizes)
+                </td>
+                <td>
+                    @Html.EditorFor(m => m.ToSizes)
+                </td>
+            </tr>
+        </table>
+        <br />
+
         @Html.HiddenFor(model => model.FromSku)
-        @(Html.Telerik().AutoComplete()
-                .Name("AjaxSku")
-                .AutoFill(true)
-                .DataBinding(binding => binding.Ajax()
-                                                .Select("_AutoCompleteSku", "SkuRange")
-                                                .Delay(400)
-                                                .Cache(true)
-                )
-                .Filterable(filtering =>
-                {
-                    filtering.FilterMode((AutoCompleteFilterMode)Enum.Parse(typeof(AutoCompleteFilterMode),
-                        "StartsWith"));
-                    filtering.MinimumChars(1);
-                })
-                .Multiple(multi => multi.Enabled(false))
-                .HighlightFirstMatch(true)
-                .ClientEvents(events => events.OnChange("changeSkuValue"))
-            )
-        @Html.ValidationMessageFor(model => model.FromSku)
-    </div>
+        @Html.HiddenFor(model => model.ToSku)
+        @Html.HiddenFor(model => model.ToDescription)
+        @Html.HiddenFor(model => model.CopyOPRequest)
 
-    <div class="editor-label">
-        @Html.LabelFor(model => model.FromDescription)
-    </div>
-    <div class="editor-field">
-        @Html.HiddenFor(model => model.FromDescription)
-        @(Html.Telerik().AutoComplete()
-                .Name("AjaxDescription")
-                .AutoFill(true)
-                .DataBinding(binding => binding.Ajax()
-                .Select("_AutoCompleteDescription", "SkuRange")
-                .Delay(400)
-                .Cache(true)
-                )
-                .Filterable(filtering =>
-                {
-                    filtering.FilterMode((AutoCompleteFilterMode)Enum.Parse(typeof(AutoCompleteFilterMode),
-                        "StartsWith"));
-                    filtering.MinimumChars(1);
-                })
-                .Multiple(multi => multi.Enabled(false))
-                .HighlightFirstMatch(true)
-                .ClientEvents(events => events.OnChange("changeDescValue"))
-            )
-    </div>
-
-    <div class="editor-label">
-        @Html.LabelFor(model => model.ToSku)
-    </div>
-    <div class="editor-field">
-        @Html.EditorFor(model => model.ToSku)
-        @Html.ValidationMessageFor(model => model.ToSku)
-    </div>
-
-    <div class="editor-label">
-        @Html.LabelFor(model => model.ToDescription)
-    </div>
-    <div class="editor-field">
-        @Html.EditorFor(model => model.ToDescription)
-        @Html.ValidationMessageFor(model => model.ToDescription)
-    </div>
-
-    <div class="editor-label">
-        @Html.LabelFor(model => model.CopyOPRequest)
-    </div>
-    <div class="editor-field">
-        @Html.EditorFor(model => model.CopyOPRequest)
-    </div>
-
-    <p>
-        <input type="submit" value="Create" />
-    </p>
-</fieldset>
+        <input type="submit" value="Copy Range" class="t-button" />
+        <br />
+        <br />
+    }
 }
 
 <div>

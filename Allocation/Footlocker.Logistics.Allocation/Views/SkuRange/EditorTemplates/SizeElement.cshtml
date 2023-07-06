@@ -1,0 +1,6 @@
+﻿@model SizeElement
+
+@Html.CheckBoxFor(x => x.IsChecked, new { disabled = "true" })
+@Html.LabelFor(x => x.Size, Model.Size)
+@Html.HiddenFor(x => x.Size)
+<br />

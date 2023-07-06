@@ -1,6 +1,6 @@
 ﻿using Aspose.Excel;
 using Footlocker.Logistics.Allocation.Models;
-using Footlocker.Logistics.Allocation.Models.Services;
+using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.Services;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Web;
 
-namespace Footlocker.Logistics.Allocation.Common
+namespace Footlocker.Logistics.Allocation.Spreadsheet
 {
     public class ARSKUSpreadsheet : UploadSpreadsheet
     {

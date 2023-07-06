@@ -1,5 +1,6 @@
 ﻿using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Models.Services;
+using Footlocker.Logistics.Allocation.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Runtime;
 using System.Web;
 using Telerik.Web.Mvc;
 
-namespace Footlocker.Logistics.Allocation.Common
+namespace Footlocker.Logistics.Allocation.Spreadsheet
 {
     public class RingFenceExport : ExportSpreadsheet
     {
@@ -65,7 +66,7 @@ namespace Footlocker.Logistics.Allocation.Common
                 currentRow++;
                 recordCount++;
 
-                if (currentRow >= 65535)
+                if (currentRow >= maxSpreadsheetRows)
                 {
                     AutofitColumns();
 

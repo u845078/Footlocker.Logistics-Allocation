@@ -91,6 +91,7 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<ValidRingFence> ValidRingFences { get; set; }
         public DbSet<LegacyFutureInventory> LegacyFutureInventory { get; set; }
         public DbSet<FootLockerCountryCode> FLCountryCodes { get; set; }
+        public DbSet<RDQRejectReasonCode> RDQRejectReasons { get; set; }
 
         public AllocationLibraryContext()
             : base("AllocationContext")

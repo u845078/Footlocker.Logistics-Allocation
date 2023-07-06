@@ -1,11 +1,11 @@
 ﻿using Footlocker.Logistics.Allocation.Services;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Footlocker.Logistics.Allocation.Common;
 using System.Web;
 using Aspose.Excel;
 
-namespace Footlocker.Logistics.Allocation.Common
+namespace Footlocker.Logistics.Allocation.Spreadsheet
 {
     abstract public class ExportSpreadsheet : BaseSpreadsheet
     {
@@ -18,6 +18,7 @@ namespace Footlocker.Logistics.Allocation.Common
         public int headerRowNumber = 0;
         public int currentRow;
         public long recordCount;
+        public int maxSpreadsheetRows = 65535;
 
         public int worksheetNum;
 
@@ -32,6 +33,7 @@ namespace Footlocker.Logistics.Allocation.Common
             {
                 excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].PutValue(columns[i]);
                 excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].Style.Font.IsBold = true;
+                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].Style.Font.Underline = FontUnderlineType.Single;
             }                          
 
             currentRow++;

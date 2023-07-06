@@ -24,7 +24,6 @@ namespace Footlocker.Logistics.Allocation.Services
             _database = DatabaseFactory.CreateDatabase("AllocationContext");
         }
 
-
         public List<RDQ> GetHeldRDQs(int instance, string division, string department, string category, string sku,
             string po, string store, string status)
         {
@@ -241,6 +240,7 @@ namespace Footlocker.Logistics.Allocation.Services
         {
             List<RDQ> _que;
             _que = new List<RDQ>();
+            RDQ newRDQ;
 
             DbCommand SQLCommand;
             string SQL = "[dbo].[GetRDQExtractForSkuDate]";
@@ -254,9 +254,24 @@ namespace Footlocker.Logistics.Allocation.Services
 
             if (data.Tables.Count > 0)
             {
+                List<QuantumRecordTypeCode> recordTypes = db.QuantumRecordTypes.ToList();
+                List<RDQRejectReasonCode> rejectReasons = db.RDQRejectReasons.ToList();
+
+                RDQRejectReasonCode notRejected = new RDQRejectReasonCode { Code = 0, Description = "" };
+
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    _que.Add(RDQFactory.CreateFinal(dr));
+                    newRDQ = RDQFactory.CreateFinal(dr);
+                    
+                    if (!string.IsNullOrEmpty(newRDQ.RecordType))
+                        newRDQ.QuantumRecordType = recordTypes.Where(x => x.RecordTypeCode == newRDQ.RecordType).FirstOrDefault();
+
+                    if (newRDQ.RDQRejectedReasonCode > 0)
+                        newRDQ.RDQRejectedReason = rejectReasons.Where(x => x.Code == newRDQ.RDQRejectedReasonCode).FirstOrDefault();
+                    else
+                        newRDQ.RDQRejectedReason = notRejected;
+
+                    _que.Add(newRDQ);
                 }
             }
             return _que;
