@@ -76,7 +76,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (Session["OneSizeConstraintsList"] == null)
             {
-                DirectToStoreDAO dao = new DirectToStoreDAO();
+                DirectToStoreDAO dao = new DirectToStoreDAO(appConfig.EuropeDivisions);
                 List<DirectToStoreConstraint> allDTS = dao.GetDTSConstraintsOneSize();
                 model = (from a in allDTS join b in currentUser.GetUserDepartments(AppName) on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } orderby a.Sku select a).ToList();
                 Session["OneSizeConstraintsList"] = model;
@@ -236,7 +236,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void UpdateRangeActiveARStatus()
         {
-            ItemDAO itemDAO = new ItemDAO();
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
             itemDAO.UpdateActiveARStatus();
             Session["SkuSetup"] = null; 
         }
@@ -245,7 +245,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Edit(string Sku)
         {
             DirectToStoreSku model = db.DirectToStoreSkus.Where(dts => dts.Sku == Sku).FirstOrDefault();
-            DirectToStoreDAO dao = new DirectToStoreDAO();
+            DirectToStoreDAO dao = new DirectToStoreDAO(appConfig.EuropeDivisions);
             model.Vendors = dao.GetVendors(Sku);
             return View(model);
         }
@@ -254,7 +254,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Head Merchandiser,Merchandiser,Div Logistics,Logistics,Director of Allocation,Admin,Support,")]
         public ActionResult Edit(DirectToStoreSku model)
         {
-            DirectToStoreDAO vendorDao = new DirectToStoreDAO();
+            DirectToStoreDAO vendorDao = new DirectToStoreDAO(appConfig.EuropeDivisions);
             model.Vendors = vendorDao.GetVendors(model.Sku);
 
             if (currentUser.HasDivDept(AppName, model.Sku.Substring(0, 2), model.Sku.Substring(3, 2)))
@@ -267,7 +267,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     model.CreatedBy = currentUser.NetworkID;
                     model.ItemID = item.ID;
                     
-                    DirectToStoreDAO dao = new DirectToStoreDAO();
+                    DirectToStoreDAO dao = new DirectToStoreDAO(appConfig.EuropeDivisions);
                     if (dao.IsVendorValidForSku(model.Vendor, model.Sku))
                     {
                         if (db.VendorGroupDetails.Where(vgd => vgd.VendorNumber == model.Vendor).Count() > 0)

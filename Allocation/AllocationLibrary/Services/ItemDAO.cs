@@ -16,13 +16,15 @@ namespace Footlocker.Logistics.Allocation.Services
         private readonly Database _database;
         Database _USdatabase;
         Database _Europedatabase;
+        readonly string europeDivisions;
         readonly AllocationLibraryContext db = new AllocationLibraryContext();
 
-        public ItemDAO()
+        public ItemDAO(string europeDivisions)
         {
             _database = DatabaseFactory.CreateDatabase("AllocationContext");
             _USdatabase = DatabaseFactory.CreateDatabase("DB2PROD_DRIVER");
             _Europedatabase = DatabaseFactory.CreateDatabase("DB2EURP_DRIVER");
+            this.europeDivisions = europeDivisions;
         }
         
         public void CreateItemMaster(string sku, int instance)
@@ -150,7 +152,7 @@ namespace Footlocker.Logistics.Allocation.Services
             stock = tokens[2];
             color = tokens[3];
 
-            if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(div))
+            if (europeDivisions.Contains(div))
                 currentDB = _Europedatabase;            
             else
                 currentDB = _USdatabase;

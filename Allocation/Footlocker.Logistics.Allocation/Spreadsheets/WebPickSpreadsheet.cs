@@ -192,7 +192,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheet
                 }
                 List<WarehouseInventory> details = warehouseInventoryDAO.GetSQLWarehouseInventory(warehouseInventoryLookups);
                 //    // retrieve all available quantity for the specified combinations in one mf call
-                RingFenceDAO rfDAO = new RingFenceDAO();
+                RingFenceDAO rfDAO = new RingFenceDAO(config.EuropeDivisions);
                 details = rfDAO.ReduceAvailableInventory(details);
 
                 // rdqs that cannot be satisfied by current whse avail quantity

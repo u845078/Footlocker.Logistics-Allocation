@@ -237,6 +237,7 @@
     <Compile Include="Spreadsheets\RingFenceDeleteSpreadsheet.cs" />
     <Compile Include="Spreadsheets\RingFenceExport.cs" />
     <Compile Include="Spreadsheets\RingFenceUploadSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\ServiceTypeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SkuAttributeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SKURangeDeliveryGroupExport.cs" />
     <Compile Include="Spreadsheets\SKURangeExport.cs" />
@@ -342,7 +343,6 @@
     <Compile Include="Models\StoreBatchFilterModel.cs" />
     <Compile Include="Models\StoreBatchModel.cs" />
     <Compile Include="Models\StoreLeadTimeModel.cs" />
-    <Compile Include="Models\StoreLookupViewModel.cs" />
     <Compile Include="Models\StoreSeasonalityModel.cs" />
     <Compile Include="Models\StoreBTSModel.cs" />
     <Compile Include="Models\StoreBTSDetailModel.cs" />

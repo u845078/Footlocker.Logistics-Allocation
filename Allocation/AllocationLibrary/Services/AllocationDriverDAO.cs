@@ -16,14 +16,16 @@ namespace Footlocker.Logistics.Allocation.Services
         Database _USdatabase;
         Database _Europedatabase;
         string _prefix;
+        readonly string europeDivisions;
 
-        public AllocationDriverDAO()
+        public AllocationDriverDAO(string europeDivisions)
         {
             _database = DatabaseFactory.CreateDatabase("AllocationContext");
             _USdatabase = DatabaseFactory.CreateDatabase("DB2PROD_DRIVER");
             _Europedatabase = DatabaseFactory.CreateDatabase("DB2EURP_DRIVER");
             //_prefix = "DB2TEST.";
             _prefix = System.Configuration.ConfigurationManager.AppSettings["DB2PREFIX_DRIVER"];
+            this.europeDivisions = europeDivisions;
         }
         
         public void Save(AllocationDriver objectToSave, string user)
@@ -32,26 +34,22 @@ namespace Footlocker.Logistics.Allocation.Services
             {
                 Database db;
 
-                if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(objectToSave.Division))
-                {
-                    db = _Europedatabase;
-                }
-                else
-                {
-                    db = _USdatabase;
-                }
+                if (europeDivisions.Contains(objectToSave.Division))                
+                    db = _Europedatabase;                
+                else                
+                    db = _USdatabase;                
 
                 DbCommand SQLCommandMF;
                 string SQLMF;
                 try
                 {
                     SQLMF = "insert into " + _prefix + "TCQTM001 values (";
-                    SQLMF = SQLMF + "'" + objectToSave.Division + "', ";
-                    SQLMF = SQLMF + "'" + objectToSave.Department + "', ";
-                    SQLMF = SQLMF + "'" + objectToSave.ConvertDate.ToString("yyyy-MM-dd") + "', ";
-                    SQLMF = SQLMF + "'" + objectToSave.AllocateDate.ToString("yyyy-MM-dd") + "', ";
-                    SQLMF = SQLMF + "'" + user + "', ";
-                    SQLMF = SQLMF + "'" + DateTime.Now.ToString("yyyy-MM-dd") + "') ";
+                    SQLMF += "'" + objectToSave.Division + "', ";
+                    SQLMF += "'" + objectToSave.Department + "', ";
+                    SQLMF += "'" + objectToSave.ConvertDate.ToString("yyyy-MM-dd") + "', ";
+                    SQLMF += "'" + objectToSave.AllocateDate.ToString("yyyy-MM-dd") + "', ";
+                    SQLMF += "'" + user + "', ";
+                    SQLMF += "'" + DateTime.Now.ToString("yyyy-MM-dd") + "') ";
 
                     SQLCommandMF = db.GetSqlStringCommand(SQLMF);
                     db.ExecuteNonQuery(SQLCommandMF);
@@ -59,12 +57,12 @@ namespace Footlocker.Logistics.Allocation.Services
                 catch
                 {
                     SQLMF = "update " + _prefix + "TCQTM001 set ";
-                    SQLMF = SQLMF + " convert_date = '" + objectToSave.ConvertDate.ToString("yyyy-MM-dd") + "', ";
-                    SQLMF = SQLMF + " allocate_date = '" + objectToSave.AllocateDate.ToString("yyyy-MM-dd") + "', ";
-                    SQLMF = SQLMF + " user_name = '" + user + "', ";
-                    SQLMF = SQLMF + " create_date = '" + DateTime.Now.ToString("yyyy-MM-dd") + "' ";
-                    SQLMF = SQLMF + " where retl_oper_div_code = '" + objectToSave.Division + "' ";
-                    SQLMF = SQLMF + " and stk_dept_num = '" + objectToSave.Department + "' ";
+                    SQLMF += " convert_date = '" + objectToSave.ConvertDate.ToString("yyyy-MM-dd") + "', ";
+                    SQLMF += " allocate_date = '" + objectToSave.AllocateDate.ToString("yyyy-MM-dd") + "', ";
+                    SQLMF += " user_name = '" + user + "', ";
+                    SQLMF += " create_date = '" + DateTime.Now.ToString("yyyy-MM-dd") + "' ";
+                    SQLMF += " where retl_oper_div_code = '" + objectToSave.Division + "' ";
+                    SQLMF += " and stk_dept_num = '" + objectToSave.Department + "' ";
 
                     SQLCommandMF = db.GetSqlStringCommand(SQLMF);
                     db.ExecuteNonQuery(SQLCommandMF);
@@ -87,7 +85,6 @@ namespace Footlocker.Logistics.Allocation.Services
 
             _database.ExecuteNonQuery(SQLCommand);
         }
-
         
         public List<AllocationDriver> GetAllocationDriverList(string division)
         {
@@ -100,7 +97,7 @@ namespace Footlocker.Logistics.Allocation.Services
             SQLCommand = _database.GetStoredProcCommand(SQL);
             _database.AddInParameter(SQLCommand, "@Division", DbType.String, division);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _database.ExecuteDataSet(SQLCommand);
 
             AllocationDriverFactory factory = new AllocationDriverFactory();
@@ -126,7 +123,7 @@ namespace Footlocker.Logistics.Allocation.Services
             SQLCommand = _database.GetStoredProcCommand(SQL);
             _database.AddInParameter(SQLCommand, "@instance", DbType.Int32, instance);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _database.ExecuteDataSet(SQLCommand);
 
             AllocationDriverFactory factory = new AllocationDriverFactory();
@@ -152,7 +149,7 @@ namespace Footlocker.Logistics.Allocation.Services
             SQLCommand = _database.GetStoredProcCommand(SQL);
             _database.AddInParameter(SQLCommand, "@instance", DbType.Int32, instance);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _database.ExecuteDataSet(SQLCommand);
 
             AllocationDriverFactory factory = new AllocationDriverFactory();
@@ -167,10 +164,8 @@ namespace Footlocker.Logistics.Allocation.Services
             return _que;
         }
 
-
         public AllocationDriver GetAllocationDriver(string div, string dept)
         {
-
             DbCommand SQLCommand;
             string SQL = "dbo.GetAllocationDriver";
 
@@ -178,7 +173,7 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.AddInParameter(SQLCommand, "@div", DbType.String, div);
             _database.AddInParameter(SQLCommand, "@dept", DbType.String, dept);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _database.ExecuteDataSet(SQLCommand);
 
             AllocationDriverFactory factory = new AllocationDriverFactory();
@@ -192,7 +187,6 @@ namespace Footlocker.Logistics.Allocation.Services
             }
             return null;
         }
-
         
         public void DeleteAllocationDriver(string div, string dept)
         {
@@ -201,19 +195,15 @@ namespace Footlocker.Logistics.Allocation.Services
 
             Database db;
 
-            if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(div))
-            {
-                db = _Europedatabase;
-            }
-            else
-            {
-                db = _USdatabase;
-            }
+            if (europeDivisions.Contains(div))            
+                db = _Europedatabase;            
+            else            
+                db = _USdatabase;            
 
             //SQLMF = "delete from " + System.Configuration.ConfigurationManager.AppSettings["DB2PREFIX"] + "TCQTM001 ";
             SQLMF = "delete from " + _prefix + "TCQTM001 ";
-            SQLMF = SQLMF + " where retl_oper_div_code = '" + div + "' ";
-            SQLMF = SQLMF + " and stk_dept_num = '" + dept + "' ";
+            SQLMF += " where retl_oper_div_code = '" + div + "' ";
+            SQLMF += " and stk_dept_num = '" + dept + "' ";
             SQLCommandMF = db.GetSqlStringCommand(SQLMF);
             db.ExecuteNonQuery(SQLCommandMF);
 

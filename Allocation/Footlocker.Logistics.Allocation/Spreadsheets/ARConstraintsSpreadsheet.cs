@@ -32,7 +32,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheet
 
         public void Save(HttpPostedFileBase attachment)
         {
-            var dao = new DirectToStoreDAO();
+            var dao = new DirectToStoreDAO(config.EuropeDivisions);
 
             LoadAttachment(attachment);
             if (!HasValidHeaderRow())

@@ -15,6 +15,7 @@ using System.Data.Common;
 using System.Data.Entity;
 using System.Xml.Serialization;
 using Footlocker.Logistics.Allocation.Common;
+using Footlocker.Logistics.Allocation.Spreadsheets;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -23,7 +24,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #region Fields
 
         private string _currentFormattedDateTimeString = null;
-        private string _userName = null;
         private string _fileLineFiller = null;
         private AllocationLibraryContext db;
         private ConfigService configService = new ConfigService();
@@ -39,11 +39,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             get
             {
-                if (_currentFormattedDateTimeString == null) 
-                {
-                    _currentFormattedDateTimeString = 
-                        DateTime.Now.ToString("yyyy-MM-dd-HH.mm.ss.ffffff").PadRight(26, ' ').Substring(0, 26); 
-                }
+                if (_currentFormattedDateTimeString == null)                 
+                    _currentFormattedDateTimeString = DateTime.Now.ToString("yyyy-MM-dd-HH.mm.ss.ffffff").PadRight(26, ' ').Substring(0, 26); 
+                
                 return _currentFormattedDateTimeString;
             }
         }
@@ -52,23 +50,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             get
             {
-                if (_fileLineFiller == null)
-                {
+                if (_fileLineFiller == null)                
                     _fileLineFiller = String.Empty.PadLeft(18, ' ');
-                }
+                
                 return _fileLineFiller;
-            }
-        }
-
-        private string UserName
-        {
-            get
-            {
-                if (_userName == null)
-                {
-                    _userName = User.Identity.Name.Split('\\')[1].PadRight(30, ' ').Substring(0, 30);
-                }
-                return _userName;
             }
         }
         #endregion
@@ -112,17 +97,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 string effectiveDate = "";
                 string mainDivision;
                 int row = 1;
-                Boolean writeAV = (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Availability"));
+                bool writeAV = Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Availability");
                 string availabilityCodes = "";
                 if (writeAV)
                 {
                     Division = Convert.ToString(mySheet.Cells[row, 0].Value).Substring(0, 2);
-                    availabilityCodes = (new MainframeDAO()).GetAvailabityCodes(Division);
+                    availabilityCodes = (new MainframeDAO(appConfig.EuropeDivisions)).GetAvailabityCodes(Division);
                 }
 
-                if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("SKU")) &&
-                    (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Type")) && (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("EffectiveDate"))
-                    )
+                if (Convert.ToString(mySheet.Cells[0, 0].Value).Contains("SKU") &&
+                    Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Type") && Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Effective Date"))
                 {
                     Division = Convert.ToString(mySheet.Cells[row, 0].Value).Substring(0, 2);
                     mainDivision = Division;
@@ -135,14 +119,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     string[] tokens;
                     while (mySheet.Cells[row, 0].Value != null)
                     {
-                        if (mySheet.Cells[row, 3].Value != null)
-                        {
-                            effectiveDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value).ToString("yyyy-MM-dd");
-                        }
-                        else
-                        {
-                            effectiveDate = DateTime.Now.ToString("yyyy-MM-dd");
-                        }
+                        if (mySheet.Cells[row, 3].Value != null)                        
+                            effectiveDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value).ToString("yyyy-MM-dd");                        
+                        else                        
+                            effectiveDate = DateTime.Now.ToString("yyyy-MM-dd");                        
 
                         Division = Convert.ToString(mySheet.Cells[row, 0].Value).Substring(0, 2);
                         if (!(Division.Equals(mainDivision)))
@@ -243,20 +223,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult ExcelTemplate()
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            Excel excelDocument;
+            ServiceTypeSpreadsheet serviceTypeSpreadsheet = new ServiceTypeSpreadsheet(appConfig, configService, new MainframeDAO(appConfig.EuropeDivisions));
 
-            Excel excelDocument = new Excel();
+            excelDocument = serviceTypeSpreadsheet.GetTemplate();
 
-            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["SkuTypeTemplate"]);
-            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
-
-            Byte[] data1 = new Byte[file.Length];
-            file.Read(data1, 0, data1.Length);
-            file.Close();
-            MemoryStream memoryStream1 = new MemoryStream(data1);
-            excelDocument.Open(memoryStream1);
             excelDocument.Save("ServiceTypeUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
@@ -1809,7 +1780,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             fileLineStringBuilder.Append(skuIdCode4); // 1 chars
             fileLineStringBuilder.Append(skuIdCode5); // 1 chars
             fileLineStringBuilder.Append(CurrentFormattedDateTimeString); // 26 chars
-            fileLineStringBuilder.Append(UserName); // 30 chars
+            fileLineStringBuilder.Append(currentUser.NetworkID); // 30 chars
             fileLineStringBuilder.Append(FileLineFiller); // 18 chars
 
             return fileLineStringBuilder.ToString();

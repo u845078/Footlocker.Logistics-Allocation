@@ -103,7 +103,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             string message = "";
 
-            ItemDAO itemDAO = new ItemDAO();
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
 
             if (!itemDAO.DoValidSizesExist(model.RDQ.Sku, model.RDQ.Size))
                 ModelState.AddModelError("RDQ.Size", "Size does not exist for this sku");

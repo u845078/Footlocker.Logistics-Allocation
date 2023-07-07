@@ -18,7 +18,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
     {
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
         readonly ConfigService configService = new ConfigService();
-        readonly ItemDAO itemDAO = new ItemDAO();
 
         [CheckPermission(Roles = "Support,IT")]
         public ActionResult Lookup()
@@ -161,7 +160,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                              t.TeamCode == item.TeamCode).FirstOrDefault();
                 }
 
-                AllocationDriverDAO dao = new AllocationDriverDAO();
+                AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions);
                 model.AllocationDriver = dao.GetAllocationDriverList(item.Div).Where(adl => adl.Department == item.Dept).FirstOrDefault();
 
                 instanceID = configService.GetInstance(div);
@@ -169,6 +168,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 model.CPID = configService.GetCPID(model.ItemMaster.MerchantSku);
                 model.RetailPriceCurrency = configService.GetDivisionalCurrencyCode(div);
+                ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
                 model.RetailPrice = itemDAO.GetLocalPrice(model.Sku);
 
                 model.ValidItem = true;
@@ -257,7 +257,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _POs(string sku)
         {
             string division = sku.Split('-')[0];
-            ExistingPODAO dao = new ExistingPODAO();
+            ExistingPODAO dao = new ExistingPODAO(appConfig.EuropeDivisions);
             List<ExistingPO> model = dao.GetExistingPOsForSku(division, sku, false);
 
             List<string> overridePOsForSku = (from a in db.ExpeditePOs
@@ -614,7 +614,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<Hold> holds = db.Holds.ToList();
 
             ItemMaster item = db.ItemMasters.Where(im => im.MerchantSku == sku).FirstOrDefault();
-            AllocationDriverDAO dao = new AllocationDriverDAO();
+            AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions);
 
             holds = (from a in holds
                      where ((a.Division == item.Div) &&
@@ -680,7 +680,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _MainframeLinks(string sku)
         {
-            MainframeDAO dao = new MainframeDAO();
+            MainframeDAO dao = new MainframeDAO(appConfig.EuropeDivisions);
             List<MainframeLink> model;
             model = dao.GetMainframeLinks(sku);
 

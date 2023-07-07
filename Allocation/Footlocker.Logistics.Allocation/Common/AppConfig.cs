@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Configuration;
+﻿using System.Configuration;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.DAO;
 
@@ -30,6 +26,9 @@ namespace Footlocker.Logistics.Allocation.Common
         private string _ringFenceUploadTemplate;
         private string _storeTemplate;
         private string _vendorGroupTemplate;
+        private string _skuTypeFile;
+        private bool _enableFTP;
+        private string _europeDivisions;
 
         public string AppName;
         public string AppPath;
@@ -201,5 +200,47 @@ namespace Footlocker.Logistics.Allocation.Common
             }
         }
 
+        public string SkuTypeTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_skuTypeTemplate))
+                    _skuTypeTemplate = ConfigurationManager.AppSettings["SkuTypeTemplate"].ToString();
+
+                return _skuTypeTemplate;
+            }
+        }
+
+        public string SkuTypeFile
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_skuTypeFile))
+                    _skuTypeFile = ConfigurationManager.AppSettings["skutypefile"].ToString();
+
+                return _skuTypeFile;
+            }
+        }
+
+        public bool EnableFTP
+        {
+            get
+            {
+                _enableFTP = ConfigurationManager.AppSettings["enableFTP"].ToString().ToLower() == "true";
+
+                return _enableFTP;
+            }
+        }
+
+        public string EuropeDivisions
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_europeDivisions))
+                    _europeDivisions = ConfigurationManager.AppSettings["EUROPE_DIV"].ToString();
+
+                return _europeDivisions;
+            }
+        }
     }
 }
