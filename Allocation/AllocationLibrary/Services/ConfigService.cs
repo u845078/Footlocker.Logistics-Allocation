@@ -88,11 +88,11 @@
         public string GetCPID(string sku)
         {
             string cpidString;
+            var cpidValue =  db.CPSkuSizesXrefs.Where(cp => cp.LegacySku == sku)
+                                               .Select(cp => cp.CPID)
+                                               .FirstOrDefault();
 
-            cpidString =  db.CPSkuSizesXrefs.Where(cp => cp.LegacySku == sku)
-                                            .Select(cp => cp.CPID)
-                                            .FirstOrDefault();
-
+            cpidString = Convert.ToString(cpidValue);
             if (cpidString == null)
                 cpidString = "";
 
