@@ -195,7 +195,34 @@
     .Filterable(filtering => filtering.Enabled(true))
     .Groupable(grouping => grouping.Enabled(false))
     .Footer(true)
+    .DetailView(rdqDetails => rdqDetails.ClientTemplate(
+            Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQ>()
+                .Name("RDQDet_<#= Sku #>_<#= Store #>_<#= WarehouseNoSpace #>_<#= StatusNoSpace #>")
+                .Columns(columns =>
+                {
+                    columns.Bound(o => o.Size).Width(50);
+                    columns.Bound(o => o.PO).Width(50);
+                    columns.Bound(o => o.Qty).Width(50);
+                    columns.Bound(o => o.CreatedBy).Width(250);
+                    columns.Bound(o => o.CreateDate).Width(300);
+                    columns.Template(@<text></text>)
+                    .ClientTemplate(
+                        "<# if (CanPick) { #>"
+                            + "<a class=\"t-button\" href='javascript:ReleaseRDQ(\"<#= ID #>\");'>This Store</a>"
+                        + "<# } #>"
+                        + "<a class=\"t-button\" href='javascript:ReleaseRDQToWarehouse(\"<#= ID #>\");'>Warehouse</a>")
+                        .Title("Detail Release").Width(200);
+                })
+                .DataBinding(dataBinding => dataBinding.Ajax()
+                .Select("_RDQDetails", "WebPick", new { instanceID = "<#= InstanceID #>", div = "<#= Division #>", store = "<#= Store #>", warehousename = "<#= WarehouseName #>", sku = "<#= Sku #>", status = "<#= Status #>" }))
+                .Pageable()
+                .Sortable()
+                .Footer(true)
+                .HtmlAttributes(new { style = "Margin-Left:75px;Width:850px;" })
+                .ToHtmlString()
+    ))
 )
+
 }
 
 @if (Model.ShowStoreSelector == "yes")
