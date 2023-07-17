@@ -28,7 +28,7 @@ namespace Footlocker.Logistics.Allocation.Services
             {
                 _database = DatabaseFactory.CreateDatabase("AllocationContext");
             }
-            catch (Exception ex)
+            catch
             {
             }
         }

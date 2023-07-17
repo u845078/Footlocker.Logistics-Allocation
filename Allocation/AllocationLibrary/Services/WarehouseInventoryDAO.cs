@@ -20,12 +20,12 @@ namespace Footlocker.Logistics.Allocation.Services
         readonly Database _database;
         readonly Database _databaseEurope;
         Database _currentDB2Database;
-        //readonly Database _sqlDB;
         readonly AllocationLibraryContext db = new AllocationLibraryContext();
         readonly SKUStruct _SKU;
         readonly string _WarehouseID;
         List<WarehouseInventory> warehouseInventory;
         private InventoryListType _inventoryListType;
+        readonly string europeDivisions;
 
         public struct WarehouseInventoryLookup
         {
@@ -59,10 +59,12 @@ namespace Footlocker.Logistics.Allocation.Services
         /// </summary>
         /// <param name="sku">The SKU that you need information</param>
         /// <param name="warehouseID">The warehouse for which to restrict inventory. Use -1 if you do not want to restrict inventory to just one warehouse</param>
-        public WarehouseInventoryDAO(string sku, string warehouseID)
+        public WarehouseInventoryDAO(string sku, string warehouseID, string europeDivisions)
         {
             _database = DatabaseFactory.CreateDatabase("DB2PROD");
             _databaseEurope = DatabaseFactory.CreateDatabase("DB2EURP");
+
+            this.europeDivisions = europeDivisions;
 
             if (!string.IsNullOrEmpty(sku))
             {
@@ -75,14 +77,10 @@ namespace Footlocker.Logistics.Allocation.Services
 
         private void SetCurrentDB2Database()
         {
-            if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(_SKU.Division))
-            {
-                _currentDB2Database = _databaseEurope;
-            }
-            else
-            {
-                _currentDB2Database = _database;
-            }
+            if (europeDivisions.Contains(_SKU.Division))            
+                _currentDB2Database = _databaseEurope;            
+            else            
+                _currentDB2Database = _database;            
         }
        
         private List<WarehouseInventory> GetMainframeWarehouseInventory()

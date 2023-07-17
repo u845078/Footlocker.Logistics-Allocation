@@ -16,11 +16,11 @@ namespace Footlocker.Logistics.Allocation.Services
         AllocationLibraryContext db = new AllocationLibraryContext();
         readonly string europeDivisions;
 
-        public StoreInventoryDAO()
+        public StoreInventoryDAO(string europeDivisions)
         {
             _database = DatabaseFactory.CreateDatabase("DB2PROD");
             _databaseEurope = DatabaseFactory.CreateDatabase("DB2EURP");
-            europeDivisions = System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"];
+            this.europeDivisions = europeDivisions;
         }
 
         public List<StoreInventory> GetStoreInventoryBySize(string sku, string store)

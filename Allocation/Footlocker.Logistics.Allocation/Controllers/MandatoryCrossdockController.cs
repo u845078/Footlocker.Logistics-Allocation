@@ -83,11 +83,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 return Json("Success");
             }
-            catch (Exception ex)
+            catch 
             {
                 return Json("Error");
             }
-            //return GetGridJson(planID, page);
         }
 
 
@@ -104,11 +103,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 return Json("Success");
             }
-            catch (Exception ex)
+            catch
             {
                 return Json("Error");
             }
-            //return GetGridJson(planID, page);
         }
 
 
@@ -127,11 +125,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 return Json("Success");
             }
-            catch (Exception ex)
+            catch 
             {
                 return Json("The percent must add up to 100 for everything to crossdock correctly");
             }
-            //return GetGridJson(planID, page);
         }
 
 

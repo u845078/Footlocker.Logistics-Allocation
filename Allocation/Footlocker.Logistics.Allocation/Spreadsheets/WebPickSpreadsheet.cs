@@ -178,7 +178,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheet
 
             if (uniqueCombos.Count > 0)
             {
-                WarehouseInventoryDAO warehouseInventoryDAO = new WarehouseInventoryDAO(null, null);
+                WarehouseInventoryDAO warehouseInventoryDAO = new WarehouseInventoryDAO(null, null, config.EuropeDivisions);
                 List<WarehouseInventoryDAO.WarehouseInventoryLookup> warehouseInventoryLookups = new List<WarehouseInventoryDAO.WarehouseInventoryLookup>();
                 foreach (var uc in uniqueCombos)
                 {

@@ -184,20 +184,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 try
                 {
-                    if ("true".Equals(System.Configuration.ConfigurationManager.AppSettings["enableFTP"]))
+                    if (appConfig.EnableFTP)
                     {
-                        if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(Division))
+                        if (appConfig.EuropeDivisions.Contains(Division))
                         {
-                            Footlocker.Common.Services.FTPService ftp = new Footlocker.Common.Services.FTPService(System.Configuration.ConfigurationManager.AppSettings["FTPServer"], System.Configuration.ConfigurationManager.AppSettings["FTPUserName"], System.Configuration.ConfigurationManager.AppSettings["FTPPassword"]);
+                            Footlocker.Common.Services.FTPService ftp = new Footlocker.Common.Services.FTPService(appConfig.FTPServer, appConfig.FTPUserName, appConfig.FTPPassword);
 
-                            ftp.FTPSToMainframe(filepath, System.Configuration.ConfigurationManager.AppSettings["SkuTypeDatasetEurope"], 0, 0, System.Configuration.ConfigurationManager.AppSettings["QuoteFTPCommand"]);
+                            ftp.FTPSToMainframe(filepath, appConfig.SKUTypeDatasetEurope, 0, 0, appConfig.QuoteFTPCommand);
                             ftp.Disconnect();
                         }
                         else
                         {
-                            Footlocker.Common.Services.FTPService ftp = new Footlocker.Common.Services.FTPService(System.Configuration.ConfigurationManager.AppSettings["FTPServer"], System.Configuration.ConfigurationManager.AppSettings["FTPUserName"], System.Configuration.ConfigurationManager.AppSettings["FTPPassword"]);
+                            Footlocker.Common.Services.FTPService ftp = new Footlocker.Common.Services.FTPService(appConfig.FTPServer, appConfig.FTPUserName, appConfig.FTPPassword);
 
-                            ftp.FTPSToMainframe(filepath, System.Configuration.ConfigurationManager.AppSettings["SkuTypeDataset"], 0, 0, System.Configuration.ConfigurationManager.AppSettings["QuoteFTPCommand"]);
+                            ftp.FTPSToMainframe(filepath, appConfig.SKUTypeDataset, 0, 0, appConfig.QuoteFTPCommand);
                             ftp.Disconnect();
                         }
                     }

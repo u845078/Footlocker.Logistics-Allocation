@@ -841,7 +841,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             List<RingFenceDetail> rfDetailData;
 
             RingFenceDataFactory rfDataFactory = new RingFenceDataFactory();
-            WarehouseInventoryDAO warehouseInventoryDAO = new WarehouseInventoryDAO(sku, "-1");
+            WarehouseInventoryDAO warehouseInventoryDAO = new WarehouseInventoryDAO(sku, "-1", europeDivisions);
 
             warehouseInventory = warehouseInventoryDAO.GetWarehouseInventory(WarehouseInventoryDAO.InventoryListType.ListAllSizes);
 

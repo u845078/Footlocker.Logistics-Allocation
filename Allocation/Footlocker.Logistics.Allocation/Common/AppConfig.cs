@@ -29,7 +29,12 @@ namespace Footlocker.Logistics.Allocation.Common
         private string _skuTypeFile;
         private bool _enableFTP;
         private string _europeDivisions;
-
+        private string _ftpServer;
+        private string _ftpUserName;
+        private string _ftpPassword;
+        private string _quoteFTPCommand;
+        private string _skuTypeDataset;
+        private string _skuTypeDatasetEurope;
         public string AppName;
         public string AppPath;
         public WebUser currentUser;
@@ -211,6 +216,50 @@ namespace Footlocker.Logistics.Allocation.Common
             }
         }
 
+        public string ProductTypeTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_productTypeTemplate))
+                    _productTypeTemplate = ConfigurationManager.AppSettings["ProductTypeTemplate"].ToString();
+
+                return _productTypeTemplate;
+            }
+        }
+
+        public string RDQRestrictionsTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_rdqRestrictionsTemplate))
+                    _rdqRestrictionsTemplate = ConfigurationManager.AppSettings["RDQRestrictionsTemplate"].ToString();
+
+                return _rdqRestrictionsTemplate;
+            }
+        }
+
+        public string HoldDeleteTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_holdDeleteTemplate))
+                    _holdDeleteTemplate = ConfigurationManager.AppSettings["HoldDeleteTemplate"].ToString();
+
+                return _holdDeleteTemplate;
+            }
+        }
+
+        public string RerankStoresTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_rerankStoresTemplate))
+                    _rerankStoresTemplate = ConfigurationManager.AppSettings["RerankStoresTemplate"].ToString();
+
+                return _rerankStoresTemplate;
+            }
+        }
+
         public string SkuTypeFile
         {
             get
@@ -240,6 +289,72 @@ namespace Footlocker.Logistics.Allocation.Common
                     _europeDivisions = ConfigurationManager.AppSettings["EUROPE_DIV"].ToString();
 
                 return _europeDivisions;
+            }
+        }
+
+        public string FTPServer
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_ftpServer))
+                    _ftpServer = ConfigurationManager.AppSettings["FTPServer"].ToString();
+
+                return _ftpServer;
+            }
+        }
+
+        public string FTPUserName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_ftpUserName))
+                    _ftpUserName = ConfigurationManager.AppSettings["FTPUserName"].ToString();
+
+                return _ftpUserName;
+            }
+        }
+
+        public string FTPPassword
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_ftpPassword))
+                    _ftpPassword = ConfigurationManager.AppSettings["FTPPassword"].ToString();
+
+                return _ftpPassword;
+            }
+        }
+
+        public string QuoteFTPCommand
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_quoteFTPCommand))
+                    _quoteFTPCommand = ConfigurationManager.AppSettings["QuoteFTPCommand"].ToString();
+
+                return _quoteFTPCommand;
+            }
+        }
+
+        public string SKUTypeDataset
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_skuTypeDataset))
+                    _skuTypeDataset = ConfigurationManager.AppSettings["SkuTypeDataset"].ToString();
+
+                return _skuTypeDataset;
+            }
+        }
+
+        public string SKUTypeDatasetEurope
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_skuTypeDatasetEurope))
+                    _skuTypeDatasetEurope = ConfigurationManager.AppSettings["SkuTypeDatasetEurope"].ToString();
+
+                return _skuTypeDatasetEurope;
             }
         }
     }

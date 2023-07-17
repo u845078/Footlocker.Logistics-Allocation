@@ -829,7 +829,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return 0;
 
             //find maximum qty
-            WarehouseInventoryDAO dao = new WarehouseInventoryDAO(rdq.Sku, warehouse);
+            WarehouseInventoryDAO dao = new WarehouseInventoryDAO(rdq.Sku, warehouse, appConfig.EuropeDivisions);
             whInventory = dao.GetWarehouseInventory(WarehouseInventoryDAO.InventoryListType.ListOnlyAvailableSizes);
             qtyAvailable = (from wi in whInventory
                             where wi.size == rdq.Size

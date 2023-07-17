@@ -301,7 +301,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _StoreInventoryBySize(string sku, string store)
         {
-            StoreInventoryDAO dao = new StoreInventoryDAO();
+            StoreInventoryDAO dao = new StoreInventoryDAO(appConfig.EuropeDivisions);
             List<StoreInventory> model = dao.GetStoreInventoryBySize(sku, store);
 
             return View(new GridModel(model));
@@ -311,7 +311,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _StoreInventoryForSize(string sku, string store, string packName)
         {
 
-            StoreInventoryDAO dao = new StoreInventoryDAO();
+            StoreInventoryDAO dao = new StoreInventoryDAO(appConfig.EuropeDivisions);
             List<StoreInventory> model = dao.GetStoreInventoryForSize(sku, store, packName);
 
             return View(new GridModel(model));
@@ -330,7 +330,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                select w.MFCode).FirstOrDefault().ToString();
             }
 
-            WarehouseInventoryDAO dao = new WarehouseInventoryDAO(sku, warehouseID);
+            WarehouseInventoryDAO dao = new WarehouseInventoryDAO(sku, warehouseID, appConfig.EuropeDivisions);
 
             List<WarehouseInventory> warehouseInventoryList = dao.GetWarehouseInventory(WarehouseInventoryDAO.InventoryListType.ListOnlyAvailableSizes);            
 
