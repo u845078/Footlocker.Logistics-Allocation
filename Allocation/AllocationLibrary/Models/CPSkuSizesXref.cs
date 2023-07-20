@@ -12,7 +12,7 @@ namespace Footlocker.Logistics.Allocation.Models
     {
         [Key, Column("SkuNumber", Order = 0)]
         public long SKUNumber { get; set; }
-        public long CPID { get; set; }
+        public string CPID { get; set; }
         public long ModelID { get; set; }
         public string VendorStyle { get; set; }
         public string SizeDesc { get; set; }
