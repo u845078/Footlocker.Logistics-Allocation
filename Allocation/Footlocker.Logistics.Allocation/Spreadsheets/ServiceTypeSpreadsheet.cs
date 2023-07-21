@@ -80,7 +80,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
         public string GetAvailabilityDataString()
         {
-            return string.Format("SKUAV{0}{1}{2}{3}{4}{5}{6}{7}{8}", Division, Department, StockNumber, Width.PadRight(30, ' '), 
+            return string.Format("SKUAV{0}{1}{2}{3}{4}{5}{6}{7}", Division, Department, StockNumber, Width.PadRight(30, ' '), 
                 Availability.PadRight(60, ' '), DateTime.Now.ToString("yyyy-MM-dd-HH.mm.ss.ffffff"), UserID.PadRight(30, ' '), "".PadRight(9, ' '));
         }
     }
@@ -273,7 +273,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             columns.Add(0, "SKU");
             columns.Add(1, "Type");
             columns.Add(2, "Effective Date");
-            columns.Add(3, "Availabilty");
+            columns.Add(3, "Availability");
 
             templateFilename = config.SkuTypeTemplate;
             mainframeDAO = mfDAO;
