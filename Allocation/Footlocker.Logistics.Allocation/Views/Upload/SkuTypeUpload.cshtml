@@ -1,5 +1,4 @@
-﻿@using Telerik.Web.Mvc;
-@{
+﻿@{
     ViewBag.Title = "SkuTypeUpload";
 }
 
@@ -9,9 +8,7 @@
     @Html.ActionLink("Download Template", "ExcelTemplate", new {}, new {@class = "t-button"})
     <br />
     <br />
-    <b>Please select spreadsheets: </b>
-        <br />
-        <br />
+    <b>Please select spreadsheets: </b><br /><br />
     @(Html.Telerik().Upload()
         .Name("attachments")
         .Multiple(true)
@@ -23,11 +20,10 @@
             .OnError("onError")
             .OnSelect("onSelect")
                     .OnSuccess("onSuccess")
-            )
         )
-        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
-        <br />
-        <h4 id="message"></h4>
+     )
+    <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/><br />
+    <h4 id="message"></h4>
 </fieldset>
  
 <script type="text/javascript">
@@ -37,7 +33,7 @@
             alert("Document must be a spreadsheet with a xls extension. ");
             e.preventDefault();
         }
-        else{
+        else {
             document.getElementById('spreadsheet').style.visibility = 'visible';
         }
 
@@ -48,13 +44,13 @@
         var message = e.XMLHttpRequest.responseText;
         $('#message').empty().append("<font color='red'>"+message+"</font>");
 
-            e.preventDefault();
-        }
+        e.preventDefault();
+    }
 
-        function onSuccess(e) {
-            var message = e.XMLHttpRequest.responseText;
-            $('#message').empty().append("<font color='red'>Success</font>");
+    function onSuccess(e) {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>Success</font>");
 
-            e.preventDefault();
-        }
+        e.preventDefault();
+    }
 </script>    

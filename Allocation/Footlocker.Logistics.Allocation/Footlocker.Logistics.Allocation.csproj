@@ -546,38 +546,60 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="packages.config" />
-    <Content Include="Content\Templates\BulkRangeTemplate.xls" />
-    <None Include="Content\Templates\ARConstraintsUploadTemplate.xls">
+    <Content Include="Content\Templates\BulkRangeTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\ARConstraintsUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Templates\ARSkusUploadTemplate.xls">
+    </Content>
+    <Content Include="Content\Templates\ARSkusUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
     <Content Include="Content\Templates\HoldsUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Templates\HoldsUpdatesTemplate.xlsx" />
-    <Content Include="Content\Templates\NetworkScheduleUpdateTemplate.xlsx" />
-    <Content Include="Content\Templates\CrossdockLinkDataTemplate.xls" />
-    <None Include="Content\Templates\ProductTypeTemplate.xls">
+    <Content Include="Content\Templates\HoldsUpdatesTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\NetworkScheduleUpdateTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\CrossdockLinkDataTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\ProductTypeTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <Content Include="Content\Templates\RingFenceDeleteTemplate.xls" />
+    </Content>
+    <Content Include="Content\Templates\RingFenceDeleteTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\Templates\RDQRestrictionUploadTemplate.xls">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Templates\SkuAttributeUploadTemplate.xls" />
-    <Content Include="Content\Templates\RingFenceUploadTemplate.xls" />
-    <None Include="Content\Templates\SkuIdUploadTemplate.xls">
+    <Content Include="Content\Templates\SkuAttributeUploadTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\RingFenceUploadTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\SkuIdUploadTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\SkuRangePlanDGUploadTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\SkuTypeUpload.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <Content Include="Content\Templates\SkuRangePlanDGUploadTemplate.xls" />
-    <None Include="Content\Templates\SkuTypeUpload.xls">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <Content Include="Content\Templates\WebPickUploadTemplate.xls" />
-    <Content Include="Content\Templates\StoreTemplate.xls" />
-    <Content Include="Content\Templates\VendorGroupTemplate.xls" />
+    </Content>
+    <Content Include="Content\Templates\WebPickUploadTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\StoreTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\VendorGroupTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="readme.txt" />
     <Content Include="Views\Shared\EditorTemplates\Date.cshtml" />
