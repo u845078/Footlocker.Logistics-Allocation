@@ -18,6 +18,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     public class RouteController : AppController
     {
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        ConfigService configService = new ConfigService();
         //
         // GET: /Route/
 
@@ -489,9 +490,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             Excel excelDocument = new Excel();
             Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
-            int instanceID = (from a in db.InstanceDivisions 
-                              where a.Division == div 
-                              select a.InstanceID).FirstOrDefault();
+            int instanceID = configService.GetInstance(div);
 
             List<NetworkZone> list = (from a in db.NetworkZones 
                                       join b in db.NetworkZoneStores 
@@ -536,11 +535,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         mySheet.Cells[row, 1].PutValue(s.Division);
                         mySheet.Cells[row, 2].PutValue(s.Store);
 
-                        foreach (StoreLeadTime slt in (from a in db.StoreLeadTimes where ((a.Store == s.Store) && (a.Division == s.Division)) select a))
+                        foreach (StoreLeadTime slt in db.StoreLeadTimes.Where(slt => slt.Store == s.Store && slt.Division == s.Division).ToList())
                         {
                             col = 3 + DCs.IndexOf(slt.DCID);
                             mySheet.Cells[row, col].PutValue(slt.LeadTime);
-                            if ((slt.Rank <= 5)&&(slt.Active))
+                            if (slt.Rank <= 5 && slt.Active)
                             {
                                 mySheet.Cells[row, rankcol + slt.Rank].PutValue((from a in dcList 
                                                                                  where a.ID == slt.DCID 

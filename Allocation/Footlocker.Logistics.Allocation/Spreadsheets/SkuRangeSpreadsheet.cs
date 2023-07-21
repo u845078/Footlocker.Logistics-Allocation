@@ -10,7 +10,7 @@ using System.Web;
 using System.Text.RegularExpressions;
 using System.Globalization;
 
-namespace Footlocker.Logistics.Allocation.Spreadsheet
+namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
     public class SkuRangeSpreadsheet : UploadSpreadsheet
     {

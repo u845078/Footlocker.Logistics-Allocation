@@ -13,7 +13,7 @@ using Aspose.Excel;
 using Footlocker.Common;
 using System.Text;
 using System.Text.RegularExpressions;
-using Footlocker.Logistics.Allocation.Spreadsheet;
+using Footlocker.Logistics.Allocation.Spreadsheets;
 using System.Data.Entity.Infrastructure;
 using System.Web.UI;
 using System.Runtime;

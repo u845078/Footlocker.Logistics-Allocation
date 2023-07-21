@@ -6,7 +6,7 @@ using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Common;
 using Footlocker.Logistics.Allocation.Services;
-using Footlocker.Logistics.Allocation.Spreadsheet;
+using Footlocker.Logistics.Allocation.Spreadsheets;
 using Footlocker.Logistics.Allocation.DAO;
 using System.IO;
 using Aspose.Excel;

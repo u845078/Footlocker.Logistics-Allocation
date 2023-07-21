@@ -1,5 +1,4 @@
 ﻿using Aspose.Excel;
-using Footlocker.Common.Entities;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Models.Services;
 using Footlocker.Logistics.Allocation.Services;
@@ -13,9 +12,8 @@ using System.Drawing;
 using System.Linq;
 using System.Web;
 using Telerik.Web.Mvc.Extensions;
-using System.Web.Services.Description;
 
-namespace Footlocker.Logistics.Allocation.Spreadsheet
+namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
     public class RingFenceUploadSpreadsheet : UploadSpreadsheet
     {

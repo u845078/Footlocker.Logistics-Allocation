@@ -2,14 +2,10 @@
 using Footlocker.Logistics.Allocation.Services;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Footlocker.Common.Services;
 using System.Text.RegularExpressions;
 using System.Web;
 using Footlocker.Logistics.Allocation.Common;
-using Footlocker.Logistics.Allocation.Spreadsheet;
-using System.ComponentModel;
-using System.Linq.Expressions;
-using System.Runtime.Remoting.Messaging;
 using System.IO;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
@@ -17,7 +13,6 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
     public class ServiceTypeUploadData
     {
         public string SKU { get; set; }
-        public string Description { get; set; }
         public string ServiceType { get; set; }
         public string EffectiveDateString { get; set; }
         public string Availability { get; set; }
@@ -94,7 +89,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
     {
         readonly MainframeDAO mainframeDAO;
         string mainDivision;
-        
+        string ftpFileName;
 
         private ServiceTypeUploadData ParseRow(int row)
         {
@@ -103,9 +98,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             ServiceTypeUploadData returnValue = new ServiceTypeUploadData()
             {
                 SKU = Convert.ToString(worksheet.Cells[row, 0].Value),
-                ServiceType = Convert.ToString(worksheet.Cells[row, 2].Value),
-                EffectiveDateString = Convert.ToString(worksheet.Cells[row, 3].Value), 
-                Availability = Convert.ToString(worksheet.Cells[row, 4].Value),
+                ServiceType = Convert.ToString(worksheet.Cells[row, 1].Value),
+                EffectiveDateString = Convert.ToString(worksheet.Cells[row, 2].Value), 
+                Availability = Convert.ToString(worksheet.Cells[row, 3].Value),
                 UserID = config.currentUser.NetworkID
             };
 
@@ -163,7 +158,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             List<ServiceTypeUploadData> validData = new List<ServiceTypeUploadData>();
             string availabilityCodes;
             ServiceTypeUploadData uploadRec;
-            string fileName = string.Format("{0}_{1}.txt", config.SkuTypeFile, DateTime.Now.ToString("yyyyMMdd_HHmmssffffff"));
+            ftpFileName = string.Format("{0}_{1}.txt", config.SkuTypeFile, DateTime.Now.ToString("yyyyMMdd_HHmmssffffff"));
             TextWriter txtWrite;
 
             LoadAttachment(attachment);
@@ -208,7 +203,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                         return;
                     }
 
-                    txtWrite = new StreamWriter(fileName);
+                    txtWrite = new StreamWriter(ftpFileName);
 
                     foreach (ServiceTypeUploadData rec in validData)
                     {
@@ -227,8 +222,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     if (config.EnableFTP)                    
                         FTPFile();
                     
-                    File.Delete(fileName);
-
+                    File.Delete(ftpFileName);
                 }
                 catch (Exception ex)
                 {
@@ -242,26 +236,47 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         private void FTPFile()
         {
             int failCount = 1;
+            string datasetName;
+
             while (failCount < 5)
             {
+                try
+                {
+                    FTPService ftp = new FTPService(config.FTPServer, config.FTPUserName, config.FTPPassword);
 
+                    if (config.EuropeDivisions.Contains(mainDivision))
+                        datasetName = config.SKUTypeDatasetEurope;
+                    else
+                        datasetName = config.SKUTypeDataset;
+
+                    ftp.FTPSToMainframe(ftpFileName, datasetName, 0, 0, config.QuoteFTPCommand);
+                    ftp.Disconnect();
+                }
+                catch (Exception ex)
+                {
+                    failCount++;
+                    if (failCount == 5)
+                    {                        
+                        FLLogger logger = new FLLogger(config.LogFile);
+                        logger.Log(ex.Message + ": " + ex.StackTrace, FLLogger.eLogMessageType.eError);
+                        message = ex.Message;
+                    }
+                }
             }
         }
 
         public ServiceTypeSpreadsheet(AppConfig config, ConfigService configService, MainframeDAO mfDAO) : base(config, configService)
         {
-            maxColumns = 5;
+            maxColumns = 4;
             headerRowNumber = 0;
 
             columns.Add(0, "SKU");
-            columns.Add(1, "Description");
-            columns.Add(2, "Type");
-            columns.Add(3, "Effective Date");
-            columns.Add(4, "Availabilty");
+            columns.Add(1, "Type");
+            columns.Add(2, "Effective Date");
+            columns.Add(3, "Availabilty");
 
             templateFilename = config.SkuTypeTemplate;
             mainframeDAO = mfDAO;
         }
-
     }
 }

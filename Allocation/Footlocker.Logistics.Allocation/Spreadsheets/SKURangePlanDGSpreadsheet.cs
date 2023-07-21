@@ -1,16 +1,12 @@
-﻿using Aspose.Excel;
-using Footlocker.Logistics.Allocation.Models;
+﻿using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using System;
 using System.Collections.Generic;
 using Footlocker.Logistics.Allocation.Common;
 using System.Linq;
 using System.Web;
-using System.Text.RegularExpressions;
-using System.Globalization;
-using Footlocker.Common;
 
-namespace Footlocker.Logistics.Allocation.Spreadsheet
+namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
     public class SKURangePlanDGSpreadsheet : UploadSpreadsheet
     {

@@ -66,7 +66,7 @@
         {
             int instance = (from a in db.InstanceDivisions
                             where a.Division == division
-                            select a.InstanceID).First();
+                            select a.InstanceID).FirstOrDefault();
 
             return instance;
         }

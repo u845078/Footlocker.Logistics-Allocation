@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Data;
@@ -13,7 +12,8 @@ namespace Footlocker.Logistics.Allocation.Services
 {
     public class NetworkZoneStoreDAO
     {
-        Database _database;
+        readonly Database _database;
+        readonly AllocationLibraryContext db = new AllocationLibraryContext();
 
         public NetworkZoneStoreDAO()
         {
@@ -52,23 +52,27 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.AddInParameter(SQLCommand, "@div", DbType.String, div);
             _database.AddInParameter(SQLCommand, "@store", DbType.String, store);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _database.ExecuteDataSet(SQLCommand);
 
             if (data.Tables.Count > 0)
             {
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    NetworkZoneStore nzstore = new NetworkZoneStore();
-                    nzstore.ZoneID = Convert.ToInt32(dr["zoneid"]);
-                    nzstore.Division = Convert.ToString(dr["division"]);
-                    nzstore.Store = Convert.ToString(dr["store"]);
+                    NetworkZoneStore nzstore = new NetworkZoneStore()
+                    {
+                        ZoneID = Convert.ToInt32(dr["zoneid"]),
+                        Division = Convert.ToString(dr["division"]),
+                        Store = Convert.ToString(dr["store"])
+                    };
+
                     return nzstore;
                 }
             }
 
-            return new NetworkZoneStore();
-            
+            return new NetworkZoneStore();            
         }
+
+
     }
 }

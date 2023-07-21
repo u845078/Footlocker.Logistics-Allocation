@@ -244,6 +244,7 @@
     <Compile Include="Spreadsheets\SKURangePlanDGSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SkuRangeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SKURangeStoreExport.cs" />
+    <Compile Include="Spreadsheets\StoreNSSExport.cs" />
     <Compile Include="Spreadsheets\StoreSpreadsheet.cs" />
     <Compile Include="Spreadsheets\TroubleshootRDQExport.cs" />
     <Compile Include="Spreadsheets\UploadSpreadsheet.cs" />

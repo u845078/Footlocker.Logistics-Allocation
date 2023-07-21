@@ -1,13 +1,9 @@
 ﻿using Footlocker.Logistics.Allocation.Models;
-using Footlocker.Logistics.Allocation.Models.Services;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Common;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
-namespace Footlocker.Logistics.Allocation.Spreadsheet
+namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
     public class SKURangeExport : ExportSpreadsheet
     {

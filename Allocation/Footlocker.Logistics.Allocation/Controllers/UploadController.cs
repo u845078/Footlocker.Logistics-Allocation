@@ -7,7 +7,7 @@ using System.Web.Mvc;
 using System.IO;
 using System.Text.RegularExpressions;
 using Aspose.Excel;
-using Footlocker.Logistics.Allocation.Spreadsheet;
+using Footlocker.Logistics.Allocation.Spreadsheets;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Common.Services; 
@@ -15,7 +15,6 @@ using System.Data.Common;
 using System.Data.Entity;
 using System.Xml.Serialization;
 using Footlocker.Logistics.Allocation.Common;
-using Footlocker.Logistics.Allocation.Spreadsheets;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -77,148 +76,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,Admin,Support")]
         public ActionResult Save(IEnumerable<HttpPostedFileBase> attachments)
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-            string Division = "";
-            string filepath = System.Configuration.ConfigurationManager.AppSettings["skutypefile"] + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmssffffff") + ".txt";
-            TextWriter txtWrite = new StreamWriter(filepath);
+            ServiceTypeSpreadsheet serviceTypeSpreadsheet = new ServiceTypeSpreadsheet(appConfig, configService, new MainframeDAO(appConfig.EuropeDivisions));
 
             foreach (HttpPostedFileBase file in attachments)
             {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-                string effectiveDate = "";
-                string mainDivision;
-                int row = 1;
-                bool writeAV = Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Availability");
-                string availabilityCodes = "";
-                if (writeAV)
-                {
-                    Division = Convert.ToString(mySheet.Cells[row, 0].Value).Substring(0, 2);
-                    availabilityCodes = (new MainframeDAO(appConfig.EuropeDivisions)).GetAvailabityCodes(Division);
-                }
+                serviceTypeSpreadsheet.Save(file);
 
-                if (Convert.ToString(mySheet.Cells[0, 0].Value).Contains("SKU") &&
-                    Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Type") && Convert.ToString(mySheet.Cells[0, 3].Value).Contains("Effective Date"))
-                {
-                    Division = Convert.ToString(mySheet.Cells[row, 0].Value).Substring(0, 2);
-                    mainDivision = Division;
-                    if (!currentUser.HasDivision(AppName, Division))
-                    {
-                        txtWrite.Flush();
-                        txtWrite.Close();
-                        return Content("You do not have permission to update this division.");
-                    }
-                    string[] tokens;
-                    while (mySheet.Cells[row, 0].Value != null)
-                    {
-                        if (mySheet.Cells[row, 3].Value != null)                        
-                            effectiveDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value).ToString("yyyy-MM-dd");                        
-                        else                        
-                            effectiveDate = DateTime.Now.ToString("yyyy-MM-dd");                        
-
-                        Division = Convert.ToString(mySheet.Cells[row, 0].Value).Substring(0, 2);
-                        if (!(Division.Equals(mainDivision)))
-                        {
-                            txtWrite.Flush();
-                            txtWrite.Close();
-                            try
-                            {
-                                System.IO.File.Delete(filepath);
-                            }
-                            catch { }
-
-                            return Content("Spreadsheet must be for one division only.");
-                        }
-                        tokens = Convert.ToString(mySheet.Cells[row, 0].Value).Split('-');
-
-                        txtWrite.WriteLine(
-                            "SRVTY" +
-                                (tokens[0].PadLeft(2, '0') +//div
-                                tokens[1].PadLeft(2, '0') +//dept
-                                tokens[2].PadLeft(5, '0') +//stk
-                                tokens[3].PadLeft(2, '0')).PadRight(30,' ') +//width
-                                (effectiveDate +Convert.ToString(mySheet.Cells[row, 2].Value).PadRight(1, ' ')).PadRight(60,' ') +//service type
-                                DateTime.Now.ToString("yyyy-MM-dd-HH.mm.ss.ffffff") +//create date
-                                User.Identity.Name.Split('\\')[1].PadRight(30, ' ').Substring(0, 30) +//user
-                                "".PadRight(9, ' ') //filler
-                            );
-                        if (writeAV && (Convert.ToString(mySheet.Cells[row, 4].Value).Length > 0))
-                        {
-                            if (availabilityCodes.Contains(Convert.ToString(mySheet.Cells[row, 4].Value).PadRight(1,' ')))
-                            {
-                                txtWrite.WriteLine(
-                                "SKUAV" +
-                                    (tokens[0].PadLeft(2, '0') +//div
-                                    tokens[1].PadLeft(2, '0') +//dept
-                                    tokens[2].PadLeft(5, '0') +//stk
-                                    tokens[3].PadLeft(2, '0')).PadRight(30, ' ') +//width
-                                    (Convert.ToString(mySheet.Cells[row, 4].Value).PadRight(1, ' ')).PadRight(60, ' ') +//availability code
-                                    DateTime.Now.ToString("yyyy-MM-dd-HH.mm.ss.ffffff") +//create date
-                                    User.Identity.Name.Split('\\')[1].PadRight(30, ' ').Substring(0, 30) +//user
-                                    "".PadRight(9, ' ') //filler
-                                    );
-                            }
-                        }
-
-                        row++;
-                    }
-                }
-                else
-                {
-                    return Content("Incorrect header, please use template.");
-                }
+                if (!string.IsNullOrEmpty(serviceTypeSpreadsheet.message))
+                    return Content(serviceTypeSpreadsheet.message);
             }
-            txtWrite.Flush();
-            txtWrite.Close();
 
-            int failcount = 1;
-            while (failcount < 5)
-            {
-                try
-                {
-                    if (appConfig.EnableFTP)
-                    {
-                        if (appConfig.EuropeDivisions.Contains(Division))
-                        {
-                            Footlocker.Common.Services.FTPService ftp = new Footlocker.Common.Services.FTPService(appConfig.FTPServer, appConfig.FTPUserName, appConfig.FTPPassword);
-
-                            ftp.FTPSToMainframe(filepath, appConfig.SKUTypeDatasetEurope, 0, 0, appConfig.QuoteFTPCommand);
-                            ftp.Disconnect();
-                        }
-                        else
-                        {
-                            Footlocker.Common.Services.FTPService ftp = new Footlocker.Common.Services.FTPService(appConfig.FTPServer, appConfig.FTPUserName, appConfig.FTPPassword);
-
-                            ftp.FTPSToMainframe(filepath, appConfig.SKUTypeDataset, 0, 0, appConfig.QuoteFTPCommand);
-                            ftp.Disconnect();
-                        }
-                    }
-                    System.IO.File.Delete(filepath);
-                    return Content("");
-                }
-                catch (Exception ex)
-                {
-                    failcount++;
-                    if (failcount == 5)
-                    {
-                        try
-                        {
-                            System.IO.File.Delete(filepath);
-                        }
-                        catch { }
-                        return Content(ex.Message);
-                    }
-                }
-            }
-            return Content("Shouldn't ever get here");
+            return Content("");            
         }
 
         public ActionResult ExcelTemplate()
