@@ -681,7 +681,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 int lt;
 
                 NetworkZone z = null;
-                RouteDetail det;
+                //RouteDetail det;
                 NetworkZoneStore nzstore;
                 string prevZone = "";
                 StoreLeadTime s;
@@ -1227,7 +1227,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 intransit = Convert.ToInt32(mySheet.Cells[row, col].Value);
             }
-            catch (Exception ex)
+            catch 
             {
                 intransit = 9999;
             }
@@ -1242,7 +1242,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 intransit = Convert.ToInt32(mySheet.Cells[row, col].Value);
             }
-            catch (Exception ex)
+            catch
             {
                 intransit = 5;
             }

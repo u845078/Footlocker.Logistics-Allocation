@@ -8,6 +8,7 @@ namespace Footlocker.Logistics.Allocation.Models
 {
     public class NetworkZone
     {
+        [Key]
         public int ID { get; set; }
 
         [Required]

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Web;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using Microsoft.Practices.EnterpriseLibrary.Common.Utility;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
@@ -81,22 +82,27 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 errorMessage = "The division and store combination does not exist within the system.";
 
             if (!string.IsNullOrEmpty(range.RangeStartDate))
-                if (!DateTime.TryParseExact(range.RangeStartDate, "M/d/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                if (!DateTime.TryParseExact(range.RangeStartDate, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                     errorMessage = "Delivery group start date is not in a mm/dd/yyyy format";
 
             if (range.EndDate != "-1")
-                if (!DateTime.TryParseExact(range.EndDate, "M/d/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                if (!DateTime.TryParseExact(range.EndDate, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                     errorMessage = "Store End Date override is not in a mm/dd/yyyy format";
 
             if (!string.IsNullOrEmpty(range.OPStartSend))
-                if (!DateTime.TryParseExact(range.OPStartSend, "M/d/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                if (!DateTime.TryParseExact(range.OPStartSend, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                     errorMessage = "OP Start Send Date is not in a mm/dd/yyyy format";
 
             if (!string.IsNullOrEmpty(range.OPStopSend))
-                if (!DateTime.TryParseExact(range.OPStopSend, "M/d/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                if (!DateTime.TryParseExact(range.OPStopSend, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                     errorMessage = "OP End Send Date is not in a mm/dd/yyyy format";
 
             return string.IsNullOrEmpty(errorMessage);
+        }
+
+        private void ValidateList()
+        {
+
         }
 
         public void Save(HttpPostedFileBase attachment, bool purgeFirst)
@@ -121,14 +127,22 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                         if (!ValidateRow(range, out errorMessage))
                             range.Error = errorMessage;
 
-                        parsedRanges.Add(range);
-
                         if (!string.IsNullOrEmpty(range.Error))
                             errorList.Add(range);
                         else
-                            validRanges.Add(range);
+                            parsedRanges.Add(range);
                         
                         row++;
+                    }
+
+                    ValidateList();
+
+                    foreach (BulkRange bulkRange in parsedRanges)
+                    {
+                        if (!string.IsNullOrEmpty(bulkRange.Error))
+                            errorList.Add(bulkRange);
+                        else
+                            validRanges.Add(bulkRange);
                     }
                     
                     bulkloadErrorList = dao.BulkUpdateRange(validRanges, config.currentUser.NetworkID, purgeFirst);

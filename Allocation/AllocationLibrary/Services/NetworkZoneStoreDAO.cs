@@ -7,6 +7,8 @@ using Microsoft.Practices.EnterpriseLibrary.Data;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Factories;
 using Footlocker.Common;
+using System.Security.Cryptography;
+using System.Linq;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
@@ -73,6 +75,17 @@ namespace Footlocker.Logistics.Allocation.Services
             return new NetworkZoneStore();            
         }
 
+        public List<NetworkZone> GetStoreLeadTimes(int instanceID)
+        {
+            List<NetworkZone> list = (from a in db.NetworkZones
+                                      join b in db.NetworkZoneStores
+                                        on a.ID equals b.ZoneID
+                                      join c in db.InstanceDivisions
+                                        on b.Division equals c.Division
+                                      where c.InstanceID == instanceID
+                                      select a).Distinct().ToList();
 
+            return list;
+        }
     }
 }

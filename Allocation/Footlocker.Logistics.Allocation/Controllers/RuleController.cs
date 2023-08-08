@@ -924,7 +924,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 return Json("Success");
             }
-            catch (Exception ex)
+            catch 
             {
                 return Json("Error");
             }
@@ -1010,7 +1010,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 return Json("Success");
             }
-            catch (Exception ex)
+            catch
             {
                 return Json("Error");
             }
@@ -1024,7 +1024,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             try
             {
-                Boolean updated = false;
+                //Boolean updated = false;
                 RuleSet rs = (from a in db.RuleSets where a.RuleSetID == ruleSetID select a).First();
                 List<RangePlanDetail> details = null;
                 if (rs.Type == "Main")
@@ -1064,7 +1064,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 return Json("Success");
             }
-            catch (Exception ex)
+            catch 
             {
                 return Json("Error");
             }
@@ -1135,7 +1135,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 return Json("Success");
             }
-            catch (Exception ex)
+            catch 
             {
                 return Json("Error");
             }
@@ -1337,7 +1337,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     }
                                 }
                             }
-                            catch (Exception ex)
+                            catch 
                             {
                                 errors++;
                             }

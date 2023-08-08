@@ -4,13 +4,13 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
-using Telerik.Web.Mvc;
 using Footlocker.Logistics.Allocation.Services;
 using Aspose.Excel;
 using Aspose.Cells;
 using System.IO;
 using System.Data;
 using Footlocker.Common;
+using Footlocker.Logistics.Allocation.Spreadsheets;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -168,7 +168,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.CurrentZones = (from b in db.RouteDetails 
                                   join a in db.NetworkZones 
                                   on b.ZoneID equals a.ID 
-                                  where ((b.RouteID == routeID) && (b.DCID == dcID)) 
+                                  where b.RouteID == routeID && 
+                                        b.DCID == dcID
                                   select a).ToList();
 
             model.AvailableZones = (from a in db.NetworkZones 
@@ -176,7 +177,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                     on a.LeadTimeID equals lt.ID 
                                     where ((lt.InstanceID == model.Route.InstanceID) && 
                                            (!(from b in db.RouteDetails 
-                                              where ((b.ZoneID == a.ID) && (b.RouteID == routeID) && (b.DCID == dcID)) 
+                                              where b.ZoneID == a.ID && 
+                                                    b.RouteID == routeID && 
+                                                    b.DCID == dcID 
                                               select b).Any())) 
                                     select a).ToList();
                                                                   
@@ -185,22 +188,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult AddRouteZone(int dcID, int routeID, int zoneID, int days)
         {
-            var existing = (from a in db.RouteDetails where ((a.RouteID==routeID)&&(a.ZoneID==zoneID)) select a);
-            if (existing.Count() > 0)
+            List<RouteDetail> existingRoutes = db.RouteDetails.Where(rd => rd.RouteID == routeID && rd.ZoneID == zoneID).ToList();
+            if (existingRoutes.Count() > 0)
             {
-                db.RouteDetails.Remove(existing.First());
+                db.RouteDetails.Remove(existingRoutes.First());
                 db.SaveChanges();
             }
-            RouteDetail det = new RouteDetail();
-            det.DCID = dcID;
-            det.RouteID = routeID;
-            det.ZoneID = zoneID;
-            det.Days = days;
+            RouteDetail det = new RouteDetail()
+            {
+                DCID = dcID,
+                RouteID = routeID,
+                ZoneID = zoneID,
+                Days = days
+            };
 
             db.RouteDetails.Add(det);
             db.SaveChanges();
 
-            return RedirectToAction("EditRouteZones", new { dcID=dcID, routeID=routeID});
+            return RedirectToAction("EditRouteZones", new { dcID, routeID});
         }
 
         public ActionResult DeleteRouteZone(int dcID, int routeID, int zoneID)
@@ -492,13 +497,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
             int instanceID = configService.GetInstance(div);
 
-            List<NetworkZone> list = (from a in db.NetworkZones 
-                                      join b in db.NetworkZoneStores 
-                                        on a.ID equals b.ZoneID 
-                                      join c in db.InstanceDivisions 
-                                        on b.Division equals c.Division 
-                                      where c.InstanceID == instanceID 
-                                      select a).Distinct().ToList();
+            NetworkZoneStoreDAO networkZoneStoreDAO = new NetworkZoneStoreDAO();
+            List<NetworkZone> list = networkZoneStoreDAO.GetStoreLeadTimes(instanceID);
+
             List<NetworkZoneStore> storeList;
 
             int row = 1;
@@ -641,149 +642,149 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("StoreLeadTimes", new { div = div });
         }
 
-        [HttpGet]
-        public ActionResult UpdatePRStores()
-        {
-            EditStoreLeadTimeModel model;
+        //[HttpGet]
+        //public ActionResult UpdatePRStores()
+        //{
+        //    EditStoreLeadTimeModel model;
             
-            List<StoreLookup> stores = (from a in db.StoreLookups where (a.State == "PR")||(a.status == "VI") select a).ToList();
+        //    List<StoreLookup> stores = (from a in db.StoreLookups where (a.State == "PR")||(a.status == "VI") select a).ToList();
 
-            foreach (StoreLookup s in stores)
-            {
-                model = new EditStoreLeadTimeModel();
-                model.Store = s;
-                model.LeadTimes = (from a in db.StoreLeadTimes where ((a.Store == s.Store) && (a.Division == s.Division)) select a).ToList();
+        //    foreach (StoreLookup s in stores)
+        //    {
+        //        model = new EditStoreLeadTimeModel();
+        //        model.Store = s;
+        //        model.LeadTimes = (from a in db.StoreLeadTimes where ((a.Store == s.Store) && (a.Division == s.Division)) select a).ToList();
 
-                //go through and update existing lead time
-                foreach (StoreLeadTime lt in model.LeadTimes)
-                {
-                    switch (lt.DCID)
-                    { 
-                        case 1://JC
-                            lt.LeadTime = 4;
-                            lt.Rank = 2;
-                            break;
-                        case 2://Camp Hill
-                            lt.LeadTime = 5;
-                            lt.Rank = 4;
-                            break;
-                        case 3://Edison
-                            lt.LeadTime = 5;
-                            lt.Rank = 5;
-                            break;
-                        case 4://Gilber
-                            lt.LeadTime = 4;
-                            lt.Rank = 6;
-                            break;
-                        case 5://Jacksonville
-                            lt.LeadTime = 4;
-                            lt.Rank = 1;
-                            break;
-                        case 6://Team Edition
-                            lt.LeadTime = 4;
-                            lt.Rank = 3;
-                            break;
-                    }
-                }
+        //        //go through and update existing lead time
+        //        foreach (StoreLeadTime lt in model.LeadTimes)
+        //        {
+        //            switch (lt.DCID)
+        //            { 
+        //                case 1://JC
+        //                    lt.LeadTime = 4;
+        //                    lt.Rank = 2;
+        //                    break;
+        //                case 2://Camp Hill
+        //                    lt.LeadTime = 5;
+        //                    lt.Rank = 4;
+        //                    break;
+        //                case 3://Edison
+        //                    lt.LeadTime = 5;
+        //                    lt.Rank = 5;
+        //                    break;
+        //                case 4://Gilber
+        //                    lt.LeadTime = 4;
+        //                    lt.Rank = 6;
+        //                    break;
+        //                case 5://Jacksonville
+        //                    lt.LeadTime = 4;
+        //                    lt.Rank = 1;
+        //                    break;
+        //                case 6://Team Edition
+        //                    lt.LeadTime = 4;
+        //                    lt.Rank = 3;
+        //                    break;
+        //            }
+        //        }
 
-                string div = UpdateStoreLeadTimesForModel(model);
-            }
-            return View();
-        }
+        //        string div = UpdateStoreLeadTimesForModel(model);
+        //    }
+        //    return View();
+        //}
 
-        [HttpGet]
-        public ActionResult UpdateHawaiiStores()
-        {
-            EditStoreLeadTimeModel model;
+        //[HttpGet]
+        //public ActionResult UpdateHawaiiStores()
+        //{
+        //    EditStoreLeadTimeModel model;
 
-            List<StoreLookup> stores = (from a in db.StoreLookups where (a.State == "HI") || (a.status == "GU") select a).ToList();
+        //    List<StoreLookup> stores = (from a in db.StoreLookups where (a.State == "HI") || (a.status == "GU") select a).ToList();
 
-            foreach (StoreLookup s in stores)
-            {
-                model = new EditStoreLeadTimeModel();
-                model.Store = s;
-                model.LeadTimes = (from a in db.StoreLeadTimes where ((a.Store == s.Store) && (a.Division == s.Division)) select a).ToList();
+        //    foreach (StoreLookup s in stores)
+        //    {
+        //        model = new EditStoreLeadTimeModel();
+        //        model.Store = s;
+        //        model.LeadTimes = (from a in db.StoreLeadTimes where ((a.Store == s.Store) && (a.Division == s.Division)) select a).ToList();
 
-                //go through and update existing lead time
-                foreach (StoreLeadTime lt in model.LeadTimes)
-                {
-                    switch (lt.DCID)
-                    {
-                        case 1://JC
-                            lt.LeadTime = 4;
-                            lt.Rank = 2;
-                            break;
-                        case 2://Camp Hill
-                            lt.LeadTime = 5;
-                            lt.Rank = 5;
-                            break;
-                        case 3://Edison
-                            lt.LeadTime = 5;
-                            lt.Rank = 6;
-                            break;
-                        case 4://Gilber
-                            lt.LeadTime = 4;
-                            lt.Rank = 1;
-                            break;
-                        case 5://Jacksonville
-                            lt.LeadTime = 4;
-                            lt.Rank = 3;
-                            break;
-                        case 6://Team Edition
-                            lt.LeadTime = 4;
-                            lt.Rank = 4;
-                            break;
-                    }
-                }
+        //        //go through and update existing lead time
+        //        foreach (StoreLeadTime lt in model.LeadTimes)
+        //        {
+        //            switch (lt.DCID)
+        //            {
+        //                case 1://JC
+        //                    lt.LeadTime = 4;
+        //                    lt.Rank = 2;
+        //                    break;
+        //                case 2://Camp Hill
+        //                    lt.LeadTime = 5;
+        //                    lt.Rank = 5;
+        //                    break;
+        //                case 3://Edison
+        //                    lt.LeadTime = 5;
+        //                    lt.Rank = 6;
+        //                    break;
+        //                case 4://Gilber
+        //                    lt.LeadTime = 4;
+        //                    lt.Rank = 1;
+        //                    break;
+        //                case 5://Jacksonville
+        //                    lt.LeadTime = 4;
+        //                    lt.Rank = 3;
+        //                    break;
+        //                case 6://Team Edition
+        //                    lt.LeadTime = 4;
+        //                    lt.Rank = 4;
+        //                    break;
+        //            }
+        //        }
 
-                string div = UpdateStoreLeadTimesForModel(model);
-            }
-            return View();
-        }
+        //        string div = UpdateStoreLeadTimesForModel(model);
+        //    }
+        //    return View();
+        //}
 
-        [HttpGet]
-        public ActionResult UpdateEuropeStores()
-        {
-            EditStoreLeadTimeModel model;
+        //[HttpGet]
+        //public ActionResult UpdateEuropeStores()
+        //{
+        //    EditStoreLeadTimeModel model;
 
-            List<StoreLookup> stores = (from a in db.StoreLookups 
-                                        where ((a.Division == "31") && 
-                                               a.Region != "45") 
-                                        select a).ToList();
-            List<StoreLeadTime> alreadyDone = (from a in db.StoreLeadTimes 
-                                               where ((a.Division == "31") && 
-                                                      (a.LeadTime == 4)) 
-                                               select a).ToList();
-            int count = 0;
-            foreach (StoreLookup s in stores)
-            {
-                count++;
-                if ((from a in alreadyDone where ((a.Store == s.Store)) select a).Count() == 0)
-                {
-                    model = new EditStoreLeadTimeModel();
-                    model.Store = s;
-                    model.LeadTimes = (from a in db.StoreLeadTimes where ((a.Store == s.Store) && (a.Division == s.Division)) select a).ToList();
+        //    List<StoreLookup> stores = (from a in db.StoreLookups 
+        //                                where ((a.Division == "31") && 
+        //                                       a.Region != "45") 
+        //                                select a).ToList();
+        //    List<StoreLeadTime> alreadyDone = (from a in db.StoreLeadTimes 
+        //                                       where ((a.Division == "31") && 
+        //                                              (a.LeadTime == 4)) 
+        //                                       select a).ToList();
+        //    int count = 0;
+        //    foreach (StoreLookup s in stores)
+        //    {
+        //        count++;
+        //        if ((from a in alreadyDone where ((a.Store == s.Store)) select a).Count() == 0)
+        //        {
+        //            model = new EditStoreLeadTimeModel();
+        //            model.Store = s;
+        //            model.LeadTimes = (from a in db.StoreLeadTimes where ((a.Store == s.Store) && (a.Division == s.Division)) select a).ToList();
 
-                    //go through and update existing lead time
-                    foreach (StoreLeadTime lt in model.LeadTimes)
-                    {
-                        lt.LeadTime = 4;
-                    }
-                    if (model.LeadTimes.Count() > 0)
-                    {
-                        try
-                        {
-                            string div = UpdateStoreLeadTimesForModel(model);
-                        }
-                        catch (Exception ex)
-                        {
-                            int i = 0;
-                        }
-                    }
-                }
-            }
-            return View();
-        }
+        //            //go through and update existing lead time
+        //            foreach (StoreLeadTime lt in model.LeadTimes)
+        //            {
+        //                lt.LeadTime = 4;
+        //            }
+        //            if (model.LeadTimes.Count() > 0)
+        //            {
+        //                try
+        //                {
+        //                    string div = UpdateStoreLeadTimesForModel(model);
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    int i = 0;
+        //                }
+        //            }
+        //        }
+        //    }
+        //    return View();
+        //}
 
         private string UpdateStoreLeadTimesForModel(EditStoreLeadTimeModel model)
         {
