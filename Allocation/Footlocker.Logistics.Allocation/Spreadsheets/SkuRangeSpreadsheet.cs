@@ -67,6 +67,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheet
         private bool ValidateRow(BulkRange range, out string errorMessage)
         {
             errorMessage= string.Empty;
+            string[] validFormats = { "M/d/yyyy", "M/d/yyyy hh:mm:ss tt" };
             DateTime parsedDate;
 
             Regex regexSku = new Regex(@"^\d{2}-\d{2}-\d{5}-\d{2}$");
@@ -81,19 +82,19 @@ namespace Footlocker.Logistics.Allocation.Spreadsheet
                 errorMessage = "The division and store combination does not exist within the system.";
 
             if (!string.IsNullOrEmpty(range.RangeStartDate))
-                if (!DateTime.TryParseExact(range.RangeStartDate, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                if (!DateTime.TryParseExact(range.RangeStartDate, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                     errorMessage = "Delivery group start date is not in a mm/dd/yyyy format";
 
             if (range.EndDate != "-1")
-                if (!DateTime.TryParseExact(range.EndDate, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                if (!DateTime.TryParseExact(range.EndDate, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                     errorMessage = "Store End Date override is not in a mm/dd/yyyy format";
 
             if (!string.IsNullOrEmpty(range.OPStartSend))
-                if (!DateTime.TryParseExact(range.OPStartSend, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                if (!DateTime.TryParseExact(range.OPStartSend, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                     errorMessage = "OP Start Send Date is not in a mm/dd/yyyy format";
 
             if (!string.IsNullOrEmpty(range.OPStopSend))
-                if (!DateTime.TryParseExact(range.OPStopSend, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                if (!DateTime.TryParseExact(range.OPStopSend, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                     errorMessage = "OP End Send Date is not in a mm/dd/yyyy format";
 
             return string.IsNullOrEmpty(errorMessage);
