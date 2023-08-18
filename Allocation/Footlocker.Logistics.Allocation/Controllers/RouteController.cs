@@ -50,45 +50,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        public ActionResult DownnloadRoutes(int instanceID)
+        public ActionResult DownloadRoutes(int instanceID)
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            RoutesExport routesExport = new RoutesExport(appConfig);
+            routesExport.WriteData(instanceID);
 
-            Excel excelDocument = new Excel();
-            Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
-
-            List<Route> list = db.Routes.Where(r => r.InstanceID == instanceID).ToList();
-
-            int row = 1;
-            mySheet.Cells[0, 0].PutValue("Route");
-            mySheet.Cells[0, 1].PutValue("Perspective");
-            mySheet.Cells[0, 2].PutValue("Pass");
-            mySheet.Cells[0, 3].PutValue("DC");
-            mySheet.Cells[0, 4].PutValue("Zone");
-            mySheet.Cells[0, 5].PutValue("Days");
-            foreach (Route r in list)
-            {
-                var rdList = (from a in db.RouteDetails
-                              join b in db.NetworkZones on a.ZoneID equals b.ID
-                              join c in db.DistributionCenters on a.DCID equals c.ID
-                              where a.RouteID == r.ID
-                              select new { det = a, zone = b, dc = c }).ToList();
-
-                foreach (var d in rdList)
-                {
-                    mySheet.Cells[row, 0].PutValue(r.Name);
-                    mySheet.Cells[row, 1].PutValue(r.Perspective);
-                    mySheet.Cells[row, 2].PutValue(r.Pass);
-                    mySheet.Cells[row, 3].PutValue(d.dc.Name);
-                    mySheet.Cells[row, 4].PutValue(d.zone.Name);
-                    mySheet.Cells[row, 5].PutValue(d.det.Days);
-                    row++;
-                }
-            }
-
-            excelDocument.Save("Routes.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            routesExport.excelDocument.Save("Routes.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
 
@@ -639,7 +606,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             string div = UpdateStoreLeadTimesForModel(model);
 
-            return RedirectToAction("StoreLeadTimes", new { div = div });
+            return RedirectToAction("StoreLeadTimes", new { div });
         }
 
         //[HttpGet]

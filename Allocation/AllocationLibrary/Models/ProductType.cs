@@ -13,5 +13,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public string ProductTypeCode { get; set; }
         public string ProductTypeName { get; set; }
         public int ProductTypeID { get; set; }
+
+        public string ErrorMessage { get; set; }
     }
 }

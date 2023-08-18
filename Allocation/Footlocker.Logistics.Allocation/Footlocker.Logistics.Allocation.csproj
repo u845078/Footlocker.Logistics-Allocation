@@ -233,10 +233,12 @@
     <Compile Include="Spreadsheets\HoldsUploadSpreadsheet.cs" />
     <Compile Include="Common\JsonResultData.cs" />
     <Compile Include="Spreadsheets\LostSalesExtract.cs" />
+    <Compile Include="Spreadsheets\ProductTypeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\RingFenceByDestExport.cs" />
     <Compile Include="Spreadsheets\RingFenceDeleteSpreadsheet.cs" />
     <Compile Include="Spreadsheets\RingFenceExport.cs" />
     <Compile Include="Spreadsheets\RingFenceUploadSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\RoutesExport.cs" />
     <Compile Include="Spreadsheets\ServiceTypeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SkuAttributeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SKURangeDeliveryGroupExport.cs" />
@@ -381,6 +383,7 @@
     <Compile Include="Models\WebPickModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Spreadsheets\WSMExtract.cs" />
+    <Compile Include="Spreadsheets\ZoneStoreExport.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\gridscroll.css" />

@@ -1541,15 +1541,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                         (a.StartDate == StartDate) && (a.Store == store)
                                  select a).FirstOrDefault();
 
-                    DateTime? dt = null;
-                    hold.EndDate = String.IsNullOrEmpty(validRows["End Date"].ToString().Trim()) ? dt : DateTime.Parse(validRows["End Date"].ToString().Trim());
-                    hold.Duration = validRows["Duration"].ToString().Trim();
-                    hold.HoldType = validRows["Hold Type"].ToString().Trim();
-                    hold.Comments = validRows["Comments"].ToString().Trim();
-                    hold.CreateDate = DateTime.Now;
-                    hold.CreatedBy = User.Identity.Name;
+                    if (hold != null)
+                    {
+                        string endDateString = validRows["End Date"].ToString().Trim();
 
-                    db.Entry(hold).State = System.Data.EntityState.Modified;                    
+                        if (!string.IsNullOrEmpty(endDateString))
+                            hold.EndDate = Convert.ToDateTime(endDateString);
+                        else
+                            hold.EndDate = null;
+
+                        //hold.EndDate = String.IsNullOrEmpty(validRows["End Date"].ToString().Trim()) ? dt : DateTime.Parse(validRows["End Date"].ToString().Trim());
+                        hold.Duration = validRows["Duration"].ToString().Trim();
+                        hold.HoldType = validRows["Hold Type"].ToString().Trim();
+                        hold.Comments = validRows["Comments"].ToString().Trim();
+                        hold.CreateDate = DateTime.Now;
+                        hold.CreatedBy = User.Identity.Name;
+
+                        db.Entry(hold).State = System.Data.EntityState.Modified;
+                    }
                 }
                 db.SaveChanges();
 

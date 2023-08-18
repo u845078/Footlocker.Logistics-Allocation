@@ -13,11 +13,9 @@ namespace Footlocker.Logistics.Allocation.Services
 {
     public class ProductTypeDAO
     {
-
         public ProductTypeDAO()
         {
         }
-
         
         public List<ProductType> GetProductTypeList(string division)
         {
@@ -29,14 +27,14 @@ namespace Footlocker.Logistics.Allocation.Services
             myDatabase = DatabaseFactory.CreateDatabase(Convert.ToString(div.ConnectionName));
 
             DbCommand SQLCommand;
-            string SQL = "select a.RETL_OPER_DIV_CODE,a.STK_DEPT_NUM, b.PRODUCT_TYP_CODE,b.PRODUCT_TYP_NAME,b.PRODUCT_TYP_ID from TCISR082 a, TCISR079 b";
-            SQL = SQL + " where a.product_typ_id = b.product_typ_id";
-            SQL = SQL + " and a.retl_oper_div_code = '" + division + "'";
+            string SQL = "select a.RETL_OPER_DIV_CODE, a.STK_DEPT_NUM, b.PRODUCT_TYP_CODE, b.PRODUCT_TYP_NAME, b.PRODUCT_TYP_ID ";
+            SQL += " from TCISR082 a, TCISR079 b";
+            SQL += " where a.product_typ_id = b.product_typ_id and ";
+            SQL += " a.retl_oper_div_code = '" + division + "'";
 
             SQLCommand = myDatabase.GetSqlStringCommand(SQL);
-            //_database.AddInParameter(SQLCommand, "@variable", DbType.String, variable);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = myDatabase.ExecuteDataSet(SQLCommand);
 
             ProductTypeFactory factory = new ProductTypeFactory();
@@ -68,21 +66,21 @@ namespace Footlocker.Logistics.Allocation.Services
             Footlocker.FLLogger log = new FLLogger("c:\\log\\allocationupload");
             DbCommand SQLCommand;
             string SQL = "update TCISR083 set PRODUCT_TYP_ID = ?";
-            SQL = SQL + ",MODIFIED_BY_USERID ='ALLCUPL'";
-            SQL = SQL + ",MODIFIED_ON_DTTM = CURRENT TIMESTAMP";
-            SQL = SQL + " where RETL_OPER_DIV_CODE = ?";
-            SQL = SQL + " and STK_DEPT_NUM = ?";
-            SQL = SQL + " and STK_NUM = ?";
+            SQL += ",MODIFIED_BY_USERID ='ALLCUPL'";
+            SQL += ",MODIFIED_ON_DTTM = CURRENT TIMESTAMP";
+            SQL += " where RETL_OPER_DIV_CODE = ?";
+            SQL += " and STK_DEPT_NUM = ?";
+            SQL += " and STK_NUM = ?";
 
             DbCommand SQLCommand3;
             string SQL3 = "insert into TCISR083 (RETL_OPER_DIV_CODE,STK_DEPT_NUM,STK_NUM,STK_WDTH_COLOR_NUM,PRODUCT_TYP_ID,CREATED_BY_USERID,MODIFIED_BY_USERID,CREATED_ON_DTTM,MODIFIED_ON_DTTM ) ";
-            SQL3 = SQL3 + "values (?,?,?,'',?,'ALLCUPL','ALLCUPL',CURRENT TIMESTAMP,CURRENT TIMESTAMP) ";
+            SQL3 += "values (?,?,?,'',?,'ALLCUPL','ALLCUPL',CURRENT TIMESTAMP,CURRENT TIMESTAMP) ";
 
             DbCommand SQLCommand2;
             string SQL2 = "insert into TCISR084";
-            SQL2 = SQL2 + " (RETL_OPER_DIV_CODE,STK_DEPT_NUM,STK_NUM,STK_WDTH_COLOR_NUM,MODIFIED_ON_DTTM,PRODUCT_TYP_ID,MODIFIED_BY_USERID)";
-            SQL2 = SQL2 + " values ";
-            SQL2 = SQL2 + " (?,?,?,'',CURRENT TIMESTAMP,?,'ALLCUPL')";
+            SQL2 += " (RETL_OPER_DIV_CODE,STK_DEPT_NUM,STK_NUM,STK_WDTH_COLOR_NUM,MODIFIED_ON_DTTM,PRODUCT_TYP_ID,MODIFIED_BY_USERID)";
+            SQL2 += " values ";
+            SQL2 += " (?,?,?,'',CURRENT TIMESTAMP,?,'ALLCUPL')";
 
             log.Log("started loading " + list.Count, FLLogger.eLogMessageType.eInfo);
             foreach (ProductType p in list)
