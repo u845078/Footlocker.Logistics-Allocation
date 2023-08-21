@@ -563,863 +563,867 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
         #endregion
 
-        [CheckPermission(Roles = "Admin,Support")]
-        public ActionResult NetworkUpload()
-        {
-            return View();
-        }
+        //[CheckPermission(Roles = "Admin,Support")]
+        //public ActionResult NetworkUpload()
+        //{
+        //    return View();
+        //}
 
-        [CheckPermission(Roles = "Admin,Support")]
-        public ActionResult BTSUpload()
-        {
-            return View();
-        }
+        //[CheckPermission(Roles = "Admin,Support")]
+        //public ActionResult BTSUpload()
+        //{
+        //    return View();
+        //}
 
-        [CheckPermission(Roles = "Admin,Support")]
-        public ActionResult SeasonUpload()
-        {
-            return View();
-        }
-
-        /// <summary>
-        /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
-        /// </summary>
-        /// <param name="attachments"></param>
-        /// <returns></returns>
-        [CheckPermission(Roles = "Admin,Support")]
-        public ActionResult SaveNetwork(IEnumerable<HttpPostedFileBase> attachments)
-        {
-            Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-            foreach (HttpPostedFileBase file in attachments)
-            {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-
-                int row = 1;
-                string store;
-                string div;
-                string zone;
-                int wc, ch, jc, jv, ed, te;
-                DateTime createdate = DateTime.Now;
-                while (mySheet.Cells[row, 0].Value != null)
-                {
-                    store = Convert.ToString(mySheet.Cells[row, 0].Value);
-                    div = Convert.ToString(mySheet.Cells[row, 1].Value);
-                    zone = "Champs " + Convert.ToString(mySheet.Cells[row, 25].Value);
-                    jc = GetIntransit(mySheet, row, 4);
-                    jv = GetIntransit(mySheet, row, 6);
-                    te = GetIntransit(mySheet, row, 8);
-                    ed = GetIntransit(mySheet, row, 10);
-                    ch = GetIntransit(mySheet, row, 12);
-                    wc = GetIntransit(mySheet, row, 14);
-
-                    List<StoreLeadTime> list = new List<StoreLeadTime>();
-                    StoreLeadTime s = new StoreLeadTime();
-                    s.Division = div;
-                    s.Store = store;
-                    s.DCID = 1;
-                    s.LeadTime = jc;
-                    s.Active = true;
-                    s.CreateDate = createdate;
-                    s.CreatedBy = User.Identity.Name;
-                    list.Add(s);
-
-                    s = new StoreLeadTime();
-                    s.Division = div;
-                    s.Store = store;
-                    s.DCID = 2;
-                    s.LeadTime = ch;
-                    s.Active = true;
-                    s.CreateDate = createdate;
-                    s.CreatedBy = User.Identity.Name;
-                    list.Add(s);
-
-                    s = new StoreLeadTime();
-                    s.Division = div;
-                    s.Store = store;
-                    s.DCID = 3;
-                    s.LeadTime = ed;
-                    s.Active = true;
-                    s.CreateDate = createdate;
-                    s.CreatedBy = User.Identity.Name;
-                    list.Add(s);
-
-                    s = new StoreLeadTime();
-                    s.Division = div;
-                    s.Store = store;
-                    s.DCID = 4;
-                    s.LeadTime = wc;
-                    s.Active = true;
-                    s.CreateDate = createdate;
-                    s.CreatedBy = User.Identity.Name;
-                    list.Add(s);
-
-                    s = new StoreLeadTime();
-                    s.Division = div;
-                    s.Store = store;
-                    s.DCID = 5;
-                    s.LeadTime = jv;
-                    s.Active = true;
-                    s.CreateDate = createdate;
-                    s.CreatedBy = User.Identity.Name;
-                    list.Add(s);
-
-                    s = new StoreLeadTime();
-                    s.Division = div;
-                    s.Store = store;
-                    s.DCID = 6;
-                    s.LeadTime = te;
-                    s.Active = true;
-                    s.CreateDate = createdate;
-                    s.CreatedBy = User.Identity.Name;
-                    list.Add(s);
-
-                    list = list.OrderBy(o => o.LeadTime).ToList();
-                    int rank = 1;
-                    foreach (StoreLeadTime slt in list)
-                    {
-                        slt.Rank = rank;
-                        db.StoreLeadTimes.Add(slt);
-                        db.SaveChanges();
-                        rank++;
-                    }
-
-                    row++;
-                }
-            }
-
-            return Content("");
-        }
+        //[CheckPermission(Roles = "Admin,Support")]
+        //public ActionResult SeasonUpload()
+        //{
+        //    return View();
+        //}
 
         /// <summary>
         /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
+        /// This is tied to the Upload/NetworkUpload page, which should be shut down. I will comment these out for now.
         /// </summary>
         /// <param name="attachments"></param>
         /// <returns></returns>
-        [CheckPermission(Roles = "Admin,Support")]
-        public ActionResult SaveNetworkLocker(IEnumerable<HttpPostedFileBase> attachmentsLocker)
-        {
-            Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+        //[CheckPermission(Roles = "Admin,Support")]
+        //public ActionResult SaveNetwork(IEnumerable<HttpPostedFileBase> attachments)
+        //{
+        //    Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        //    Aspose.Excel.License license = new Aspose.Excel.License();
+        //    //Set the license 
+        //    license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
-            foreach (HttpPostedFileBase file in attachmentsLocker)
-            {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+        //    foreach (HttpPostedFileBase file in attachments)
+        //    {
+        //        //Instantiate a Workbook object that represents an Excel file
+        //        Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+        //        Byte[] data1 = new Byte[file.InputStream.Length];
+        //        file.InputStream.Read(data1, 0, data1.Length);
+        //        file.InputStream.Close();
+        //        MemoryStream memoryStream1 = new MemoryStream(data1);
+        //        workbook.Open(memoryStream1);
+        //        Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
 
-                int row = 1;
-                string store;
-                string div;
-                string zone;
-                int wc, ch, jc, jv, ed, te;
+        //        int row = 1;
+        //        string store;
+        //        string div;
+        //        string zone;
+        //        int wc, ch, jc, jv, ed, te;
+        //        DateTime createdate = DateTime.Now;
+        //        while (mySheet.Cells[row, 0].Value != null)
+        //        {
+        //            store = Convert.ToString(mySheet.Cells[row, 0].Value);
+        //            div = Convert.ToString(mySheet.Cells[row, 1].Value);
+        //            zone = "Champs " + Convert.ToString(mySheet.Cells[row, 25].Value);
+        //            jc = GetIntransit(mySheet, row, 4);
+        //            jv = GetIntransit(mySheet, row, 6);
+        //            te = GetIntransit(mySheet, row, 8);
+        //            ed = GetIntransit(mySheet, row, 10);
+        //            ch = GetIntransit(mySheet, row, 12);
+        //            wc = GetIntransit(mySheet, row, 14);
 
-                DateTime createdate = DateTime.Now;
+        //            List<StoreLeadTime> list = new List<StoreLeadTime>();
+        //            StoreLeadTime s = new StoreLeadTime();
+        //            s.Division = div;
+        //            s.Store = store;
+        //            s.DCID = 1;
+        //            s.LeadTime = jc;
+        //            s.Active = true;
+        //            s.CreateDate = createdate;
+        //            s.CreatedBy = User.Identity.Name;
+        //            list.Add(s);
 
-                while (mySheet.Cells[row, 0].Value != null)
-                {
-                    store = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(5,'0');
-                    div = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(2,'0');
-                    zone = "Locker " + Convert.ToString(mySheet.Cells[row, 12].Value);
-                    jc = GetIntransit(mySheet, row, 7);
-                    jv = GetIntransit(mySheet, row, 11);
-                    te = GetIntransit(mySheet, row, 6);
-                    ed = GetIntransit(mySheet, row, 9);
-                    ch = GetIntransit(mySheet, row, 8);
-                    wc = GetIntransit(mySheet, row, 10);
+        //            s = new StoreLeadTime();
+        //            s.Division = div;
+        //            s.Store = store;
+        //            s.DCID = 2;
+        //            s.LeadTime = ch;
+        //            s.Active = true;
+        //            s.CreateDate = createdate;
+        //            s.CreatedBy = User.Identity.Name;
+        //            list.Add(s);
 
-                    List<StoreLeadTime> list = new List<StoreLeadTime>();
-                    StoreLeadTime s = new StoreLeadTime();
-                    s.Division = div;
-                    s.Store = store;
-                    s.DCID = 1;
-                    s.LeadTime = jc;
-                    s.Active = true;
-                    s.CreateDate = createdate;
-                    s.CreatedBy = User.Identity.Name;
-                    list.Add(s);
+        //            s = new StoreLeadTime();
+        //            s.Division = div;
+        //            s.Store = store;
+        //            s.DCID = 3;
+        //            s.LeadTime = ed;
+        //            s.Active = true;
+        //            s.CreateDate = createdate;
+        //            s.CreatedBy = User.Identity.Name;
+        //            list.Add(s);
 
-                    s = new StoreLeadTime();
-                    s.Division = div;
-                    s.Store = store;
-                    s.DCID = 2;
-                    s.LeadTime = ch;
-                    s.Active = true;
-                    s.CreateDate = createdate;
-                    s.CreatedBy = User.Identity.Name;
-                    list.Add(s);
+        //            s = new StoreLeadTime();
+        //            s.Division = div;
+        //            s.Store = store;
+        //            s.DCID = 4;
+        //            s.LeadTime = wc;
+        //            s.Active = true;
+        //            s.CreateDate = createdate;
+        //            s.CreatedBy = User.Identity.Name;
+        //            list.Add(s);
+
+        //            s = new StoreLeadTime();
+        //            s.Division = div;
+        //            s.Store = store;
+        //            s.DCID = 5;
+        //            s.LeadTime = jv;
+        //            s.Active = true;
+        //            s.CreateDate = createdate;
+        //            s.CreatedBy = User.Identity.Name;
+        //            list.Add(s);
+
+        //            s = new StoreLeadTime();
+        //            s.Division = div;
+        //            s.Store = store;
+        //            s.DCID = 6;
+        //            s.LeadTime = te;
+        //            s.Active = true;
+        //            s.CreateDate = createdate;
+        //            s.CreatedBy = User.Identity.Name;
+        //            list.Add(s);
+
+        //            list = list.OrderBy(o => o.LeadTime).ToList();
+        //            int rank = 1;
+        //            foreach (StoreLeadTime slt in list)
+        //            {
+        //                slt.Rank = rank;
+        //                db.StoreLeadTimes.Add(slt);
+        //                db.SaveChanges();
+        //                rank++;
+        //            }
+
+        //            row++;
+        //        }
+        //    }
+
+        //    return Content("");
+        //}
+
+        /// <summary>
+        /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
+        /// This is tied to the Upload/NetworkUpload page, which should be shut down. I will comment these out for now.
+        /// </summary>
+        /// <param name="attachments"></param>
+        /// <returns></returns>
+        //[CheckPermission(Roles = "Admin,Support")]
+        //public ActionResult SaveNetworkLocker(IEnumerable<HttpPostedFileBase> attachmentsLocker)
+        //{
+        //    Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        //    Aspose.Excel.License license = new Aspose.Excel.License();
+        //    //Set the license 
+        //    license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+        //    foreach (HttpPostedFileBase file in attachmentsLocker)
+        //    {
+        //        //Instantiate a Workbook object that represents an Excel file
+        //        Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+        //        Byte[] data1 = new Byte[file.InputStream.Length];
+        //        file.InputStream.Read(data1, 0, data1.Length);
+        //        file.InputStream.Close();
+        //        MemoryStream memoryStream1 = new MemoryStream(data1);
+        //        workbook.Open(memoryStream1);
+        //        Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+
+        //        int row = 1;
+        //        string store;
+        //        string div;
+        //        string zone;
+        //        int wc, ch, jc, jv, ed, te;
+
+        //        DateTime createdate = DateTime.Now;
+
+        //        while (mySheet.Cells[row, 0].Value != null)
+        //        {
+        //            store = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(5,'0');
+        //            div = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(2,'0');
+        //            zone = "Locker " + Convert.ToString(mySheet.Cells[row, 12].Value);
+        //            jc = GetIntransit(mySheet, row, 7);
+        //            jv = GetIntransit(mySheet, row, 11);
+        //            te = GetIntransit(mySheet, row, 6);
+        //            ed = GetIntransit(mySheet, row, 9);
+        //            ch = GetIntransit(mySheet, row, 8);
+        //            wc = GetIntransit(mySheet, row, 10);
+
+        //            List<StoreLeadTime> list = new List<StoreLeadTime>();
+        //            StoreLeadTime s = new StoreLeadTime();
+        //            s.Division = div;
+        //            s.Store = store;
+        //            s.DCID = 1;
+        //            s.LeadTime = jc;
+        //            s.Active = true;
+        //            s.CreateDate = createdate;
+        //            s.CreatedBy = User.Identity.Name;
+        //            list.Add(s);
+
+        //            s = new StoreLeadTime();
+        //            s.Division = div;
+        //            s.Store = store;
+        //            s.DCID = 2;
+        //            s.LeadTime = ch;
+        //            s.Active = true;
+        //            s.CreateDate = createdate;
+        //            s.CreatedBy = User.Identity.Name;
+        //            list.Add(s);
                     
-                    s = new StoreLeadTime();
-                    s.Division = div;
-                    s.Store = store;
-                    s.DCID = 3;
-                    s.LeadTime = ed;
-                    s.Active = true;
-                    s.CreateDate = createdate;
-                    s.CreatedBy = User.Identity.Name;
-                    list.Add(s);
+        //            s = new StoreLeadTime();
+        //            s.Division = div;
+        //            s.Store = store;
+        //            s.DCID = 3;
+        //            s.LeadTime = ed;
+        //            s.Active = true;
+        //            s.CreateDate = createdate;
+        //            s.CreatedBy = User.Identity.Name;
+        //            list.Add(s);
 
-                    s = new StoreLeadTime();
-                    s.Division = div;
-                    s.Store = store;
-                    s.DCID = 4;
-                    s.LeadTime = wc;
-                    s.Active = true;
-                    s.CreateDate = createdate;
-                    s.CreatedBy = User.Identity.Name;
-                    list.Add(s);
+        //            s = new StoreLeadTime();
+        //            s.Division = div;
+        //            s.Store = store;
+        //            s.DCID = 4;
+        //            s.LeadTime = wc;
+        //            s.Active = true;
+        //            s.CreateDate = createdate;
+        //            s.CreatedBy = User.Identity.Name;
+        //            list.Add(s);
                     
-                    s = new StoreLeadTime();
-                    s.Division = div;
-                    s.Store = store;
-                    s.DCID = 5;
-                    s.LeadTime = jv;
-                    s.Active = true;
-                    s.CreateDate = createdate;
-                    s.CreatedBy = User.Identity.Name;
-                    list.Add(s);
+        //            s = new StoreLeadTime();
+        //            s.Division = div;
+        //            s.Store = store;
+        //            s.DCID = 5;
+        //            s.LeadTime = jv;
+        //            s.Active = true;
+        //            s.CreateDate = createdate;
+        //            s.CreatedBy = User.Identity.Name;
+        //            list.Add(s);
 
-                    s = new StoreLeadTime();
-                    s.Division = div;
-                    s.Store = store;
-                    s.DCID = 6;
-                    s.LeadTime = te;
-                    s.Active = true;
-                    s.CreateDate = createdate;
-                    s.CreatedBy = User.Identity.Name;
-                    list.Add(s);
+        //            s = new StoreLeadTime();
+        //            s.Division = div;
+        //            s.Store = store;
+        //            s.DCID = 6;
+        //            s.LeadTime = te;
+        //            s.Active = true;
+        //            s.CreateDate = createdate;
+        //            s.CreatedBy = User.Identity.Name;
+        //            list.Add(s);
 
-                    list = list.OrderBy(o => o.LeadTime).ToList();
-                    int rank = 1;
-                    foreach (StoreLeadTime slt in list)
-                    {
-                        slt.Rank = rank;
-                        db.StoreLeadTimes.Add(slt);
-                        db.SaveChanges();
-                        rank++;
-                    }
+        //            list = list.OrderBy(o => o.LeadTime).ToList();
+        //            int rank = 1;
+        //            foreach (StoreLeadTime slt in list)
+        //            {
+        //                slt.Rank = rank;
+        //                db.StoreLeadTimes.Add(slt);
+        //                db.SaveChanges();
+        //                rank++;
+        //            }
 
-                    row++;
-                }
-            }
+        //            row++;
+        //        }
+        //    }
 
-            return Content("");
-        }
+        //    return Content("");
+        //}
 
-
-        /// <summary>
-        /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
-        /// </summary>
-        /// <param name="attachments"></param>
-        /// <returns></returns>
-        [CheckPermission(Roles = "Admin,Support")]
-        public ActionResult SaveNetworkEurope(IEnumerable<HttpPostedFileBase> attachmentsEurope)
-        {
-            Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-            foreach (HttpPostedFileBase file in attachmentsEurope)
-            {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-
-                int row = 1;
-                string store;
-                string div="31";
-                string zone;
-                int fri, mon, tue, thur, wed;
-
-                NetworkZone z = null;
-                RouteDetail det;
-                NetworkZoneStore nzstore;
-                string prevZone = "";
-
-                while (mySheet.Cells[row, 0].Value != null)
-                {
-                    store = Convert.ToString(mySheet.Cells[row, 0].Value);
-                    zone = "Europe " + Convert.ToString(mySheet.Cells[row, 10].Value);
-                    mon = GetIntransitEurope(mySheet, row, 4);
-                    tue = GetIntransitEurope(mySheet, row, 5);
-                    wed = GetIntransitEurope(mySheet, row, 6);
-                    thur = GetIntransitEurope(mySheet, row, 7);
-                    fri = GetIntransitEurope(mySheet, row, 8);
-
-                    if (prevZone != zone)
-                    {
-                        //create zone
-                        prevZone = zone;
-                        var zonequery = (from a in db.NetworkZones where a.Name == zone select a);
-                        if (zonequery.Count() == 0)
-                        {
-                            z = new NetworkZone();
-                            z.LeadTimeID = 7;
-                            z.Name = zone;
-                            z.CreatedBy = User.Identity.Name;
-                            z.CreateDate = DateTime.Now;
-                            db.NetworkZones.Add(z);
-                            db.SaveChanges();
-                        }
-                        else
-                        {
-                            z = zonequery.First();
-                        }
-                    }
-                    var stores = (from a in db.NetworkZoneStores where ((a.Store == store) && (a.Division == div)) select a);
-
-                    if (stores.Count() == 0)
-                    {
-                        nzstore = new NetworkZoneStore();
-                        nzstore.Division = div;
-                        nzstore.Store = store;
-                        nzstore.ZoneID = z.ID;
-                        db.NetworkZoneStores.Add(nzstore);
-                    }
-                    else
-                    {
-                        nzstore = stores.First();
-                        nzstore.ZoneID = z.ID;
-                    }
-
-                    db.SaveChanges();
-                    //create route(s)
-
-                    //hein route (for everyone)
-                    var jcquery = (from a in db.RouteDetails where ((a.RouteID == 5) && (a.DCID == 1) && (a.ZoneID == z.ID)) select a);
-                    if (jcquery.Count() == 0)
-                    {
-                        det = new RouteDetail();
-                        det.RouteID = 38;
-                        det.DCID = 7;
-                        if (mon > 0)
-                        {
-                            det.Days = mon;
-                        }
-                        else if (tue > 0)
-                        {
-                            det.Days = tue;
-                        }
-                        else if (wed > 0)
-                        {
-                            det.Days = wed;
-                        }
-                        else if (thur > 0)
-                        {
-                            det.Days = thur;
-                        }
-                        else if (fri > 0)
-                        {
-                            det.Days = fri;
-                        }
-                        det.ZoneID = z.ID;
-
-                        SaveRouteDetail(det, db);
-
-                    }
-
-                    row++;
-                }
-            }
-
-            return Content("");
-        }
 
         /// <summary>
         /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
         /// </summary>
         /// <param name="attachments"></param>
         /// <returns></returns>
-        [CheckPermission(Roles = "Admin,Support")]
-        public ActionResult SaveNetworkCanada(IEnumerable<HttpPostedFileBase> attachmentsCanada)
-        {
-            Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+        //[CheckPermission(Roles = "Admin,Support")]
+        //public ActionResult SaveNetworkEurope(IEnumerable<HttpPostedFileBase> attachmentsEurope)
+        //{
+        //    Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        //    Aspose.Excel.License license = new Aspose.Excel.License();
+        //    //Set the license 
+        //    license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
-            foreach (HttpPostedFileBase file in attachmentsCanada)
-            {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+        //    foreach (HttpPostedFileBase file in attachmentsEurope)
+        //    {
+        //        //Instantiate a Workbook object that represents an Excel file
+        //        Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+        //        Byte[] data1 = new Byte[file.InputStream.Length];
+        //        file.InputStream.Read(data1, 0, data1.Length);
+        //        file.InputStream.Close();
+        //        MemoryStream memoryStream1 = new MemoryStream(data1);
+        //        workbook.Open(memoryStream1);
+        //        Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
 
-                int row = 1;
-                string store;
-                string div;
-                string zone;
-                int lt;
+        //        int row = 1;
+        //        string store;
+        //        string div="31";
+        //        string zone;
+        //        int fri, mon, tue, thur, wed;
 
-                NetworkZone z = null;
-                //RouteDetail det;
-                NetworkZoneStore nzstore;
-                string prevZone = "";
-                StoreLeadTime s;
+        //        NetworkZone z = null;
+        //        RouteDetail det;
+        //        NetworkZoneStore nzstore;
+        //        string prevZone = "";
 
-                while (mySheet.Cells[row, 0].Value != null)
-                {
-                    store = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(5, ' ');
-                    div = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(2, ' ');
-                    zone = "Canada " + Convert.ToString(mySheet.Cells[row, 9].Value);
-                    lt = Convert.ToInt32(mySheet.Cells[row, 9].Value);
+        //        while (mySheet.Cells[row, 0].Value != null)
+        //        {
+        //            store = Convert.ToString(mySheet.Cells[row, 0].Value);
+        //            zone = "Europe " + Convert.ToString(mySheet.Cells[row, 10].Value);
+        //            mon = GetIntransitEurope(mySheet, row, 4);
+        //            tue = GetIntransitEurope(mySheet, row, 5);
+        //            wed = GetIntransitEurope(mySheet, row, 6);
+        //            thur = GetIntransitEurope(mySheet, row, 7);
+        //            fri = GetIntransitEurope(mySheet, row, 8);
 
-                    if (prevZone != zone)
-                    {
-                        //create zone
-                        prevZone = zone;
-                        var zonequery = (from a in db.NetworkZones where a.Name == zone select a);
-                        if (zonequery.Count() == 0)
-                        {
-                            z = new NetworkZone();
-                            z.LeadTimeID = 1;
-                            z.Name = zone;
-                            z.CreatedBy = User.Identity.Name;
-                            z.CreateDate = DateTime.Now;
-                            db.NetworkZones.Add(z);
-                            db.SaveChanges();
-                        }
-                        else
-                        {
-                            z = zonequery.First();
-                        }
-                    }
-                    var stores = (from a in db.NetworkZoneStores where ((a.Store == store) && (a.Division == div)) select a);
+        //            if (prevZone != zone)
+        //            {
+        //                //create zone
+        //                prevZone = zone;
+        //                var zonequery = (from a in db.NetworkZones where a.Name == zone select a);
+        //                if (zonequery.Count() == 0)
+        //                {
+        //                    z = new NetworkZone();
+        //                    z.LeadTimeID = 7;
+        //                    z.Name = zone;
+        //                    z.CreatedBy = User.Identity.Name;
+        //                    z.CreateDate = DateTime.Now;
+        //                    db.NetworkZones.Add(z);
+        //                    db.SaveChanges();
+        //                }
+        //                else
+        //                {
+        //                    z = zonequery.First();
+        //                }
+        //            }
+        //            var stores = (from a in db.NetworkZoneStores where ((a.Store == store) && (a.Division == div)) select a);
 
-                    if (stores.Count() == 0)
-                    {
-                        nzstore = new NetworkZoneStore();
-                        nzstore.Division = div;
-                        nzstore.Store = store;
-                        nzstore.ZoneID = z.ID;
-                        db.NetworkZoneStores.Add(nzstore);
-                    }
-                    else
-                    {
-                        nzstore = stores.First();
-                        nzstore.ZoneID = z.ID;
-                    }
+        //            if (stores.Count() == 0)
+        //            {
+        //                nzstore = new NetworkZoneStore();
+        //                nzstore.Division = div;
+        //                nzstore.Store = store;
+        //                nzstore.ZoneID = z.ID;
+        //                db.NetworkZoneStores.Add(nzstore);
+        //            }
+        //            else
+        //            {
+        //                nzstore = stores.First();
+        //                nzstore.ZoneID = z.ID;
+        //            }
 
-                    db.SaveChanges();
+        //            db.SaveChanges();
+        //            //create route(s)
 
-                    s = new StoreLeadTime();
-                    s.Division = div;
-                    s.Store = store;
-                    s.DCID = 8;
-                    s.LeadTime = lt;
-                    s.Active = true;
-                    s.CreateDate = DateTime.Now;
-                    s.CreatedBy = User.Identity.Name;
-                    s.Rank = 1;
-                    db.StoreLeadTimes.Add(s);
+        //            //hein route (for everyone)
+        //            var jcquery = (from a in db.RouteDetails where ((a.RouteID == 5) && (a.DCID == 1) && (a.ZoneID == z.ID)) select a);
+        //            if (jcquery.Count() == 0)
+        //            {
+        //                det = new RouteDetail();
+        //                det.RouteID = 38;
+        //                det.DCID = 7;
+        //                if (mon > 0)
+        //                {
+        //                    det.Days = mon;
+        //                }
+        //                else if (tue > 0)
+        //                {
+        //                    det.Days = tue;
+        //                }
+        //                else if (wed > 0)
+        //                {
+        //                    det.Days = wed;
+        //                }
+        //                else if (thur > 0)
+        //                {
+        //                    det.Days = thur;
+        //                }
+        //                else if (fri > 0)
+        //                {
+        //                    det.Days = fri;
+        //                }
+        //                det.ZoneID = z.ID;
 
-                    db.SaveChanges();
+        //                SaveRouteDetail(det, db);
+
+        //            }
+
+        //            row++;
+        //        }
+        //    }
+
+        //    return Content("");
+        //}
+
+        /// <summary>
+        /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
+        /// </summary>
+        /// <param name="attachments"></param>
+        /// <returns></returns>
+        //[CheckPermission(Roles = "Admin,Support")]
+        //public ActionResult SaveNetworkCanada(IEnumerable<HttpPostedFileBase> attachmentsCanada)
+        //{
+        //    Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        //    Aspose.Excel.License license = new Aspose.Excel.License();
+        //    //Set the license 
+        //    license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+        //    foreach (HttpPostedFileBase file in attachmentsCanada)
+        //    {
+        //        //Instantiate a Workbook object that represents an Excel file
+        //        Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+        //        Byte[] data1 = new Byte[file.InputStream.Length];
+        //        file.InputStream.Read(data1, 0, data1.Length);
+        //        file.InputStream.Close();
+        //        MemoryStream memoryStream1 = new MemoryStream(data1);
+        //        workbook.Open(memoryStream1);
+        //        Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+
+        //        int row = 1;
+        //        string store;
+        //        string div;
+        //        string zone;
+        //        int lt;
+
+        //        NetworkZone z = null;
+        //        //RouteDetail det;
+        //        NetworkZoneStore nzstore;
+        //        string prevZone = "";
+        //        StoreLeadTime s;
+
+        //        while (mySheet.Cells[row, 0].Value != null)
+        //        {
+        //            store = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(5, ' ');
+        //            div = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(2, ' ');
+        //            zone = "Canada " + Convert.ToString(mySheet.Cells[row, 9].Value);
+        //            lt = Convert.ToInt32(mySheet.Cells[row, 9].Value);
+
+        //            if (prevZone != zone)
+        //            {
+        //                //create zone
+        //                prevZone = zone;
+        //                var zonequery = (from a in db.NetworkZones where a.Name == zone select a);
+        //                if (zonequery.Count() == 0)
+        //                {
+        //                    z = new NetworkZone();
+        //                    z.LeadTimeID = 1;
+        //                    z.Name = zone;
+        //                    z.CreatedBy = User.Identity.Name;
+        //                    z.CreateDate = DateTime.Now;
+        //                    db.NetworkZones.Add(z);
+        //                    db.SaveChanges();
+        //                }
+        //                else
+        //                {
+        //                    z = zonequery.First();
+        //                }
+        //            }
+        //            var stores = (from a in db.NetworkZoneStores where ((a.Store == store) && (a.Division == div)) select a);
+
+        //            if (stores.Count() == 0)
+        //            {
+        //                nzstore = new NetworkZoneStore();
+        //                nzstore.Division = div;
+        //                nzstore.Store = store;
+        //                nzstore.ZoneID = z.ID;
+        //                db.NetworkZoneStores.Add(nzstore);
+        //            }
+        //            else
+        //            {
+        //                nzstore = stores.First();
+        //                nzstore.ZoneID = z.ID;
+        //            }
+
+        //            db.SaveChanges();
+
+        //            s = new StoreLeadTime();
+        //            s.Division = div;
+        //            s.Store = store;
+        //            s.DCID = 8;
+        //            s.LeadTime = lt;
+        //            s.Active = true;
+        //            s.CreateDate = DateTime.Now;
+        //            s.CreatedBy = User.Identity.Name;
+        //            s.Rank = 1;
+        //            db.StoreLeadTimes.Add(s);
+
+        //            db.SaveChanges();
                     
-                    row++;
-                }
-            }
+        //            row++;
+        //        }
+        //    }
 
-            return Content("");
-        }
+        //    return Content("");
+        //}
+
+        /// <summary>
+        /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
+        /// This is tied to a upload/BTSUpload secret page. I am commenting this out.
+        /// </summary>
+        /// <param name="attachments"></param>
+        /// <returns></returns>
+        //[CheckPermission(Roles = "Admin,Support")]
+        //public ActionResult SaveBTSEurope(IEnumerable<HttpPostedFileBase> attachmentsEurope)
+        //{
+        //    Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        //    Aspose.Excel.License license = new Aspose.Excel.License();
+        //    //Set the license 
+        //    license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+        //    foreach (HttpPostedFileBase file in attachmentsEurope)
+        //    {
+        //        //Instantiate a Workbook object that represents an Excel file
+        //        Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+        //        Byte[] data1 = new Byte[file.InputStream.Length];
+        //        file.InputStream.Read(data1, 0, data1.Length);
+        //        file.InputStream.Close();
+        //        MemoryStream memoryStream1 = new MemoryStream(data1);
+        //        workbook.Open(memoryStream1);
+        //        Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+
+        //        int row = 1;
+        //        string store;
+        //        string div = "31";
+        //        string BTSGroup;
+        //        StoreBTS header2011, header2012, header2013;
+        //        header2011 = new StoreBTS();
+        //        header2012 = new StoreBTS();
+        //        header2013 = new StoreBTS();
+
+        //        StoreBTSDetail det;
+        //        string prevBTSGroup = "";
+
+        //        while (mySheet.Cells[row, 0].Value != null)
+        //        {
+        //            store = Convert.ToString(mySheet.Cells[row, 4].Value).PadLeft(5,'0');
+        //            BTSGroup = Convert.ToString(mySheet.Cells[row, 1].Value);
+
+        //            if (prevBTSGroup != BTSGroup)
+        //            {
+        //                //create BTS
+        //                prevBTSGroup = BTSGroup;
+        //                var query = (from a in db.StoreBTS where a.Name == BTSGroup select a);
+        //                header2011 = null;
+        //                header2012 = null;
+        //                header2013 = null;
+
+        //                if (query.Count() > 0)
+        //                {
+        //                    foreach (StoreBTS s in query)
+        //                    {
+        //                        if (s.Year == 2011)
+        //                        {
+        //                            header2011 = s;
+        //                        }
+        //                        else if (s.Year == 2012)
+        //                        {
+        //                            header2012 = s;
+        //                        }
+        //                        else if (s.Year == 2013)
+        //                        {
+        //                            header2013 = s;
+        //                        }
+        //                    }
+        //                }
+        //                if (header2011 == null)
+        //                {
+        //                    header2011 = new StoreBTS();
+        //                    header2011.Name = BTSGroup;
+        //                    header2011.Year = 2011;
+        //                    header2011.CreateDate = DateTime.Now;
+        //                    header2011.CreatedBy = User.Identity.Name;
+        //                    header2011.Division = div;
+        //                    db.StoreBTS.Add(header2011);
+        //                    db.SaveChanges();
+        //                }
+        //                if (header2012 == null)
+        //                {
+        //                    header2012 = new StoreBTS();
+        //                    header2012.Name = BTSGroup;
+        //                    header2012.Year = 2012;
+        //                    header2012.CreateDate = DateTime.Now;
+        //                    header2012.CreatedBy = User.Identity.Name;
+        //                    header2012.Division = div;
+        //                    db.StoreBTS.Add(header2012);
+        //                    db.SaveChanges();
+        //                }
+        //                if (header2013 == null)
+        //                {
+        //                    header2013 = new StoreBTS();
+        //                    header2013.Name = BTSGroup;
+        //                    header2013.Year = 2013;
+        //                    header2013.CreateDate = DateTime.Now;
+        //                    header2013.Division = div;
+        //                    header2013.CreatedBy = User.Identity.Name;
+        //                    db.StoreBTS.Add(header2013);
+        //                    db.SaveChanges();
+        //                }
+        //            }
+        //            //now create detail
+        //            det = new StoreBTSDetail();
+        //            det.CreateDate = DateTime.Now;
+        //            det.CreatedBy = User.Identity.Name;
+        //            det.Division = div;
+        //            det.GroupID = header2011.ID;
+        //            det.Store = store;
+        //            det.Year = 2011;
+        //            db.StoreBTSDetails.Add(det);
+        //            db.SaveChanges();
+
+        //            det = new StoreBTSDetail();
+        //            det.CreateDate = DateTime.Now;
+        //            det.CreatedBy = User.Identity.Name;
+        //            det.Division = div;
+        //            det.GroupID = header2012.ID;
+        //            det.Store = store;
+        //            det.Year = 2012;
+        //            db.StoreBTSDetails.Add(det);
+        //            db.SaveChanges();
+
+        //            det = new StoreBTSDetail();
+        //            det.CreateDate = DateTime.Now;
+        //            det.CreatedBy = User.Identity.Name;
+        //            det.Division = div;
+        //            det.GroupID = header2013.ID;
+        //            det.Store = store;
+        //            det.Year = 2013;
+        //            db.StoreBTSDetails.Add(det);
+        //            db.SaveChanges();
+
+        //            row++;
+        //        }
+        //    }
+
+        //    return Content("");
+        //}
+
+        /// <summary>
+        /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
+        /// This is connected to an Upload/SeasonUpload hidden page. It is commented out for now.
+        /// </summary>
+        /// <param name="attachments"></param>
+        /// <returns></returns>
+        //[CheckPermission(Roles = "Admin,Support")]
+        //public ActionResult SaveSeasonEurope(IEnumerable<HttpPostedFileBase> attachmentsEurope)
+        //{
+        //    Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        //    Aspose.Excel.License license = new Aspose.Excel.License();
+        //    //Set the license 
+        //    license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+
+        //    foreach (HttpPostedFileBase file in attachmentsEurope)
+        //    {
+        //        //Instantiate a Workbook object that represents an Excel file
+        //        Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+        //        Byte[] data1 = new Byte[file.InputStream.Length];
+        //        file.InputStream.Read(data1, 0, data1.Length);
+        //        file.InputStream.Close();
+        //        MemoryStream memoryStream1 = new MemoryStream(data1);
+        //        workbook.Open(memoryStream1);
+        //        Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+
+        //        int row = 1;
+        //        string store;
+        //        string div = "31";
+        //        string Group;
+        //        StoreSeasonality header;
+        //        header = new StoreSeasonality();
+
+        //        StoreSeasonalityDetail det;
+        //        string prevGroup = "";
+
+        //        while (mySheet.Cells[row, 0].Value != null)
+        //        {
+        //            store = Convert.ToString(mySheet.Cells[row, 4].Value).PadLeft(5, '0');
+        //            Group = Convert.ToString(mySheet.Cells[row, 3].Value);
+
+        //            if (prevGroup != Group)
+        //            {
+        //                //create BTS
+        //                prevGroup = Group;
+        //                var query = (from a in db.StoreSeasonality where a.Name == Group select a);
+
+        //                if (query.Count() > 0)
+        //                {
+        //                    header = query.First();
+        //                }
+        //                else
+        //                {
+        //                    header = new StoreSeasonality();
+        //                    header.Name = Group;
+        //                    header.Division = "31";
+        //                    header.CreatedBy = "Original upload";
+        //                    header.CreateDate = DateTime.Now;
+        //                    db.StoreSeasonality.Add(header);
+        //                    db.SaveChanges();
+        //                }
+        //            }
+        //            //now create detail
+        //            det = new StoreSeasonalityDetail();
+        //            det.CreateDate = DateTime.Now;
+        //            det.CreatedBy = User.Identity.Name;
+        //            det.Division = div;
+        //            det.GroupID = header.ID;
+        //            det.Store = store;
+        //            db.StoreSeasonalityDetails.Add(det);
+        //            db.SaveChanges();
+
+        //            row++;
+        //        }
+        //    }
+
+        //    return Content("");
+        //}
 
         /// <summary>
         /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
         /// </summary>
         /// <param name="attachments"></param>
         /// <returns></returns>
-        [CheckPermission(Roles = "Admin,Support")]
-        public ActionResult SaveBTSEurope(IEnumerable<HttpPostedFileBase> attachmentsEurope)
-        {
-            Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+        //[CheckPermission(Roles = "Admin,Support")]
+        //public ActionResult SaveBTSLocker(IEnumerable<HttpPostedFileBase> attachmentsLocker)
+        //{
+        //    Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        //    Aspose.Excel.License license = new Aspose.Excel.License();
+        //    //Set the license 
+        //    license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
-            foreach (HttpPostedFileBase file in attachmentsEurope)
-            {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+        //    foreach (HttpPostedFileBase file in attachmentsLocker)
+        //    {
+        //        //Instantiate a Workbook object that represents an Excel file
+        //        Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+        //        Byte[] data1 = new Byte[file.InputStream.Length];
+        //        file.InputStream.Read(data1, 0, data1.Length);
+        //        file.InputStream.Close();
+        //        MemoryStream memoryStream1 = new MemoryStream(data1);
+        //        workbook.Open(memoryStream1);
+        //        Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
 
-                int row = 1;
-                string store;
-                string div = "31";
-                string BTSGroup;
-                StoreBTS header2011, header2012, header2013;
-                header2011 = new StoreBTS();
-                header2012 = new StoreBTS();
-                header2013 = new StoreBTS();
+        //        int row = 1;
+        //        string store;
+        //        string div = "31";
+        //        string BTSGroup;
+        //        StoreBTS header2011, header2012, header2013;
+        //        header2011 = new StoreBTS();
+        //        header2012 = new StoreBTS();
+        //        header2013 = new StoreBTS();
 
-                StoreBTSDetail det;
-                string prevBTSGroup = "";
+        //        StoreBTSDetail det;
+        //        string prevBTSGroup = "";
 
-                while (mySheet.Cells[row, 0].Value != null)
-                {
-                    store = Convert.ToString(mySheet.Cells[row, 4].Value).PadLeft(5,'0');
-                    BTSGroup = Convert.ToString(mySheet.Cells[row, 1].Value);
+        //        while (mySheet.Cells[row, 0].Value != null)
+        //        {
+        //            store = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(5, '0');
+        //            BTSGroup = "Group " + Convert.ToString(mySheet.Cells[row, 1].Value);
+        //            switch (Convert.ToString(mySheet.Cells[row, 6].Value))
+        //            { 
+        //                case "FOOT LOCKER":
+        //                    div = "03";
+        //                    break;
+        //                case "LADY FOOT LOCKER":
+        //                    div = "08";
+        //                    break;
+        //                case "KIDS FOOT LOCKER":
+        //                    div = "16";
+        //                    break;
+        //                case "FOOTACTION":
+        //                    div = "29";
+        //                    break;
+        //            }
 
-                    if (prevBTSGroup != BTSGroup)
-                    {
-                        //create BTS
-                        prevBTSGroup = BTSGroup;
-                        var query = (from a in db.StoreBTS where a.Name == BTSGroup select a);
-                        header2011 = null;
-                        header2012 = null;
-                        header2013 = null;
+        //            //if ((prevBTSGroup != BTSGroup)||())
+        //            //{
+        //                //create BTS
+        //                prevBTSGroup = BTSGroup;
+        //                var query = (from a in db.StoreBTS where a.Division == div select a);
+        //                header2011 = null;
+        //                header2012 = null;
+        //                header2013 = null;
 
-                        if (query.Count() > 0)
-                        {
-                            foreach (StoreBTS s in query)
-                            {
-                                if (s.Year == 2011)
-                                {
-                                    header2011 = s;
-                                }
-                                else if (s.Year == 2012)
-                                {
-                                    header2012 = s;
-                                }
-                                else if (s.Year == 2013)
-                                {
-                                    header2013 = s;
-                                }
-                            }
-                        }
-                        if (header2011 == null)
-                        {
-                            header2011 = new StoreBTS();
-                            header2011.Name = BTSGroup;
-                            header2011.Year = 2011;
-                            header2011.CreateDate = DateTime.Now;
-                            header2011.CreatedBy = User.Identity.Name;
-                            header2011.Division = div;
-                            db.StoreBTS.Add(header2011);
-                            db.SaveChanges();
-                        }
-                        if (header2012 == null)
-                        {
-                            header2012 = new StoreBTS();
-                            header2012.Name = BTSGroup;
-                            header2012.Year = 2012;
-                            header2012.CreateDate = DateTime.Now;
-                            header2012.CreatedBy = User.Identity.Name;
-                            header2012.Division = div;
-                            db.StoreBTS.Add(header2012);
-                            db.SaveChanges();
-                        }
-                        if (header2013 == null)
-                        {
-                            header2013 = new StoreBTS();
-                            header2013.Name = BTSGroup;
-                            header2013.Year = 2013;
-                            header2013.CreateDate = DateTime.Now;
-                            header2013.Division = div;
-                            header2013.CreatedBy = User.Identity.Name;
-                            db.StoreBTS.Add(header2013);
-                            db.SaveChanges();
-                        }
-                    }
-                    //now create detail
-                    det = new StoreBTSDetail();
-                    det.CreateDate = DateTime.Now;
-                    det.CreatedBy = User.Identity.Name;
-                    det.Division = div;
-                    det.GroupID = header2011.ID;
-                    det.Store = store;
-                    det.Year = 2011;
-                    db.StoreBTSDetails.Add(det);
-                    db.SaveChanges();
+        //                if (query.Count() > 0)
+        //                {
+        //                    foreach (StoreBTS s in query)
+        //                    {
+        //                        if ((s.Year == 2011) && (s.Name == "Group " + Convert.ToString(mySheet.Cells[row, 3].Value)))
+        //                        {
+        //                            header2011 = s;
+        //                        }
+        //                        else if ((s.Year == 2012) && (s.Name == "Group " + Convert.ToString(mySheet.Cells[row, 2].Value)))
+        //                        {
+        //                            header2012 = s;
+        //                        }
+        //                        else if ((s.Year == 2013) && (s.Name == BTSGroup))
+        //                        {
+        //                            header2013 = s;
+        //                        }
+        //                    }
+        //                }
+        //                if (header2011 == null)
+        //                {
+        //                    header2011 = new StoreBTS();
+        //                    header2011.Name = "Group " + Convert.ToString(mySheet.Cells[row, 3].Value);
+        //                    header2011.Year = 2011;
+        //                    header2011.CreateDate = DateTime.Now;
+        //                    header2011.CreatedBy = User.Identity.Name;
+        //                    header2011.Division = div;
+        //                    db.StoreBTS.Add(header2011);
+        //                    db.SaveChanges();
+        //                }
+        //                if (header2012 == null)
+        //                {
+        //                    header2012 = new StoreBTS();
+        //                    header2012.Name = "Group " + Convert.ToString(mySheet.Cells[row, 2].Value);
+        //                    header2012.Year = 2012;
+        //                    header2012.CreateDate = DateTime.Now;
+        //                    header2012.CreatedBy = User.Identity.Name;
+        //                    header2012.Division = div;
+        //                    db.StoreBTS.Add(header2012);
+        //                    db.SaveChanges();
+        //                }
+        //                if (header2013 == null)
+        //                {
+        //                    header2013 = new StoreBTS();
+        //                    header2013.Name = BTSGroup;
+        //                    header2013.Year = 2013;
+        //                    header2013.CreateDate = DateTime.Now;
+        //                    header2013.Division = div;
+        //                    header2013.CreatedBy = User.Identity.Name;
+        //                    db.StoreBTS.Add(header2013);
+        //                    db.SaveChanges();
+        //                }
+        //            //}
+        //            //now create detail
+        //            det = new StoreBTSDetail();
+        //            det.CreateDate = DateTime.Now;
+        //            det.CreatedBy = User.Identity.Name;
+        //            det.Division = div;
+        //            det.GroupID = header2011.ID;
+        //            det.Store = store;
+        //            det.Year = 2011;
+        //            db.StoreBTSDetails.Add(det);
+        //            db.SaveChanges();
 
-                    det = new StoreBTSDetail();
-                    det.CreateDate = DateTime.Now;
-                    det.CreatedBy = User.Identity.Name;
-                    det.Division = div;
-                    det.GroupID = header2012.ID;
-                    det.Store = store;
-                    det.Year = 2012;
-                    db.StoreBTSDetails.Add(det);
-                    db.SaveChanges();
+        //            det = new StoreBTSDetail();
+        //            det.CreateDate = DateTime.Now;
+        //            det.CreatedBy = User.Identity.Name;
+        //            det.Division = div;
+        //            det.GroupID = header2012.ID;
+        //            det.Store = store;
+        //            det.Year = 2012;
+        //            db.StoreBTSDetails.Add(det);
+        //            db.SaveChanges();
 
-                    det = new StoreBTSDetail();
-                    det.CreateDate = DateTime.Now;
-                    det.CreatedBy = User.Identity.Name;
-                    det.Division = div;
-                    det.GroupID = header2013.ID;
-                    det.Store = store;
-                    det.Year = 2013;
-                    db.StoreBTSDetails.Add(det);
-                    db.SaveChanges();
+        //            det = new StoreBTSDetail();
+        //            det.CreateDate = DateTime.Now;
+        //            det.CreatedBy = User.Identity.Name;
+        //            det.Division = div;
+        //            det.GroupID = header2013.ID;
+        //            det.Store = store;
+        //            det.Year = 2013;
+        //            db.StoreBTSDetails.Add(det);
+        //            db.SaveChanges();
 
-                    row++;
-                }
-            }
+        //            row++;
+        //        }
+        //    }
 
-            return Content("");
-        }
-
-        /// <summary>
-        /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
-        /// </summary>
-        /// <param name="attachments"></param>
-        /// <returns></returns>
-        [CheckPermission(Roles = "Admin,Support")]
-        public ActionResult SaveSeasonEurope(IEnumerable<HttpPostedFileBase> attachmentsEurope)
-        {
-            Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-            foreach (HttpPostedFileBase file in attachmentsEurope)
-            {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-
-                int row = 1;
-                string store;
-                string div = "31";
-                string Group;
-                StoreSeasonality header;
-                header = new StoreSeasonality();
-
-                StoreSeasonalityDetail det;
-                string prevGroup = "";
-
-                while (mySheet.Cells[row, 0].Value != null)
-                {
-                    store = Convert.ToString(mySheet.Cells[row, 4].Value).PadLeft(5, '0');
-                    Group = Convert.ToString(mySheet.Cells[row, 3].Value);
-
-                    if (prevGroup != Group)
-                    {
-                        //create BTS
-                        prevGroup = Group;
-                        var query = (from a in db.StoreSeasonality where a.Name == Group select a);
-
-                        if (query.Count() > 0)
-                        {
-                            header = query.First();
-                        }
-                        else
-                        {
-                            header = new StoreSeasonality();
-                            header.Name = Group;
-                            header.Division = "31";
-                            header.CreatedBy = "Original upload";
-                            header.CreateDate = DateTime.Now;
-                            db.StoreSeasonality.Add(header);
-                            db.SaveChanges();
-                        }
-                    }
-                    //now create detail
-                    det = new StoreSeasonalityDetail();
-                    det.CreateDate = DateTime.Now;
-                    det.CreatedBy = User.Identity.Name;
-                    det.Division = div;
-                    det.GroupID = header.ID;
-                    det.Store = store;
-                    db.StoreSeasonalityDetails.Add(det);
-                    db.SaveChanges();
-
-                    row++;
-                }
-            }
-
-            return Content("");
-        }
-
-        /// <summary>
-        /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
-        /// </summary>
-        /// <param name="attachments"></param>
-        /// <returns></returns>
-        [CheckPermission(Roles = "Admin,Support")]
-        public ActionResult SaveBTSLocker(IEnumerable<HttpPostedFileBase> attachmentsLocker)
-        {
-            Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-            foreach (HttpPostedFileBase file in attachmentsLocker)
-            {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-
-                int row = 1;
-                string store;
-                string div = "31";
-                string BTSGroup;
-                StoreBTS header2011, header2012, header2013;
-                header2011 = new StoreBTS();
-                header2012 = new StoreBTS();
-                header2013 = new StoreBTS();
-
-                StoreBTSDetail det;
-                string prevBTSGroup = "";
-
-                while (mySheet.Cells[row, 0].Value != null)
-                {
-                    store = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(5, '0');
-                    BTSGroup = "Group " + Convert.ToString(mySheet.Cells[row, 1].Value);
-                    switch (Convert.ToString(mySheet.Cells[row, 6].Value))
-                    { 
-                        case "FOOT LOCKER":
-                            div = "03";
-                            break;
-                        case "LADY FOOT LOCKER":
-                            div = "08";
-                            break;
-                        case "KIDS FOOT LOCKER":
-                            div = "16";
-                            break;
-                        case "FOOTACTION":
-                            div = "29";
-                            break;
-                    }
-
-                    //if ((prevBTSGroup != BTSGroup)||())
-                    //{
-                        //create BTS
-                        prevBTSGroup = BTSGroup;
-                        var query = (from a in db.StoreBTS where a.Division == div select a);
-                        header2011 = null;
-                        header2012 = null;
-                        header2013 = null;
-
-                        if (query.Count() > 0)
-                        {
-                            foreach (StoreBTS s in query)
-                            {
-                                if ((s.Year == 2011) && (s.Name == "Group " + Convert.ToString(mySheet.Cells[row, 3].Value)))
-                                {
-                                    header2011 = s;
-                                }
-                                else if ((s.Year == 2012) && (s.Name == "Group " + Convert.ToString(mySheet.Cells[row, 2].Value)))
-                                {
-                                    header2012 = s;
-                                }
-                                else if ((s.Year == 2013) && (s.Name == BTSGroup))
-                                {
-                                    header2013 = s;
-                                }
-                            }
-                        }
-                        if (header2011 == null)
-                        {
-                            header2011 = new StoreBTS();
-                            header2011.Name = "Group " + Convert.ToString(mySheet.Cells[row, 3].Value);
-                            header2011.Year = 2011;
-                            header2011.CreateDate = DateTime.Now;
-                            header2011.CreatedBy = User.Identity.Name;
-                            header2011.Division = div;
-                            db.StoreBTS.Add(header2011);
-                            db.SaveChanges();
-                        }
-                        if (header2012 == null)
-                        {
-                            header2012 = new StoreBTS();
-                            header2012.Name = "Group " + Convert.ToString(mySheet.Cells[row, 2].Value);
-                            header2012.Year = 2012;
-                            header2012.CreateDate = DateTime.Now;
-                            header2012.CreatedBy = User.Identity.Name;
-                            header2012.Division = div;
-                            db.StoreBTS.Add(header2012);
-                            db.SaveChanges();
-                        }
-                        if (header2013 == null)
-                        {
-                            header2013 = new StoreBTS();
-                            header2013.Name = BTSGroup;
-                            header2013.Year = 2013;
-                            header2013.CreateDate = DateTime.Now;
-                            header2013.Division = div;
-                            header2013.CreatedBy = User.Identity.Name;
-                            db.StoreBTS.Add(header2013);
-                            db.SaveChanges();
-                        }
-                    //}
-                    //now create detail
-                    det = new StoreBTSDetail();
-                    det.CreateDate = DateTime.Now;
-                    det.CreatedBy = User.Identity.Name;
-                    det.Division = div;
-                    det.GroupID = header2011.ID;
-                    det.Store = store;
-                    det.Year = 2011;
-                    db.StoreBTSDetails.Add(det);
-                    db.SaveChanges();
-
-                    det = new StoreBTSDetail();
-                    det.CreateDate = DateTime.Now;
-                    det.CreatedBy = User.Identity.Name;
-                    det.Division = div;
-                    det.GroupID = header2012.ID;
-                    det.Store = store;
-                    det.Year = 2012;
-                    db.StoreBTSDetails.Add(det);
-                    db.SaveChanges();
-
-                    det = new StoreBTSDetail();
-                    det.CreateDate = DateTime.Now;
-                    det.CreatedBy = User.Identity.Name;
-                    det.Division = div;
-                    det.GroupID = header2013.ID;
-                    det.Store = store;
-                    det.Year = 2013;
-                    db.StoreBTSDetails.Add(det);
-                    db.SaveChanges();
-
-                    row++;
-                }
-            }
-
-            return Content("");
-        }
+        //    return Content("");
+        //}
 
 
         /// <summary>
@@ -1427,124 +1431,124 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// </summary>
         /// <param name="attachments"></param>
         /// <returns></returns>
-        [CheckPermission(Roles = "Admin,Support")]
-        public ActionResult SaveBTSChamps(IEnumerable<HttpPostedFileBase> attachmentsChamps)
-        {
-            Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+        //[CheckPermission(Roles = "Admin,Support")]
+        //public ActionResult SaveBTSChamps(IEnumerable<HttpPostedFileBase> attachmentsChamps)
+        //{
+        //    Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        //    Aspose.Excel.License license = new Aspose.Excel.License();
+        //    //Set the license 
+        //    license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
-            foreach (HttpPostedFileBase file in attachmentsChamps)
-            {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet;
+        //    foreach (HttpPostedFileBase file in attachmentsChamps)
+        //    {
+        //        //Instantiate a Workbook object that represents an Excel file
+        //        Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+        //        Byte[] data1 = new Byte[file.InputStream.Length];
+        //        file.InputStream.Read(data1, 0, data1.Length);
+        //        file.InputStream.Close();
+        //        MemoryStream memoryStream1 = new MemoryStream(data1);
+        //        workbook.Open(memoryStream1);
+        //        Aspose.Excel.Worksheet mySheet;
 
-                int row = 0;
-                int col = 0;
-                StoreBTS header;
-                StoreBTSDetail det;
-                int year = 2013;
-                string name;
-                string store;
-                while (year < 2014)
-                {
-                    mySheet = workbook.Worksheets[year + " Groups"];
-                    row = 0; 
-                    col = 0;
-                    while (mySheet.Cells[row, col].Value != null)
-                    {
-                        name = Convert.ToString(mySheet.Cells[row, col].Value);
-                        var query = (from a in db.StoreBTS where ((a.Division == "18") && (a.Name == name) && (a.Year == year)) select a);
+        //        int row = 0;
+        //        int col = 0;
+        //        StoreBTS header;
+        //        StoreBTSDetail det;
+        //        int year = 2013;
+        //        string name;
+        //        string store;
+        //        while (year < 2014)
+        //        {
+        //            mySheet = workbook.Worksheets[year + " Groups"];
+        //            row = 0; 
+        //            col = 0;
+        //            while (mySheet.Cells[row, col].Value != null)
+        //            {
+        //                name = Convert.ToString(mySheet.Cells[row, col].Value);
+        //                var query = (from a in db.StoreBTS where ((a.Division == "18") && (a.Name == name) && (a.Year == year)) select a);
 
-                        if (query.Count() > 0)
-                        {
-                            header = query.First();
-                        }
-                        else
-                        {
-                            header = new StoreBTS();
-                            header.Year = year;
-                            header.Name = name;
-                            header.Division = "18";
-                            header.CreatedBy = User.Identity.Name;
-                            header.CreateDate = DateTime.Now;
-                            db.StoreBTS.Add(header);
-                            db.SaveChanges();
-                        }
-                        row++;
-                        while (mySheet.Cells[row, col].Value != null)
-                        {
-                            store = Convert.ToString(mySheet.Cells[row, col].Value);
-                            var detquery = (from a in db.StoreBTSDetails where ((a.GroupID == header.ID) && (a.Division == "18") && (a.Store == store)) select a);
+        //                if (query.Count() > 0)
+        //                {
+        //                    header = query.First();
+        //                }
+        //                else
+        //                {
+        //                    header = new StoreBTS();
+        //                    header.Year = year;
+        //                    header.Name = name;
+        //                    header.Division = "18";
+        //                    header.CreatedBy = User.Identity.Name;
+        //                    header.CreateDate = DateTime.Now;
+        //                    db.StoreBTS.Add(header);
+        //                    db.SaveChanges();
+        //                }
+        //                row++;
+        //                while (mySheet.Cells[row, col].Value != null)
+        //                {
+        //                    store = Convert.ToString(mySheet.Cells[row, col].Value);
+        //                    var detquery = (from a in db.StoreBTSDetails where ((a.GroupID == header.ID) && (a.Division == "18") && (a.Store == store)) select a);
 
-                            if (detquery.Count() == 0)
-                            {
-                                det = new StoreBTSDetail();
-                                det.GroupID = header.ID;
-                                det.Year = year;
-                                det.Store = store;
-                                det.Division = "18";
-                                det.CreatedBy = User.Identity.Name;
-                                det.CreateDate = DateTime.Now;
-                                db.StoreBTSDetails.Add(det);
-                                db.SaveChanges();
-                            }
-                            row++;
-                        }
-                        col++;
-                        row = 0;
-                    }
-                    year++;
-                }
-            }
-            return Content("");
-        }
+        //                    if (detquery.Count() == 0)
+        //                    {
+        //                        det = new StoreBTSDetail();
+        //                        det.GroupID = header.ID;
+        //                        det.Year = year;
+        //                        det.Store = store;
+        //                        det.Division = "18";
+        //                        det.CreatedBy = User.Identity.Name;
+        //                        det.CreateDate = DateTime.Now;
+        //                        db.StoreBTSDetails.Add(det);
+        //                        db.SaveChanges();
+        //                    }
+        //                    row++;
+        //                }
+        //                col++;
+        //                row = 0;
+        //            }
+        //            year++;
+        //        }
+        //    }
+        //    return Content("");
+        //}
 
-        [CheckPermission(Roles = "Admin,Support")]
-        public void SaveRouteDetail(RouteDetail det, Footlocker.Logistics.Allocation.DAO.AllocationContext db)
-        {
-            if (!((from a in db.RouteDetails where ((a.RouteID == det.RouteID) && (a.DCID == det.DCID) && (a.ZoneID == det.ZoneID)) select a).Count() > 0))
-            {
-                db.RouteDetails.Add(det);
-                db.SaveChanges();
-            }
-        }
+        //[CheckPermission(Roles = "Admin,Support")]
+        //public void SaveRouteDetail(RouteDetail det, Footlocker.Logistics.Allocation.DAO.AllocationContext db)
+        //{
+        //    if (!((from a in db.RouteDetails where ((a.RouteID == det.RouteID) && (a.DCID == det.DCID) && (a.ZoneID == det.ZoneID)) select a).Count() > 0))
+        //    {
+        //        db.RouteDetails.Add(det);
+        //        db.SaveChanges();
+        //    }
+        //}
 
-        [CheckPermission(Roles = "Admin,Support")]
-        private int GetIntransitEurope(Aspose.Excel.Worksheet mySheet, int row, int col)
-        {
-            int intransit;
-            try
-            {
-                intransit = Convert.ToInt32(mySheet.Cells[row, col].Value);
-            }
-            catch 
-            {
-                intransit = 9999;
-            }
-            return intransit;
-        }
+        //[CheckPermission(Roles = "Admin,Support")]
+        //private int GetIntransitEurope(Aspose.Excel.Worksheet mySheet, int row, int col)
+        //{
+        //    int intransit;
+        //    try
+        //    {
+        //        intransit = Convert.ToInt32(mySheet.Cells[row, col].Value);
+        //    }
+        //    catch 
+        //    {
+        //        intransit = 9999;
+        //    }
+        //    return intransit;
+        //}
 
-        [CheckPermission(Roles = "Admin,Support")]
-        private int GetIntransit(Aspose.Excel.Worksheet mySheet, int row, int col)
-        {
-            int intransit;
-            try
-            {
-                intransit = Convert.ToInt32(mySheet.Cells[row, col].Value);
-            }
-            catch
-            {
-                intransit = 5;
-            }
-            return intransit;
-        }
+        //[CheckPermission(Roles = "Admin,Support")]
+        //private int GetIntransit(Aspose.Excel.Worksheet mySheet, int row, int col)
+        //{
+        //    int intransit;
+        //    try
+        //    {
+        //        intransit = Convert.ToInt32(mySheet.Cells[row, col].Value);
+        //    }
+        //    catch
+        //    {
+        //        intransit = 5;
+        //    }
+        //    return intransit;
+        //}
     }
 }

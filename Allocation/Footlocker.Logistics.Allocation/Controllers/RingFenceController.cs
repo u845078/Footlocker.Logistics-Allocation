@@ -2413,8 +2413,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         //ecomm all countries store                        
                         RingFenceDetail newDet = new RingFenceDetail();
 
-                        bool addDetail;
-                        RingFence rf = db.RingFences.Where(r => r.Sku == ringFence.Sku && r.Store == ringFence.Store).First();
+                        bool addDetail;                        
+                            
+                        //RingFence rf = db.RingFences.Where(r => r.Sku == ringFence.Sku && r.Store == ringFence.Store).First();
                         
                         foreach (RingFenceDetail det in updated)
                         {
@@ -2449,7 +2450,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 addDetail = false;
                                 det.Size = det.Size.Trim();
                                 newDet = db.RingFenceDetails.Where(rfd => rfd.Size == det.Size && 
-                                                                          rfd.RingFenceID == rf.ID && 
+                                                                          rfd.RingFenceID == ringFence.ID && 
                                                                           rfd.PO == det.PO &&
                                                                           rfd.ActiveInd == "1" &&
                                                                           rfd.DCID == det.DCID).FirstOrDefault();
@@ -2478,7 +2479,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 }
                                 newDet.Qty += det.Qty;
 
-                                newDet.RingFenceID = rf.ID;
+                                newDet.RingFenceID = ringFence.ID;
                                 if (addDetail)
                                     db.RingFenceDetails.Add(newDet);
 
