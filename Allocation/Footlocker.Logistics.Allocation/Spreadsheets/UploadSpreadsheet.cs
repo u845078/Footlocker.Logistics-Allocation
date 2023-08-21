@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Web;
 using Aspose.Excel;
 using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.Services;
 
-namespace Footlocker.Logistics.Allocation.Spreadsheet
+namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
     abstract public class UploadSpreadsheet : BaseSpreadsheet
     {

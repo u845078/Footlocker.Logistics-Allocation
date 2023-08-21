@@ -14,20 +14,23 @@ namespace Footlocker.Logistics.Allocation.Models.Services
     public class ExistingPODAO
     {
         #region Fields
-        private readonly string _EUROPE_DIV_CODE_STRING = "31,47";
+        private readonly string europeDivisions;        
         private readonly string _EUROPE_DB_SETTING_ID_STRING = "DB2EURP";
         private readonly string _DB_SETTING_ID_STRING = "DB2PROD";
 
         #endregion
         
-        #region Non-Public Methods
-
-        private Database CreateDatabase(string division)
-        {
-            var dbSettingID = _EUROPE_DIV_CODE_STRING.Contains(division) ? _EUROPE_DB_SETTING_ID_STRING : _DB_SETTING_ID_STRING;
-            return DatabaseFactory.CreateDatabase(dbSettingID);
+        public ExistingPODAO(string europeDivisions) 
+        { 
+            this.europeDivisions = europeDivisions;
         }
 
+        #region Non-Public Methods
+        private Database CreateDatabase(string division)
+        {
+            var dbSettingID = europeDivisions.Contains(division) ? _EUROPE_DB_SETTING_ID_STRING : _DB_SETTING_ID_STRING;
+            return DatabaseFactory.CreateDatabase(dbSettingID);
+        }
         #endregion
 
         #region Public Methods
@@ -139,7 +142,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                         }
                     }
                 }
-
             }
 
             return existingPOs;
@@ -149,7 +151,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         {
             var existingPOs = new List<ExistingPO>();
             
-
             // Split delimited SKU string out
             string[] tokens = sku.Split('-');
                         

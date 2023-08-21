@@ -9,7 +9,7 @@ namespace Footlocker.Logistics.Allocation.Common
     {
         #region Fields
 
-        private JsonResultData _resultData = null;
+        //private JsonResultData _resultData = null;
 
         #endregion
 

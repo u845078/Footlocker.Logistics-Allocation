@@ -9,8 +9,9 @@ using System.Linq;
 using System.Web;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using Microsoft.Practices.EnterpriseLibrary.Common.Utility;
 
-namespace Footlocker.Logistics.Allocation.Spreadsheet
+namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
     public class SkuRangeSpreadsheet : UploadSpreadsheet
     {
@@ -100,6 +101,11 @@ namespace Footlocker.Logistics.Allocation.Spreadsheet
             return string.IsNullOrEmpty(errorMessage);
         }
 
+        private void ValidateList()
+        {
+
+        }
+
         public void Save(HttpPostedFileBase attachment, bool purgeFirst)
         {
             RangePlanDetailDAO dao = new RangePlanDetailDAO();
@@ -122,14 +128,22 @@ namespace Footlocker.Logistics.Allocation.Spreadsheet
                         if (!ValidateRow(range, out errorMessage))
                             range.Error = errorMessage;
 
-                        parsedRanges.Add(range);
-
                         if (!string.IsNullOrEmpty(range.Error))
                             errorList.Add(range);
                         else
-                            validRanges.Add(range);
+                            parsedRanges.Add(range);
                         
                         row++;
+                    }
+
+                    ValidateList();
+
+                    foreach (BulkRange bulkRange in parsedRanges)
+                    {
+                        if (!string.IsNullOrEmpty(bulkRange.Error))
+                            errorList.Add(bulkRange);
+                        else
+                            validRanges.Add(bulkRange);
                     }
                     
                     bulkloadErrorList = dao.BulkUpdateRange(validRanges, config.currentUser.NetworkID, purgeFirst);

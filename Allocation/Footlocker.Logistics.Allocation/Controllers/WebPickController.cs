@@ -6,7 +6,7 @@ using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Common;
 using Footlocker.Logistics.Allocation.Services;
-using Footlocker.Logistics.Allocation.Spreadsheet;
+using Footlocker.Logistics.Allocation.Spreadsheets;
 using Footlocker.Logistics.Allocation.DAO;
 using System.IO;
 using Aspose.Excel;
@@ -103,7 +103,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             string message = "";
 
-            ItemDAO itemDAO = new ItemDAO();
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
 
             if (!itemDAO.DoValidSizesExist(model.RDQ.Sku, model.RDQ.Size))
                 ModelState.AddModelError("RDQ.Size", "Size does not exist for this sku");
@@ -829,7 +829,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return 0;
 
             //find maximum qty
-            WarehouseInventoryDAO dao = new WarehouseInventoryDAO(rdq.Sku, warehouse);
+            WarehouseInventoryDAO dao = new WarehouseInventoryDAO(rdq.Sku, warehouse, appConfig.EuropeDivisions);
             whInventory = dao.GetWarehouseInventory(WarehouseInventoryDAO.InventoryListType.ListOnlyAvailableSizes);
             qtyAvailable = (from wi in whInventory
                             where wi.size == rdq.Size

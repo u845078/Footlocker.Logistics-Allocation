@@ -24,17 +24,19 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         readonly AllocationLibraryContext db = new AllocationLibraryContext();
         readonly Repository<ItemMaster> skuRespository;
         public List<DistributionCenter> distributionCenters = new List<DistributionCenter>();
+        readonly string europeDivisions;
         
         // NOTE: Both caselot name and size are stored in the same varchar db column, if value is more than 3 digits, we know it is a caselot....
         public static int _CASELOT_SIZE_INDICATOR_VALUE_LENGTH = 3;
 
-        public RingFenceDAO()
+        public RingFenceDAO(string europeDivisions)
         {
             _database = DatabaseFactory.CreateDatabase("DB2PROD");
             _databaseEurope = DatabaseFactory.CreateDatabase("DB2EURP");
             allocationDatabase = DatabaseFactory.CreateDatabase("AllocationContext");
             skuRespository = new Repository<ItemMaster>(new AllocationLibraryContext());
             distributionCenters = db.DistributionCenters.ToList();
+            this.europeDivisions = europeDivisions;
         }
 
         /// <summary>
@@ -264,8 +266,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         {
             List<Tuple<bool, string>> returnValue = new List<Tuple<bool, string>>();
             StringBuilder builder = new StringBuilder();
-            string division, department, stockNumber, widthColor, whereConditionFormat, whereCondition, selectStatement, groupByStatement;
-            string europeDivision = System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"];
+            string division, department, stockNumber, widthColor, whereConditionFormat, whereCondition, selectStatement, groupByStatement;           
 
             // this will create the select and where condition formats dependent if it is a size or caselot
             if (futureSizeCombos)
@@ -343,8 +344,8 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 groupByStatement = "group by wc.retl_oper_div_code, wc.stk_dept_num, wc.stk_num, wc.wdth_color_num, h.expected_delv_date, h.retl_oper_div_code, h.po_num, wc.status_ind, h.priority_code, rd.whse_id_num, rd.caselot_number";
             }
 
-            var europeCombos = uniqueCombos.Where(uc => europeDivision.Contains(uc.Item1.Split('-')[0])).ToList();
-            var nonEuropeCombos = uniqueCombos.Where(uc => !europeDivision.Contains(uc.Item1.Split('-')[0])).ToList();
+            var europeCombos = uniqueCombos.Where(uc => europeDivisions.Contains(uc.Item1.Split('-')[0])).ToList();
+            var nonEuropeCombos = uniqueCombos.Where(uc => !europeDivisions.Contains(uc.Item1.Split('-')[0])).ToList();
 
             if (europeCombos.Count > 0)
             {
@@ -407,20 +408,17 @@ namespace Footlocker.Logistics.Allocation.Models.Services
         public List<RingFenceDetail> GetFuturePOs(RingFence rf)
         {
             Database currDatabase=null;
-            if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(rf.Division))
-            {
-                currDatabase = _databaseEurope;
-            }
-            else
-            {
+            if (europeDivisions.Contains(rf.Division))            
+                currDatabase = _databaseEurope;            
+            else            
                 currDatabase = _database;
-            }
+            
             List<RingFenceDetail> _que;
             _que = new List<RingFenceDetail>();
             
-            Int32 instanceid = (from a in db.InstanceDivisions
-                                where a.Division == rf.Division
-                                select a.InstanceID).First();
+            //int instanceid = (from a in db.InstanceDivisions
+            //                    where a.Division == rf.Division
+            //                    select a.InstanceID).First();
 
             DbCommand SQLCommand;
             string stock, color, dept;
@@ -681,9 +679,9 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             List<WarehouseInventory> returnValue = new List<WarehouseInventory>();
             string parsedDivision, parsedDepartment, parsedStockNumber, parsedWidthColor, parsedSize, parsedDCID, allocatableQuantityColumnName, sizeColumnName, pickReserveColumnName;
             int parsedAllocatableQuantity, parsedPickReserveQuantity;
-            Database db = null;
+            Database db;
 
-            db = (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(division)) ? _databaseEurope : _database;
+            db = europeDivisions.Contains(division) ? _databaseEurope : _database;
             if (sizeCombos)
             {
                 allocatableQuantityColumnName = "ALLOCATABLE_BS_QTY";
@@ -703,7 +701,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             {
                 foreach (DataRow dr in returnedData.Tables[0].Rows)
                 {
-
                     parsedDivision = Convert.ToString(dr["RETL_OPER_DIV_CD"]);
                     parsedDepartment = Convert.ToString(dr["STK_DEPT_NUM"]);
                     parsedStockNumber = Convert.ToString(dr["STK_NUM"]);
@@ -844,7 +841,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             List<RingFenceDetail> rfDetailData;
 
             RingFenceDataFactory rfDataFactory = new RingFenceDataFactory();
-            WarehouseInventoryDAO warehouseInventoryDAO = new WarehouseInventoryDAO(sku, "-1");
+            WarehouseInventoryDAO warehouseInventoryDAO = new WarehouseInventoryDAO(sku, "-1", europeDivisions);
 
             warehouseInventory = warehouseInventoryDAO.GetWarehouseInventory(WarehouseInventoryDAO.InventoryListType.ListAllSizes);
 

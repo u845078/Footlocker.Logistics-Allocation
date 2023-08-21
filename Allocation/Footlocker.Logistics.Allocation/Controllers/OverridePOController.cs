@@ -210,7 +210,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Create(ExpeditePOModel model)
         {
-            ExistingPODAO dao = new ExistingPODAO();
+            ExistingPODAO dao = new ExistingPODAO(appConfig.EuropeDivisions);
             // look in the mainframe for a PO
             model.ExistingPOs = dao.GetExistingPO(model.NewPO.Division, model.NewPO.PO);
             if (model.ExistingPOs.Count() > 0)
@@ -272,7 +272,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult CreateAllPOsForSku(ExpeditePOModel model)
         {
-            ExistingPODAO dao = new ExistingPODAO();
+            ExistingPODAO dao = new ExistingPODAO(appConfig.EuropeDivisions);
             model.ExistingPOs = dao.GetExistingPOsForSku(model.NewPO.Division, model.NewPO.Sku, true);
             model.NewPO.Departments = "";
             foreach (ExistingPO po in model.ExistingPOs)
@@ -328,7 +328,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public JsonResult AcceptPO(string div, string PO, string sku, DateTime overrideDate)
         {
-            ExistingPODAO dao = new ExistingPODAO();
+            ExistingPODAO dao = new ExistingPODAO(appConfig.EuropeDivisions);
             List<ExistingPO> list = dao.GetExistingPO(div, PO);
 
             ExpeditePO po;
@@ -381,7 +381,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public JsonResult RemovePO(string div, string PO)
         {
-            ExistingPODAO dao = new ExistingPODAO();
+            ExistingPODAO dao = new ExistingPODAO(appConfig.EuropeDivisions);
             List<ExistingPO> list = dao.GetExistingPO(div, PO);
 
             ExpeditePO po;
@@ -413,10 +413,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return Json("Success");
         }
 
-
         public ActionResult AcceptAll(string sku, DateTime overrideDate)
         {
-            ExistingPODAO dao = new ExistingPODAO();
+            ExistingPODAO dao = new ExistingPODAO(appConfig.EuropeDivisions);
             List<ExistingPO> list = dao.GetExistingPOsForSku(sku.Split('-')[0], sku, true);
 
             ExpeditePO po;
@@ -457,7 +456,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RangePlan> plans =new List<RangePlan>();
             if ((po != "")&&(po != null))
             {
-                ExistingPODAO dao = new ExistingPODAO();
+                ExistingPODAO dao = new ExistingPODAO(appConfig.EuropeDivisions);
 
                 foreach (ExistingPO p in dao.GetExistingPO(div, po))
                 {
@@ -687,7 +686,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 workbook.Open(memoryStream1);
                 Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
                 int row = 1;
-                ExistingPODAO dao = new ExistingPODAO();
+                ExistingPODAO dao = new ExistingPODAO(appConfig.EuropeDivisions);
                 ExpeditePO overridePO=null;
                 if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Division-PO"))&&(Convert.ToString(mySheet.Cells[0, 1].Value).Contains("OverrideDate")))
                 {

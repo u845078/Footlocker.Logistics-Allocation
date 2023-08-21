@@ -13,7 +13,7 @@ using Aspose.Excel;
 using Footlocker.Common;
 using System.Text;
 using System.Text.RegularExpressions;
-using Footlocker.Logistics.Allocation.Spreadsheet;
+using Footlocker.Logistics.Allocation.Spreadsheets;
 using System.Data.Entity.Infrastructure;
 using System.Web.UI;
 using System.Runtime;
@@ -30,7 +30,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
         readonly ConfigService configService = new ConfigService();
         readonly RangePlanDAO rangePlanDAO = new RangePlanDAO();
-        readonly ItemDAO itemDAO = new ItemDAO();
 
         #region ActionResults
 
@@ -151,7 +150,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.RangePlans.Add(p.Range);
             db.SaveChanges();
             //update ActiveARStatus since we added a new rangeplan
-            
+
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
             itemDAO.UpdateActiveARStatus();
 
             if (p.OPRequest.StartSend.HasValue)
@@ -198,6 +198,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 string div = SKU.Substring(0, 2);
 
                 int instance = configService.GetInstance(div);
+                ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
 
                 try
                 {
@@ -302,6 +303,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return View(model);
             }
 
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
             List<string> fromSizes = itemDAO.GetSKUSizes(model.FromSku);
             List<string> toSizes = itemDAO.GetSKUSizes(model.ToSku);
 
@@ -358,6 +360,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult CopyRangeSizes(CopyRangePlanModel model)
         {
             long itemID;
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
 
             try
             {
@@ -3019,6 +3022,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public string AddReinitializedSKU(string sku, WebUser webUser)
         {
             string errorMessage = string.Empty;
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
+
             ReInitializeSKU reInitialize = new ReInitializeSKU()
             {
                 LastModifiedDate = DateTime.Now,

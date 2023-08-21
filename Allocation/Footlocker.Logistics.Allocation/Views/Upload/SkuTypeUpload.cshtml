@@ -1,17 +1,14 @@
-﻿@using Telerik.Web.Mvc;
-@{
+﻿@{
     ViewBag.Title = "SkuTypeUpload";
 }
 
 <fieldset>
-    <legend> Service Type Upload </legend>
-    Spreadsheet columns should be Sku, Type, EffectiveDate (optional).  <br />
-    @Html.ActionLink("Download Template","ExcelTemplate",new {}, new {@class = "t-button"})
+    <legend>Service Type Upload</legend>
+    Download the latest template here. Data formatting hints are in the header tool tips.<br />
+    @Html.ActionLink("Download Template", "ExcelTemplate", new {}, new {@class = "t-button"})
     <br />
     <br />
-    <b>Please select spreadsheets: </b>
-        <br />
-        <br />
+    <b>Please select spreadsheets: </b><br /><br />
     @(Html.Telerik().Upload()
         .Name("attachments")
         .Multiple(true)
@@ -23,39 +20,37 @@
             .OnError("onError")
             .OnSelect("onSelect")
                     .OnSuccess("onSuccess")
-            )
         )
-        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
-        <br />
-        <h4> <div id="message"></div> </h4>
+     )
+    <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/><br />
+    <h4 id="message"></h4>
 </fieldset>
  
-     <script type="text/javascript">
-
-        function onSelect(e) {
-            var files = e.files;
-            if (files[0].extension != ".xls") {
-                alert("Document must be a spreadsheet with a xls extension. ");
-                e.preventDefault();
-            }
-            else{
-                 document.getElementById('spreadsheet').style.visibility = 'visible';
-             }
-             $('#message').empty();
+<script type="text/javascript">
+    function onSelect(e) {
+        var files = e.files;
+        if (files[0].extension != ".xls") {
+            alert("Document must be a spreadsheet with a xls extension. ");
+            e.preventDefault();
+        }
+        else {
+            document.getElementById('spreadsheet').style.visibility = 'visible';
         }
 
-        function onError(e) {
-            var message = e.XMLHttpRequest.responseText;
-            $('#message').empty().append("<font color='red'>"+message+"</font>");
+        $('#message').empty();
+    }
 
-             e.preventDefault();
-         }
+    function onError(e) {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>"+message+"</font>");
 
-         function onSuccess(e) {
-             var message = e.XMLHttpRequest.responseText;
-             $('#message').empty().append("<font color='red'>Success</font>");
+        e.preventDefault();
+    }
 
-             e.preventDefault();
-         }
-    </script>
-    
+    function onSuccess(e) {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>Success</font>");
+
+        e.preventDefault();
+    }
+</script>    

@@ -10,7 +10,7 @@ using Aspose.Excel;
 using Telerik.Web.Mvc;
 using Footlocker.Logistics.Allocation.Services;
 using System.Web.Helpers;
-using Footlocker.Logistics.Allocation.Spreadsheet;
+using Footlocker.Logistics.Allocation.Spreadsheets;
 using System.Web.ApplicationServices;
 using System.Web.Services.Description;
 

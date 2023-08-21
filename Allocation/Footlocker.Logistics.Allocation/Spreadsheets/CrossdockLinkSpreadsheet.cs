@@ -8,7 +8,7 @@ using System.Drawing;
 using System.Linq;
 using System.Web;
 
-namespace Footlocker.Logistics.Allocation.Spreadsheet
+namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
     public class CrossdockLinkSpreadsheet : UploadSpreadsheet
     {

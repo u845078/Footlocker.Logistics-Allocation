@@ -66,7 +66,7 @@
         {
             int instance = (from a in db.InstanceDivisions
                             where a.Division == division
-                            select a.InstanceID).First();
+                            select a.InstanceID).FirstOrDefault();
 
             return instance;
         }
@@ -88,7 +88,7 @@
         public string GetCPID(string sku)
         {
             string cpidString;
-            var cpidValue =  db.CPSkuSizesXrefs.Where(cp => cp.LegacySku == sku)
+            var cpidValue = db.CPSkuSizesXrefs.Where(cp => cp.LegacySku == sku)
                                                .Select(cp => cp.CPID)
                                                .FirstOrDefault();
 

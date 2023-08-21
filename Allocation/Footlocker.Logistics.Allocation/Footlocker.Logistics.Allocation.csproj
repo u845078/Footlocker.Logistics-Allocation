@@ -233,16 +233,20 @@
     <Compile Include="Spreadsheets\HoldsUploadSpreadsheet.cs" />
     <Compile Include="Common\JsonResultData.cs" />
     <Compile Include="Spreadsheets\LostSalesExtract.cs" />
+    <Compile Include="Spreadsheets\ProductTypeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\RingFenceByDestExport.cs" />
     <Compile Include="Spreadsheets\RingFenceDeleteSpreadsheet.cs" />
     <Compile Include="Spreadsheets\RingFenceExport.cs" />
     <Compile Include="Spreadsheets\RingFenceUploadSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\RoutesExport.cs" />
+    <Compile Include="Spreadsheets\ServiceTypeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SkuAttributeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SKURangeDeliveryGroupExport.cs" />
     <Compile Include="Spreadsheets\SKURangeExport.cs" />
     <Compile Include="Spreadsheets\SKURangePlanDGSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SkuRangeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SKURangeStoreExport.cs" />
+    <Compile Include="Spreadsheets\StoreNSSExport.cs" />
     <Compile Include="Spreadsheets\StoreSpreadsheet.cs" />
     <Compile Include="Spreadsheets\TroubleshootRDQExport.cs" />
     <Compile Include="Spreadsheets\UploadSpreadsheet.cs" />
@@ -342,7 +346,6 @@
     <Compile Include="Models\StoreBatchFilterModel.cs" />
     <Compile Include="Models\StoreBatchModel.cs" />
     <Compile Include="Models\StoreLeadTimeModel.cs" />
-    <Compile Include="Models\StoreLookupViewModel.cs" />
     <Compile Include="Models\StoreSeasonalityModel.cs" />
     <Compile Include="Models\StoreBTSModel.cs" />
     <Compile Include="Models\StoreBTSDetailModel.cs" />
@@ -380,6 +383,7 @@
     <Compile Include="Models\WebPickModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Spreadsheets\WSMExtract.cs" />
+    <Compile Include="Spreadsheets\ZoneStoreExport.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\gridscroll.css" />
@@ -545,38 +549,60 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="packages.config" />
-    <Content Include="Content\Templates\BulkRangeTemplate.xls" />
-    <None Include="Content\Templates\ARConstraintsUploadTemplate.xls">
+    <Content Include="Content\Templates\BulkRangeTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\ARConstraintsUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Templates\ARSkusUploadTemplate.xls">
+    </Content>
+    <Content Include="Content\Templates\ARSkusUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
     <Content Include="Content\Templates\HoldsUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Templates\HoldsUpdatesTemplate.xlsx" />
-    <Content Include="Content\Templates\NetworkScheduleUpdateTemplate.xlsx" />
-    <Content Include="Content\Templates\CrossdockLinkDataTemplate.xls" />
-    <None Include="Content\Templates\ProductTypeTemplate.xls">
+    <Content Include="Content\Templates\HoldsUpdatesTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\NetworkScheduleUpdateTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\CrossdockLinkDataTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\ProductTypeTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <Content Include="Content\Templates\RingFenceDeleteTemplate.xls" />
+    </Content>
+    <Content Include="Content\Templates\RingFenceDeleteTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\Templates\RDQRestrictionUploadTemplate.xls">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Templates\SkuAttributeUploadTemplate.xls" />
-    <Content Include="Content\Templates\RingFenceUploadTemplate.xls" />
-    <None Include="Content\Templates\SkuIdUploadTemplate.xls">
+    <Content Include="Content\Templates\SkuAttributeUploadTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\RingFenceUploadTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\SkuIdUploadTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\SkuRangePlanDGUploadTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\SkuTypeUpload.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <Content Include="Content\Templates\SkuRangePlanDGUploadTemplate.xls" />
-    <None Include="Content\Templates\SkuTypeUpload.xls">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <Content Include="Content\Templates\WebPickUploadTemplate.xls" />
-    <Content Include="Content\Templates\StoreTemplate.xls" />
-    <Content Include="Content\Templates\VendorGroupTemplate.xls" />
+    </Content>
+    <Content Include="Content\Templates\WebPickUploadTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\StoreTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\VendorGroupTemplate.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="readme.txt" />
     <Content Include="Views\Shared\EditorTemplates\Date.cshtml" />

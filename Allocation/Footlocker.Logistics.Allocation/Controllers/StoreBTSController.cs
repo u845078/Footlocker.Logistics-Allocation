@@ -505,7 +505,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             List<MainframeStore> ClosingDates = new List<MainframeStore>();
             List<string> ClosedStores = new List<string>();
-            MainframeStoreDAO dao = new MainframeStoreDAO();
+            MainframeStoreDAO dao = new MainframeStoreDAO(appConfig.EuropeDivisions);
 
             foreach (StoreLookup s in stores)
             {

@@ -1,11 +1,9 @@
 ﻿using Footlocker.Logistics.Allocation.Services;
-using System;
 using System.Collections.Generic;
 using Footlocker.Logistics.Allocation.Common;
-using System.Web;
 using Aspose.Excel;
 
-namespace Footlocker.Logistics.Allocation.Spreadsheet
+namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
     abstract public class ExportSpreadsheet : BaseSpreadsheet
     {

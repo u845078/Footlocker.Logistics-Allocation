@@ -9,7 +9,7 @@ using Telerik.Web.Mvc;
 using Footlocker.Common;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Models.Services;
-using Footlocker.Logistics.Allocation.Spreadsheet;
+using Footlocker.Logistics.Allocation.Spreadsheets;
 using Aspose.Excel;
 using System.IO;
 using Footlocker.Logistics.Allocation.Common;
@@ -30,7 +30,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #region Fields
 
         DAO.AllocationContext db = new DAO.AllocationContext();
-        readonly RingFenceDAO dao = new RingFenceDAO();
         readonly ConfigService configService = new ConfigService();
 
         // NOTE: Both caselot name and size are stored in the same varchar db column, if value is more than 3 digits, we know it is a caselot....
@@ -46,7 +45,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private List<RingFenceDetail> GetFutureAvailable(RingFence ringFence)
         {
             List<RingFenceDetail> list;
-            
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
+
             list = dao.GetFuturePOs(ringFence);
             list.AddRange(dao.GetTransloadPOs(ringFence));
             return list;
@@ -54,6 +54,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private List<RingFenceDetail> GetWarehouseAvailable(RingFence ringFence)
         {
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
             return dao.GetWarehouseAvailable(ringFence.Sku, ringFence.Size, ringFence.ID)
                 .OrderBy(r => r.Size.Length)
                 .ThenBy(rf => rf.Size).ToList();            
@@ -77,6 +78,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {            
             List<RingFenceModel> model = new List<RingFenceModel>();
 
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
             List<GroupedRingFence> list = dao.GetValidRingFenceGroups(currentUser.GetUserDivList(AppName));
 
             Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
@@ -128,6 +130,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _RingFenceSummary()
         {
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
             List<RingFence> list = dao.GetRingFences(currentUser.GetUserDivList(AppName));
 
             var rfGroups = from rf in list
@@ -344,7 +347,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public void SetUpRingFenceHeader(RingFence rf)
         {
-            ItemDAO itemDAO = new ItemDAO();
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
             rf.ItemID = itemDAO.GetItemID(rf.Sku);
 
             rf.StartDate = configService.GetControlDate(rf.Division).AddDays(1);
@@ -353,7 +356,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             rf.CreatedBy = currentUser.NetworkID;
             rf.LastModifiedDate = DateTime.Now;
             rf.LastModifiedUser = currentUser.NetworkID;
-            
+
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
             if (dao.isEcommWarehouse(rf.Division, rf.Store))
                 rf.Type = 2;
             else
@@ -369,6 +373,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             model.Divisions = currentUser.GetUserDivisions(AppName);            
             string errorMessage;
+            
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
 
             if (!dao.isValidRingFence(model.RingFence, currentUser, AppName, out errorMessage))
             {
@@ -630,6 +636,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             
             model.RingFence = ringfence;
 
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
             if (!dao.CanUserUpdateRingFence(model.RingFence, currentUser, AppName, out errorMessage))            
                 return RedirectToAction("Index", new { message = errorMessage });                        
 
@@ -640,6 +647,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Edit(RingFenceModel model)
         {
             string errorMessage;
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
 
             try
             {
@@ -710,6 +718,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Delete(int ID)
         {
             string errorMessage;
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
 
             RingFence rf = db.RingFences.Where(r => r.ID == ID).FirstOrDefault();
 
@@ -995,6 +1004,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _BulkRingFences(string div, string department, int dcid, string sku, int ringFenceType, string ringFenceStatus, string po, string store, long ruleset)
         {
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
             List<GroupedPORingFence> ringFenceList = dao.GetPORingFenceGroups(div, department, dcid, store, ruleset, sku, po, ringFenceType, ringFenceStatus);
 
             //var rdqGroups = from rdq in rdqList
@@ -1071,6 +1081,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             int count = 0;
             int permissionCount = 0;
             string errorMessage;
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
 
             foreach (RingFence rf in ringfences)
             {
@@ -1108,6 +1119,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //show rdq's for everything on there, with a qty that they can input
             //they click save, it removes that amount
             //when all details have no qty, then delete the rdq
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
 
             RingFencePickModel model = new RingFencePickModel()
             {
@@ -1178,7 +1190,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     else                    
                         rdq.Qty = det.AssignedQty;
 
-                    ItemDAO itemDAO = new ItemDAO();
+                    ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
                     rdq.ItemID = itemDAO.GetItemID(rdq.Sku);
                     
                     SetRDQDefaults(det, rdq);
@@ -1303,6 +1315,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             string message = null;
             string errorMessage;
             DateTime controlDate;
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
 
             var rf = db.RingFences.Where(r => r.ID == ID).FirstOrDefault();
             if (rf == null)            
@@ -1333,7 +1346,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RingFenceDetail> details = db.RingFenceDetails.Where(rfd => rfd.RingFenceID == ID &&
                                                                              rfd.ActiveInd == "1").ToList();
 
-            ItemDAO itemDAO = new ItemDAO();
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
             List<RDQ> rdqsToCheck = new List<RDQ>();
             RingFenceDataFactory rfDataFactory = new RingFenceDataFactory();
             foreach (RingFenceDetail det in details)
@@ -1378,8 +1391,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult MassPickRingFence(string sku)
         {
-            List<RingFence> rfList = db.RingFences.Where(rf => rf.Sku == sku && rf.CanPick).ToList();
-            string message = BulkPickRingFence(sku, rfList, true);
+            List<RingFence> rfList = db.RingFences.Where(rf => rf.Sku == sku).ToList();
+            List<RingFence> rfPickList = new List<RingFence>();
+
+            foreach (RingFence rf in rfList)
+            {
+                if (rf.CanPick)
+                    rfPickList.Add(rf);
+            }
+
+            string message = BulkPickRingFence(sku, rfPickList, true);
 
             return RedirectToAction("IndexSummary", new { message });
         }
@@ -1403,6 +1424,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             int holdCount = 0;
             int cancelholdcount = 0;
             List<RDQ> rdqList;
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
 
             List<GroupedPORingFence> ringFenceList = dao.GetPORingFenceGroups(division, department, distributionCenterID, store, ruleSetID, sku, po, ringFenceType, ringFenceStatus);
 
@@ -1466,10 +1488,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RDQ> rdqs = new List<RDQ>();
             bool canDelete = true;
             DateTime controlDate;
-            ItemDAO itemDAO = new ItemDAO();
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
             RingFenceDataFactory rfDataFactory = new RingFenceDataFactory();
             RingFenceHistory history;
             string errorMessage;
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
 
             if (!dao.CanUserUpdateRingFence(rfModel.RingFence, currentUser, AppName, out errorMessage))
                 return "You do not have permissions to pick the selected ring fence.";
@@ -1489,6 +1512,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 //when all details have no qty, then delete the rdq
 
                 controlDate = configService.GetControlDate(rfModel.RingFence.Division);
+                rfModel.RingFence.ItemID = itemDAO.GetItemID(rfModel.RingFence.Sku);
 
                 if (rfModel.RingFence.StartDate > controlDate)
                 {
@@ -1577,6 +1601,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             int permissionCount = 0;
             string errorMessage;
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
 
             List<GroupedPORingFence> ringFenceList = dao.GetPORingFenceGroups(division, department, distributionCenterID, store, ruleSetID, sku, po, ringFenceType, ringFenceStatus);
 
@@ -1603,6 +1628,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RingFenceDataFactory rfDataFactory = new RingFenceDataFactory();
             RingFenceHistory history;
             string errorMessage;
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
 
             if (!dao.CanUserUpdateRingFence(rf.RingFence, currentUser, AppName, out errorMessage))
                 return "You do not have permission to delete this ring fence";
@@ -1657,10 +1683,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RDQ> rdqs = new List<RDQ>();
             bool canDelete = true;
             DateTime controlDate;
-            ItemDAO itemDAO = new ItemDAO();
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
             RingFenceDataFactory rfDataFactory = new RingFenceDataFactory();
             RingFenceHistory history;
             string errorMessage;
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
 
             foreach (RingFence rf in rfList)
             {
@@ -1699,6 +1726,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 countWarehouseOnly++;                            
                         }
 
+                        rf.ItemID = itemDAO.GetItemID(rf.Sku);
                         foreach (RingFenceDetail det in details)
                         {
                             RDQ rdq = RDQFactory.CreateFromRingFence(rf, det, currentUser);
@@ -1864,6 +1892,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             int ecommCount = 0;
             int permissionCount = 0;
             string errorMessage;
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
 
             foreach (RingFence rf in rfList)
             {
@@ -1968,6 +1997,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _SelectBatchEditing(long ringFenceID)
         {
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
             // Get Ring Fence data
             List<RingFenceDetail> details = dao.GetRingFenceDetails(ringFenceID);
             RingFence rf = db.RingFences.Where(r => r.ID == ringFenceID).First();
@@ -2008,7 +2038,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _SaveBatchEditing([Bind(Prefix = "updated")]IEnumerable<RingFenceDetail> updated)
         {
             string errorMessage;
-            RingFenceDAO rfDAO = new RingFenceDAO();
+            RingFenceDAO rfDAO = new RingFenceDAO(appConfig.EuropeDivisions);
 
             long ringFenceID = updated.First().RingFenceID;
             RingFence ringFence = null;
@@ -2189,7 +2219,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _SaveBatchInsert([Bind(Prefix = "updated")]IEnumerable<RingFenceDetail> updated)
         {
             List<RingFenceDetail> available = null;
-            RingFenceDAO rfDAO = new RingFenceDAO();
+            RingFenceDAO rfDAO = new RingFenceDAO(appConfig.EuropeDivisions);
             string PO;
             string message = "";
             RingFence ringFence = null;
@@ -2244,7 +2274,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                                 if (!string.IsNullOrEmpty(det.PO))
                                 {
-                                    List<ExistingPO> poList = (new ExistingPODAO()).GetExistingPO(ringFence.Division, det.PO);
+                                    List<ExistingPO> poList = (new ExistingPODAO(appConfig.EuropeDivisions)).GetExistingPO(ringFence.Division, det.PO);
 
                                     foreach (ExistingPO po in poList)
                                     {
@@ -2391,8 +2421,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         //ecomm all countries store                        
                         RingFenceDetail newDet = new RingFenceDetail();
 
-                        bool addDetail;
-                        RingFence rf = db.RingFences.Where(r => r.Sku == ringFence.Sku && r.Store == ringFence.Store).First();
+                        bool addDetail;                        
+                            
+                        //RingFence rf = db.RingFences.Where(r => r.Sku == ringFence.Sku && r.Store == ringFence.Store).First();
                         
                         foreach (RingFenceDetail det in updated)
                         {
@@ -2427,7 +2458,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 addDetail = false;
                                 det.Size = det.Size.Trim();
                                 newDet = db.RingFenceDetails.Where(rfd => rfd.Size == det.Size && 
-                                                                          rfd.RingFenceID == rf.ID && 
+                                                                          rfd.RingFenceID == ringFence.ID && 
                                                                           rfd.PO == det.PO &&
                                                                           rfd.ActiveInd == "1" &&
                                                                           rfd.DCID == det.DCID).FirstOrDefault();
@@ -2456,7 +2487,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 }
                                 newDet.Qty += det.Qty;
 
-                                newDet.RingFenceID = rf.ID;
+                                newDet.RingFenceID = ringFence.ID;
                                 if (addDetail)
                                     db.RingFenceDetails.Add(newDet);
 
@@ -2474,6 +2505,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public void processEcommRingFences(List<RingFenceUploadModel> ProcessList, List<RingFenceUploadModel> Errors)
         {
             List<EcommRingFence> EcommAllStoresList = new List<EcommRingFence>();
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
 
             foreach (RingFenceUploadModel model in ProcessList)
             {
@@ -2522,6 +2554,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult ExportGrid(GridCommand settings)
         {
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
             RingFenceExport exportRF = new RingFenceExport(appConfig, dao);
             exportRF.WriteData(settings);
             exportRF.excelDocument.Save("RingFences.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
@@ -2602,6 +2635,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #region Ring Fence mass load
         public ActionResult ExcelTemplate()
         {
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
+
             RingFenceUploadSpreadsheet ringFenceUploadSpreadsheet = new RingFenceUploadSpreadsheet(appConfig, configService, dao, 
                                                                                                    new LegacyFutureInventoryDAO());
             Excel excelDocument;
@@ -2624,6 +2659,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult SaveRingFences(IEnumerable<HttpPostedFileBase> attachments, bool accumulateQuantity)
         {
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
+
             RingFenceUploadSpreadsheet ringFenceUploadSpreadsheet = new RingFenceUploadSpreadsheet(appConfig, configService, dao, 
                                                                                                    new LegacyFutureInventoryDAO());
             string message;
@@ -2656,6 +2693,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<RingFenceUploadModel> errors = (List<RingFenceUploadModel>)Session["errorList"];
             Excel excelDocument;
+            RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
+
             RingFenceUploadSpreadsheet ringFenceUploadSpreadsheet = new RingFenceUploadSpreadsheet(appConfig, configService, dao, 
                                                                                                    new LegacyFutureInventoryDAO());
 

@@ -17,12 +17,14 @@ namespace Footlocker.Logistics.Allocation.Services
         Database _database;
         Database _databaseEurope;
         Database _databaseAllocation;
+        readonly string europeDivisions;
 
-        public DirectToStoreDAO()
+        public DirectToStoreDAO(string europeDivisions)
         {
             _database = DatabaseFactory.CreateDatabase("DB2PROD");
             _databaseEurope = DatabaseFactory.CreateDatabase("DB2EURP");
             _databaseAllocation = DatabaseFactory.CreateDatabase("AllocationContext");
+            this.europeDivisions = europeDivisions;
         }
 
         public Boolean IsVendorValidForSku(string vendor, string sku)
@@ -35,24 +37,20 @@ namespace Footlocker.Logistics.Allocation.Services
             DbCommand SQLCommand;
             string[] tokens = sku.Split('-');
 
-            if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(tokens[0]))
-            {
-                currentDB = _databaseEurope;
-            }
-            else
-            {
-                currentDB = _database;
-            }
+            if (europeDivisions.Contains(tokens[0]))            
+                currentDB = _databaseEurope;            
+            else            
+                currentDB = _database;            
 
             string SQL = "select count(*) as CNT from TC051026 where ";
-            SQL = SQL + " VEND_NUM='" + vendor.PadLeft(5, '0') + "' ";
-            SQL = SQL + " and RETL_OPER_DIV_CD='" + tokens[0] + "' ";
-            SQL = SQL + " and STK_DEPT_NUM='" + tokens[1] + "' ";
-            SQL = SQL + " and STK_NUM='" + tokens[2] + "' ";
+            SQL += " VEND_NUM='" + vendor.PadLeft(5, '0') + "' ";
+            SQL += " and RETL_OPER_DIV_CD='" + tokens[0] + "' ";
+            SQL += " and STK_DEPT_NUM='" + tokens[1] + "' ";
+            SQL += " and STK_NUM='" + tokens[2] + "' ";
 
             SQLCommand = currentDB.GetSqlStringCommand(SQL);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = currentDB.ExecuteDataSet(SQLCommand);
 
             VendorGroupDetailFactory factory = new VendorGroupDetailFactory();
@@ -61,10 +59,8 @@ namespace Footlocker.Logistics.Allocation.Services
             {
                 foreach (DataRow dr in data.Tables[0].Rows)
                 {
-                    if (Convert.ToInt32(dr["CNT"]) >= 1)
-                    {
-                        return true;
-                    }
+                    if (Convert.ToInt32(dr["CNT"]) >= 1)                    
+                        return true;                    
                 }
             }
             return false;
@@ -80,23 +76,19 @@ namespace Footlocker.Logistics.Allocation.Services
             DbCommand SQLCommand;
             string[] tokens = sku.Split('-');
 
-            if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(tokens[0]))
-            {
-                currentDB = _databaseEurope;
-            }
-            else
-            {
-                currentDB = _database;
-            }
+            if (europeDivisions.Contains(tokens[0]))            
+                currentDB = _databaseEurope;            
+            else            
+                currentDB = _database;            
 
             string SQL = "select DISTINCT VEND_NUM from TC051026 where ";
-            SQL = SQL + " RETL_OPER_DIV_CD='" + tokens[0] + "' ";
-            SQL = SQL + " and STK_DEPT_NUM='" + tokens[1] + "' ";
-            SQL = SQL + " and STK_NUM='" + tokens[2] + "' ";
+            SQL += " RETL_OPER_DIV_CD='" + tokens[0] + "' ";
+            SQL += " and STK_DEPT_NUM='" + tokens[1] + "' ";
+            SQL += " and STK_NUM='" + tokens[2] + "' ";
 
             SQLCommand = currentDB.GetSqlStringCommand(SQL);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = currentDB.ExecuteDataSet(SQLCommand);
 
             if (data.Tables.Count > 0)
@@ -135,7 +127,7 @@ namespace Footlocker.Logistics.Allocation.Services
                     constraint.VendorDesc = dr["VendorDesc"].ToString();
                     constraint.VendorPackQty = Convert.ToInt32(dr["VendorPackQty"]);
                     constraint.OrderDays = dr["OrderDays"].ToString();
-                    // --------------------------------------------------------------------------------------------------------------------------------------------------------
+                    
 
                     _que.Add(constraint);
                 }

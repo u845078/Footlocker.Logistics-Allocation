@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-using Footlocker.Logistics.Allocation.Spreadsheet;
+using Footlocker.Logistics.Allocation.Spreadsheets;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Common;
@@ -21,7 +21,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
     {
         AllocationContext db = new AllocationContext();
         ConfigService configService = new ConfigService();
-        ItemDAO itemDAO = new ItemDAO();
 
         readonly string editRoles = "Director of Allocation,Admin,Support,Advanced Merchandiser Processes";
 
@@ -247,6 +246,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         if (skuDivision != model.Division || skuDepartment != model.Department)
                             ModelState.AddModelError("SKU", "The Division and Department must match the SKU's division and department");
 
+                        ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
                         long itemID = itemDAO.GetItemID(model.SKU);
                         if (itemID == 0)
                             ModelState.AddModelError("SKU", "This SKU is not found in the database");
@@ -457,6 +457,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult GetSkuAttributeTemplate()
         {
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
             SkuAttributeSpreadsheet skuAttributeSpreadsheet = new SkuAttributeSpreadsheet(appConfig, configService, itemDAO);
             Excel excelDocument;
 
@@ -468,6 +469,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult UploadSkuAttributes(IEnumerable<HttpPostedFileBase> attachments)
         {
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
             SkuAttributeSpreadsheet skuAttributeSpreadsheet = new SkuAttributeSpreadsheet(appConfig, configService, itemDAO);
 
             string message = string.Empty;

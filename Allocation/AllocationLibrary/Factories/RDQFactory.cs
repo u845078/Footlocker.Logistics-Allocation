@@ -139,9 +139,6 @@ namespace Footlocker.Logistics.Allocation.Factories
 
         public static RDQ CreateFromRingFence(RingFence ringFence, RingFenceDetail ringFenceDetail, WebUser user)
         {
-            ItemDAO itemDAO = new ItemDAO();
-            long itemID = itemDAO.GetItemID(ringFence.Sku);
-
             RDQ newRDQ = new RDQ()
             {
                 Sku = ringFence.Sku,
@@ -153,7 +150,7 @@ namespace Footlocker.Logistics.Allocation.Factories
                 PO = ringFenceDetail.PO,
                 Division = ringFence.Division,
                 DCID = ringFenceDetail.DCID,
-                ItemID = itemID,
+                ItemID = ringFence.ItemID,
                 CreatedBy = user.NetworkID,
                 CreateDate = DateTime.Now,
                 LastModifiedUser = user.NetworkID
