@@ -31,6 +31,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         public int successfulCount;
         public List<RingFenceUploadModel> warnings;
         public List<RingFenceUploadModel> errors;
+        List<InstanceDivision> instanceDivisions;
+        List<ControlDate> controlDates;
 
         private RingFenceUploadModel ParseRow(int row)
         {
@@ -59,6 +61,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         {
             errorMessage = string.Empty;
             bool canConvert;
+            string[] validFormats = { "d/M/yyyy", "d/M/yyyy hh:mm:ss tt" };
+            DateTime parsedDate;
 
             if (string.IsNullOrEmpty(inputData.Division))
                 errorMessage = "Division must be provided ";
@@ -79,6 +83,27 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             {
                 if (inputData.PO.Length != 7)
                     errorMessage += "PO must be seven digits. ";
+            }
+
+            if (!string.IsNullOrEmpty(inputData.EndDate))
+            {
+                if (!DateTime.TryParseExact(inputData.EndDate, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                    errorMessage += "End date is not in a dd/mm/yyyy format ";
+                else
+                {
+                    if (!string.IsNullOrEmpty(inputData.Division))
+                    {
+                        int instanceID = instanceDivisions.Where(id => id.Division == inputData.Division)
+                                                          .Select(id => id.InstanceID)
+                                                          .FirstOrDefault();
+                        DateTime startDate = controlDates.Where(cd => cd.InstanceID == instanceID)
+                                                         .Select(cd => cd.RunDate)
+                                                         .FirstOrDefault();
+
+                        if (parsedDate <= startDate.AddDays(1))
+                            errorMessage += string.Format("The End Date ({0}) is before the assigned start date ({1}) ", parsedDate.ToShortDateString(), startDate.AddDays(1).ToShortDateString());
+                    }
+                }
             }                
 
             if (inputData.QtyString == "ALL")
@@ -105,6 +130,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             if (inputData.Size == "ALL")
                 if (string.IsNullOrEmpty(inputData.PO) || inputData.QtyString != "ALL")
                     errorMessage += "When using ALL Size, Quantity must be ALL and a PO must be given. ";
+
+
 
             return string.IsNullOrEmpty(errorMessage);
         }
@@ -275,6 +302,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
         private void CreateOrUpdateRingFences(bool accumulateQuantity)
         {
+            string[] validFormats = { "d/M/yyyy", "d/M/yyyy hh:mm:ss tt" };
+            DateTime convertedDate;
+
             List<RingFenceDetail> ringFenceDetails = new List<RingFenceDetail>();
             // group ring fences by div, store, sku, and list of there details (which is just the upload model)
             var rfHeaders = validRingFences.GroupBy(vr => new { vr.Division, vr.Store, Sku = vr.SKU })
@@ -318,9 +348,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             // I populate these lists to reduce the number of database calls for each and every new ring fence.
             var uniqueDivisions = validRingFences.Select(rf => rf.Division).Distinct().ToList();
             var divisionControlDateMapping = (from ud in uniqueDivisions
-                                              join id in config.db.InstanceDivisions
+                                              join id in instanceDivisions
                                                 on ud equals id.Division
-                                              join cd in config.db.ControlDates
+                                              join cd in controlDates
                                                 on id.InstanceID equals cd.InstanceID
                                               select new { id.Division, cd.RunDate }).ToList();
 
@@ -373,7 +403,10 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 if (string.IsNullOrEmpty(grf.Details.FirstOrDefault().EndDate))
                     rf.EndDate = null;
                 else
-                    rf.EndDate = DateTime.ParseExact(grf.Details.FirstOrDefault().EndDate, "d/M/yyyy", CultureInfo.InvariantCulture);
+                {
+                    DateTime.TryParseExact(grf.Details.FirstOrDefault().EndDate, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out convertedDate);
+                    rf.EndDate = convertedDate;
+                }                    
 
                 rf.ItemID = skuItemIDMapping.Where(r => r.Sku == rf.Sku).Select(r => r.ItemID).FirstOrDefault();
                 rf.StartDate = divisionControlDateMapping.Where(cd => cd.Division == rf.Division).Select(cd => cd.RunDate).FirstOrDefault().AddDays(1);
@@ -489,9 +522,12 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 }
 
                 var endDate = groupedRF.Details.Select(d => d.EndDate).FirstOrDefault();
-
+                
                 if (!string.IsNullOrEmpty(endDate))
-                    erf.EndDate = Convert.ToDateTime(endDate);
+                {
+                    DateTime.TryParseExact(endDate, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out convertedDate);
+                    erf.EndDate = convertedDate;
+                }
                 else
                     erf.EndDate = null;
 
@@ -551,6 +587,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             List<EcommRingFence> ecomRFs = new List<EcommRingFence>();
 
             ecommWarehouses = config.db.EcommWarehouses.ToList();
+            instanceDivisions = config.db.InstanceDivisions.ToList();
+            controlDates = config.db.ControlDates.ToList();
 
             LoadAttachment(attachment);
             if (!HasValidHeaderRow())
