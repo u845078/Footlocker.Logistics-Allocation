@@ -74,13 +74,13 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
         public string GetServiceTypeDataString()
         {
-            return string.Format("SRVTY{0}{1}{2}{3}{4}{5}{6}{7}{8}", Division, Department, StockNumber, Width.PadRight(30, ' '), EffectiveDateString, 
+            return string.Format("SRVTY{0}{1}{2}{3}{4}{5}{6}{7}{8}", Division, Department, StockNumber, Width.PadRight(21, ' '), EffectiveDateString, 
                 ServiceType.PadRight(50, ' '), DateTime.Now.ToString("yyyy-MM-dd-HH.mm.ss.ffffff"), UserID.PadRight(30, ' '), "".PadRight(9, ' '));
         }
 
         public string GetAvailabilityDataString()
         {
-            return string.Format("SKUAV{0}{1}{2}{3}{4}{5}{6}{7}", Division, Department, StockNumber, Width.PadRight(30, ' '), 
+            return string.Format("SKUAV{0}{1}{2}{3}{4}{5}{6}{7}", Division, Department, StockNumber, Width.PadRight(21, ' '), 
                 Availability.PadRight(60, ' '), DateTime.Now.ToString("yyyy-MM-dd-HH.mm.ss.ffffff"), UserID.PadRight(30, ' '), "".PadRight(9, ' '));
         }
     }
@@ -237,8 +237,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         {
             int failCount = 1;
             string datasetName;
+            bool completed = false;
 
-            while (failCount < 5)
+            while (failCount < 5 && !completed)
             {
                 try
                 {
@@ -251,6 +252,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                     ftp.FTPSToMainframe(ftpFileName, datasetName, 0, 0, config.QuoteFTPCommand);
                     ftp.Disconnect();
+                    completed = true;
                 }
                 catch (Exception ex)
                 {
