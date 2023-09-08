@@ -70,6 +70,7 @@
     <Compile Include="AppConfigTests.cs" />
     <Compile Include="ConfigServiceTests.cs" />
     <Compile Include="RDQFactoryTests.cs" />
+    <Compile Include="ServiceTypeSpreadsheetTests.cs" />
     <Compile Include="WebUserTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

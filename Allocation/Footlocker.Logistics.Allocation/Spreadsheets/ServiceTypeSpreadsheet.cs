@@ -16,6 +16,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         public string ServiceType { get; set; }
         public string EffectiveDateString { get; set; }
         public string Availability { get; set; }
+        public DateTime currentDate { get; set; }
 
         public string Division 
         { 
@@ -73,15 +74,15 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         public string UserID { get; set; }
 
         public string GetServiceTypeDataString()
-        {
+        {            
             return string.Format("SRVTY{0}{1}{2}{3}{4}{5}{6}{7}{8}", Division, Department, StockNumber, Width.PadRight(21, ' '), EffectiveDateString, 
-                ServiceType.PadRight(50, ' '), DateTime.Now.ToString("yyyy-MM-dd-HH.mm.ss.ffffff"), UserID.PadRight(30, ' '), "".PadRight(9, ' '));
+                ServiceType.PadRight(50, ' '), currentDate.ToString("yyyy-MM-dd-HH.mm.ss.ffffff"), UserID.PadRight(30, ' '), "".PadRight(9, ' '));
         }
 
         public string GetAvailabilityDataString()
         {
             return string.Format("SKUAV{0}{1}{2}{3}{4}{5}{6}{7}", Division, Department, StockNumber, Width.PadRight(21, ' '), 
-                Availability.PadRight(60, ' '), DateTime.Now.ToString("yyyy-MM-dd-HH.mm.ss.ffffff"), UserID.PadRight(30, ' '), "".PadRight(9, ' '));
+                Availability.PadRight(60, ' '), currentDate.ToString("yyyy-MM-dd-HH.mm.ss.ffffff"), UserID.PadRight(30, ' '), "".PadRight(9, ' '));
         }
     }
 
@@ -101,7 +102,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 ServiceType = Convert.ToString(worksheet.Cells[row, 1].Value),
                 EffectiveDateString = Convert.ToString(worksheet.Cells[row, 2].Value), 
                 Availability = Convert.ToString(worksheet.Cells[row, 3].Value),
-                UserID = config.currentUser.NetworkID
+                UserID = config.currentUser.NetworkID, 
+                currentDate = DateTime.Now
             };
 
             if (string.IsNullOrEmpty(returnValue.ServiceType))
