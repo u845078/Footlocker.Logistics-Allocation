@@ -69,16 +69,57 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
+        //public ActionResult ExcelTemplate()
+        //{
+        //    Excel excelDocument;
+        //    ServiceTypeSpreadsheet serviceTypeSpreadsheet = new ServiceTypeSpreadsheet(appConfig, configService, new MainframeDAO(appConfig.EuropeDivisions));
+
+        //    excelDocument = serviceTypeSpreadsheet.GetTemplate();
+
+        //    excelDocument.Save("ServiceTypeUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+        //    return View();
+        //}
+
         public ActionResult ExcelTemplate()
         {
-            Excel excelDocument;
-            ServiceTypeSpreadsheet serviceTypeSpreadsheet = new ServiceTypeSpreadsheet(appConfig, configService, new MainframeDAO(appConfig.EuropeDivisions));
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
 
-            excelDocument = serviceTypeSpreadsheet.GetTemplate();
+            Excel excelDocument = new Excel();
 
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["SkuTypeTemplate"]);
+            FileStream file = new FileStream(Server.MapPath("~/") + templateFilename, FileMode.Open, System.IO.FileAccess.Read);
+
+            Byte[] data1 = new Byte[file.Length];
+            file.Read(data1, 0, data1.Length);
+            file.Close();
+            MemoryStream memoryStream1 = new MemoryStream(data1);
+            excelDocument.Open(memoryStream1);
             excelDocument.Save("ServiceTypeUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
+
+        ///// <summary>
+        ///// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
+        ///// </summary>
+        ///// <param name="attachments"></param>
+        ///// <returns></returns>
+        //[CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,Admin,Support")]
+        //public ActionResult Save(IEnumerable<HttpPostedFileBase> attachments)
+        //{
+        //    ServiceTypeSpreadsheet serviceTypeSpreadsheet = new ServiceTypeSpreadsheet(appConfig, configService, new MainframeDAO(appConfig.EuropeDivisions));
+
+        //    foreach (HttpPostedFileBase file in attachments)
+        //    {
+        //        serviceTypeSpreadsheet.Save(file);
+
+        //        if (!string.IsNullOrEmpty(serviceTypeSpreadsheet.message))
+        //            return Content(serviceTypeSpreadsheet.message);
+        //    }
+
+        //    return Content("");
+        //}
 
         /// <summary>
         /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
@@ -88,18 +129,158 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,Admin,Support")]
         public ActionResult Save(IEnumerable<HttpPostedFileBase> attachments)
         {
-            ServiceTypeSpreadsheet serviceTypeSpreadsheet = new ServiceTypeSpreadsheet(appConfig, configService, new MainframeDAO(appConfig.EuropeDivisions));
+            Aspose.Excel.License license = new Aspose.Excel.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            string Division = "";
+            string filepath = System.Configuration.ConfigurationManager.AppSettings["skutypefile"] + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmssffffff") + ".txt";
+            TextWriter txtWrite = new StreamWriter(filepath);
 
             foreach (HttpPostedFileBase file in attachments)
             {
-                serviceTypeSpreadsheet.Save(file);
+                //Instantiate a Workbook object that represents an Excel file
+                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
+                Byte[] data1 = new Byte[file.InputStream.Length];
+                file.InputStream.Read(data1, 0, data1.Length);
+                file.InputStream.Close();
+                MemoryStream memoryStream1 = new MemoryStream(data1);
+                workbook.Open(memoryStream1);
+                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
+                string effectiveDate = "";
+                string mainDivision;
+                int row = 1;
+                Boolean writeAV = (Convert.ToString(mySheet.Cells[0, 4].Value).Contains("Availability"));
+                string availabilityCodes = "";
+                if (writeAV)
+                {
+                    Division = Convert.ToString(mySheet.Cells[row, 0].Value).Substring(0, 2);
+                    availabilityCodes = (new MainframeDAO(appConfig.EuropeDivisions)).GetAvailabityCodes(Division);
+                }
 
-                if (!string.IsNullOrEmpty(serviceTypeSpreadsheet.message))
-                    return Content(serviceTypeSpreadsheet.message);
+                if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("SKU")) &&
+                    (Convert.ToString(mySheet.Cells[0, 2].Value).Contains("Type")) && (Convert.ToString(mySheet.Cells[0, 3].Value).Contains("EffectiveDate"))
+                    )
+                {
+                    Division = Convert.ToString(mySheet.Cells[row, 0].Value).Substring(0, 2);
+                    mainDivision = Division;
+                    if (!currentUser.HasDivision(AppName, Division))
+                    {
+                        txtWrite.Flush();
+                        txtWrite.Close();
+                        return Content("You do not have permission to update this division.");
+                    }
+                    string[] tokens;
+                    while (mySheet.Cells[row, 0].Value != null)
+                    {
+                        if (mySheet.Cells[row, 3].Value != null)
+                        {
+                            effectiveDate = Convert.ToDateTime(mySheet.Cells[row, 3].Value).ToString("yyyy-MM-dd");
+                        }
+                        else
+                        {
+                            effectiveDate = DateTime.Now.ToString("yyyy-MM-dd");
+                        }
+
+                        Division = Convert.ToString(mySheet.Cells[row, 0].Value).Substring(0, 2);
+                        if (!(Division.Equals(mainDivision)))
+                        {
+                            txtWrite.Flush();
+                            txtWrite.Close();
+                            try
+                            {
+                                System.IO.File.Delete(filepath);
+                            }
+                            catch { }
+
+                            return Content("Spreadsheet must be for one division only.");
+                        }
+                        tokens = Convert.ToString(mySheet.Cells[row, 0].Value).Split('-');
+
+                        txtWrite.WriteLine(
+                            "SRVTY" +
+                                (tokens[0].PadLeft(2, '0') +//div
+                                tokens[1].PadLeft(2, '0') +//dept
+                                tokens[2].PadLeft(5, '0') +//stk
+                                tokens[3].PadLeft(2, '0')).PadRight(30, ' ') +//width
+                                (effectiveDate + Convert.ToString(mySheet.Cells[row, 2].Value).PadRight(1, ' ')).PadRight(60, ' ') +//service type
+                                DateTime.Now.ToString("yyyy-MM-dd-HH.mm.ss.ffffff") +//create date
+                                User.Identity.Name.Split('\\')[1].PadRight(30, ' ').Substring(0, 30) +//user
+                                "".PadRight(9, ' ') //filler
+                            );
+                        if (writeAV && (Convert.ToString(mySheet.Cells[row, 4].Value).Length > 0))
+                        {
+                            if (availabilityCodes.Contains(Convert.ToString(mySheet.Cells[row, 4].Value).PadRight(1, ' ')))
+                            {
+                                txtWrite.WriteLine(
+                                "SKUAV" +
+                                    (tokens[0].PadLeft(2, '0') +//div
+                                    tokens[1].PadLeft(2, '0') +//dept
+                                    tokens[2].PadLeft(5, '0') +//stk
+                                    tokens[3].PadLeft(2, '0')).PadRight(30, ' ') +//width
+                                    (Convert.ToString(mySheet.Cells[row, 4].Value).PadRight(1, ' ')).PadRight(60, ' ') +//availability code
+                                    DateTime.Now.ToString("yyyy-MM-dd-HH.mm.ss.ffffff") +//create date
+                                    User.Identity.Name.Split('\\')[1].PadRight(30, ' ').Substring(0, 30) +//user
+                                    "".PadRight(9, ' ') //filler
+                                    );
+                            }
+                        }
+
+                        row++;
+                    }
+                }
+                else
+                {
+                    return Content("Incorrect header, please use template.");
+                }
             }
+            txtWrite.Flush();
+            txtWrite.Close();
 
-            return Content("");
+            int failcount = 1;
+            while (failcount < 5)
+            {
+                try
+                {
+                    if ("true".Equals(System.Configuration.ConfigurationManager.AppSettings["enableFTP"]))
+                    {
+                        if (System.Configuration.ConfigurationManager.AppSettings["EUROPE_DIV"].Contains(Division))
+                        {
+                            Footlocker.Common.Services.FTPService ftp = new Footlocker.Common.Services.FTPService(System.Configuration.ConfigurationManager.AppSettings["FTPServer"], System.Configuration.ConfigurationManager.AppSettings["FTPUserName"], System.Configuration.ConfigurationManager.AppSettings["FTPPassword"]);
+
+                            ftp.FTPSToMainframe(filepath, System.Configuration.ConfigurationManager.AppSettings["SkuTypeDatasetEurope"], 0, 0, System.Configuration.ConfigurationManager.AppSettings["QuoteFTPCommand"]);
+                            ftp.Disconnect();
+                        }
+                        else
+                        {
+                            Footlocker.Common.Services.FTPService ftp = new Footlocker.Common.Services.FTPService(System.Configuration.ConfigurationManager.AppSettings["FTPServer"], System.Configuration.ConfigurationManager.AppSettings["FTPUserName"], System.Configuration.ConfigurationManager.AppSettings["FTPPassword"]);
+
+                            ftp.FTPSToMainframe(filepath, System.Configuration.ConfigurationManager.AppSettings["SkuTypeDataset"], 0, 0, System.Configuration.ConfigurationManager.AppSettings["QuoteFTPCommand"]);
+                            ftp.Disconnect();
+                        }
+                    }
+                    System.IO.File.Delete(filepath);
+                    return Content("");
+                }
+                catch (Exception ex)
+                {
+                    failcount++;
+                    if (failcount == 5)
+                    {
+                        try
+                        {
+                            System.IO.File.Delete(filepath);
+                        }
+                        catch { }
+                        return Content(ex.Message);
+                    }
+                }
+            }
+            return Content("Shouldn't ever get here");
         }
+
+
+
+
         #endregion
 
         #region AR SKU
