@@ -770,7 +770,6 @@
     <Content Include="Views\SkuAttribute\Create.cshtml" />
     <Content Include="Views\SkuAttribute\Index.cshtml" />
     <Content Include="Views\SkuAttribute\Edit.cshtml" />
-    <Content Include="Views\Upload\NetworkUpload.cshtml" />
     <Content Include="Views\Upload\SaveNetwork.cshtml" />
     <Content Include="Views\Item\Lookup.cshtml" />
     <Content Include="Views\StoreBTS\AddDetail.cshtml" />
@@ -795,7 +794,6 @@
     <Content Include="Views\OverridePO\CreateAllPOsForSku.cshtml" />
     <Content Include="Views\OverridePO\VerifyList.cshtml" />
     <Content Include="Views\OverridePO\EditSku.cshtml" />
-    <Content Include="Views\Upload\BTSUpload.cshtml" />
     <Content Include="Views\DTS\OneSizeConstraints.cshtml" />
     <Content Include="Views\Item\Troubleshoot.cshtml" />
     <Content Include="Views\StoreAttribute\Index.cshtml" />
@@ -825,7 +823,6 @@
     <Content Include="Views\CrossDockExclusion\Create.cshtml" />
     <Content Include="Views\Route\DCIndex.cshtml" />
     <Content Include="Views\Route\EditDC.cshtml" />
-    <Content Include="Views\Upload\SeasonUpload.cshtml" />
     <Content Include="Views\WebPick\ExcelUpload.cshtml" />
     <Content Include="Views\WebPick\AuditIndex.cshtml" />
     <Content Include="Views\StoreExtension\Update.cshtml" />
