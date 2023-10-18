@@ -12,12 +12,6 @@
         {
             <li>@Html.Raw(division.DivisionCode + " - " + division.DivisionName)</li>
         }
-        @*<li>24 - Foot Locker Australia</li>
-        <li>28 - Foot Locker New Zealand</li>
-        <li>31 - Foot Locker Europe</li>
-        <li>47 - Runners Point Group</li>
-        <li>76 - Foot Locker Canada</li>
-        <li>77 - Champs Canada</li>*@
     </ul>
 
     Spreadsheet columns should be Sku, Sku Id Code 1-5 (optional).  <br /><br />
@@ -33,44 +27,42 @@
         .Async(async => async
             .Save("SaveSkuId", "Upload")
             .AutoUpload(false))
-            .ShowFileList(true)
+        .ShowFileList(true)
         .ClientEvents(events => events
             .OnError("onError")
             .OnSelect("onSelect")
-                    .OnSuccess("onSuccess")
-            )
-        )
-        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
-        <br />
-        <h4> <div id="message"></div> </h4>
+            .OnSuccess("onSuccess"))
+     )
+     <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
+     <br />
+     <h4 id="message"></h4>
 </fieldset>
  
-     <script type="text/javascript">
-
-        function onSelect(e) {
-            var files = e.files;
-            if (files[0].extension != ".xls") {
-                alert("Document must be a spreadsheet with a xls extension. ");
-                e.preventDefault();
-            }
-            else{
-                 document.getElementById('spreadsheet').style.visibility = 'visible';
-             }
-             $('#message').empty();
+<script type="text/javascript">
+function onSelect(e) {
+    var files = e.files;
+    if (files[0].extension != ".xls") {
+        alert("Document must be a spreadsheet with a xls extension. ");
+        e.preventDefault();
+    }
+    else{
+            document.getElementById('spreadsheet').style.visibility = 'visible';
         }
+        $('#message').empty();
+}
 
-        function onError(e) {
-            var message = e.XMLHttpRequest.responseText;
-            $('#message').empty().append("<font color='red'>"+message+"</font>");
+function onError(e) {
+    var message = e.XMLHttpRequest.responseText;
+    $('#message').empty().append("<font color='red'>"+message+"</font>");
 
-             e.preventDefault();
-         }
+        e.preventDefault();
+    }
 
-         function onSuccess(e) {
-             var message = e.XMLHttpRequest.responseText;
-             $('#message').empty().append("<font color='red'>Success</font>");
+    function onSuccess(e) {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>Success</font>");
 
-             e.preventDefault();
-         }
-    </script>
+        e.preventDefault();
+    }
+</script>
     

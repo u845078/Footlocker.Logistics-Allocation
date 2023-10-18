@@ -35,6 +35,12 @@ namespace Footlocker.Logistics.Allocation.Common
         private string _quoteFTPCommand;
         private string _skuTypeDataset;
         private string _skuTypeDatasetEurope;
+        private string _skuIDFile;
+        private string _skuIDDataset; 
+        private string _skuIDDatasetEurope;
+        private string _skuIDFTPUserName;
+        private string _skuIDFTPPassword;
+        private string _skuIDQuoteFTPCommand;
         public string AppName;
         public string AppPath;
         public WebUser currentUser;
@@ -355,6 +361,71 @@ namespace Footlocker.Logistics.Allocation.Common
                     _skuTypeDatasetEurope = ConfigurationManager.AppSettings["SkuTypeDatasetEurope"].ToString();
 
                 return _skuTypeDatasetEurope;
+            }
+        }
+
+        public string SKUIDFile
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_skuIDFile))
+                    _skuIDFile = ConfigurationManager.AppSettings["SkuIdFile"].ToString();
+
+                return _skuIDFile;
+            }
+        }
+
+        public string SKUIDDataset
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_skuIDDataset))
+                    _skuIDDataset = ConfigurationManager.AppSettings["SkuIdDataset"].ToString();
+
+                return _skuIDDataset;
+            }
+        }
+
+        public string SKUIDDatasetEurope
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_skuIDDatasetEurope))
+                    _skuIDDatasetEurope = ConfigurationManager.AppSettings["SkuIdDatasetEurope"].ToString();
+
+                return _skuIDDatasetEurope;
+            }
+        }
+        public string SKUIDFTPUserName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_skuIDFTPUserName))
+                    _skuIDFTPUserName = ConfigurationManager.AppSettings["SkuIdFTPUserName"].ToString();
+
+                return _skuIDFTPUserName;
+            }
+        }
+
+        public string SKUIDFTPPassword
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_skuIDFTPPassword))
+                    _skuIDFTPPassword = ConfigurationManager.AppSettings["SkuIdFTPPassword"].ToString();
+
+                return _skuIDFTPPassword;
+            }
+        }
+
+        public string SKUIDQuoteFTPCommand
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_skuIDQuoteFTPCommand))
+                    _skuIDQuoteFTPCommand = ConfigurationManager.AppSettings["QuoteFTPCommand_SkuID"].ToString();
+
+                return _skuIDQuoteFTPCommand;
             }
         }
     }

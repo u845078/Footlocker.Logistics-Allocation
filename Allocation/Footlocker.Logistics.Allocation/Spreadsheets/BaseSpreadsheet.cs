@@ -32,5 +32,18 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             license.SetLicense(config.AsposeLicenseFile);
             excelDocument = new Excel();
         }
+
+        public void VerifyWritableDirectory(string directory)
+        {
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+        }
+
+        public string GetDirectory(string fullFileName)
+        {
+            return fullFileName.Substring(0, fullFileName.LastIndexOf("\\") + 1);
+        }
     }
 }

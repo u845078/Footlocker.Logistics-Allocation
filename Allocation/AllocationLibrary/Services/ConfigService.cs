@@ -37,14 +37,13 @@
             Config config = (from a in db.Configs
                              join b in db.ConfigParams 
                              on a.ParamID equals b.ParamID
-                             where (a.InstanceID == instanceid) && 
-                             (b.Name == setting)
+                             where a.InstanceID == instanceid && 
+                                   b.Name == setting
                              select a).FirstOrDefault();
 
-            if (config == null)
-            {
-                throw new Exception(string.Format("Configuration setting {0} is not setup for instance {1}", setting, instanceid.ToString()));
-            }
+            if (config == null)            
+                throw new Exception(string.Format("Configuration setting {0} is not set up for instance {1}", setting, instanceid.ToString()));
+            
             return config.Value;
         }
 
