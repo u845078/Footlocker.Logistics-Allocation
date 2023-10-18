@@ -10,7 +10,6 @@
       <siteMapNode title="Seasonality Overrides" controller="ProductHierarchyOverride" action="Index" />
       <siteMapNode title="Purge Criteria" controller="PurgeArchive" action="Index"/>
       <siteMapNode title="RDQ Restrictions" controller="RDQRestriction" action="Index" />
-      <siteMapNode title="Data Maintenance" controller="Driver" action="Maintenance" />
     </siteMapNode>
 
 	  <siteMapNode title="Location">
