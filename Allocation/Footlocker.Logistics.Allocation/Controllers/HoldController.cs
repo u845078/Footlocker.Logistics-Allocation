@@ -10,12 +10,9 @@ using Telerik.Web.Mvc;
 using Footlocker.Common;
 using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.DAO;
-using System.IO;
 using Aspose.Excel;
-using System.Globalization;
 using Aspose.Cells;
 using System.Data;
-using System.Web.ApplicationServices;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -37,8 +34,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<Division> divs = currentUser.GetUserDivisions(AppName);
             List<Hold> list = db.Holds.Where(h => h.Duration == duration || duration == "All").ToList();
             list = (from a in list
-                    join d in divs on a.Division equals d.DivCode                     
+                    join d in divs 
+                    on a.Division equals d.DivCode                     
                     select a).ToList();
+
+            if (list.Count > 0)
+            {
+                List<string> uniqueNames = (from l in list
+                                            select l.CreatedBy).Distinct().ToList();
+                Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+
+                foreach (var item in uniqueNames)
+                {
+                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                }
+
+                foreach (var item in fullNamePairs)
+                {
+                    list.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+                }
+            }
 
             //TODO:  Do we want dept level security on holds???
             ViewData["message"] = message;
@@ -72,7 +87,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<Division> divs = currentUser.GetUserDivisions(AppName);
             List<Hold> list = db.Holds.Where(h => h.Duration == duration || duration == "All").ToList();
             list = (from a in list
-                    join d in divs on a.Division equals d.DivCode                    
+                    join d in divs 
+                    on a.Division equals d.DivCode                    
                     select a).ToList();
 
             if (list.Count > 0)
@@ -621,7 +637,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 string tempvalidationMessage = holdService.ValidateHold(false, true, false);
                 
                 if (startdate > model.Hold.StartDate)                
-                    tempvalidationMessage = "Start date must be after original start date of hold for store " + h.Store + "<br>";                
+                    tempvalidationMessage = string.Format("Start date must be after original start date of hold for store {0}<br>", h.Store);                
 
                 if (tempvalidationMessage == "")                
                     updatedList.Add(h);                
@@ -702,7 +718,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     uh.CreateDate = DateTime.Now;
                     uh.CreatedBy = currentUser.NetworkID;
-                    db.Entry(uh).State = System.Data.EntityState.Modified;
+                    db.Entry(uh).State = EntityState.Modified;
                 }
                 db.SaveChanges();
                 ViewData["message"] = "Successfully updated group of holds";
@@ -742,11 +758,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<Hold> holds = new List<Hold>();
             if (holdType.Contains("Reserve"))
             {
-                holds = (from a in db.Holds where ((a.Division == div) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 1)) select a).ToList();
+                holds = (from a in db.Holds 
+                         where a.Division == div && 
+                               a.Level == level && 
+                               a.Value == value && 
+                               a.ReserveInventory == 1
+                         select a).ToList();
             }
             else
             {
-                holds = (from a in db.Holds where ((a.Division == div) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 0)) select a).ToList();
+                holds = (from a in db.Holds 
+                         where a.Division == div && 
+                               a.Level == level && 
+                               a.Value == value && 
+                               a.ReserveInventory == 0
+                         select a).ToList();
             }
             DeleteHoldModel dh = new DeleteHoldModel();
             dh.Hold = holds.First();
@@ -775,11 +801,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<Hold> holds = new List<Hold>();
             if (holdType.Contains("Reserve"))
             {
-                holds = (from a in db.Holds where ((a.Division == div) && (a.Store == store) && (a.ReserveInventory == 1)) select a).ToList();
+                holds = (from a in db.Holds 
+                         where a.Division == div && 
+                               a.Store == store && 
+                               a.ReserveInventory == 1
+                         select a).ToList();
             }
             else
             {
-                holds = (from a in db.Holds where ((a.Division == div) && (a.Store == store) && (a.ReserveInventory == 0)) select a).ToList();
+                holds = (from a in db.Holds 
+                         where a.Division == div && 
+                               a.Store == store && 
+                               a.ReserveInventory == 0
+                         select a).ToList();
             }
             DeleteHoldModel dh = new DeleteHoldModel();
             dh.Hold = holds.First();
@@ -825,11 +859,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<Hold> holds = new List<Hold>();
             if (holdType.Contains("Reserve"))
             {
-                holds = (from a in db.Holds where ((a.Division == div) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 1)) select a).ToList();
+                holds = (from a in db.Holds 
+                         where a.Division == div && 
+                               a.Level == level && 
+                               a.Value == value && 
+                               a.ReserveInventory == 1
+                         select a).ToList();
             }
             else
             {
-                holds = (from a in db.Holds where ((a.Division == div) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 0)) select a).ToList();
+                holds = (from a in db.Holds 
+                         where a.Division == div && 
+                               a.Level == level && 
+                               a.Value == value && 
+                               a.ReserveInventory == 0
+                         select a).ToList();
             }
             foreach (Hold hold in holds)
             {
@@ -954,7 +998,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     var contextRDQ = db.RDQs.Find(rdq.ID);
                     contextRDQ.Status = "HOLD-REL";
 
-                    if ((rdq.PO != null) && (rdq.PO != "") && (rdq.PO != "N/A") && (rdq.Size.Length == 5))
+                    if (rdq.PO != null && rdq.PO != "" && rdq.Size.Length == 5)
                     {
                         rdq.DestinationType = "CROSSDOCK";
                     }
@@ -966,7 +1010,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 // Persist changes
-                db.SaveChanges(User.Identity.Name);
+                db.SaveChanges(currentUser.NetworkID);
             }
 
             Session["holdrdq"] = -1;
@@ -992,7 +1036,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     contextRDQ.Status = "HOLD-REL";
 
-                    if ((rdq.PO != null) && (rdq.PO != "") && (rdq.PO != "N/A") && (rdq.Size.Length == 5))
+                    if (rdq.PO != null && rdq.PO != "" && rdq.Size.Length == 5)
                     {
                         rdq.DestinationType = "CROSSDOCK";
                     }
@@ -1004,7 +1048,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 // Persist changes
-                db.SaveChanges(User.Identity.Name);
+                db.SaveChanges(currentUser.NetworkID);
             }
 
             Session["rdqgrouplist"] = null;
@@ -1012,23 +1056,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
         }
 
-
         [HttpPost]
         public ActionResult ReleaseRDQGroupToWarehouse(RDQGroup rdqGroup, int holdID)
         {
             // Get all RDQs of specified SKU for specified hold
             var dao = new RDQDAO();
             var holdRDQs = GetRDQsForSession(holdID);
-            var groupRDQs = holdRDQs.Where(rdq =>
-                rdq.Division == rdqGroup.Division
-                && rdq.Store == rdqGroup.Store
-                && rdq.WarehouseName == rdqGroup.WarehouseName
-                && rdq.Category == rdqGroup.Category
-                && rdq.Sku == rdqGroup.Sku)
-                .ToList();
+            var groupRDQs = holdRDQs.Where(rdq => rdq.Division == rdqGroup.Division && 
+                                           rdq.Store == rdqGroup.Store && 
+                                           rdq.WarehouseName == rdqGroup.WarehouseName && 
+                                           rdq.Category == rdqGroup.Category && 
+                                           rdq.Sku == rdqGroup.Sku).ToList();
 
             //performance was really bad via entity framework, we'll just run a quick stored proc and update records in memory
-            dao.DeleteRDQs(groupRDQs, UserName);
+            dao.DeleteRDQs(groupRDQs, currentUser.NetworkID);
 
             groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
 
@@ -1042,17 +1083,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             // Get all RDQs of specified SKU for specified hold
             var holdRDQs = GetRDQsForSession(holdID);
-            var groupRDQs = holdRDQs.Where(rdq =>
-                rdq.Division == rdqGroup.Division
-                && rdq.Store == rdqGroup.Store
-                && rdq.WarehouseName == rdqGroup.WarehouseName
-                && rdq.Category == rdqGroup.Category
-                && rdq.Sku == rdqGroup.Sku)
-                .ToList();
+            var groupRDQs = holdRDQs.Where(rdq => rdq.Division == rdqGroup.Division && 
+                                                  rdq.Store == rdqGroup.Store && 
+                                                  rdq.WarehouseName == rdqGroup.WarehouseName && 
+                                                  rdq.Category == rdqGroup.Category && 
+                                                  rdq.Sku == rdqGroup.Sku).ToList();
 
             //performance was really bad via entity framework, we'll just run a quick stored proc and update records in memory
             RDQDAO dao = new RDQDAO();
-            dao.ReleaseRDQs(groupRDQs, UserName);
+            dao.ReleaseRDQs(groupRDQs, currentUser.NetworkID);
 
             groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
             Session["holdrdqlist"] = holdRDQs;
@@ -1067,16 +1106,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // Get all RDQs of specified SKU for specified hold
             var dao = new RDQDAO();
             var holdRDQs = GetRDQsInSession();
-            var groupRDQs = holdRDQs.Where(rdq =>
-                rdq.Division == rdqGroup.Division
-                && rdq.Store == rdqGroup.Store
-                && rdq.WarehouseName == rdqGroup.WarehouseName
-                && rdq.Category == rdqGroup.Category
-                && rdq.Sku == rdqGroup.Sku)
-                .ToList();
+            var groupRDQs = holdRDQs.Where(rdq => rdq.Division == rdqGroup.Division && 
+                                                  rdq.Store == rdqGroup.Store && 
+                                                  rdq.WarehouseName == rdqGroup.WarehouseName && 
+                                                  rdq.Category == rdqGroup.Category && 
+                                                  rdq.Sku == rdqGroup.Sku).ToList();
 
             //performance was really bad via entity framework, we'll just run a quick stored proc and update records in memory
-            dao.DeleteRDQs(groupRDQs, UserName);
+            dao.DeleteRDQs(groupRDQs, currentUser.NetworkID);
 
             groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
 
@@ -1085,23 +1122,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return new JsonResult() { Data = new JsonResultData(ActionResultCode.Success) };
         }
 
-
         [HttpPost]
         public ActionResult MassReleaseRDQGroup(RDQGroup rdqGroup)
         {
             // Get all RDQs of specified SKU for specified hold
             var holdRDQs = GetRDQsInSession();
-            var groupRDQs = holdRDQs.Where(rdq =>
-                rdq.Division == rdqGroup.Division
-                && rdq.Store == rdqGroup.Store
-                && rdq.WarehouseName == rdqGroup.WarehouseName
-                && rdq.Category == rdqGroup.Category
-                && rdq.Sku == rdqGroup.Sku)
-                .ToList();
+            var groupRDQs = holdRDQs.Where(rdq => rdq.Division == rdqGroup.Division && 
+                                                  rdq.Store == rdqGroup.Store && 
+                                                  rdq.WarehouseName == rdqGroup.WarehouseName && 
+                                                  rdq.Category == rdqGroup.Category && 
+                                                  rdq.Sku == rdqGroup.Sku).ToList();
 
             //performance was really bad via entity framework, we'll just run a quick stored proc and update records in memory
             RDQDAO dao = new RDQDAO();
-            dao.ReleaseRDQs(groupRDQs, UserName);
+            dao.ReleaseRDQs(groupRDQs, currentUser.NetworkID);
 
             groupRDQs.ForEach(rdq => holdRDQs.Remove(rdq));
             Session["rdqgrouplist"] = holdRDQs;
@@ -1235,10 +1269,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 Session["holdgrouprdq"] = div + "|" + store;
                 Session["rdqgrouplist"] = model;
             }
+
             return model;
-
         }
-
 
         private List<RDQ> GetRDQsForSession(long holdID)
         {
@@ -1376,32 +1409,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         #region Holds Upload
-
         public ActionResult Upload()
         {
             return View();
         }
 
-        public ActionResult UploadHoldsUpdates()
-        {
-            return View();
-        }
-
-        public ActionResult ExcelDeleteTemplate()
-        {
-            Aspose.Cells.License license = new Aspose.Cells.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Cells.lic");
-                        
-            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["HoldsUpdates"]);
-            Workbook excelDocument = new Workbook(System.Web.HttpContext.Current.Server.MapPath(templateFilename));            
-
-            OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
-            excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsUpdates.xlsx", ContentDisposition.Attachment, save);            
-            return View();
-        }
-
-        #region HoldsUpload spreadsheet
         public ActionResult ExcelHoldsUploadTemplate()
         {
             HoldsUploadSpreadsheet holdsUploadSpreadsheet = new HoldsUploadSpreadsheet(appConfig, configService, holdService);
@@ -1415,11 +1427,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult UploadHolds(IEnumerable<HttpPostedFileBase> attachments)
         {
-            holdService = new HoldService(currentUser, configService);            
+            holdService = new HoldService(currentUser, configService);
 
             HoldsUploadSpreadsheet holdsUploadSpreadsheet = new HoldsUploadSpreadsheet(appConfig, configService, holdService);
 
-            string message = string.Empty;
+            string message;
             int successCount = 0;
 
             foreach (HttpPostedFileBase file in attachments)
@@ -1461,6 +1473,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
         #endregion
+
+        #region Holds Delete Upload
+        public ActionResult UploadHoldsUpdates()
+        {
+            return View();
+        }
+
+        public ActionResult ExcelDeleteTemplate()
+        {
+            Aspose.Cells.License license = new Aspose.Cells.License();
+            //Set the license 
+            license.SetLicense("C:\\Aspose\\Aspose.Cells.lic");
+                        
+            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["HoldsUpdates"]);
+            Workbook excelDocument = new Workbook(System.Web.HttpContext.Current.Server.MapPath(templateFilename));            
+
+            OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsUpdates.xlsx", ContentDisposition.Attachment, save);            
+            return View();
+        }
 
         public ActionResult MassDeleteHolds(IEnumerable<HttpPostedFileBase> attachments)
         {

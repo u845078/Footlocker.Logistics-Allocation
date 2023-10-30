@@ -91,14 +91,11 @@
                                    }
                                </text>)
                 .ClientTemplate("<a class=\"t-button\" href='javascript:DeleteGrid(\"<#= ID #>\");'>Delete</a>"
-                + "<a class='t-button' href='"
-                    + Url.Content("~/Hold/Edit/<#= ID #>")
-                    + "'>Edit</a>"
+                + "<a class='t-button' href='" + Url.Content("~/Hold/Edit/<#= ID #>") + "'>Edit</a>"
                 + "<# if (ReserveInventoryBool) { #>"
                     + "<a class=\"t-button\" href='javascript:ReleaseGrid(\"<#= ID #>\");'>Release</a>"
                 + "<# } #>"
                 ).Width(150);
-
         })
         .ToolBar(toolbar =>
         {

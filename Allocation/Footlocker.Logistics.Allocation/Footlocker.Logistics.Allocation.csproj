@@ -230,9 +230,11 @@
     <Compile Include="Common\Filters\HandleAjaxError.cs" />
     <Compile Include="Common\Filters\HandleAjaxValidationError.cs" />
     <Compile Include="Common\Filters\LogError.cs" />
+    <Compile Include="Spreadsheets\HoldsUpdateSpreadsheet.cs" />
     <Compile Include="Spreadsheets\HoldsUploadSpreadsheet.cs" />
     <Compile Include="Common\JsonResultData.cs" />
     <Compile Include="Spreadsheets\LostSalesExtract.cs" />
+    <Compile Include="Spreadsheets\POOverrideSpreadsheet.cs" />
     <Compile Include="Spreadsheets\ProductTypeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\RingFenceByDestExport.cs" />
     <Compile Include="Spreadsheets\RingFenceDeleteSpreadsheet.cs" />
@@ -604,6 +606,7 @@
     <Content Include="Content\Templates\SkuIdUploadTemplate.xls">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\Templates\POOverrideTemplate.xls" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="readme.txt" />
     <Content Include="Views\Shared\EditorTemplates\Date.cshtml" />

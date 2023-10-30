@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-
 
 namespace Footlocker.Logistics.Allocation.Models
 {
@@ -65,33 +60,6 @@ namespace Footlocker.Logistics.Allocation.Models
             this.Sku = String.Empty;
             this.TotalRetail = Decimal.Zero;
             this.TotalUnits = 0;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the ExpeditePO class.
-        /// </summary>
-        /// <param name="division">The initial value for the division property.</param>
-        /// <param name="po">The initial value for the purchase order property.</param>
-        /// <param name="deliveryDate">The initial value for the delivery date property.</param>
-        /// <param name="overrideDate">The initial value for the override date property.</param>
-        /// <param name="createdBy">The initial value for the created by property.</param>
-        /// <param name="createDate">The initial value for the create date property.</param>
-        /// <param name="departments">The initial value for the departments property.</param>
-        /// <param name="sku">The initial value for the stock keeping unit property.</param>
-        public ExpeditePO(string division, string po, DateTime deliveryDate, DateTime overrideDate, string createdBy
-                , DateTime createDate, string departments, string sku, decimal totalRetail, int totalUnits)
-            : this()
-        {
-            this.Division = division;
-            this.PO = po;
-            this.DeliveryDate = deliveryDate;
-            this.OverrideDate = overrideDate;
-            this.CreatedBy = createdBy;
-            this.CreateDate = createDate;
-            this.Departments = departments;
-            this.Sku = sku;
-            this.TotalRetail = totalRetail;
-            this.TotalUnits = totalUnits;
         }
     }
 }

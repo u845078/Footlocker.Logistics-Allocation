@@ -1,15 +1,12 @@
 ﻿using Aspose.Excel;
-using Footlocker.Common.Entities;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Common;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
@@ -275,21 +272,20 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             maxColumns = 13;
             headerRowNumber = 0;
 
-            columns.Add(0, "Division\n[required]");
+            columns.Add(0, "Division");
             columns.Add(1, "Store");
-            columns.Add(2, "Duration\n[required]");
+            columns.Add(2, "Duration");
             columns.Add(3, "Department");
             columns.Add(4, "Brand ID");
             columns.Add(5, "Team");
             columns.Add(6, "Category");
             columns.Add(7, "Vendor");
             columns.Add(8, "Sku");
-            columns.Add(9, "Start Date\n[required]");
+            columns.Add(9, "Start Date");
             columns.Add(10, "End Date");
-            columns.Add(11, "Hold Type\n[required]");
+            columns.Add(11, "Hold Type");
             columns.Add(12, "Comment");
 
-            //this.itemDAO = itemDAO;
             templateFilename = config.HoldsUploadTemplate;
             this.holdService = holdService;
         }

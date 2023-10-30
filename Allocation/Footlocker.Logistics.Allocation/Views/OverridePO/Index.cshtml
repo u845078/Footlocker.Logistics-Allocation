@@ -106,18 +106,16 @@
                             columns.Bound(o => o.CreateDate);
                             columns.Command(commands =>
                             {
-                                commands
-                                .Custom("Edit")
-                                .Text("Edit")
-                                .DataRouteValues(route => { route.Add(o => o.Division).RouteKey("div"); route.Add(o => o.PO).RouteKey("PO"); })
-                                .Ajax(false)
-                                .Action("Edit","OverridePO");
-                                commands
-                                .Custom("Delete")
-                                .Text("Delete")
-                                .DataRouteValues(route => { route.Add(o => o.Division).RouteKey("div"); route.Add(o => o.PO).RouteKey("PO"); })
-                                .Ajax(false)
-                                .Action("Delete", "OverridePO").HtmlAttributes(new { onclick="return confirm('Are you sure?');"});
+                                commands.Custom("Edit")
+                                        .Text("Edit")
+                                        .DataRouteValues(route => { route.Add(o => o.Division).RouteKey("div"); route.Add(o => o.PO).RouteKey("PO"); })
+                                        .Ajax(false)
+                                        .Action("Edit","OverridePO");
+                                commands.Custom("Delete")
+                                        .Text("Delete")
+                                        .DataRouteValues(route => { route.Add(o => o.Division).RouteKey("div"); route.Add(o => o.PO).RouteKey("PO"); })
+                                        .Ajax(false)
+                                        .Action("Delete", "OverridePO").HtmlAttributes(new { onclick="return confirm('Are you sure?');"});
                             }).HtmlAttributes(new { style = "text-align: left" }).Width(200);
                         })
                         .DataBinding(dataBinding => dataBinding.Ajax()
@@ -128,7 +126,6 @@
                     ))         
 )
 <br />
-
 </div>
 </div>
 </div>

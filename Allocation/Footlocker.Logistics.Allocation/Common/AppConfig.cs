@@ -8,7 +8,6 @@ namespace Footlocker.Logistics.Allocation.Common
     {
         private string _asposeLicenseFile;
         private string _logFile;
-        private string _webPickTemplate;
         private string _skuTypeTemplate;
         private string _productTypeTemplate;
         private string _skuIdUploadTemplate;
@@ -18,14 +17,17 @@ namespace Footlocker.Logistics.Allocation.Common
         private string _skuRangePlanDGUploadTemplate;
         private string _rdqRestrictionsTemplate;
         private string _rangeTemplate;
+        private string _webPickTemplate;
         private string _ringFenceDeleteTemplate;
         private string _holdDeleteTemplate;
+        private string _holdUpdateTemplate;
         private string _rerankStoresTemplate;
         private string _skuAttributeTemplate;
         private string _crossdockLinkTemplate;
         private string _ringFenceUploadTemplate;
         private string _storeTemplate;
         private string _vendorGroupTemplate;
+        private string _poOverrideTemplate;
         private string _skuTypeFile;
         private bool _enableFTP;
         private string _europeDivisions;
@@ -252,6 +254,28 @@ namespace Footlocker.Logistics.Allocation.Common
                     _holdDeleteTemplate = ConfigurationManager.AppSettings["HoldDeleteTemplate"].ToString();
 
                 return _holdDeleteTemplate;
+            }
+        }
+
+        public string POOverrideTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_poOverrideTemplate))
+                    _poOverrideTemplate = ConfigurationManager.AppSettings["POOverrideTemplate"].ToString();
+
+                return _poOverrideTemplate;
+            }
+        }
+
+        public string HoldUpdateTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_holdUpdateTemplate))
+                    _holdUpdateTemplate = ConfigurationManager.AppSettings["HoldsUpdates"].ToString();
+
+                return _holdUpdateTemplate;
             }
         }
 

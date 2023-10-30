@@ -7,6 +7,7 @@ using Footlocker.Logistics.Allocation.Models;
 using System.IO;
 using Aspose.Excel;
 using Telerik.Web.Mvc;
+using Footlocker.Logistics.Allocation.Services;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -14,6 +15,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     public class StoreSeasonalityController : AppController
     {
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        readonly ConfigService configService = new ConfigService();
 
         public ActionResult Index(string message, string div)
         {
@@ -26,7 +28,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<InstanceDivision> instDivs = (from a in db.InstanceDivisions
                                                join b in db.Configs on a.InstanceID equals b.InstanceID
                                                join c in db.ConfigParams on b.ParamID equals c.ParamID
-                                               where ((c.Name == "BTS_SEASONALITY")&&(b.Value != "true"))
+                                               where c.Name == "BTS_SEASONALITY" && 
+                                                     b.Value != "true"
                                                select a).ToList();
             model.Divisions = (from a in model.Divisions 
                                join b in instDivs 
@@ -36,17 +39,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (model.Divisions.Count() > 0)
             {
 
-                if ((div == null) || (div == ""))
-                {
+                if (string.IsNullOrEmpty(div))                
                     div = model.Divisions[0].DivCode;
-                }
+                
                 model.CurrentDivision = div;
-                model.List = (from a in db.StoreSeasonality where a.Division == div select a).ToList();
+                model.List = db.StoreSeasonality.Where(ss => ss.Division == div).ToList();
             }
+
             model.UnassignedStores = (from a in db.vValidStores
                                       join b in db.StoreSeasonalityDetails on new { a.Division, a.Store } equals new { b.Division, b.Store } into subset
                                       from sc in subset.DefaultIfEmpty()
-                                      where ((sc == null)&&(a.Division == div))
+                                      where sc == null && a.Division == div
                                       select a).ToList();
             
             return View(model);
@@ -54,14 +57,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Create(string div, string name)
         {
-            string message="";
+            string message = "";
             try
             {
-                StoreSeasonality group = new StoreSeasonality();
-                group.Name = name;
-                group.Division = div;
-                group.CreatedBy = User.Identity.Name;
-                group.CreateDate = DateTime.Now;
+                StoreSeasonality group = new StoreSeasonality()
+                {
+                    Name = name,
+                    Division = div,
+                    CreatedBy = currentUser.NetworkID,
+                    CreateDate = DateTime.Now
+                };
 
                 db.StoreSeasonality.Add(group);
                 db.SaveChanges();
@@ -82,12 +87,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 message = ex.Message;
             }
 
-            return RedirectToAction("Index", new { message = message, div=div });
+            return RedirectToAction("Index", new { message, div });
         }
 
         public ActionResult Edit(int ID)
         {
-            StoreSeasonality group = (from a in db.StoreSeasonality where a.ID == ID select a).First();
+            StoreSeasonality group = db.StoreSeasonality.Where(ss => ss.ID == ID).First();
 
             return View(group);
         }
@@ -96,22 +101,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Edit(StoreSeasonality model)
         {
             model.CreateDate = DateTime.Now;
-            model.CreatedBy = User.Identity.Name;
+            model.CreatedBy = currentUser.NetworkID;
 
             db.Entry(model).State = System.Data.EntityState.Modified;
             db.SaveChanges();
-            return RedirectToAction("Index", new { message = "", div = model.Division});
 
+            return RedirectToAction("Index", new { message = "", div = model.Division});
         }
 
         public ActionResult Search(string store, string div)
         {
-            var list = (from a in db.StoreSeasonalityDetails where a.Store.Contains(store) select a);
+            var list = db.StoreSeasonalityDetails.Where(ssd => ssd.Store.Contains(store)).ToList();
 
             if (list.Count() == 1)
             {
                 StoreSeasonalityDetail det = list.First();
-                StoreSeasonality group = (from a in db.StoreSeasonality where a.ID == det.GroupID select a).First();
+                StoreSeasonality group = db.StoreSeasonality.Where(ss => ss.ID == det.GroupID).First();
 
                 return View("ShowSearchResult", group);
             }
@@ -119,37 +124,32 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 return RedirectToAction("Index", new { message = "Store " + store + " is not in any group.", div = div });
             }
-            else
-            {
-                return View(list);
-            }
-
+            else            
+                return View(list);            
         }
 
         public ActionResult ShowSearchResult(string store, string div)
         {
-            var list = (from a in db.StoreSeasonalityDetails where ((a.Store ==store)&&(a.Division == div)) select a);
-            StoreSeasonalityDetail det = list.First();
-            StoreSeasonality group = (from a in db.StoreSeasonality where a.ID == det.GroupID select a).First();
+            StoreSeasonalityDetail det = db.StoreSeasonalityDetails.Where(ssd => ssd.Store == store && ssd.Division == div).First();
+            StoreSeasonality group = db.StoreSeasonality.Where(ss => ss.ID == det.GroupID).First();
 
             return View(group);
         }
 
         public ActionResult Delete(int ID)
         {
-            var details = (from a in db.StoreSeasonalityDetails where a.GroupID == ID select a);
-            foreach (StoreSeasonalityDetail det in details)
-            {
+            var details = db.StoreSeasonalityDetails.Where(ssd => ssd.GroupID == ID).ToList();
+            foreach (StoreSeasonalityDetail det in details)            
                 db.StoreSeasonalityDetails.Remove(det);
-            }
+            
             db.SaveChanges();
-            StoreSeasonality group = (from a in db.StoreSeasonality where a.ID == ID select a).First();
+            StoreSeasonality group = db.StoreSeasonality.Where(ss => ss.ID == ID).First();
 
             string div = group.Division;
             db.StoreSeasonality.Remove(group);
             db.SaveChanges();
 
-            return RedirectToAction("Index", new {message = "Item deleted", div = div});
+            return RedirectToAction("Index", new {message = "Item deleted", div});
         }
 
         public ActionResult Details(int ID, string message)
@@ -157,18 +157,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
             StoreSeasonalityDetailModel model = new StoreSeasonalityDetailModel();
             ViewData["message"] = message;
 
-            model.details = (from a in db.StoreSeasonalityDetails join b in db.vValidStores on new { a.Division, a.Store } equals new { b.Division, b.Store } where a.GroupID == ID select b).ToList();
+            model.details = (from a in db.StoreSeasonalityDetails 
+                             join b in db.vValidStores 
+                             on new { a.Division, a.Store } equals new { b.Division, b.Store } 
+                             where a.GroupID == ID 
+                             select b).ToList();
+
             model.divisions = Footlocker.Common.DivisionService.ListDivisions();
-            model.division = (from a in db.StoreSeasonality where a.ID == ID select a.Division).First();
+            model.division = (from a in db.StoreSeasonality 
+                              where a.ID == ID 
+                              select a.Division).First();
 
             model.UnassignedStores = (from a in db.vValidStores
                                       join b in db.StoreSeasonalityDetails on new { a.Division, a.Store } equals new { b.Division, b.Store } into subset
                                       from sc in subset.DefaultIfEmpty()
-                                      where ((sc == null) && (a.Division == model.division))
+                                      where sc == null && a.Division == model.division
                                       select a).ToList();
 
             ViewData["GroupID"] = ID;
-            ViewData["GroupName"] = (from a in db.StoreSeasonality where a.ID == ID select a.Name).First();
+            ViewData["GroupName"] = (from a in db.StoreSeasonality 
+                                     where a.ID == ID 
+                                     select a.Name).First();
 
             return View(model);
         }
@@ -176,35 +185,38 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _RefreshGrid(int groupID)
         {
-            List<ValidStoreLookup> list = (from a in db.StoreSeasonalityDetails join b in db.vValidStores on new { a.Division, a.Store } equals new { b.Division, b.Store } where a.GroupID == groupID select b).ToList();
+            List<ValidStoreLookup> list = (from a in db.StoreSeasonalityDetails 
+                                           join b in db.vValidStores 
+                                           on new { a.Division, a.Store } equals new { b.Division, b.Store } 
+                                           where a.GroupID == groupID 
+                                           select b).ToList();
             return View(new GridModel(list)); 
         }
 
         public ActionResult DeleteDetail(int ID, string div, string store)
         {
-            StoreSeasonalityDetail det = (from a in db.StoreSeasonalityDetails where ((a.GroupID == ID) && (a.Division == div)&&(a.Store==store)) select a).First();
+            StoreSeasonalityDetail det = db.StoreSeasonalityDetails.Where(ssd => ssd.GroupID == ID && ssd.Division == div && ssd.Store == store).First();
             db.StoreSeasonalityDetails.Remove(det);
             db.SaveChanges();
 
-            return RedirectToAction("Details", new { ID = ID});
+            return RedirectToAction("Details", new { ID});
         }
 
         public ActionResult AddDetail(int ID, string store, string div)
         {
             string message = "";
             store = store.PadLeft(5, '0');
-            var existing = (from a in db.StoreSeasonalityDetails where ((a.Division == div) && (a.Store == store)) select a);
+            var existing = db.StoreSeasonalityDetails.Where(ssd => ssd.Division == div && ssd.Store == store);
             if (existing.Count() > 0)
             {
                 int oldGroup = existing.First().GroupID;
-                ViewData["OriginalGroup"] = (from a in db.StoreSeasonality where a.ID == oldGroup select a).First().Name;
-                ViewData["NewGroup"] = (from a in db.StoreSeasonality where a.ID == ID select a).First().Name;
+                ViewData["OriginalGroup"] = db.StoreSeasonality.Where(ss => ss.ID == oldGroup).First().Name;
+                ViewData["NewGroup"] = db.StoreSeasonality.Where(ss => ss.ID == ID).First().Name;
                 //give them a confirmation screen about the move
                 ViewData["GroupID"] = ID;
                 ViewData["div"] = div;
                 ViewData["store"] = store;
-                return View();
-                //RedirectToAction("ConfirmMove", new { ID = ID, vendorNumber = vendorNumber });
+                return View();                
             }
             else
             {
@@ -213,16 +225,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     // Validate entered store is valid store
                     if (!db.vValidStores.Any(vs => vs.Division == div && vs.Store == store))
                     {
-                        throw new ArgumentException(String.Format("Store '{0}' is not a valid store in division '{1}'. Please enter a valid store.", store, div));
+                        throw new ArgumentException(string.Format("Store '{0}' is not a valid store in division '{1}'. Please enter a valid store.", store, div));
                     }
 
                     // Add store to store seasonality grouping
-                    StoreSeasonalityDetail det = new StoreSeasonalityDetail();
-                    det.GroupID = ID;
-                    det.Division = div;
-                    det.Store = store;
-                    det.CreateDate = DateTime.Now;
-                    det.CreatedBy = User.Identity.Name;
+                    StoreSeasonalityDetail det = new StoreSeasonalityDetail()
+                    {
+                        GroupID = ID,
+                        Division = div,
+                        Store = store,
+                        CreateDate = DateTime.Now,
+                        CreatedBy = currentUser.NetworkID
+                    };
+
                     db.StoreSeasonalityDetails.Add(det);
                     db.SaveChanges();
                 }
@@ -243,25 +258,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
-            return RedirectToAction("Details", new { ID = ID, message = message });
+            return RedirectToAction("Details", new { ID, message });
         }
-
 
         public ActionResult ShowDetail(int ID, string div, string store)
         {
-            List<StoreSeasonalityDetail> model = (from a in db.StoreSeasonalityDetails where ((a.Division == div) && (a.Store == store) && (a.GroupID == ID)) select a).ToList();
+            List<StoreSeasonalityDetail> model = db.StoreSeasonalityDetails.Where(ssd => ssd.Division == div && ssd.Store == store && ssd.GroupID == ID).ToList();
             return View(model);
         }
 
         public ActionResult ConfirmMove(int ID, string div, string store)
         {
-            StoreSeasonalityDetail det = (from a in db.StoreSeasonalityDetails where ((a.Division == div)&&(a.Store == store)) select a).First();
+            StoreSeasonalityDetail det = db.StoreSeasonalityDetails.Where(ssd => ssd.Division == div && ssd.Store == store).First();
             det.GroupID = ID;
             det.CreateDate = DateTime.Now;
-            det.CreatedBy = User.Identity.Name;
+            det.CreatedBy = currentUser.NetworkID;
             db.SaveChanges();
 
-            return RedirectToAction("Details", new { ID = ID });
+            return RedirectToAction("Details", new { ID });
         }
 
         /// <summary>
@@ -402,9 +416,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             excelDocument.Save("SeasonalityUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
-
         }
-
 
         public ActionResult ExcelTemplate()
         {
@@ -426,12 +438,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult Grid_GetGroups(string div)
         {
-            int instanceID = (from a in db.InstanceDivisions where a.Division == div select a.InstanceID).First();
+            int instanceID = configService.GetInstance(div);
+            
             // Get div codes that user has access to in the Europe instance
             var userDivCodes = currentUser.GetUserDivList(AppName);
-            var userInstanceDivCodes = db.InstanceDivisions
-                .Where(id => id.InstanceID == instanceID && userDivCodes.Contains(id.Division))
-                .Select(id => id.Division);
+            var userInstanceDivCodes = db.InstanceDivisions.Where(id => id.InstanceID == instanceID && userDivCodes.Contains(id.Division))
+                                                           .Select(id => id.Division);
 
             // Get all Store Seasonality Groups of these retrieved divs (and only detail counts of valid store detail records)
             var userInstanceSSGroups = db.StoreSeasonality

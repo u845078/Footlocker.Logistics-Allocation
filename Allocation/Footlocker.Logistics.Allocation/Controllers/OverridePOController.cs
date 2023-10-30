@@ -8,6 +8,9 @@ using Footlocker.Logistics.Allocation.Models.Services;
 using Telerik.Web.Mvc;
 using Aspose.Excel;
 using System.IO;
+using Footlocker.Logistics.Allocation.Services;
+using Footlocker.Logistics.Allocation.Spreadsheets;
+using System.Web.ApplicationServices;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -15,6 +18,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     public class OverridePOController : AppController
     {
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        readonly ConfigService configService = new ConfigService();
 
         private List<ExpeditePO> getOverridePOsForDiv(string div)
         {
@@ -25,7 +29,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 var poData = (from a in db.POs
                               join r in db.ExpeditePOs
                                on a.PO equals r.PO
-                            where r.Division == div
+                              where r.Division == div
                               select a).ToList();
 
                 foreach (ExpeditePO epo in results)
@@ -36,8 +40,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     if (poDeliveryDate != DateTime.MinValue)
                         epo.DeliveryDate = poDeliveryDate;
-                    //else
-                    //    epo.DeliveryDate = epo.StoredDeliveryDate;
                 }
             }
 
@@ -64,8 +66,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     if (poDeliveryDate != DateTime.MinValue)
                         epo.DeliveryDate = poDeliveryDate;
-                    //else
-                    //    epo.DeliveryDate = epo.StoredDeliveryDate;
                 }
             }
 
@@ -93,8 +93,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     if (poDeliveryDate != DateTime.MinValue)
                         epo.DeliveryDate = poDeliveryDate;
-                    //else
-                        //epo.DeliveryDate = epo.StoredDeliveryDate;
                 }
             }
 
@@ -164,7 +162,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                  Sku = a.Sku,
                                  Department = a.Departments,
                                  OverrideDate = a.OverrideDate
-                             }).Distinct().OrderBy(o=>o.Sku).ToList();
+                             }).Distinct().OrderBy(o => o.Sku).ToList();
             return View(new GridModel(model.Headers));
         }
 
@@ -357,18 +355,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     po.TotalUnits += det.Units;
                 }
             }
-            var alreadyExists = (from a in db.ExpeditePOs 
-                                 where a.PO == po.PO && 
-                                       a.Division == po.Division
-                                 select a).Count();
-            if (alreadyExists > 0)
-            {
-                db.Entry(po).State = System.Data.EntityState.Modified;
-            }
-            else
-            {
+            
+            int alreadyExists = db.ExpeditePOs.Where(ep => ep.PO == po.PO && ep.Division == po.Division).Count();
+
+            if (alreadyExists > 0)            
+                db.Entry(po).State = System.Data.EntityState.Modified;            
+            else            
                 db.ExpeditePOs.Add(po);
-            }
+            
             po.CreateDate = DateTime.Now;
             po.CreatedBy = currentUser.NetworkID;
             po.OverrideDate = overrideDate;
@@ -435,11 +429,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     CreatedBy = currentUser.NetworkID
                 };
 
-                var alreadyExists = from a in db.ExpeditePOs 
-                                    where a.PO == po.PO && 
-                                          a.Division == po.Division
-                                    select a;
-                if (alreadyExists.Count() > 0)                
+                int alreadyExists = db.ExpeditePOs.Where(ep => ep.PO == po.PO && ep.Division == po.Division).Count();
+                if (alreadyExists > 0)                
                     db.Entry(po).State = System.Data.EntityState.Modified;                
                 else                
                     db.ExpeditePOs.Add(po);
@@ -589,19 +580,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.NewPO.CreateDate = DateTime.Now;
             model.NewPO.CreatedBy = currentUser.NetworkID;
 
-            if (db.ExpeditePOs.Where(ep => ep.PO == model.NewPO.PO && ep.Division == model.NewPO.Division).Count() > 0)
-            {
-                db.Entry(model.NewPO).State = System.Data.EntityState.Modified;
-            }
-            else
-            {
+            if (db.ExpeditePOs.Where(ep => ep.PO == model.NewPO.PO && ep.Division == model.NewPO.Division).Count() > 0)            
+                db.Entry(model.NewPO).State = System.Data.EntityState.Modified;            
+            else            
                 db.ExpeditePOs.Add(model.NewPO);
-            }
-
-            if (string.IsNullOrEmpty(model.NewPO.Sku))
-            {
-                model.NewPO.Sku = "unknown";
-            }
+            
+            if (string.IsNullOrEmpty(model.NewPO.Sku))            
+                model.NewPO.Sku = "unknown";            
 
             model.NewPO.PO = model.NewPO.PO.Trim();
             db.SaveChanges();
@@ -611,7 +596,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Delete(string div, string PO)
         {
-            ExpeditePO model = (from a in db.ExpeditePOs where ((a.Division == div) && (a.PO==PO)) select a).First();
+            ExpeditePO model = db.ExpeditePOs.Where(ep => ep.Division == div && ep.PO == PO).First();
 
             db.ExpeditePOs.Remove(model);
             db.SaveChanges();
@@ -640,6 +625,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("Index", new { div = model.Division });
         }
 
+        #region Upload
         public ActionResult Upload()
         {
             return View();
@@ -647,15 +633,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult ExcelTemplate()
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            POOverrideSpreadsheet poOverrideSpreadsheet = new POOverrideSpreadsheet(appConfig, configService, new ExistingPODAO(appConfig.EuropeDivisions));
+            Excel excelDocument;
 
-            Excel excelDocument = new Excel();
-            Worksheet mySheet = excelDocument.Worksheets[0];
-
-            mySheet.Cells[0, 0].PutValue("Division-PO");
-            mySheet.Cells[0, 1].PutValue("OverrideDate(mm/dd/yyyy)");
+            excelDocument = poOverrideSpreadsheet.GetTemplate();
 
             excelDocument.Save("POOverrideUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
@@ -668,150 +649,49 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <returns></returns>
         public ActionResult Save(IEnumerable<HttpPostedFileBase> attachments)
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-            List<ExpeditePO> errors = new List<ExpeditePO>();
-            int errorCount = 0;
-            int addedCount = 0;
+            POOverrideSpreadsheet poOverrideSpreadsheet = new POOverrideSpreadsheet(appConfig, configService, new ExistingPODAO(appConfig.EuropeDivisions));
+
+            string message;
+            int successCount = 0;
 
             foreach (HttpPostedFileBase file in attachments)
             {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-                int row = 1;
-                ExistingPODAO dao = new ExistingPODAO(appConfig.EuropeDivisions);
-                ExpeditePO overridePO=null;
-                if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Division-PO"))&&(Convert.ToString(mySheet.Cells[0, 1].Value).Contains("OverrideDate")))
-                {
-                    while (mySheet.Cells[row, 0].Value != null)
-                    {
-                        overridePO = new ExpeditePO();
-                        string temp = mySheet.Cells[row, 0].Value.ToString();
-                        string[] tokens = temp.Split('-');
-                        overridePO.Division = tokens[0];
-                        overridePO.PO = tokens[1];
-                        overridePO.OverrideDate = Convert.ToDateTime(mySheet.Cells[row, 1].Value);
-                        List<ExistingPO> existingPOs = dao.GetExistingPO(overridePO.Division, overridePO.PO);
-                        if (existingPOs.Count() > 0)
-                        {
-                            overridePO.Departments = "";
-                            overridePO.Sku = "";
-                            int skucount = 0;
-                            foreach (ExistingPO po in existingPOs)
-                            {
-                                if (!currentUser.HasDivDept(AppName, po.Division, po.Sku.Substring(3, 2)))
-                                {
-                                    errorCount++;
-                                    overridePO.ErrorMessage = "Permission denied.";
-                                    errors.Add(overridePO);
-                                    break;
-                                }
-                                if (!overridePO.Departments.Contains(po.Sku.Substring(3, 2)))
-                                {
-                                    if (overridePO.Departments.Length > 0)
-                                    {
-                                        overridePO.Departments += ",";
-                                    }
-                                    overridePO.Departments += po.Sku.Substring(3, 2);
-                                }
-                                overridePO.Sku = po.Sku;
-                                skucount++;
-                                if (skucount > 1)
-                                {
-                                    overridePO.Sku = "multi-sku-" + overridePO.Sku;
-                                }
-                            }
-                            if (overridePO.Sku.Length > 50)
-                            {
-                                overridePO.Sku = overridePO.Sku.Substring(0, 50);
-                            }
-                            if (existingPOs.Count > 0)
-                            {
-                                overridePO.DeliveryDate = existingPOs[0].ExpectedDeliveryDate;
-                            }
+                poOverrideSpreadsheet.Save(file);
 
-                            overridePO.CreateDate = DateTime.Now;
-                            overridePO.CreatedBy = User.Identity.Name;
-
-                            var alreadyExists = (from a in db.ExpeditePOs where ((a.PO == overridePO.PO) && (a.Division == overridePO.Division)) select a);
-                            if (alreadyExists.Count() > 0)
-                            {
-                                db.Entry(overridePO).State = System.Data.EntityState.Modified;
-                            }
-                            else
-                            {
-                                db.ExpeditePOs.Add(overridePO);
-                            }
-                            if ((overridePO.Sku == null) || (overridePO.Sku == ""))
-                            {
-                                overridePO.Sku = "unknown";
-                            }
-                        }
-                        else
-                        {
-                            errorCount++;
-                            overridePO.ErrorMessage = "PO not found.";
-                            errors.Add(overridePO);
-
-                        }
-                        row++;
-                    }
-                    db.SaveChanges();
-
-                }
+                if (!string.IsNullOrEmpty(poOverrideSpreadsheet.message))
+                    return Content(poOverrideSpreadsheet.message);
                 else
                 {
-                    return Content("Incorrect header, columns must be Division-PO, OverrideDate.");
-                }
-            }
-            if (errors.Count > 0)
-            {
-                Session["errorList"] = errors;
-                return Content(errorCount + " Errors on spreadsheet (" + addedCount + " successfully uploaded)");
+                    if (poOverrideSpreadsheet.errorList.Count() > 0)
+                    {
+                        Session["errorList"] = poOverrideSpreadsheet.errorList;
 
+                        message = string.Format("{0} successfully uploaded, {1} Errors", poOverrideSpreadsheet.validRecs.Count.ToString(),
+                            poOverrideSpreadsheet.errorList.Count.ToString());
+
+                        return Content(message);
+                    }
+                }
+
+                successCount = poOverrideSpreadsheet.validRecs.Count();
             }
-            else
-            {
-                return Content("");
-            }
+
+            return Json(new { message = string.Format("{0} PO Override(s) Uploaded", successCount) }, "application/json");
         }
 
         public ActionResult DownloadErrors()
         {
-            List<ExpeditePO> errorList = new List<ExpeditePO>();
-            if (Session["errorList"] != null)
+            List<ExpeditePO> errors = (List<ExpeditePO>)Session["errorList"];
+            Excel excelDocument;
+            POOverrideSpreadsheet poOverrideSpreadsheet = new POOverrideSpreadsheet(appConfig, configService, new ExistingPODAO(appConfig.EuropeDivisions));
+
+            if (errors != null)
             {
-                errorList = (List<ExpeditePO>)Session["errorList"];
+                excelDocument = poOverrideSpreadsheet.GetErrors(errors);
+                excelDocument.Save("POOverrideErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             }
-
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-            Excel excelDocument = new Excel();
-            Worksheet mySheet = excelDocument.Worksheets[0];
-            int row = 1;
-            mySheet.Cells[0, 0].PutValue("Division-PO");
-            mySheet.Cells[0, 1].PutValue("OverrideDate");
-            mySheet.Cells[0, 2].PutValue("ErrorMessage");
-            foreach (ExpeditePO p in errorList)
-            {
-                mySheet.Cells[row, 0].PutValue(p.Division + "-" + p.PO);
-                mySheet.Cells[row, 1].PutValue(p.OverrideDate);
-                mySheet.Cells[row, 2].PutValue(p.ErrorMessage);
-
-                row++;
-            }
-
-            excelDocument.Save("POOverrideErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
+        #endregion
     }
 }

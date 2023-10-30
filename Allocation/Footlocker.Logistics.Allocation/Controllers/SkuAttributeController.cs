@@ -396,10 +396,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     else
                         ModelState.AddModelError("", string.Format("Total must equal 100, it was {0}", total));
                 }
-                else
-                {
-                    ReInitializeSKU(model);
-                }
+                else                
+                    ReInitializeSKU(model);                
             }
             else
             {
@@ -448,8 +446,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return RedirectToAction("Index");
             }
         }
-
-        #region Importing/Exporting
+        
+        #region Upload
         public ActionResult Upload()
         {
             return View();
@@ -487,15 +485,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return Json(new { message = string.Format("{0} Sku Attribute(s) Created/Modified", successCount) }, "application/json");
         }
+        #endregion
 
+        #region Export
         [GridAction]
         public ActionResult ExportGrid(GridCommand settings)
         {
             IQueryable<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders.Include("SkuAttributeDetails").AsEnumerable()
-                                                join d in currentUser.GetUserDivisions(AppName)
-                                                    on new { a.Division } equals new { Division = d.DivCode }
-                                                orderby a.Division, a.Dept, a.Category, a.SKU
-                                                select a).AsQueryable();
+                                                      join d in currentUser.GetUserDivisions(AppName)
+                                                        on new { a.Division } equals new { Division = d.DivCode }
+                                                      orderby a.Division, a.Dept, a.Category, a.SKU
+                                                      select a).AsQueryable();
 
             if (settings.FilterDescriptors.Any())
                 headers = headers.ApplyFilters(settings.FilterDescriptors);            
