@@ -241,6 +241,7 @@
     <Compile Include="Spreadsheets\RingFenceExport.cs" />
     <Compile Include="Spreadsheets\RingFenceUploadSpreadsheet.cs" />
     <Compile Include="Spreadsheets\RoutesExport.cs" />
+    <Compile Include="Spreadsheets\SeasonalitySpreadsheet.cs" />
     <Compile Include="Spreadsheets\ServiceTypeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SkuAttributeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SKUIDSpreadsheet.cs" />
@@ -607,6 +608,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\Templates\POOverrideTemplate.xls" />
+    <Content Include="Content\Templates\SeasonalityTemplate.xls" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="readme.txt" />
     <Content Include="Views\Shared\EditorTemplates\Date.cshtml" />

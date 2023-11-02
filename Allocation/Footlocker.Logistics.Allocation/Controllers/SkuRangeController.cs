@@ -8,15 +8,11 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Footlocker.Logistics.Allocation.Services;
 using Telerik.Web.Mvc;
-using System.IO;
 using Aspose.Excel;
 using Footlocker.Common;
 using System.Text;
 using System.Text.RegularExpressions;
 using Footlocker.Logistics.Allocation.Spreadsheets;
-using System.Data.Entity.Infrastructure;
-using System.Web.UI;
-using System.Runtime;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {

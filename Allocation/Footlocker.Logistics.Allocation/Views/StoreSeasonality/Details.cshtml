@@ -22,7 +22,6 @@
             columns.Bound(o => o.Mall);
             columns.Bound(o => o.City);
             columns.Bound(o => o.State);
-            //            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(120);
             columns.Command(commands =>
             {
                 commands
@@ -64,7 +63,8 @@
 <br />
 <fieldset>
     <legend> Upload Spreadsheet </legend>
-    Spreadsheet columns should be Div (##), Store (#####).  <br />
+    Spreadsheet columns should be Division and Store.<br />
+    @Html.ActionLink("Download Template", "SeasonalityTemplate", new { }, new { @class = "t-button" })<br /><br />
     @(Html.Telerik().Upload()
         .Name("attachments")
         .Multiple(true)
@@ -78,9 +78,9 @@
                     .OnSuccess("onSuccess")
             )
         )
-        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
-        <br />
-        <h4> <div id="message"></div> </h4>
+    <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;" />
+    <br />
+    <h4> <div id="message"></div> </h4>
 </fieldset>
      <script type="text/javascript">
 

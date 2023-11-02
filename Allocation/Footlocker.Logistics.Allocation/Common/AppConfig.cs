@@ -28,6 +28,7 @@ namespace Footlocker.Logistics.Allocation.Common
         private string _storeTemplate;
         private string _vendorGroupTemplate;
         private string _poOverrideTemplate;
+        private string _seasonalityTemplate;
         private string _skuTypeFile;
         private bool _enableFTP;
         private string _europeDivisions;
@@ -276,6 +277,17 @@ namespace Footlocker.Logistics.Allocation.Common
                     _holdUpdateTemplate = ConfigurationManager.AppSettings["HoldsUpdates"].ToString();
 
                 return _holdUpdateTemplate;
+            }
+        }
+
+        public string SeasonalityTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_seasonalityTemplate))
+                    _seasonalityTemplate = ConfigurationManager.AppSettings["SeasonalityTemplate"].ToString();
+
+                return _seasonalityTemplate;
             }
         }
 

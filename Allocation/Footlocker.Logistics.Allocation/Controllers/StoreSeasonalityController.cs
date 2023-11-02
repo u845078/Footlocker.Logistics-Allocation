@@ -8,6 +8,9 @@ using System.IO;
 using Aspose.Excel;
 using Telerik.Web.Mvc;
 using Footlocker.Logistics.Allocation.Services;
+using Footlocker.Logistics.Allocation.Spreadsheets;
+using System.Web.Services.Description;
+using Footlocker.Logistics.Allocation.Models.Services;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -278,6 +281,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("Details", new { ID });
         }
 
+        public ActionResult SeasonalityTemplate()
+        {
+            SeasonalitySpreadsheet seasonalitySpreadsheet = new SeasonalitySpreadsheet(appConfig, configService);
+            Excel excelDocument;
+
+            excelDocument = seasonalitySpreadsheet.GetTemplate();
+
+            excelDocument.Save("SeasonalityTemplate.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            return View();
+        }
+
         /// <summary>
         /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
         /// </summary>
@@ -285,153 +299,47 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <returns></returns>
         public ActionResult Save(IEnumerable<HttpPostedFileBase> attachments, int groupID)
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-            string Division = "";
-            string Store = "";
-            List<StoreSeasonalityDetail> errorList = new List<StoreSeasonalityDetail>();
-            int errors = 0;
-            int addedCount = 0;
+            SeasonalitySpreadsheet seasonalitySpreadsheet = new SeasonalitySpreadsheet(appConfig, configService);
+
+            int successCount = 0;
+            string message;
 
             foreach (HttpPostedFileBase file in attachments)
             {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-                string mainDivision;
-                int row = 1;
-                if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Div")) &&
-                    (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Store"))
-                    )
-                {
-                    Division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0');
-                    mainDivision = Division;
-                    while (mySheet.Cells[row, 0].Value != null)
-                    {
-                        Division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2,'0');
+                seasonalitySpreadsheet.Save(file, groupID);
 
-                        Store = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(5, '0');
-                        var foundStore = (from a in db.vValidStores where ((a.Division == Division) && (a.Store == Store)) select a);
-                        if (foundStore.Count() > 0)
-                        {
-                            StoreSeasonalityDetail det = new StoreSeasonalityDetail();
-                            try
-                            {
-                                det.Division = Division;
-                                det.Store = Store;
-                                det.CreateDate = DateTime.Now;
-                                det.CreatedBy = User.Identity.Name;
-                                det.GroupID = groupID;
-                                db.StoreSeasonalityDetails.Add(det);
-                                db.SaveChanges();
-                                addedCount++;
-                            }
-                            catch (Exception ex)
-                            {
-                                db.StoreSeasonalityDetails.Remove(det);
-                                errors++;
-                                //add to errors list
-                                StoreSeasonalityDetail errorDet = new StoreSeasonalityDetail();
-                                errorDet.Division = Division;
-                                errorDet.Store = Store;
-                                errorDet.CreateDate = DateTime.Now;
-                                errorDet.CreatedBy = User.Identity.Name;
-                                errorDet.GroupID = groupID;
-                                while (ex.Message.Contains("inner exception"))
-                                {
-                                    ex = ex.InnerException;
-                                }
-                                errorDet.errorMessage = ex.Message;
-
-                                errorList.Add(errorDet);
-                            }
-                        }
-                        else
-                        {
-                            errors++;
-                            //add to errors list
-                            StoreSeasonalityDetail errorDet = new StoreSeasonalityDetail();
-                            errorDet.Division = Division;
-                            errorDet.Store = Store;
-                            errorDet.CreateDate = DateTime.Now;
-                            errorDet.CreatedBy = User.Identity.Name;
-                            errorDet.GroupID = groupID;
-                            errorDet.errorMessage = String.Format("Store '{0}' was not found to be a valid store. Please only enter existing, valid stores.", Store);
-                            errorList.Add(errorDet);
-                        }
-
-                        row++;
-                    }
-                }
+                if (!string.IsNullOrEmpty(seasonalitySpreadsheet.message))
+                    return Content(seasonalitySpreadsheet.message);
                 else
                 {
-                    return Content("Incorrect header, please use template.");
-                }
-            }
-            if (errorList.Count > 0)
-            {
-                Session["errorList"] = errorList;
-                return Content(errors + " Errors on spreadsheet (" + addedCount + " successfully uploaded)");
+                    if (seasonalitySpreadsheet.errorList.Count() > 0)
+                    {
+                        Session["errorList"] = seasonalitySpreadsheet.errorList;
 
+                        message = string.Format("{0} successfully uploaded, {1} Errors", seasonalitySpreadsheet.validData.Count.ToString(),
+                            seasonalitySpreadsheet.errorList.Count.ToString());
+
+                        return Content(message);
+                    }
+                }
+
+                successCount += seasonalitySpreadsheet.validData.Count();
             }
-            else
-            {
-                return Content("");
-            }
+
+            return Json(new { message = string.Format("Upload complete. Added {0} store(s)", successCount) }, "application/json");
         }
 
         public ActionResult SeasonalityErrors()
         {
-            List<StoreSeasonalityDetail> errorList = new List<StoreSeasonalityDetail>();
-            if (Session["errorList"] != null)
+            List<StoreSeasonalityDetail> errors = (List<StoreSeasonalityDetail>)Session["errorList"];
+            Excel excelDocument;
+            SeasonalitySpreadsheet seasonalitySpreadsheet = new SeasonalitySpreadsheet(appConfig, configService);
+
+            if (errors != null)
             {
-                errorList = (List<StoreSeasonalityDetail>)Session["errorList"];
+                excelDocument = seasonalitySpreadsheet.GetErrors(errors);
+                excelDocument.Save("SeasonalityUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             }
-
-
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-            Excel excelDocument = new Excel();
-
-            Worksheet mySheet = excelDocument.Worksheets[0];
-            int row = 1;
-            mySheet.Cells[0, 0].PutValue("Div");
-            mySheet.Cells[0, 1].PutValue("Store");
-            foreach (StoreSeasonalityDetail p in errorList)
-            {
-                mySheet.Cells[row, 0].PutValue(p.Division);
-                mySheet.Cells[row, 1].PutValue(p.Store);
-                mySheet.Cells[row, 2].PutValue(p.errorMessage);
-
-                row++;
-            }
-
-            excelDocument.Save("SeasonalityUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
-            return View();
-        }
-
-        public ActionResult ExcelTemplate()
-        {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-            Excel excelDocument = new Excel();
-            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["SeasonalityTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
-            Byte[] data1 = new Byte[file.Length];
-            file.Read(data1, 0, data1.Length);
-            file.Close();
-            MemoryStream memoryStream1 = new MemoryStream(data1);
-            excelDocument.Open(memoryStream1);
-            excelDocument.Save("StoreSeasonalityDetails.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
 
