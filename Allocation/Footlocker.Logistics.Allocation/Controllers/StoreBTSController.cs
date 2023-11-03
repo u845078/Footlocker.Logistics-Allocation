@@ -10,6 +10,9 @@ using Telerik.Web.Mvc;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Common;
 using Aspose.Cells;
+using System.Web.UI;
+using Footlocker.Common.Entities;
+using Footlocker.Logistics.Allocation.Spreadsheets;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -24,63 +27,62 @@ namespace Footlocker.Logistics.Allocation.Controllers
             IQueryable<StoreCluster> stores = db.StoreClusters.AsQueryable();
             stores = stores.Where((p) => p.Division.Equals(div));
             return new JsonResult { Data = stores.Select(p => p.Name) };
-
         }
-
 
         public ActionResult Index(string message, string div, int? year)
         {
             ViewData["message"] = message;
 
-            StoreBTSModel model = new StoreBTSModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
-            if (model.Divisions.Count() > 0)
+            StoreBTSModel model = new StoreBTSModel()
             {
-                
-                if ((div==null)||(div == ""))
-                {
+                Divisions = currentUser.GetUserDivisions(AppName)
+            };
+            
+            if (model.Divisions.Count() > 0)
+            {                
+                if (string.IsNullOrEmpty(div))                
                     div = model.Divisions[0].DivCode;
-                }
+                
                 model.CurrentDivision = div;
-                model.List = (from a in db.StoreBTS where a.Division == div select a).ToList();
+                model.List = db.StoreBTS.Where(s => s.Division == div).ToList();
+
                 foreach (var storeBTSRec in model.List)
                 {
-                    storeBTSRec.ClusterID = (from a in db.StoreClusters
-                                             where a.Division == storeBTSRec.Division &&
-                                                   a.Name == storeBTSRec.Name
-                                             select a.ID).FirstOrDefault();
+                    storeBTSRec.ClusterID = db.StoreClusters.Where(sc => sc.Division == storeBTSRec.Division && sc.Name == storeBTSRec.Name)
+                                                            .Select(sc => sc.ID)
+                                                            .FirstOrDefault();
                 }
-                var query = (from a in db.StoreBTSControls where a.Division == div select a);
+                var query = db.StoreBTSControls.Where(sbc => sbc.Division == div);
                 if (query.Count() > 0)
                 {
                     model.Control = query.First();
                 }
                 else
                 {
-                    model.Control = new StoreBTSControl();
-                    model.Control.Division = div;
-                    model.Control.TY = DateTime.Now.Year;
-                    model.Control.LY = DateTime.Now.Year-1;
-
+                    model.Control = new StoreBTSControl()
+                    {
+                        Division = div,
+                        TY = DateTime.Now.Year,
+                        LY = DateTime.Now.Year - 1
+                    };
                 }
             }
-            model.Years = new List<int>();
-            model.Years.Add((System.DateTime.Now.Year + 1));
-            model.Years.Add(System.DateTime.Now.Year);
-            model.Years.Add((System.DateTime.Now.Year-1));
-            model.Years.Add((System.DateTime.Now.Year - 2));
-            model.Years.Add((System.DateTime.Now.Year - 3));
-            model.Years.Add((System.DateTime.Now.Year - 4));
-            model.Years.Add((System.DateTime.Now.Year - 5));
+            model.Years = new List<int>
+            {
+                DateTime.Now.Year + 1,
+                DateTime.Now.Year,
+                DateTime.Now.Year - 1,
+                DateTime.Now.Year - 2,
+                DateTime.Now.Year - 3,
+                DateTime.Now.Year - 4,
+                DateTime.Now.Year - 5
+            };
 
-            if (year != null)
-            {
-                model.CurrentYear = (int)year;
-            }
-            else
-            {
-                model.CurrentYear = System.DateTime.Now.Year;
-            }
+            if (year != null)            
+                model.CurrentYear = (int)year;            
+            else            
+                model.CurrentYear = DateTime.Now.Year;
+            
             return View(model);
         }
 
@@ -110,14 +112,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             IQueryable<StoreBTSGridExtract> list = storeBTS.AsQueryable();
 
-            if (settings.FilterDescriptors.Any())
-            {
-                list = list.ApplyFilters(settings.FilterDescriptors);
-            }
+            if (settings.FilterDescriptors.Any())            
+                list = list.ApplyFilters(settings.FilterDescriptors);            
 
             foreach (var bts in list.ToList())
             {
-                bts.StoreLookups = (from a in db.StoreBTSDetails join b in db.StoreLookups on new { a.Division, a.Store } equals new { b.Division, b.Store } where a.GroupID == bts.ID select b).ToList();
+                bts.StoreLookups = (from a in db.StoreBTSDetails 
+                                    join b in db.StoreLookups 
+                                    on new { a.Division, a.Store } equals new { b.Division, b.Store } 
+                                    where a.GroupID == bts.ID 
+                                    select b).ToList();
             }
 
             Workbook excelDocument = CreateSchoolBTSExport(list.ToList());
@@ -154,10 +158,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                         where a.GroupID == ID
                                                         select b).ToList().AsQueryable();
 
-                if (settings.FilterDescriptors.Any())
-                {
-                    listToFilter = listToFilter.ApplyFilters(settings.FilterDescriptors);
-                }
+                if (settings.FilterDescriptors.Any())                
+                    listToFilter = listToFilter.ApplyFilters(settings.FilterDescriptors);                
 
                 storeBTSRec.StoreLookups = listToFilter.ToList();
             }
@@ -167,7 +169,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
             excelDocument.Save(System.Web.HttpContext.Current.Response, "BackToSchoolDetails.xlsx", ContentDisposition.Attachment, save);
 
-            return RedirectToAction("Details", new { ID = ID });
+            return RedirectToAction("Details", new { ID });
         }
 
         private Workbook CreateSchoolBTSExport(List<StoreBTSGridExtract> storeBTS)
@@ -302,22 +304,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Create(string div, string name, int year)
         {
             string message="";
-            if ((from a in db.StoreBTS where ((a.Division == div) && (a.Name == name) && (a.Year == year)) select a).Count() > 0)
-            {
-                message = "The group " + name + " was already created for " + year + ".";
-            }
+            if (db.StoreBTS.Where(sb => sb.Division == div && sb.Name == name && sb.Year == year).Count() > 0)            
+                message = string.Format("The group {0} was already created for {1}.", name, year);            
             else
             {
-                if ((from a in db.StoreClusters where ((a.Division == div) && (a.Name == name)) select a).Count() == 1)
+                if (db.StoreClusters.Where(sc => sc.Division == div && sc.Name == name).Count() == 1)
                 {
                     try
                     {
-                        StoreBTS group = new StoreBTS();
-                        group.Name = name;
-                        group.Year = year;
-                        group.Division = div;
-                        group.CreatedBy = User.Identity.Name;
-                        group.CreateDate = DateTime.Now;
+                        StoreBTS group = new StoreBTS()
+                        {
+                            Name = name,
+                            Year = year,
+                            Division = div,
+                            CreatedBy = currentUser.NetworkID,
+                            CreateDate = DateTime.Now
+                        };
 
                         db.StoreBTS.Add(group);
                         db.SaveChanges();
@@ -343,12 +345,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     message = "Not a valid BTS group name for your division.";
                 }
             }
-            return RedirectToAction("Index", new { message = message, div = div });
+            return RedirectToAction("Index", new { message, div });
         }
 
         public ActionResult Edit(int ID)
         {
-            StoreBTS group = (from a in db.StoreBTS where a.ID == ID select a).First();
+            StoreBTS group = db.StoreBTS.Where(sb => sb.ID == ID).First();
 
             return View(group);
         }
@@ -357,14 +359,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult SetYear(StoreBTSModel model)
         {
-            StoreBTSControl control = (from a in db.StoreBTSControls where a.Division == model.Control.Division select a).FirstOrDefault();
+            StoreBTSControl control = db.StoreBTSControls.Where(sbc => sbc.Division == model.Control.Division).FirstOrDefault();
             if (control == null)
             {
-                control = new StoreBTSControl();
-
-                control.Division = model.Control.Division;
-                control.TY = model.Control.TY;
-                control.LY = model.Control.LY;
+                control = new StoreBTSControl()
+                {
+                    Division = model.Control.Division,
+                    TY = model.Control.TY,
+                    LY = model.Control.LY
+                };
 
                 db.StoreBTSControls.Add(control);
                 db.SaveChanges();
@@ -380,59 +383,40 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("Index", new {div = model.Control.Division});
         }
 
-        [HttpPost]
-        public ActionResult Edit(StoreBTS model)
-        {
-            //no longer can edit name of plan
-            //model.CreateDate = DateTime.Now;
-            //model.CreatedBy = User.Identity.Name;
-
-            //db.Entry(model).State = System.Data.EntityState.Modified;
-            //db.SaveChanges();
-            return RedirectToAction("Index");
-
-        }
-
         public ActionResult Search(string store, int year, string div)
         {
-            var list = (from a in db.StoreBTSDetails where (a.Store.Contains(store) && (a.Year == year) && (a.Division == div)) select a);
+            var list = db.StoreBTSDetails.Where(sbd => sbd.Store.Contains(store) && sbd.Year == year && sbd.Division == div);
 
             if (list.Count() == 1)
             {
                 StoreBTSDetail det = list.First();
-                StoreBTS group = (from a in db.StoreBTS where a.ID == det.GroupID select a).First();
+                StoreBTS group = db.StoreBTS.Where(sb => sb.ID == det.GroupID).First();
 
                 return View("ShowSearchResult", group);
             }
-            else if (list.Count() == 0)
-            {
-                return RedirectToAction("Index", new {message = "Store " + div + "-" + store + " is not in any group for year " + year, div = div});
-            }
-            else
-            {
-                return View(list);
-            }
-
+            else if (list.Count() == 0)            
+                return RedirectToAction("Index", new {message = string.Format("Store {0}-{1} is not in any group for year {2}", div, store, year), div});            
+            else            
+                return View(list);            
         }
 
         public ActionResult ShowSearchResult(string store, string div, int year)
         {
-            var list = (from a in db.StoreBTSDetails where ((a.Store ==store)&&(a.Division == div)&&(a.Year == year)) select a);
+            var list = db.StoreBTSDetails.Where(sbd => sbd.Store == store && sbd.Division == div && sbd.Year == year);
             StoreBTSDetail det = list.First();
-            StoreBTS group = (from a in db.StoreBTS where a.ID == det.GroupID select a).First();
+            StoreBTS group = db.StoreBTS.Where(sb => sb.ID == det.GroupID).First();
 
             return View(group);
         }
 
         public ActionResult Delete(int ID)
         {
-            var details = (from a in db.StoreBTSDetails where a.GroupID == ID select a);
-            foreach (StoreBTSDetail det in details)
-            {
+            var details = db.StoreBTSDetails.Where(sbd => sbd.GroupID == ID);
+            foreach (StoreBTSDetail det in details)            
                 db.StoreBTSDetails.Remove(det);
-            }
+            
             db.SaveChanges();
-            StoreBTS group = (from a in db.StoreBTS where a.ID == ID select a).First();
+            StoreBTS group = db.StoreBTS.Where(sb => sb.ID == ID).First();
 
             db.StoreBTS.Remove(group);
             db.SaveChanges();
@@ -445,19 +429,31 @@ namespace Footlocker.Logistics.Allocation.Controllers
             StoreBTSDetailModel model = new StoreBTSDetailModel();
             ViewData["message"] = message;
 
-            model.details = (from a in db.StoreBTSDetails join b in db.StoreLookups on new {a.Division, a.Store} equals new {b.Division, b.Store} where a.GroupID == ID select b).ToList();
-            model.header = (from a in db.StoreBTS where a.ID == ID select a).FirstOrDefault();
+            model.details = (from a in db.StoreBTSDetails 
+                             join b in db.StoreLookups 
+                             on new {a.Division, a.Store} equals new {b.Division, b.Store} 
+                             where a.GroupID == ID 
+                             select b).ToList();
+
+            model.header = db.StoreBTS.Where(sb => sb.ID == ID).FirstOrDefault();
             model.divisions = Footlocker.Common.DivisionService.ListDivisions();
             ViewData["GroupID"] = ID;
-            string div = (from a in db.StoreBTS where a.ID == ID select a.Division).First();
-            model.CopyFrom = (from a in db.StoreBTS where ((a.Year == System.DateTime.Now.Year - 1)&&(a.Division == div)) select a).ToList();
-            model.division = (from a in db.StoreBTS where a.ID == ID select a.Division).First();
-            int year = (from a in db.StoreBTS where a.ID == ID select a.Year).First();
+            string div = (from a in db.StoreBTS 
+                          where a.ID == ID 
+                          select a.Division).First();
+
+            model.CopyFrom = db.StoreBTS.Where(sb => sb.Year == DateTime.Now.Year - 1 && sb.Division == div).ToList();
+            model.division = (from a in db.StoreBTS 
+                              where a.ID == ID 
+                              select a.Division).First();
+            int year = (from a in db.StoreBTS 
+                        where a.ID == ID 
+                        select a.Year).First();
             
             model.UnassignedStores = (from a in db.StoreLookups
                                       join b in (from c in db.StoreBTSDetails where c.Year == year select c) on new { a.Division, a.Store } equals new { b.Division, b.Store } into subset
                                       from sc in subset.DefaultIfEmpty()
-                                      where ((sc == null) && (a.Division == model.division))
+                                      where sc == null && a.Division == model.division
                                       select a).ToList();
 
             return View(model);
@@ -465,176 +461,97 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult DownloadUnassignedStores(string div, int year)
         {
-            List<StoreLookup> stores = (from a in db.StoreLookups.Include("StoreExtension")
-                                        join b in
-                                            (from c in db.StoreBTSDetails where c.Year == year select c) on new { a.Division, a.Store } equals new { b.Division, b.Store } into subset
-                                        from sc in subset.DefaultIfEmpty()
-                                        where ((sc == null) && (a.Division == div))
-                                        select a).ToList();
-            List<StoreExtension> excludedstores = (from a in db.StoreExtensions where (a.ExcludeStore == true) select a).ToList();
-
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-            Excel excelDocument = new Excel();
-
-            Aspose.Excel.Worksheet workSheet = excelDocument.Worksheets[0];
-
-            int row = 0;
-            workSheet.Cells[0, 0].PutValue("Division");
-            workSheet.Cells[0, 0].Style.Font.IsBold = true;
-            workSheet.Cells[0, 1].PutValue("Region");
-            workSheet.Cells[0, 1].Style.Font.IsBold = true;
-            workSheet.Cells[0, 2].PutValue("League");
-            workSheet.Cells[0, 2].Style.Font.IsBold = true;
-            workSheet.Cells[0, 3].PutValue("Store");
-            workSheet.Cells[0, 3].Style.Font.IsBold = true;
-            workSheet.Cells[0, 4].PutValue("Mall");
-            workSheet.Cells[0, 4].Style.Font.IsBold = true;
-            workSheet.Cells[0, 5].PutValue("State");
-            workSheet.Cells[0, 5].Style.Font.IsBold = true;
-            workSheet.Cells[0, 6].PutValue("City");
-            workSheet.Cells[0, 6].Style.Font.IsBold = true;
-            workSheet.Cells[0, 7].PutValue("DBA");
-            workSheet.Cells[0, 7].Style.Font.IsBold = true;
-            workSheet.Cells[0, 8].PutValue("Status");
-            workSheet.Cells[0, 8].Style.Font.IsBold = true;
-            workSheet.Cells[0, 9].PutValue("Closed Date");
-            workSheet.Cells[0, 9].Style.Font.IsBold = true;
-
-            List<MainframeStore> ClosingDates = new List<MainframeStore>();
-            List<string> ClosedStores = new List<string>();
-            MainframeStoreDAO dao = new MainframeStoreDAO(appConfig.EuropeDivisions);
-
-            foreach (StoreLookup s in stores)
-            {
-                if (s.status == "C")
-                {
-                    ClosedStores.Add(s.Store);
-                    if (ClosedStores.Count == 15)
-                    {
-                        ClosingDates.AddRange(dao.GetClosingDates(ClosedStores, div));
-                        ClosedStores.Clear();
-                    }
-                }
-            }
-            if (ClosedStores.Count > 0)
-            {
-                ClosingDates.AddRange(dao.GetClosingDates(ClosedStores, div));
-                ClosedStores.Clear();
-            }
-
-            foreach (StoreLookup s in stores)
-            {
-                if ((from a in excludedstores where ((a.Store == s.Store) && (a.Division == s.Division)) select a).Count() == 0)
-                {
-                    row++;
-                    workSheet.Cells[row, 0].PutValue(s.Division);
-                    workSheet.Cells[row, 1].PutValue(s.Region);
-                    workSheet.Cells[row, 2].PutValue(s.League);
-                    workSheet.Cells[row, 3].PutValue(s.Store);
-                    workSheet.Cells[row, 4].PutValue(s.Mall);
-                    workSheet.Cells[row, 5].PutValue(s.State);
-                    workSheet.Cells[row, 6].PutValue(s.City);
-                    workSheet.Cells[row, 7].PutValue(s.DBA);
-                    workSheet.Cells[row, 8].PutValue(s.status);
-                    if (s.status == "C")
-                    {
-                        var query = (from a in ClosingDates where a.Store == s.Store select a.ClosedDate);
-                        if (query.Count() > 0)
-                        {
-                            workSheet.Cells[row, 9].PutValue(query.First());
-                        }
-                    }
-                }
-            }
-
-            excelDocument.Save("BTS_Unassigned.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            BTSUnassignedExport exportBTS = new BTSUnassignedExport(appConfig, new MainframeStoreDAO(appConfig.EuropeDivisions));
+            exportBTS.WriteData(div, year);
+            
+            exportBTS.excelDocument.Save("BTS_Unassigned.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
-
 
         [GridAction]
         public ActionResult _RefreshGrid(int groupID)
         {
-            List<StoreLookup> list = (from a in db.StoreBTSDetails join b in db.StoreLookups on new { a.Division, a.Store } equals new { b.Division, b.Store } where a.GroupID == groupID select b).ToList();
+            List<StoreLookup> list = (from a in db.StoreBTSDetails 
+                                      join b in db.StoreLookups 
+                                      on new { a.Division, a.Store } equals new { b.Division, b.Store } 
+                                      where a.GroupID == groupID 
+                                      select b).ToList();
             return View(new GridModel(list)); 
         }
 
         public ActionResult DeleteDetail(int ID, string div, string store)
         {
-            StoreBTSDetail det = (from a in db.StoreBTSDetails where ((a.GroupID == ID) && (a.Division == div)&&(a.Store==store)) select a).First();
+            StoreBTSDetail det = db.StoreBTSDetails.Where(sbd => sbd.GroupID == ID && sbd.Division == div && sbd.Store==store).First();
             db.StoreBTSDetails.Remove(det);
             db.SaveChanges();
 
-            StoreBTS group = (from a in db.StoreBTS where a.ID == ID select a).First();
-            group.Count = group.Count - 1;
+            StoreBTS group = db.StoreBTS.Where(sb => sb.ID == ID).First();
+            group.Count--;
             db.SaveChanges();
 
-            return RedirectToAction("Details", new { ID = ID});
+            return RedirectToAction("Details", new { ID});
         }
 
         public ActionResult CopyStoreBTS(int ID, int CopyFrom)
         {
-            int year = (from a in db.StoreBTS where a.ID == ID select a.Year).First();
-            var copyFromList = (from a in db.StoreBTSDetails where a.GroupID == CopyFrom select a);
+            int year = (from a in db.StoreBTS 
+                        where a.ID == ID 
+                        select a.Year).First();
+            var copyFromList = db.StoreBTSDetails.Where(sbd => sbd.GroupID == CopyFrom);
 
             StoreBTSDetail newDet;
             List<StoreBTSDetail> list = new List<StoreBTSDetail>();
             foreach (StoreBTSDetail det in copyFromList)
             {
-                newDet = new StoreBTSDetail();
-                newDet.GroupID = ID;
-                newDet.Year = year;
-                newDet.Store = det.Store;
-                newDet.Division = det.Division;
-                newDet.CreatedBy = User.Identity.Name;
-                newDet.CreateDate = DateTime.Now;
+                newDet = new StoreBTSDetail()
+                {
+                    GroupID = ID,
+                    Year = year,
+                    Store = det.Store,
+                    Division = det.Division,
+                    CreatedBy = currentUser.NetworkID,
+                    CreateDate = DateTime.Now
+                };
+
                 list.Add(newDet);
             }
             int errors = 0;
             int count = 0;
             foreach (StoreBTSDetail det in list)
             {
-                if ((from a in db.StoreBTSDetails where ((a.Store == det.Store) && (a.Division == det.Division) && (a.Year == det.Year)) select a).Count() == 0)
+                if (db.StoreBTSDetails.Where(sbd => sbd.Store == det.Store && sbd.Division == det.Division && sbd.Year == det.Year).Count() == 0)
                 {
                     db.StoreBTSDetails.Add(det);
                     db.SaveChanges();
                     count++;
                 }
-                else
-                {
-                    errors++;
-                }
+                else                
+                    errors++;                
             }
-            StoreBTS group = (from a in db.StoreBTS where a.ID == ID select a).First();
+            StoreBTS group = db.StoreBTS.Where(sb => sb.ID == ID).First();
             group.Count += count;
             db.Entry(group).State = System.Data.EntityState.Modified;
             db.SaveChanges();
 
-
-            return RedirectToAction("Details", new { ID = ID, message = "Copied group " + count + " stores, " + errors + " errors." });            
+            return RedirectToAction("Details", new { ID, message = string.Format("Copied group {0} stores, {1} errors.", count, errors) });            
         }
 
         public ActionResult AddDetail(int ID, string store)
         {
             string message = "";
-            StoreBTS storebts =(from a in db.StoreBTS where a.ID == ID select a).First();
+            StoreBTS storebts = db.StoreBTS.Where(sb => sb.ID == ID).First();
             string division = storebts.Division;
             store = store.PadLeft(5, '0');
             int year = storebts.Year;
 
             if (currentUser.HasDivision(AppName, division))
             {
-                var storequery = (from a in db.StoreLookups 
-                                  where a.Division == division &&
-                                        a.Store==store
-                                  select a);
+                var storequery = db.StoreLookups.Where(sl => sl.Division == division && sl.Store == store);
 
                 if (storequery.Count() > 0)
                 {
-                    var existing = (from a in db.StoreBTSDetails where ((a.Division == division) && (a.Store == store)&&(a.Year == year)) select a);
+                    var existing = db.StoreBTSDetails.Where(sbd => sbd.Division == division && sbd.Store == store && sbd.Year == year);
+
                     if (existing.Count() > 0)
                     {
                         int oldGroup = existing.First().GroupID;
@@ -645,25 +562,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         ViewData["div"] = division;
                         ViewData["store"] = store;
                         ViewData["year"] = year;
-                        return View();
-                        //RedirectToAction("ConfirmMove", new { ID = ID, vendorNumber = vendorNumber });
+                        return View();                        
                     }
                     else
                     {
                         try
                         {
-                            StoreBTSDetail det = new StoreBTSDetail();
-                            det.GroupID = ID;
-                            det.Division = division;
-                            det.Store = store;
-                            det.Year = year;
-                            det.CreateDate = DateTime.Now;
-                            det.CreatedBy = User.Identity.Name;
+                            StoreBTSDetail det = new StoreBTSDetail()
+                            {
+                                GroupID = ID,
+                                Division = division,
+                                Store = store,
+                                Year = year,
+                                CreateDate = DateTime.Now,
+                                CreatedBy = currentUser.NetworkID
+                            };
+
                             db.StoreBTSDetails.Add(det);
                             db.SaveChanges();
 
-                            StoreBTS group = (from a in db.StoreBTS where a.ID == ID select a).First();
-                            group.Count = group.Count + 1;
+                            StoreBTS group = db.StoreBTS.Where(sb => sb.ID == ID).First();
+                            group.Count++;
                             db.SaveChanges();
                         }
                         catch (System.Data.Entity.Validation.DbEntityValidationException ex2)
@@ -683,43 +602,38 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         }
                     }
                 }
-                else 
-                {
-                    message = "Invalid division/store.";
-                }
+                else                 
+                    message = "Invalid division/store.";                
             }
-            else
-            {
+            else            
                 message = "You are not autorized for this division.";
-            }
+            
             return RedirectToAction("Details", new { ID = ID, message = message });
         }
 
-
         public ActionResult ShowDetail(int ID, string div, string store)
         {
-            List<StoreBTSDetail> model = (from a in db.StoreBTSDetails where ((a.Division == div) && (a.Store == store) && (a.GroupID == ID)) select a).ToList();
+            List<StoreBTSDetail> model = db.StoreBTSDetails.Where(sbd => sbd.Division == div && sbd.Store == store && sbd.GroupID == ID).ToList();
             return View(model);
         }
 
         public ActionResult ConfirmMove(int ID, string div, string store, int year)
         {
-            StoreBTSDetail det = (from a in db.StoreBTSDetails where ((a.Division == div)&&(a.Store == store)&&(a.Year == year)) select a).First();
-            StoreBTS group = (from a in db.StoreBTS where a.ID == det.GroupID select a).First();
-            group.Count = group.Count - 1;
+            StoreBTSDetail det = db.StoreBTSDetails.Where(sbd => sbd.Division == div && sbd.Store == store && sbd.Year == year).First();
+            StoreBTS group = db.StoreBTS.Where(sb => sb.ID == det.GroupID).First();
+            group.Count--;
             db.SaveChanges();
-
             
             det.GroupID = ID;
             det.CreateDate = DateTime.Now;
-            det.CreatedBy = User.Identity.Name;
+            det.CreatedBy = currentUser.NetworkID;
             db.SaveChanges();
 
-            group = (from a in db.StoreBTS where a.ID == ID select a).First();
-            group.Count = group.Count + 1;
+            group = db.StoreBTS.Where(sb => sb.ID == ID).First();
+            group.Count++;
             db.SaveChanges();
 
-            return RedirectToAction("Details", new { ID = ID });
+            return RedirectToAction("Details", new { ID });
         }
 
         /// <summary>
@@ -804,7 +718,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         row++;
                     }
 
-                    group.Count = group.Count + addedCount;
+                    group.Count += addedCount;
                     db.SaveChanges();
 
                 }
@@ -833,7 +747,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 errorList = (List<StoreBTSDetail>)Session["errorList"];
             }
 
-
             Aspose.Excel.License license = new Aspose.Excel.License();
             //Set the license 
             license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
@@ -857,7 +770,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
 
         }
-
 
         public ActionResult ExcelTemplate()
         {

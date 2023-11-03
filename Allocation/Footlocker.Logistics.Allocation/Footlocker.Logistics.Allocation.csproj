@@ -222,6 +222,7 @@
     <Compile Include="Spreadsheets\ARConstraintsSpreadsheet.cs" />
     <Compile Include="Spreadsheets\ARSKUSpreadsheet.cs" />
     <Compile Include="Spreadsheets\BaseSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\BTSUnassignedExport.cs" />
     <Compile Include="Spreadsheets\CrossdockLinkSpreadsheet.cs" />
     <Compile Include="Common\DeleteValidationException.cs" />
     <Compile Include="Common\ExistsValidationException.cs" />
@@ -609,6 +610,7 @@
     </Content>
     <Content Include="Content\Templates\POOverrideTemplate.xls" />
     <Content Include="Content\Templates\SeasonalityTemplate.xls" />
+    <Content Include="Content\Templates\BTSUnassignedTemplate.xls" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="readme.txt" />
     <Content Include="Views\Shared\EditorTemplates\Date.cshtml" />
@@ -782,7 +784,6 @@
     <Content Include="Views\StoreBTS\ShowSearchResult.cshtml" />
     <Content Include="Views\StoreBTS\Create.cshtml" />
     <Content Include="Views\StoreBTS\Details.cshtml" />
-    <Content Include="Views\StoreBTS\Edit.cshtml" />
     <Content Include="Views\StoreBTS\Index.cshtml" />
     <Content Include="Views\StoreBTS\Search.cshtml" />
     <Content Include="Views\StoreBTS\ShowDetail.cshtml" />
