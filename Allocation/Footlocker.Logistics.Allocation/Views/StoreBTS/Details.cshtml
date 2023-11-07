@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.StoreBTSDetailModel
+﻿@model StoreBTSDetailModel
 
 @{
     ViewBag.Title = "BTS Group Details";
@@ -24,21 +24,18 @@
             columns.Bound(o => o.Mall);
             columns.Bound(o => o.City);
             columns.Bound(o => o.State);
-            //            columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(120);
             columns.Command(commands =>
             {
-                commands
-                .Custom("ShowDetail")
-                .Text("History")
-                .DataRouteValues(route => { route.Add(o => o.Division).RouteKey("div"); route.Add(o => o.Store).RouteKey("store"); })
-                .Ajax(false)
-                .Action("ShowDetail", "StoreBTS");
-                commands
-                .Custom("Delete")
-                .Text("Delete")
-                .DataRouteValues(route => { route.Add(o => o.Division).RouteKey("div"); route.Add(o => o.Store).RouteKey("store"); })
-                .Ajax(false)
-                .Action("DeleteDetail", "StoreBTS").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+                commands.Custom("ShowDetail")
+                        .Text("History")
+                        .DataRouteValues(route => { route.Add(o => o.Division).RouteKey("div"); route.Add(o => o.Store).RouteKey("store"); })
+                        .Ajax(false)
+                        .Action("ShowDetail", "StoreBTS");
+                commands.Custom("Delete")
+                        .Text("Delete")
+                        .DataRouteValues(route => { route.Add(o => o.Division).RouteKey("div"); route.Add(o => o.Store).RouteKey("store"); })
+                        .Ajax(false)
+                        .Action("DeleteDetail", "StoreBTS").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
             }).HtmlAttributes(new { style = "text-align: left" }).Width(200);
         })
         .ToolBar(toolbar =>
@@ -61,10 +58,10 @@
                       )
                 </text>);
         })
-            .DataBinding(dataBinding =>
-            {
-                dataBinding.Ajax().Select("_RefreshGrid", "StoreBTS", new { groupID = ViewData["GroupID"] }).Enabled(true);
-            })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Ajax().Select("_RefreshGrid", "StoreBTS", new { groupID = ViewData["GroupID"] }).Enabled(true);
+        })
         .Sortable()
         .Pageable()
         .Filterable()
@@ -75,7 +72,7 @@
 @using (Html.BeginForm("AddDetail", "StoreBTS", FormMethod.Get))
 {
     <fieldset>
-    <legend> Individual Store </legend>
+    <legend>Individual Store</legend>
         @Html.Hidden("ID", ViewData["GroupID"])
         @Html.Hidden("Year", ViewData["Year"])
         @Html.TextBox("Store")
@@ -88,7 +85,7 @@
     using (Html.BeginForm("CopyStoreBTS", "StoreBTS", FormMethod.Get))
     {
     <fieldset>
-        <legend> Import from a previous group </legend>
+        <legend>Import from a previous group</legend>
         @Html.Hidden("ID", ViewData["GroupID"])
         @Html.DropDownList("CopyFrom", new SelectList(Model.CopyFrom, "ID", "DisplayName"))
         <input type="submit" value="import stores from group" class="t-button" style="width:200px" />
@@ -97,8 +94,10 @@
     
 }
 <fieldset>
-    <legend> Upload Spreadsheet </legend>
-    Spreadsheet columns should be Div (##), Store (#####).  <br />
+    <legend>Upload Spreadsheet</legend>
+    Spreadsheet columns should be Division and Store.<br /><br />
+    @Html.ActionLink("Download Template", "ExcelTemplate", new { }, new { @class = "t-button" })<br /><br />
+
     @(Html.Telerik().Upload()
         .Name("attachments")
         .Multiple(true)
@@ -112,9 +111,9 @@
                     .OnSuccess("onSuccess")
             )
         )
-        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
-        <br />
-        <h4> <div id="message"></div> </h4>
+    <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;" />
+    <br />
+    <h4 id="message"></h4>
 </fieldset>
      <script type="text/javascript">
          function exportSelected() {

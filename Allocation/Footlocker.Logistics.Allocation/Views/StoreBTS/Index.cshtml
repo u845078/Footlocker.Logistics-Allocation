@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.StoreBTSModel
+﻿@model StoreBTSModel
 
 @{
     ViewBag.Title = "Store BTS";
@@ -27,18 +27,18 @@
 
 </script>
 <h2>Store Back To School Grouping</h2>
-<p>Please note:  The seasonality index is controlled for North America on this page(groups for TY).  Europe is controlled on the Seasonality page.</p>
+<p>Please note: The seasonality index is controlled for North America on this page (groups for TY). Europe is controlled on the Seasonality page.</p>
 
 @if ((ViewData["message"] != null) && (ViewData["message"].ToString().Length > 0))
 { 
     @Html.Raw("<font color=\"Red\">" + ViewData["message"] + "</font><br>")
 }
+
 @Html.DropDownListFor(m => Model.CurrentDivision, new SelectList(Model.Divisions, "DivCode", "DivisionName"), new { onchange = "autopostback(this);" })
 @Html.DropDownListFor(m => Model.CurrentYear, new SelectList(Model.Years), new { onchange = "autopostback(this);" })
 
 @Html.ActionLink("Unassigned Stores", "DownloadUnassignedStores", new { div = Model.CurrentDivision, year = Model.CurrentYear }, new { @class = "t-button" })
 <br />
-
 
 @if (Model.List.Count() > 0)
 {
@@ -56,24 +56,16 @@
             columns.Bound(o => o.CreateDate).Format("{0:MM/dd/yyyy}").Width(120);
             columns.Command(commands =>
             {
-                //commands
-                //.Custom("Edit")
-                //.Text("Edit")
-                //.DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
-                //.Ajax(false)
-                //.Action("Edit", "StoreBTS");
-                commands
-                .Custom("Details")
-                .Text("Details")
-                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
-                .Ajax(false)
-                .Action("Details", "StoreBTS");
-                commands
-                .Custom("Delete")
-                .Text("Delete")
-                .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
-                .Ajax(false)
-                .Action("Delete", "StoreBTS").HtmlAttributes(new { onclick="return confirm('Are you sure?');"});
+                commands.Custom("Details")
+                        .Text("Details")
+                        .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                        .Ajax(false)
+                        .Action("Details", "StoreBTS");
+                commands.Custom("Delete")
+                        .Text("Delete")
+                        .DataRouteValues(route => { route.Add(o => o.ID).RouteKey("id"); })
+                        .Ajax(false)
+                        .Action("Delete", "StoreBTS").HtmlAttributes(new { onclick="return confirm('Are you sure?');"});
             }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
         })
         .ToolBar(toolbar =>

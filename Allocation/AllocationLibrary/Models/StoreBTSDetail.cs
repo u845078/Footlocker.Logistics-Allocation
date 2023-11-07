@@ -13,7 +13,6 @@ namespace Footlocker.Logistics.Allocation.Models
         [Column(Order=0)]
         public string Division { get; set; }
 
-
         [Key]
         [RegularExpression(@"^\d{5}$",ErrorMessage="Store number must be in the format #####")]
         [Required]

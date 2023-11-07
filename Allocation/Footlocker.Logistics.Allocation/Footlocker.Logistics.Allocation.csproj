@@ -222,6 +222,7 @@
     <Compile Include="Spreadsheets\ARConstraintsSpreadsheet.cs" />
     <Compile Include="Spreadsheets\ARSKUSpreadsheet.cs" />
     <Compile Include="Spreadsheets\BaseSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\BTSSpreadsheet.cs" />
     <Compile Include="Spreadsheets\BTSUnassignedExport.cs" />
     <Compile Include="Spreadsheets\CrossdockLinkSpreadsheet.cs" />
     <Compile Include="Common\DeleteValidationException.cs" />

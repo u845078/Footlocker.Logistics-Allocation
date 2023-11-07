@@ -52,6 +52,37 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                             .Select(sc => sc.ID)
                                                             .FirstOrDefault();
                 }
+
+                if (model.List.Count > 0)
+                {
+                    List<string> uniqueNames = (from l in model.List
+                                                select l.CreatedBy).Distinct().ToList();
+                    Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+
+                    List<ApplicationUser> allUserNames = GetAllUserNamesFromDatabase();
+
+                    foreach (var item in uniqueNames)
+                    {
+                        if (!item.Contains(" ") && !string.IsNullOrEmpty(item))
+                        {
+                            string userLookup = item.Replace('\\', '/');
+                            userLookup = userLookup.Replace("CORP/", "");
+
+                            if (userLookup.Substring(0, 1) == "u")
+                                fullNamePairs.Add(item, allUserNames.Where(aun => aun.UserName == userLookup).Select(aun => aun.FullName).FirstOrDefault());
+                            else
+                                fullNamePairs.Add(item, item);
+                        }
+                        else
+                            fullNamePairs.Add(item, item);
+                    }
+
+                    foreach (var item in fullNamePairs)
+                    {
+                        model.List.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+                    }
+                }
+
                 var query = db.StoreBTSControls.Where(sbc => sbc.Division == div);
                 if (query.Count() > 0)
                 {
@@ -608,7 +639,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             else            
                 message = "You are not autorized for this division.";
             
-            return RedirectToAction("Details", new { ID = ID, message = message });
+            return RedirectToAction("Details", new { ID, message });
         }
 
         public ActionResult ShowDetail(int ID, string div, string store)
@@ -636,6 +667,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("Details", new { ID });
         }
 
+        public ActionResult ExcelTemplate()
+        {
+            BTSSpreadsheet btsSpreadsheet = new BTSSpreadsheet(appConfig, new ConfigService());
+            Excel excelDocument;
+
+            excelDocument = btsSpreadsheet.GetTemplate();
+
+            excelDocument.Save("StoreBTSDetails.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            return View();
+        }
+
         /// <summary>
         /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
         /// </summary>
@@ -643,148 +685,47 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <returns></returns>
         public ActionResult Save(IEnumerable<HttpPostedFileBase> attachments, int groupID)
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-            string Division = "";
-            string Store = "";
-            List<StoreBTSDetail> errorList = new List<StoreBTSDetail>();
-            int errors = 0;
-            int addedCount = 0;
-            StoreBTS group = (from a in db.StoreBTS where a.ID == groupID select a).First();
-            int year = group.Year;
+            BTSSpreadsheet btsSpreadsheet = new BTSSpreadsheet(appConfig, new ConfigService());
+
+            int successCount = 0;
+            string message;
 
             foreach (HttpPostedFileBase file in attachments)
             {
-                //Instantiate a Workbook object that represents an Excel file
-                Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                Byte[] data1 = new Byte[file.InputStream.Length];
-                file.InputStream.Read(data1, 0, data1.Length);
-                file.InputStream.Close();
-                MemoryStream memoryStream1 = new MemoryStream(data1);
-                workbook.Open(memoryStream1);
-                Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-                string mainDivision;
-                int row = 1;
-                if ((Convert.ToString(mySheet.Cells[0, 0].Value).Contains("Div")) &&
-                    (Convert.ToString(mySheet.Cells[0, 1].Value).Contains("Store"))
-                    )
-                {
-                    Division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2, '0');
-                    mainDivision = Division;
+                btsSpreadsheet.Save(file, groupID);
 
-                    while (mySheet.Cells[row, 0].Value != null)
-                    {
-                        Division = Convert.ToString(mySheet.Cells[row, 0].Value).PadLeft(2,'0');
-
-                        Store = Convert.ToString(mySheet.Cells[row, 1].Value).PadLeft(5, '0');
-                        var foundStore = (from a in db.StoreLookups where ((a.Division == Division) && (a.Store == Store)) select a);
-                        if (foundStore.Count() > 0)
-                        {
-                            StoreBTSDetail det = new StoreBTSDetail();
-                            try
-                            {
-                                det.Division = Division;
-                                det.Store = Store;
-                                det.CreateDate = DateTime.Now;
-                                det.CreatedBy = User.Identity.Name;
-                                det.GroupID = groupID;
-                                det.Year = year;
-                                db.StoreBTSDetails.Add(det);
-                                db.SaveChanges();
-                                addedCount++;
-                            }
-                            catch (Exception ex)
-                            {
-                                db.StoreBTSDetails.Remove(det);
-                                errors++;
-                                //add to errors list
-                                StoreBTSDetail errorDet = new StoreBTSDetail();
-                                errorDet.Division = Division;
-                                errorDet.Store = Store;
-                                errorDet.Year = year;
-                                errorDet.CreateDate = DateTime.Now;
-                                errorDet.CreatedBy = User.Identity.Name;
-                                errorDet.GroupID = groupID;
-                                while (ex.Message.Contains("inner exception"))
-                                {
-                                    ex = ex.InnerException;
-                                }
-                                errorDet.errorMessage = ex.Message;
-
-                                errorList.Add(errorDet);
-                            }
-                        }
-                        row++;
-                    }
-
-                    group.Count += addedCount;
-                    db.SaveChanges();
-
-                }
+                if (!string.IsNullOrEmpty(btsSpreadsheet.message))
+                    return Content(btsSpreadsheet.message);
                 else
                 {
-                    return Content("Incorrect header, please use template.");
-                }
-            }
-            if (errorList.Count > 0)
-            {
-                Session["errorList"] = errorList;
-                return Content(errors + " Errors on spreadsheet (" + addedCount + " successfully uploaded)");
+                    if (btsSpreadsheet.errorList.Count() > 0)
+                    {
+                        Session["errorList"] = btsSpreadsheet.errorList;
 
+                        message = string.Format("{0} successfully uploaded, {1} Errors", btsSpreadsheet.validData.Count.ToString(),
+                            btsSpreadsheet.errorList.Count.ToString());
+
+                        return Content(message);
+                    }
+                }
+
+                successCount += btsSpreadsheet.validData.Count();
             }
-            else
-            {
-                return Content("");
-            }
+
+            return Json(new { message = string.Format("Upload complete. Added {0} store(s)", successCount) }, "application/json");
         }
 
         public ActionResult BTSErrors()
         {
-            List<StoreBTSDetail> errorList = new List<StoreBTSDetail>();
-            if (Session["errorList"] != null)
+            List<StoreBTSDetail> errors = (List<StoreBTSDetail>)Session["errorList"];
+            Excel excelDocument;
+            BTSSpreadsheet btsSpreadsheet = new BTSSpreadsheet(appConfig, new ConfigService());
+
+            if (errors != null)
             {
-                errorList = (List<StoreBTSDetail>)Session["errorList"];
+                excelDocument = btsSpreadsheet.GetErrors(errors);
+                excelDocument.Save("BTSUploadErrors.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             }
-
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-            Excel excelDocument = new Excel();
-
-            Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
-            int row = 1;
-            mySheet.Cells[0, 0].PutValue("Div");
-            mySheet.Cells[0, 1].PutValue("Store");
-            foreach (StoreBTSDetail p in errorList)
-            {
-                mySheet.Cells[row, 0].PutValue(p.Division);
-                mySheet.Cells[row, 1].PutValue(p.Store);
-                mySheet.Cells[row, 2].PutValue(p.errorMessage);
-
-                row++;
-            }
-
-            excelDocument.Save("BTSUploadErrors.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
-            return View();
-
-        }
-
-        public ActionResult ExcelTemplate()
-        {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-            Excel excelDocument = new Excel();
-            FileStream file = new FileStream(Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["SeasonalityTemplate"]), FileMode.Open, System.IO.FileAccess.Read);
-            Byte[] data1 = new Byte[file.Length];
-            file.Read(data1, 0, data1.Length);
-            file.Close();
-            MemoryStream memoryStream1 = new MemoryStream(data1);
-            excelDocument.Open(memoryStream1);
-            excelDocument.Save("StoreBTSDetails.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
     }
