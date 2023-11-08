@@ -14,6 +14,9 @@ using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
 using Footlocker.Logistics.Allocation.Services;
+using Telerik.Web.Mvc.Infrastructure;
+using System.Runtime;
+using System.ComponentModel;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -491,209 +494,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult ExportGrid(GridCommand settings)
         {
-            IQueryable<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders.Include("SkuAttributeDetails").AsEnumerable()
-                                                      join d in currentUser.GetUserDivisions(AppName)
-                                                        on new { a.Division } equals new { Division = d.DivCode }
-                                                      orderby a.Division, a.Dept, a.Category, a.SKU
-                                                      select a).AsQueryable();
+            SkuAttributeExport skuAttributeExport = new SkuAttributeExport(appConfig);
 
-            if (settings.FilterDescriptors.Any())
-                headers = headers.ApplyFilters(settings.FilterDescriptors);            
+            skuAttributeExport.ExtractGrid(settings.FilterDescriptors);
 
-            Aspose.Excel.Excel excelDocument = CreateSkuAttributeExport(headers.ToList());
-            excelDocument.Save("SkuAttributes.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            skuAttributeExport.excelDocument.Save("SkuAttributes.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return RedirectToAction("Index");
         }
 
         public ActionResult Export(int ID)
         {
-            // retrieve data (return list even though only 1 should be returned in order to use general method)
-            List<SkuAttributeHeader> header = db.SkuAttributeHeaders.Include("SkuAttributeDetails")
-                                                                    .Where(sa => sa.ID == ID)
-                                                                    .ToList();
-            Excel excelDocument = CreateSkuAttributeExport(header);
-            SkuAttributeHeader sah = header.FirstOrDefault();
-            string excelFileName = string.Format("{0}-{1}", sah.Division, sah.Dept);
-            if (sah != null)
-            {
-                if (sah.Category != null)                
-                    excelFileName += "-" + sah.Category;
-                
-                if (sah.Brand != null)                
-                    excelFileName += "-" + sah.Brand;
-                
-                if (!string.IsNullOrEmpty(sah.SKU))
-                    excelFileName += "-" + sah.SKU;
-            }
+            SkuAttributeExport skuAttributeExport = new SkuAttributeExport(appConfig);
 
-            excelFileName += "-SkuAttributes.xls";
-            excelDocument.Save(excelFileName, SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            skuAttributeExport.ExtractHeader(ID);
+
+            if (string.IsNullOrEmpty(skuAttributeExport.errorMessage))            
+                skuAttributeExport.excelDocument.Save(skuAttributeExport.headerFileName, Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            else
+                throw new Exception(skuAttributeExport.errorMessage);
+            
             return RedirectToAction("Index");
         }
-
-        private Excel CreateSkuAttributeExport(List<SkuAttributeHeader> headers)
-        {
-            Excel excelDocument = GetSkuAttributeExcelFile();
-
-            int row = 2;
-            Worksheet mySheet = excelDocument.Worksheets[0];
-            foreach (var header in headers)
-            {
-                // header values
-                mySheet.Cells[row, 0].PutValue(header.Division);
-                mySheet.Cells[row, 0].Style.HorizontalAlignment = TextAlignmentType.Right;
-                mySheet.Cells[row, 1].PutValue(header.Dept);
-                mySheet.Cells[row, 1].Style.HorizontalAlignment = TextAlignmentType.Right;
-                mySheet.Cells[row, 2].PutValue(header.CategoryForDisplay);
-                mySheet.Cells[row, 2].Style.HorizontalAlignment = TextAlignmentType.Right;
-                mySheet.Cells[row, 3].PutValue(header.BrandForDisplay);
-                mySheet.Cells[row, 3].Style.HorizontalAlignment = TextAlignmentType.Right;
-                mySheet.Cells[row, 4].PutValue(header.SKU);
-                mySheet.Cells[row, 4].Style.HorizontalAlignment = TextAlignmentType.Right;
-                mySheet.Cells[row, 5].PutValue(header.CreateDate);
-                mySheet.Cells[row, 5].Style.Number = 14;
-                mySheet.Cells[row, 6].PutValue(header.WeightActiveInt);
-                mySheet.Cells[row, 6].Style.HorizontalAlignment = TextAlignmentType.Right;
-                AddBorder(row, 6, mySheet);
-
-                // attribute weighting
-                PopulateRowValue(row, 7, header, mySheet, "department");
-                PopulateRowValue(row, 8, header, mySheet, "category");
-                PopulateRowValue(row, 9, header, mySheet, "vendornumber");
-                PopulateRowValue(row, 10, header, mySheet, "brandid");
-                PopulateRowValue(row, 11, header, mySheet, "size");
-                PopulateRowValue(row, 12, header, mySheet, "sizerange");
-                PopulateRowValue(row, 13, header, mySheet, "color1");
-                PopulateRowValue(row, 14, header, mySheet, "color2");
-                PopulateRowValue(row, 15, header, mySheet, "color3");
-                PopulateRowValue(row, 16, header, mySheet, "gender");
-                PopulateRowValue(row, 17, header, mySheet, "lifeofsku");
-                PopulateRowValue(row, 18, header, mySheet, "material");
-                PopulateRowValue(row, 19, header, mySheet, "playerid");
-                PopulateRowValue(row, 20, header, mySheet, "skuid1");
-                PopulateRowValue(row, 21, header, mySheet, "skuid2");
-                PopulateRowValue(row, 22, header, mySheet, "skuid3");
-                PopulateRowValue(row, 23, header, mySheet, "skuid4");
-                PopulateRowValue(row, 24, header, mySheet, "skuid5");
-                PopulateRowValue(row, 25, header, mySheet, "teamcode");
-                row++;
-            }
-
-            return excelDocument;
-        }
-
-        private void AddBorder(int row, int col, Worksheet mySheet)
-        {
-            mySheet.Cells[row, col].Style.Borders[BorderType.LeftBorder].LineStyle = CellBorderType.Thin;
-            mySheet.Cells[row, col].Style.Borders[BorderType.RightBorder].LineStyle = CellBorderType.Thin;
-            mySheet.Cells[row, col].Style.Borders[BorderType.BottomBorder].LineStyle = CellBorderType.Thin;
-            mySheet.Cells[row, col].Style.Borders[BorderType.TopBorder].LineStyle = CellBorderType.Thin;
-
-            mySheet.Cells[row, col].Style.Borders[BorderType.LeftBorder].Color = System.Drawing.Color.Black;
-            mySheet.Cells[row, col].Style.Borders[BorderType.RightBorder].Color = System.Drawing.Color.Black;
-            mySheet.Cells[row, col].Style.Borders[BorderType.BottomBorder].Color = System.Drawing.Color.Black;
-            mySheet.Cells[row, col].Style.Borders[BorderType.TopBorder].Color = System.Drawing.Color.Black;
-        }
-
-        private Excel GetSkuAttributeExcelFile()
-        {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            // set license
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-            Excel excelDocument = new Excel();
-
-            Worksheet mySheet = excelDocument.Worksheets[0];
-
-            Aspose.Excel.Range range = mySheet.Cells.CreateRange("G1", "Z1");
-            range.Merge();
-            mySheet.Cells[0, 6].PutValue("Attribute Weighting");
-            mySheet.Cells[0, 6].Style.HorizontalAlignment = TextAlignmentType.Center;
-            mySheet.Cells[0, 6].Style.Font.Size = 12;
-            mySheet.Cells[0, 6].Style.Font.IsBold = true;
-            range.SetOutlineBorder(BorderType.BottomBorder, CellBorderType.Thin, System.Drawing.Color.Black);
-            range.SetOutlineBorder(BorderType.TopBorder, CellBorderType.Thin, System.Drawing.Color.Black);
-            range.SetOutlineBorder(BorderType.LeftBorder, CellBorderType.Thin, System.Drawing.Color.Black);
-            range.SetOutlineBorder(BorderType.RightBorder, CellBorderType.Thin, System.Drawing.Color.Black);
-            range.RowHeight = 25;
-
-            mySheet.Cells[1, 0].PutValue("Division");
-            PutComment(mySheet, "A2", "Division is mandatory.");
-            mySheet.Cells[1, 1].PutValue("Department");
-            PutComment(mySheet, "B2", "Department is mandatory.");
-            mySheet.Cells[1, 2].PutValue("Category");
-            mySheet.Cells[1, 3].PutValue("BrandID");
-            mySheet.Cells[1, 4].PutValue("SKU");
-            mySheet.Cells[1, 5].PutValue("Update Date");
-            mySheet.Cells[1, 6].PutValue("Active");
-            mySheet.Cells[1, 7].PutValue("Department");
-            PutComment(mySheet, "H2", "Department must have a mandatory value (M).");
-            mySheet.Cells[1, 8].PutValue("Category");
-            PutComment(mySheet, "I2", "If a Category was supplied, then this field must be mandatory (M).");
-            mySheet.Cells[1, 9].PutValue("VendorNumber");
-            mySheet.Cells[1, 10].PutValue("BrandID");
-            PutComment(mySheet, "K2", "If a BrandID was supplied, then this field must be mandatory (M).");
-            mySheet.Cells[1, 11].PutValue("Size");
-            mySheet.Cells[1, 12].PutValue("SizeRange");
-            mySheet.Cells[1, 13].PutValue("Color1");
-            mySheet.Cells[1, 14].PutValue("Color2");
-            mySheet.Cells[1, 15].PutValue("Color3");
-            mySheet.Cells[1, 16].PutValue("Gender");
-            mySheet.Cells[1, 17].PutValue("LifeOfSku");
-            mySheet.Cells[1, 18].PutValue("Material");
-            mySheet.Cells[1, 19].PutValue("PlayerID");
-            mySheet.Cells[1, 20].PutValue("SkuID1");
-            mySheet.Cells[1, 21].PutValue("SkuID2");
-            mySheet.Cells[1, 22].PutValue("SkuID3");
-            mySheet.Cells[1, 23].PutValue("SkuID4");
-            mySheet.Cells[1, 24].PutValue("SkuID5");
-            mySheet.Cells[1, 25].PutValue("Team Code");
-
-            for (int i = 0; i < 26; i++)
-            {
-                mySheet.Cells[1, i].Style.Font.IsBold = true;
-                if (i > 5)
-                {
-                    AddBorder(1, i, mySheet);
-                }
-                mySheet.AutoFitColumn(i);
-            }
-
-            return excelDocument;
-        }
-
-        private void PutComment(Worksheet mySheet, string cellLocation, string comment)
-        {
-            int commentIndex = mySheet.Comments.Add(cellLocation);
-            Comment c = mySheet.Comments[commentIndex];
-            c.Note = comment;
-        }
-
-        /// <summary>
-        /// This was made so I didn't have to create an if/else for every attribute type since the PutValue method does
-        /// not allow you to use a turing operator to determine what value to put (if they are of two different types i.e. int/string)
-        /// </summary>
-        private void PopulateRowValue(int row, int col, SkuAttributeHeader header, Aspose.Excel.Worksheet mySheet, string attributeType)
-        {
-            SkuAttributeDetail attribute = header.SkuAttributeDetails.Where(sad => sad.AttributeType.ToLower().Equals(attributeType)).SingleOrDefault();
-            if (attribute.Mandatory)
-            {
-                mySheet.Cells[row, col].PutValue("M");
-            }
-            // users don't want to have a 0 for the value. so if 0, return empty string.
-            else if (attribute.WeightInt == 0)
-            {
-                mySheet.Cells[row, col].PutValue(string.Empty);
-            }
-            else
-            {
-                mySheet.Cells[row, col].PutValue(attribute.WeightInt);
-            }
-
-            mySheet.Cells[row, col].Style.HorizontalAlignment = TextAlignmentType.Right;
-            AddBorder(row, col, mySheet);
-        }
-
         #endregion
     }
 }

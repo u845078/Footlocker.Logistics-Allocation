@@ -245,6 +245,7 @@
     <Compile Include="Spreadsheets\RoutesExport.cs" />
     <Compile Include="Spreadsheets\SeasonalitySpreadsheet.cs" />
     <Compile Include="Spreadsheets\ServiceTypeSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\SkuAttributeExport.cs" />
     <Compile Include="Spreadsheets\SkuAttributeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SKUIDSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SKURangeDeliveryGroupExport.cs" />

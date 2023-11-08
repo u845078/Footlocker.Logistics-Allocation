@@ -35,10 +35,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
         public void VerifyWritableDirectory(string directory)
         {
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
+            if (!Directory.Exists(directory))            
+                Directory.CreateDirectory(directory);            
         }
 
         public string GetDirectory(string fullFileName)
