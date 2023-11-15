@@ -238,6 +238,8 @@
     <Compile Include="Spreadsheets\LostSalesExtract.cs" />
     <Compile Include="Spreadsheets\POOverrideSpreadsheet.cs" />
     <Compile Include="Spreadsheets\ProductTypeSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\RDQRestrictionsExport.cs" />
+    <Compile Include="Spreadsheets\RDQRestrictionsSpreadsheet.cs" />
     <Compile Include="Spreadsheets\RingFenceByDestExport.cs" />
     <Compile Include="Spreadsheets\RingFenceDeleteSpreadsheet.cs" />
     <Compile Include="Spreadsheets\RingFenceExport.cs" />
@@ -709,6 +711,7 @@
     <Content Include="Views\EcomCustXref\FormLayout.cshtml" />
     <Content Include="Views\EcomCustXref\Edit.cshtml" />
     <Content Include="Views\RingFence\Release.cshtml" />
+    <Content Include="Content\Templates\RDQRestrictionsExportTemplate.xls" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />

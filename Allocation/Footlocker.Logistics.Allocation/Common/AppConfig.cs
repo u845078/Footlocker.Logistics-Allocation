@@ -30,6 +30,7 @@ namespace Footlocker.Logistics.Allocation.Common
         private string _poOverrideTemplate;
         private string _seasonalityTemplate;
         private string _btsUnassignedTemplate;
+        private string _rdqRestrictionsExportTemplate;
         private string _skuTypeFile;
         private bool _enableFTP;
         private string _europeDivisions;
@@ -300,6 +301,17 @@ namespace Footlocker.Logistics.Allocation.Common
                     _btsUnassignedTemplate = ConfigurationManager.AppSettings["BTSUnassignedTemplate"].ToString();
 
                 return _btsUnassignedTemplate;
+            }
+        }
+
+        public string RDQRestrictionsExportTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_rdqRestrictionsExportTemplate))
+                    _rdqRestrictionsExportTemplate = ConfigurationManager.AppSettings["RDQRestrictionsExportTemplate"].ToString();
+
+                return _rdqRestrictionsExportTemplate;
             }
         }
 

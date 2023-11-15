@@ -11,6 +11,9 @@ using Aspose.Excel;
 using System.IO;
 using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.Services;
+using Footlocker.Logistics.Allocation.Spreadsheets;
+using Telerik.Web.Mvc.Infrastructure;
+using System.Text.RegularExpressions;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -55,64 +58,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult ExportGrid(GridCommand settings)
         {
-            IQueryable<RDQRestriction> rdqRestrictions = (from rr in db.RDQRestrictions.AsEnumerable()
-                                                          join d in currentUser.GetUserDivisions(AppName)
-                                                            on rr.Division equals d.DivCode
-                                                       orderby rr.Division, rr.Department, rr.Category, rr.Brand
-                                                        select rr).AsQueryable();
+            RDQRestrictionsExport rdqRestrictionsExport = new RDQRestrictionsExport(appConfig);
+            IList<IFilterDescriptor> filterDescriptors = null;
 
             if (settings.FilterDescriptors.Any())
-            {
-                rdqRestrictions = rdqRestrictions.ApplyFilters(settings.FilterDescriptors);
-            }
-            Excel excelDocument = CreateRDQRestrictionsExport(rdqRestrictions.ToList());
-            excelDocument.Save("RDQRestrictions.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                filterDescriptors = settings.FilterDescriptors;
+                
+            rdqRestrictionsExport.WriteData(filterDescriptors);
+
+            rdqRestrictionsExport.excelDocument.Save("RDQRestrictions.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return RedirectToAction("Index");
-        }
-
-        private Excel CreateRDQRestrictionsExport(List<RDQRestriction> rdqRestrictions)
-        {
-            Excel excelDocument = RetrieveRDQRestrictionExcelFile(false);
-            int row = 1;
-            Worksheet workSheet = excelDocument.Worksheets[0];
-            foreach (var rr in rdqRestrictions)
-            {
-                workSheet.Cells[row, 0].PutValue(rr.Division);
-                workSheet.Cells[row, 0].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 1].PutValue(rr.Department);
-                workSheet.Cells[row, 1].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 2].PutValue(rr.Category);
-                workSheet.Cells[row, 2].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 3].PutValue(rr.Brand);
-                workSheet.Cells[row, 3].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 4].PutValue(rr.Vendor);
-                workSheet.Cells[row, 4].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 5].PutValue(rr.SKU);
-                workSheet.Cells[row, 5].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 6].PutValue(rr.RDQType);
-                workSheet.Cells[row, 6].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 7].PutValue(rr.FromDate);
-                workSheet.Cells[row, 7].Style.Number = 14;
-                workSheet.Cells[row, 8].PutValue(rr.ToDate);
-                workSheet.Cells[row, 8].Style.Number = 14;
-                workSheet.Cells[row, 9].PutValue(rr.FromDCCode);
-                workSheet.Cells[row, 9].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 10].PutValue(rr.ToLeague);
-                workSheet.Cells[row, 10].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 11].PutValue(rr.ToRegion);
-                workSheet.Cells[row, 11].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 12].PutValue(rr.ToStore);
-                workSheet.Cells[row, 12].Style.HorizontalAlignment = TextAlignmentType.Right;
-                workSheet.Cells[row, 13].PutValue(rr.ToDCCode);
-                workSheet.Cells[row, 13].Style.HorizontalAlignment = TextAlignmentType.Right;
-                row++;
-            }
-
-            for (int i = 0; i < 14; i++)
-            {
-                workSheet.AutoFitColumn(i);
-            }
-            return excelDocument;
         }
 
         public ActionResult IndexByDestination(string message, string destinationType)
@@ -782,79 +737,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                              ((brandExists && rr.Brand.Equals(brand)) || (!brandExists && rr.Brand == null)) &&
                              ((skuExists && rr.SKU.Equals(sku)) || (!skuExists && (rr.SKU == null)))).ToList();
 
-            //if (departmentExists && !categoryExists && !brandExists)
-            //{
-            //    returnValue
-            //        = db.RDQRestrictions
-            //            .Where(rr => rr.Division.Equals(div) &&
-            //                         rr.Department.Equals(dept) &&
-            //                         rr.Category == null &&
-            //                         rr.Brand == null).ToList();
-            //}
-            //else if (departmentExists && categoryExists && !brandExists)
-            //{
-            //    returnValue
-            //        = db.RDQRestrictions
-            //            .Where(rr => rr.Division.Equals(div) &&
-            //                         rr.Department.Equals(dept) &&
-            //                         rr.Category.Equals(cat) &&
-            //                         rr.Brand == null).ToList();
-            //}
-            //else if (departmentExists && categoryExists && brandExists)
-            //{
-            //    returnValue
-            //        = db.RDQRestrictions
-            //            .Where(rr => rr.Division.Equals(div) &&
-            //                         rr.Department.Equals(dept) &&
-            //                         rr.Category.Equals(cat) &&
-            //                         rr.Brand.Equals(brand)).ToList();
-            //}
-            //else if (departmentExists && !categoryExists && brandExists)
-            //{
-            //    returnValue
-            //        = db.RDQRestrictions
-            //            .Where(rr => rr.Division.Equals(div) &&
-            //                         rr.Department.Equals(dept) &&
-            //                         rr.Category == null &&
-            //                         rr.Brand.Equals(brand)).ToList();
-            //}
-            //else if (!departmentExists && categoryExists && !brandExists)
-            //{
-            //    returnValue
-            //        = db.RDQRestrictions
-            //            .Where(rr => rr.Division.Equals(div) &&
-            //                         rr.Department == null &&
-            //                         rr.Category.Equals(cat) &&
-            //                         rr.Brand == null).ToList();
-            //}
-            //else if (!departmentExists && !categoryExists && brandExists)
-            //{
-            //    returnValue
-            //        = db.RDQRestrictions
-            //            .Where(rr => rr.Division.Equals(div) &&
-            //                         rr.Department == null &&
-            //                         rr.Category == null &&
-            //                         rr.Brand.Equals(brand)).ToList();
-            //}
-            //else if (!departmentExists && !categoryExists && !brandExists)
-            //{
-            //    returnValue
-            //        = db.RDQRestrictions
-            //            .Where(rr => rr.Division.Equals(div) &&
-            //                         rr.Department == null &&
-            //                         rr.Category == null &&
-            //                         rr.Brand == null).ToList();
-            //}
-            //else if (!departmentExists && categoryExists && brandExists)
-            //{
-            //    returnValue
-            //        = db.RDQRestrictions
-            //            .Where(rr => rr.Division.Equals(div) &&
-            //                         rr.Department == null &&
-            //                         rr.Category.Equals(cat) &&
-            //                         rr.Brand.Equals(brand)).ToList();
-            //}
-
             return returnValue;
         }
 
@@ -878,782 +760,70 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("Index");
         }
 
+        #region Upload restrictions
         public ActionResult Upload(string message)
         {
             ViewData["errorMessage"] = message;
             return View();
         }
 
-        public ActionResult SaveRDQRestrictions(IEnumerable<HttpPostedFileBase> attachments)
-        {
-            string message = string.Empty, errorMessage = string.Empty;
-            List<RDQRestriction> parsedRRs = new List<RDQRestriction>(), validRRs = new List<RDQRestriction>();
-            List<Tuple<RDQRestriction, string>> errorList = new List<Tuple<RDQRestriction, string>>();
-            int successfulCount = 0, errorCount = 0;
-
-            foreach (HttpPostedFileBase file in attachments)
-            {
-                Worksheet workSheet = RetrieveWorkSheet(file);
-
-                // validate header of uploaded file
-                if (!this.HasValidHeaderRow(workSheet))
-                {
-                    message = "Upload failed: Incorrect header - please use template.";
-                    return Content(message);
-                }
-                else
-                {
-                    int row = 1;
-                    try
-                    {
-                        // create a local list of type RDQRestriction to store the values from the upload
-                        while (this.HasDataOnRow(workSheet, row))
-                        {
-                            parsedRRs.Add(this.ParseUploadRow(workSheet, row));
-                            row++;
-                        }
-
-                        //continue processing if there is at least 1 record to upload
-                        if (parsedRRs.Count() > 0)
-                        {
-                            // file validation - duplicates, permission for unique divisions, etc
-                            if (!this.ValidateFile(parsedRRs, errorList))
-                            {
-                                Session["errorList"] = errorList;
-                                successfulCount = validRRs.Count;
-                                errorCount = errorList.Count;
-                                errorMessage = string.Format(
-                                    "{0} lines were processed successfully. {1} errors were found.", successfulCount, errorCount);
-                                return Content(errorMessage);
-                            }
-
-                            // validate the parsed rdq restrictions.  all valid rdq restrictions will be added to validRRs
-                            this.ValidateParsedRRs(parsedRRs, validRRs, errorList);
-
-                            if (validRRs.Count() > 0)
-                            {
-                                foreach (RDQRestriction rr in validRRs)
-                                {
-                                    this.RevertDefaultValues(rr);
-                                    rr.LastModifiedDate = DateTime.Now;
-                                    rr.LastModifiedUser = currentUser.NetworkID;
-
-                                    //db.RDQRestrictions.Add(rr);
-                                }
-
-                                RDQDAO rdqDAO = new RDQDAO();
-                                rdqDAO.InsertRDQRestrictions(validRRs, currentUser.NetworkID);
-
-                                //db.SaveChanges();
-                            }
-
-                            successfulCount = validRRs.Count;
-                            errorCount = errorList.Count;
-
-                            // if errors occured, allow user to download them
-                            if (errorList.Count > 0)
-                            {
-                                errorMessage = string.Format(
-                                    "{0} lines were processed successfully. {1} errors were found.", successfulCount, errorCount);
-                                Session["errorList"] = errorList;
-                                return Content(errorMessage);
-                            }
-
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        FLLogger logger = new FLLogger("C:\\Log\\allocation");
-                        logger.Log(string.Format("{0}: {1}", ex.Message, ex.StackTrace), FLLogger.eLogMessageType.eError);
-                        message = "Upload failed: One or more columns has unexpected missing or invalid data.";
-                        Session["errorList"] = null;
-                        return Content(message);
-                    }
-                }
-            }
-
-            message = string.Format("Success! {0} lines were processed.", successfulCount);
-            return Json(new { message = message }, "application/json");
-        }
-
         public ActionResult ExcelTemplate()
         {
-            License license = new License();
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            RDQRestrictionsSpreadsheet rdqRestrictionsSpreadsheet = new RDQRestrictionsSpreadsheet(appConfig, new ConfigService(), new RDQDAO());
+            Excel excelDocument;
 
-            Excel excelDocument = new Excel();
-            string templateFileName = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["RDQRestrictionsTemplate"]);
-            FileStream file = new FileStream(Server.MapPath("~/") + templateFileName, FileMode.Open, FileAccess.Read);
+            excelDocument = rdqRestrictionsSpreadsheet.GetTemplate();
 
-            byte[] data = new byte[file.Length];
-            file.Read(data, 0, data.Length);
-            file.Close();
-            MemoryStream memoryStream = new MemoryStream(data);
-            excelDocument.Open(memoryStream);
-            excelDocument.Save("RDQRestrictionUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("RDQRestrictionUpload.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
 
-        public Excel RetrieveRDQRestrictionExcelFile(bool errorFile)
+        public ActionResult SaveRDQRestrictions(IEnumerable<HttpPostedFileBase> attachments)
         {
-            int row = 0;
-            int col = 0;
+            RDQRestrictionsSpreadsheet rdqRestrictionsSpreadsheet = new RDQRestrictionsSpreadsheet(appConfig, new ConfigService(), new RDQDAO());
 
-            License license = new License();
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            int successCount = 0;
+            string message;
 
-            Excel excelDocument = new Excel();
-            Worksheet workSheet = excelDocument.Worksheets[0];
-
-            workSheet.Cells[row, col].PutValue("Division");
-            workSheet.Cells[row, col].Style.Font.IsBold = true;
-            col++;
-            workSheet.Cells[row, col].PutValue("Department");
-            workSheet.Cells[row, col].Style.Font.IsBold = true;
-            col++;
-            workSheet.Cells[row, col].PutValue("Category");
-            workSheet.Cells[row, col].Style.Font.IsBold = true;
-            col++;
-            workSheet.Cells[row, col].PutValue("Brand");
-            workSheet.Cells[row, col].Style.Font.IsBold = true;
-            col++;
-            workSheet.Cells[row, col].PutValue("Vendor");
-            workSheet.Cells[row, col].Style.Font.IsBold = true;
-            col++;
-            workSheet.Cells[row, col].PutValue("SKU");
-            workSheet.Cells[row, col].Style.Font.IsBold = true;
-            col++;
-            workSheet.Cells[row, col].PutValue("RDQ Type");
-            workSheet.Cells[row, col].Style.Font.IsBold = true;
-            col++;
-            workSheet.Cells[row, col].PutValue("From Date");
-            workSheet.Cells[row, col].Style.Font.IsBold = true;
-            col++;
-            workSheet.Cells[row, col].PutValue("To Date");
-            workSheet.Cells[row, col].Style.Font.IsBold = true;
-            col++;
-            workSheet.Cells[row, col].PutValue("From DC Code");
-            workSheet.Cells[row, col].Style.Font.IsBold = true;
-            col++;
-            workSheet.Cells[row, col].PutValue("To League");
-            workSheet.Cells[row, col].Style.Font.IsBold = true;
-            col++;
-            workSheet.Cells[row, col].PutValue("To Region");
-            workSheet.Cells[row, col].Style.Font.IsBold = true;
-            col++;
-            workSheet.Cells[row, col].PutValue("To Store");
-            workSheet.Cells[row, col].Style.Font.IsBold = true;
-            col++;
-            workSheet.Cells[row, col].PutValue("To DC Code");
-            workSheet.Cells[row, col].Style.Font.IsBold = true;
-            if (errorFile)
+            foreach (HttpPostedFileBase file in attachments)
             {
-                col++;
-                workSheet.Cells[row, col].PutValue("Message");
-                workSheet.Cells[row, col].Style.Font.IsBold = true;
+                rdqRestrictionsSpreadsheet.Save(file);
+
+                if (!string.IsNullOrEmpty(rdqRestrictionsSpreadsheet.message))
+                    return Content(rdqRestrictionsSpreadsheet.message);
+                else
+                {
+                    if (rdqRestrictionsSpreadsheet.errorList.Count() > 0)
+                    {
+                        Session["errorList"] = rdqRestrictionsSpreadsheet.errorList;
+
+                        message = string.Format("{0} successfully uploaded, {1} Errors", rdqRestrictionsSpreadsheet.validRecs.Count.ToString(),
+                            rdqRestrictionsSpreadsheet.errorList.Count.ToString());
+
+                        return Content(message);
+                    }
+                }
+
+                successCount += rdqRestrictionsSpreadsheet.validRecs.Count();
             }
-            
-            return excelDocument;
+
+            return Json(new { message = string.Format("Upload complete. Added {0} record(s)", successCount) }, "application/json");
         }
 
         public ActionResult DownloadErrors()
         {
-            int row = 0;
-            int col = 0;
-            var errorList = (List<Tuple<RDQRestriction, string>>)Session["errorList"];
-            if (errorList != null)
+            List<Tuple<RDQRestriction, string>> errors = (List<Tuple<RDQRestriction, string>>)Session["errorList"];
+            Excel excelDocument;
+            RDQRestrictionsSpreadsheet rdqRestrictionsSpreadsheet = new RDQRestrictionsSpreadsheet(appConfig, new ConfigService(), new RDQDAO());
+
+            if (errors != null)
             {
-                License license = new License();
-                license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-
-                Excel excelDocument = RetrieveRDQRestrictionExcelFile(true);
-                Worksheet workSheet = excelDocument.Worksheets[0];
-                row = 1;
-                if (errorList != null && errorList.Count() > 0)
-                {
-                    foreach (var error in errorList)
-                    {
-                        col = 0;
-                        workSheet.Cells[row, col++].PutValue(error.Item1.Division);
-                        workSheet.Cells[row, col++].PutValue(error.Item1.Department);
-                        workSheet.Cells[row, col++].PutValue(error.Item1.Category);
-                        workSheet.Cells[row, col++].PutValue(error.Item1.Brand);
-                        workSheet.Cells[row, col++].PutValue(error.Item1.Vendor);
-                        workSheet.Cells[row, col++].PutValue(error.Item1.SKU);
-                        workSheet.Cells[row, col++].PutValue(error.Item1.RDQType);
-                        if (error.Item1.FromDate.Equals(DateTime.MinValue) || error.Item1.FromDate == null)
-                        {
-                            workSheet.Cells[row, col++].PutValue(string.Empty);
-                        }
-                        else
-                        {
-                            workSheet.Cells[row, col].Style.Number = 14;
-                            workSheet.Cells[row, col++].PutValue(error.Item1.FromDate);
-                        }
-                        if (error.Item1.ToDate.Equals(DateTime.MinValue) || error.Item1.ToDate == null)
-                        {
-                            workSheet.Cells[row, col++].PutValue(string.Empty);
-                        }
-                        else
-                        {
-                            workSheet.Cells[row, col].Style.Number = 14;
-                            workSheet.Cells[row, col++].PutValue(error.Item1.ToDate);
-                        }
-                        workSheet.Cells[row, col++].PutValue(error.Item1.FromDCCode);
-                        workSheet.Cells[row, col++].PutValue(error.Item1.ToLeague);
-                        workSheet.Cells[row, col++].PutValue(error.Item1.ToRegion);
-                        workSheet.Cells[row, col++].PutValue(error.Item1.ToStore);
-                        workSheet.Cells[row, col++].PutValue(error.Item1.ToDCCode);
-                        workSheet.Cells[row++, col].PutValue(error.Item2);
-                    }
-
-                    for (int i = 0; i < 15; i++)
-                    {
-                        workSheet.AutoFitColumn(i);
-                    }
-                }
-
-                excelDocument.Save("RDQRestrictionErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
-            }
-            else
-            {
-                // if this message is hit that means there was an exception while processing that was not accounted for
-                // check the log to see what the exception was
-                var message = "An unexpected error has occured.  Please try again or contact an administrator.";
-                return RedirectToAction("Upload", new { message = message });
+                excelDocument = rdqRestrictionsSpreadsheet.GetErrors(errors);
+                excelDocument.Save("RDQRestrictionErrors.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             }
 
             return View();
         }
-
-        #region Helper Methods (Validation, Population)
-
-        #region Upload Helper Methods
-
-        private Worksheet RetrieveWorkSheet(HttpPostedFileBase file)
-        {
-            License license = new License();
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-            Excel workbook = new Excel();
-            byte[] data = new byte[file.InputStream.Length];
-            file.InputStream.Read(data, 0, data.Length);
-            file.InputStream.Close();
-            MemoryStream memoryStream = new MemoryStream(data);
-            workbook.Open(memoryStream);
-            return workbook.Worksheets[0];
-        }
-
-        private bool HasValidHeaderRow(Worksheet workSheet)
-        {
-            return
-                (Convert.ToString(workSheet.Cells[0, 0].Value).Contains("Division")) &&
-                (Convert.ToString(workSheet.Cells[0, 1].Value).Contains("Department")) &&
-                (Convert.ToString(workSheet.Cells[0, 2].Value).Contains("Category")) &&
-                (Convert.ToString(workSheet.Cells[0, 3].Value).Contains("Brand")) &&
-                (Convert.ToString(workSheet.Cells[0, 4].Value).Contains("Vendor")) &&
-                (Convert.ToString(workSheet.Cells[0, 5].Value).Contains("SKU")) &&
-                (Convert.ToString(workSheet.Cells[0, 6].Value).Contains("RDQ Type")) &&
-                (Convert.ToString(workSheet.Cells[0, 7].Value).Contains("From Date")) &&
-                (Convert.ToString(workSheet.Cells[0, 8].Value).Contains("To Date")) &&
-                (Convert.ToString(workSheet.Cells[0, 9].Value).Contains("From DC Code")) &&
-                (Convert.ToString(workSheet.Cells[0, 10].Value).Contains("To League")) &&
-                (Convert.ToString(workSheet.Cells[0, 11].Value).Contains("To Region")) &&
-                (Convert.ToString(workSheet.Cells[0, 12].Value).Contains("To Store")) &&
-                (Convert.ToString(workSheet.Cells[0, 13].Value).Contains("To DC Code"));
-        }
-
-        private bool HasDataOnRow(Worksheet workSheet, int row)
-        {
-            return workSheet.Cells[row, 0].Value != null ||
-                   workSheet.Cells[row, 1].Value != null ||
-                   workSheet.Cells[row, 2].Value != null ||
-                   workSheet.Cells[row, 3].Value != null ||
-                   workSheet.Cells[row, 4].Value != null ||
-                   workSheet.Cells[row, 5].Value != null ||
-                   workSheet.Cells[row, 6].Value != null ||
-                   workSheet.Cells[row, 7].Value != null ||
-                   workSheet.Cells[row, 8].Value != null ||
-                   workSheet.Cells[row, 9].Value != null ||
-                   workSheet.Cells[row, 10].Value != null ||
-                   workSheet.Cells[row, 11].Value != null ||
-                   workSheet.Cells[row, 12].Value != null ||
-                   workSheet.Cells[row, 13].Value != null;
-        }
-
-        private RDQRestriction ParseUploadRow(Worksheet workSheet, int row)
-        {
-            RDQRestriction returnValue;
-
-            string division = Convert.ToString(workSheet.Cells[row, 0].Value);
-            string department = Convert.ToString(workSheet.Cells[row, 1].Value);
-            string category = Convert.ToString(workSheet.Cells[row, 2].Value);
-            string brand = Convert.ToString(workSheet.Cells[row, 3].Value);
-            string vendor = Convert.ToString(workSheet.Cells[row, 4].Value);
-            string sku = Convert.ToString(workSheet.Cells[row, 5].Value);
-            string rdqType = Convert.ToString(workSheet.Cells[row, 6].Value);
-            DateTime fromDate = Convert.ToDateTime(workSheet.Cells[row, 7].Value);
-            DateTime toDate = Convert.ToDateTime(workSheet.Cells[row, 8].Value);
-            string fromDCCode = Convert.ToString(workSheet.Cells[row, 9].Value);
-            string toLeague = Convert.ToString(workSheet.Cells[row, 10].Value);
-            string toRegion = Convert.ToString(workSheet.Cells[row, 11].Value);
-            string toStore = Convert.ToString(workSheet.Cells[row, 12].Value);
-            string toDCCode = Convert.ToString(workSheet.Cells[row, 13].Value);
-
-            returnValue = new RDQRestriction()
-            {
-                Division = division,
-                Department = department,
-                Category = category,
-                Brand = brand, 
-                SKU = sku,
-                Vendor = vendor,
-                RDQType = rdqType,
-                FromDate = fromDate,
-                ToDate = toDate,
-                FromDCCode = fromDCCode,
-                ToLeague = toLeague,
-                ToRegion = toRegion,
-                ToStore = toStore,
-                ToDCCode = toDCCode
-            };
-
-            return returnValue;
-        }
-
-        private bool ValidateFile(List<RDQRestriction> parsedRRs, List<Tuple<RDQRestriction, string>> errorList)
-        {
-            // remove all records that have a null or empty division... we check to see if users have access
-            // to the specified division and cannot do this validation without removing this data scenario
-            parsedRRs
-                .Where(pr => string.IsNullOrEmpty(pr.Division))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "Division must be provided.");
-                    parsedRRs.Remove(rr);
-                });
-
-            // check to see if the user has permission for each division, if not remove them
-            List<string> uniqueDivisions
-                = parsedRRs
-                    .Select(pr => pr.Division)
-                    .Distinct()
-                    .ToList();
-
-            List<string> invalidDivisions
-                = uniqueDivisions
-                    .Where(div => !currentUser.GetUserDivList(AppName).Contains(div))
-                    .ToList();
-
-            parsedRRs
-                .Where(pr => invalidDivisions.Contains(pr.Division))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, string.Format("You do not have permission for Division {0}", rr.Division));
-                    parsedRRs.Remove(rr);
-                });
-
-            // check to see if there are any duplicates and remove them
-            parsedRRs
-                .GroupBy(pr => new { pr.Division, pr.Department, pr.Category, pr.Brand, pr.Vendor, pr.SKU, pr.RDQType, pr.FromDCCode, pr.ToLeague, pr.ToRegion, pr.ToStore, pr.ToDCCode })
-                .Where(pr => pr.Count() > 1)
-                .Select(pr => new { DuplicatesRRs = pr.ToList(), Counter = pr.Count() })
-                .ToList()
-                .ForEach(rr =>
-                {
-                    // set error message for first duplicate and the amount of times it was found in the file
-                    SetErrorMessage(errorList, rr.DuplicatesRRs.FirstOrDefault(), string.Format(
-                        "The following row of data was duplicated in the spreadsheet {0} times.  Please provide unique rows of data.", rr.Counter));
-                    // delete all instances of the duplications from the parsedRRs list
-                    rr.DuplicatesRRs.ForEach(drr => parsedRRs.Remove(drr));
-                });
-
-
-            if (parsedRRs.Count() == 0)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        private void SetErrorMessage(List<Tuple<RDQRestriction, string>> errorList, RDQRestriction errorRR, string newErrorMessage)
-        {
-            int tupleIndex = errorList.FindIndex(err => err.Item1.Equals(errorRR));
-            if (tupleIndex > -1)
-            {
-                errorList[tupleIndex] = Tuple.Create(errorRR, string.Format("{0} {1}", errorList[tupleIndex].Item2, newErrorMessage));
-            }
-            else
-            {
-                errorList.Add(Tuple.Create(errorRR, newErrorMessage));
-            }
-        }
-
-        private void ValidateParsedRRs(List<RDQRestriction> parsedRRs, List<RDQRestriction> validRRs, List<Tuple<RDQRestriction, string>> errorList)
-        {
-            List<RDQRestriction> dbRDQRestrictions = db.RDQRestrictions.ToList();            
-
-            parsedRRs
-                .Where(pr => dbRDQRestrictions.Any(r => r.Division.Equals(pr.Division) &&
-                            ((r.Department == null && string.IsNullOrEmpty(pr.Department) || r.Department == pr.Department) &&
-                            ((r.Category == null && string.IsNullOrEmpty(pr.Category)) || r.Category == pr.Category) &&
-                            ((r.Brand == null && string.IsNullOrEmpty(pr.Brand)) || r.Brand == pr.Brand) &&
-                            ((r.SKU == null && string.IsNullOrEmpty(pr.SKU)) || r.SKU == pr.SKU) &&
-                            ((r.RDQType == null && string.IsNullOrEmpty(pr.RDQType)) || r.RDQType == pr.RDQType) &&
-                            ((r.Vendor == null && string.IsNullOrEmpty(pr.Vendor)) || r.Vendor == pr.Vendor) &&
-                            ((r.FromDCCode == null && string.IsNullOrEmpty(pr.FromDCCode)) || r.FromDCCode == pr.FromDCCode) &&
-                            ((r.ToDCCode == null && string.IsNullOrEmpty(pr.ToDCCode)) || r.ToDCCode == pr.ToDCCode) &&
-                            ((r.ToLeague == null && string.IsNullOrEmpty(pr.ToLeague)) || r.ToLeague == pr.ToLeague) &&
-                            ((r.ToRegion == null && string.IsNullOrEmpty(pr.ToRegion)) || r.ToRegion == pr.ToRegion) &&
-                            ((r.ToStore == null && string.IsNullOrEmpty(pr.ToStore)) || r.ToStore == pr.ToStore))))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The combination provided already exists within the system.");
-                });
-
-            // required dates are populated
-            parsedRRs
-                .Where(pr => pr.FromDate == null || pr.FromDate.Equals(DateTime.MinValue))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The From Date is required.");
-                });
-
-            parsedRRs
-                .Where(pr => pr.ToDate == null || pr.ToDate.Equals(DateTime.MinValue))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The To Date is required.");
-                });
-
-            // from date is less than to date
-            parsedRRs
-                .Where(pr => pr.FromDate != null && pr.ToDate != null && pr.FromDate > pr.ToDate)
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The To Date is greater than the From Date.");
-                });
-
-            var uniqueDivisions = parsedRRs.Select(pr => pr.Division)
-                .Distinct()
-                .ToList();
-
-            List<ItemMaster> dbItemMasters = db.ItemMasters.Where(im => uniqueDivisions.Contains(im.Div)).ToList();
-
-            // has valid combination ( div / department / category / brand )
-            var uniqueCombos
-                = parsedRRs
-                    .Select(pr => new { pr.Division, pr.Department, pr.Category, pr.Brand })
-                    .Distinct()
-                    .ToList();
-
-            // division / department
-            var divDeptCombos
-                = uniqueCombos
-                    .Where(uc => !string.IsNullOrEmpty(uc.Division) &&
-                                 !string.IsNullOrEmpty(uc.Department) &&
-                                 string.IsNullOrEmpty(uc.Category) &&
-                                 string.IsNullOrEmpty(uc.Brand)).ToList();
-
-            var invalidCombos
-                = divDeptCombos
-                    .Where(uc => !dbItemMasters.Any(im => im.Div.Equals(uc.Division) &&
-                                                          im.Dept.Equals(uc.Department))).ToList();
-
-            parsedRRs
-                .Where(pr => invalidCombos.Contains(new { pr.Division, pr.Department, pr.Category, pr.Brand }))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The division / department combination does not exist.");
-                });
-
-            // division / department / category
-            var divDeptCatCombos
-                = uniqueCombos
-                    .Where(uc => !string.IsNullOrEmpty(uc.Division) &&
-                                 !string.IsNullOrEmpty(uc.Department) &&
-                                 !string.IsNullOrEmpty(uc.Category) &&
-                                 string.IsNullOrEmpty(uc.Brand)).ToList();
-
-            invalidCombos
-                = divDeptCatCombos
-                    .Where(uc => !dbItemMasters.Any(im => im.Div.Equals(uc.Division) &&
-                                                           im.Dept.Equals(uc.Department) &&
-                                                           im.Category == uc.Category)).ToList();
-
-            parsedRRs
-                .Where(pr => invalidCombos.Contains(new { pr.Division, pr.Department, pr.Category, pr.Brand }))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The division / department / category combination does not exist.");
-                });
-
-            // division / deparment / category / brand
-            var divDeptCatBrandCombos
-                = uniqueCombos
-                    .Where(uc => !string.IsNullOrEmpty(uc.Division) &&
-                                 !string.IsNullOrEmpty(uc.Department) &&
-                                 !string.IsNullOrEmpty(uc.Category) &&
-                                 !string.IsNullOrEmpty(uc.Brand)).ToList();
-
-            invalidCombos
-                = divDeptCatBrandCombos
-                    .Where(uc => !dbItemMasters.Any(im => im.Div.Equals(uc.Division) &&
-                                                           im.Dept.Equals(uc.Department) &&
-                                                           im.Category == uc.Category &&
-                                                           im.Brand == uc.Brand)).ToList();
-
-            parsedRRs
-                .Where(pr => invalidCombos.Contains(new { pr.Division, pr.Department, pr.Category, pr.Brand }))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The division / department / category / brand combination does not exist.");
-                });
-
-            // division / brand combination exists
-            var divBrandCombos
-                = uniqueCombos
-                    .Where(uc => !string.IsNullOrEmpty(uc.Division) &&
-                                 string.IsNullOrEmpty(uc.Department) &&
-                                 string.IsNullOrEmpty(uc.Category) &&
-                                 !string.IsNullOrEmpty(uc.Brand)).ToList();
-
-            invalidCombos
-                = divBrandCombos
-                    .Where(uc => !dbItemMasters.Any(im => im.Div.Equals(uc.Division) &&
-                                                           im.Brand == uc.Brand)).ToList();
-
-            parsedRRs
-                .Where(pr => invalidCombos.Contains(new { pr.Division, pr.Department, pr.Category, pr.Brand }))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The division / brand combination does not exist.");
-                });
-
-            // division / category combinations
-            var divCatCombos
-                = uniqueCombos
-                    .Where(uc => !string.IsNullOrEmpty(uc.Division) &&
-                                 string.IsNullOrEmpty(uc.Department) &&
-                                 !string.IsNullOrEmpty(uc.Category) &&
-                                 string.IsNullOrEmpty(uc.Brand)).ToList();
-
-            invalidCombos
-                = divCatCombos
-                    .Where(uc => !dbItemMasters.Any(im => im.Div.Equals(uc.Division) &&
-                                                           im.Category == uc.Category)).ToList();
-
-            parsedRRs
-                .Where(pr => invalidCombos.Contains(new { pr.Division, pr.Department, pr.Category, pr.Brand }))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The division / category combination does not exist.");
-                });
-
-            // division / vendor combination exists
-            var divVendorCombos
-                = parsedRRs
-                    .Where(pr => !string.IsNullOrEmpty(pr.Vendor))
-                    .Select(pr => new { pr.Division, pr.Vendor })
-                    .Distinct();
-
-            var invalidVendors
-                = divVendorCombos
-                    .Where(vc => !dbItemMasters.Any(im => im.Div.Equals(vc.Division) &&
-                                                           im.Vendor == vc.Vendor));
-
-            parsedRRs
-                .Where(pr => invalidVendors.Contains(new { pr.Division, pr.Vendor }))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The division / vendor combination does not exist.");
-                });
-
-            // SKU combination exists
-            var allSKUData = parsedRRs
-                .Where(pr => !string.IsNullOrEmpty(pr.SKU))
-                .Select(pr => new { pr.Division, pr.Vendor, pr.Brand, pr.Category, pr.Department, pr.SKU })
-                .Distinct()
-                .ToList();
-
-            var invalidSKUs = allSKUData
-                .Where(s => !dbItemMasters.Any(im => im.Div.Equals(s.Division) &&
-                                                      (im.Vendor == s.Vendor || string.IsNullOrEmpty(s.Vendor)) &&
-                                                      (im.Brand == s.Brand || string.IsNullOrEmpty(s.Brand)) &&
-                                                      (im.Category == s.Category || string.IsNullOrEmpty(s.Category)) &&
-                                                      (im.Dept == s.Department || string.IsNullOrEmpty(s.Department)) &&
-                                                      im.MerchantSku == s.SKU))
-                .ToList();
-       
-            parsedRRs.Where(pr => invalidSKUs.Contains(new { pr.Division, pr.Vendor, pr.Brand, pr.Category, pr.Department, pr.SKU }))
-                     .ToList()
-                     .ForEach(rr =>
-                     {
-                        SetErrorMessage(errorList, rr, "The Div/Vendor/Brand/Category/Department combination does not exist for this SKU.");
-                     });
-
-            // rdq type exists
-            var uniqueRDQTypes
-                = parsedRRs
-                    .Where(pr => !string.IsNullOrEmpty(pr.RDQType))
-                    .Select(pr => pr.RDQType)
-                    .Distinct()
-                    .ToList();
-
-            var invalidRDQTypes
-                = uniqueRDQTypes
-                    .Where(urt => !db.RDQTypes.Any(rt => rt.RDQTypeName.Equals(urt)))
-                    .ToList();
-
-            parsedRRs
-                .Where(pr => invalidRDQTypes.Contains(pr.RDQType))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The RDQType does not exist.");
-                });
-
-            // from dc code exists
-            var uniqueFromDCCodes
-                = parsedRRs
-                    .Where(pr => !string.IsNullOrEmpty(pr.FromDCCode))
-                    .Select(pr => pr.FromDCCode)
-                    .Distinct()
-                    .ToList();
-
-            var invalidFromDCCodes
-                = uniqueFromDCCodes
-                    .Where(udc => !db.DistributionCenters.Any(dc => dc.MFCode.Equals(udc)))
-                    .ToList();
-
-            parsedRRs
-                .Where(pr => invalidFromDCCodes.Contains(pr.FromDCCode))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The From DC Code is invalid.");
-                });
-
-            // only one of the following four properties exist: ToLeague, ToRegion, ToStore, ToDCCode
-            parsedRRs.ForEach(pr =>
-            {
-                int existsCounter = 0;
-                existsCounter += !string.IsNullOrEmpty(pr.ToLeague) ? 1 : 0;
-                existsCounter += !string.IsNullOrEmpty(pr.ToRegion) ? 1 : 0;
-                existsCounter += !string.IsNullOrEmpty(pr.ToStore) ? 1 : 0;
-                existsCounter += !string.IsNullOrEmpty(pr.ToDCCode) ? 1 : 0;
-
-                if (existsCounter > 1)
-                {
-                    SetErrorMessage(errorList, pr, "Cannot have more than one of the following properties populated: To League, To Region, To Store, To DC Code.");
-                }
-            });
-
-            // division / to league combination exists
-            var uniqueToLeagueCombos
-                = parsedRRs
-                    .Where(pr => !string.IsNullOrEmpty(pr.ToLeague))
-                    .Select(pr => new { pr.Division, pr.ToLeague })
-                    .Distinct()
-                    .ToList();
-
-            var invalidToLeagueCombos
-                = uniqueToLeagueCombos
-                    .Where(utl => !db.StoreLookups.Any(sl => sl.Division.Equals(utl.Division) &&
-                                                             sl.League.Equals(utl.ToLeague))).ToList();
-
-            parsedRRs
-                .Where(pr => invalidToLeagueCombos.Contains(new { pr.Division, pr.ToLeague }))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The division / to league combination does not exist.");
-                });
-
-            // division / to region combination exists
-            var uniqueToRegionCombos
-                = parsedRRs
-                    .Where(pr => !string.IsNullOrEmpty(pr.ToRegion))
-                    .Select(pr => new { pr.Division, pr.ToRegion })
-                    .Distinct()
-                    .ToList();
-
-            var invalidToRegionCombos
-                = uniqueToRegionCombos
-                    .Where(utr => !db.StoreLookups.Any(sl => sl.Division.Equals(utr.Division) &&
-                                                             sl.Region.Equals(utr.ToRegion))).ToList();
-
-            parsedRRs
-                .Where(pr => invalidToRegionCombos.Contains(new { pr.Division, pr.ToRegion }))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The division / to region does not exist.");
-                });
-
-            // division / to store combination exists
-            var uniqueToStoreCombos
-                = parsedRRs
-                    .Where(pr => !string.IsNullOrEmpty(pr.ToStore))
-                    .Select(pr => new { pr.Division, pr.ToStore })
-                    .Distinct()
-                    .ToList();
-
-            var invalidToStoreCombos
-                = uniqueToStoreCombos
-                    .Where(uts => !db.StoreLookups.Any(sl => sl.Division.Equals(uts.Division) &&
-                                                             sl.Store.Equals(uts.ToStore))).ToList();
-
-            parsedRRs
-                .Where(pr => invalidToStoreCombos.Contains(new { pr.Division, pr.ToStore }))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The division / to store combination does not exist.");
-                });
-
-            // to dc code exists
-            var uniqueToDCCodes
-                = parsedRRs
-                    .Where(pr => !string.IsNullOrEmpty(pr.ToDCCode))
-                    .Select(pr => pr.ToDCCode)
-                    .Distinct()
-                    .ToList();
-
-            var invalidDCCodes
-                = uniqueToDCCodes
-                    .Where(udc => !db.DistributionCenters.Any(dc => dc.MFCode.Equals(udc)))
-                    .ToList();
-
-            parsedRRs
-                .Where(pr => invalidDCCodes.Contains(pr.ToDCCode))
-                .ToList()
-                .ForEach(rr =>
-                {
-                    SetErrorMessage(errorList, rr, "The To DC Code does not exist.");
-                });
-
-            // remove all parsedRRs that were found invalid in the code above
-            parsedRRs
-                .Where(pr => errorList.Any(er => er.Item1.Equals(pr)))
-                .ToList()
-                .ForEach(rr => parsedRRs.Remove(rr));
-
-            validRRs.AddRange(parsedRRs);
-        }
-
         #endregion
 
         #region JSON result routines
@@ -1922,49 +1092,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             brands = brands.Select(b => new BrandIDs { divisionCode = b.divisionCode, brandIDCode = b.brandIDCode, brandIDName = b.brandIDName }).Distinct().ToList();
 
-            //if (departmentExists && categoryExists)
-            //{
-            //    brands = (from im in db.ItemMasters
-            //              join b in db.BrandIDs
-            //                on new { Brand = im.Brand, Division = im.Div, Department = im.Dept } equals
-            //                   new { Brand = b.brandIDCode, Division = b.divisionCode, Department = b.departmentCode }
-            //              where im.Div == division &&
-            //                    im.Dept == department &&
-            //                    im.Category == category
-            //              select b).Distinct().ToList();
-            //}
-            //else if (departmentExists && !categoryExists)
-            //{
-            //    brands = (from im in db.ItemMasters
-            //              join b in db.BrandIDs
-            //                on new { Brand = im.Brand, Division = im.Div, Department = im.Dept } equals
-            //                   new { Brand = b.brandIDCode, Division = b.divisionCode, Department = b.departmentCode }
-            //             where im.Div == division &&
-            //                   im.Dept == department
-            //            select b).Distinct().ToList();
-            //}
-            //else if (!departmentExists && categoryExists)
-            //{
-            //    brands = (from im in db.ItemMasters
-            //              join b in db.BrandIDs
-            //                on new { Brand = im.Brand, Division = im.Div} equals
-            //                   new { Brand = b.brandIDCode, Division = b.divisionCode }
-            //             where im.Div == division &&
-            //                   im.Category == category
-            //            select b).Distinct().ToList();
-            //}
-            //else if (!departmentExists && !categoryExists)
-            //{
-            //    brands = (from im in db.ItemMasters
-            //              join b in db.BrandIDs
-            //                on new { Brand = im.Brand, Division = im.Div } equals
-            //                   new { Brand = b.brandIDCode, Division = b.divisionCode }
-            //             where im.Div == division
-            //            select b).Distinct().ToList();
-            //}
-
-            //brands = brands.Select(b => new BrandIDs { divisionCode = b.divisionCode, brandIDCode = b.brandIDCode, brandIDName = b.brandIDName }).Distinct().ToList();
-
             return brands;
         }
 
@@ -2102,9 +1229,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return result;
         }
-
-        #endregion
-
         #endregion
     }
 }
