@@ -55,18 +55,6 @@ namespace Footlocker.Logistics.Allocation.Models
             this.CurrentPlan = currentPlan;
         }
 
-        public StoreLookupModel(StoreLookup s, long currentPlan, bool inCurrentPlan, bool inSimilarRuleSet)
-        {
-            foreach (PropertyInfo prop in s.GetType().GetProperties())
-            {
-                PropertyInfo prop2 = s.GetType().GetProperty(prop.Name);
-                prop2.SetValue(this, prop.GetValue(s, null), null);
-            }
-            this.InCurrentPlan = inCurrentPlan;
-            this.CurrentPlan = currentPlan;
-            this.InSimilarRuleSet = InSimilarRuleSet;
-        }
-
         public bool InCurrentPlan { get; set; }
         public long CurrentPlan { get; set; }
 

@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Data;
@@ -18,22 +17,15 @@ namespace Footlocker.Logistics.Allocation.Services
 {
     public class RuleDAO
     {
-        Database _database;
-        Footlocker.Logistics.Allocation.Services.AllocationLibraryContext db = new AllocationLibraryContext();
+        readonly Database _database;
+        readonly AllocationLibraryContext db = new AllocationLibraryContext();
 
         public RuleDAO()
         {
-            // TESTING ONLY!
-            try
-            {
-                _database = DatabaseFactory.CreateDatabase("AllocationContext");
-            }
-            catch
-            {
-            }
+            _database = DatabaseFactory.CreateDatabase("AllocationContext");
         }
 
-        public Int64 GetRuleSetID(Int64 planID, string type, string user)
+        public long GetRuleSetID(long planID, string type, string user)
         {
             DbCommand SQLCommand;
             string SQL = "dbo.GetRuleSetID";
@@ -43,7 +35,7 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.AddInParameter(SQLCommand, "@type", DbType.String, type);
             _database.AddInParameter(SQLCommand, "@user", DbType.String, user);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _database.ExecuteDataSet(SQLCommand);
 
             if (data.Tables.Count > 0)
@@ -56,7 +48,7 @@ namespace Footlocker.Logistics.Allocation.Services
             return -1;
         }
 
-        public Int64 GetPlanID(Int64 ID)
+        public long GetPlanID(long ID)
         {
             DbCommand SQLCommand;
             string SQL = "dbo.GetPlanID";
@@ -64,7 +56,7 @@ namespace Footlocker.Logistics.Allocation.Services
             SQLCommand = _database.GetStoredProcCommand(SQL);
             _database.AddInParameter(SQLCommand, "@ID", DbType.String, ID);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _database.ExecuteDataSet(SQLCommand);
 
             if (data.Tables.Count > 0)
@@ -76,7 +68,6 @@ namespace Footlocker.Logistics.Allocation.Services
             }
             return -1;
         }
-
 
         public void Delete(Footlocker.Logistics.Allocation.Models.Rule objectToSave)
         {
@@ -92,7 +83,6 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.ExecuteNonQuery(SQLCommand);
         }
 
-
         public void RemoveStoresFromRuleset(List<StoreBase> stores, long planid, long rulesetid)
         {
             DbCommand SQLCommand;
@@ -103,7 +93,7 @@ namespace Footlocker.Logistics.Allocation.Services
             StringWriter sw = new StringWriter();
             XmlSerializer xs = new XmlSerializer(stores.GetType());
             xs.Serialize(sw, stores);
-            String xout = sw.ToString();
+            string xout = sw.ToString();
 
             _database.AddInParameter(SQLCommand, "@xmlDetails", DbType.Xml, xout);
             _database.AddInParameter(SQLCommand, "@planid", DbType.String, planid);
@@ -112,6 +102,32 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.ExecuteNonQuery(SQLCommand);
         }
 
+        public void AddStoreToRuleset(string div, string store, long ruleSetID, string userID)
+        {
+            RuleSelectedStore det = new RuleSelectedStore()
+            {
+                Store = store,
+                Division = div,
+                RuleSetID = ruleSetID,
+                CreateDate = DateTime.Now,
+                CreatedBy = userID
+            };
+
+            db.RuleSelectedStores.Add(det);
+            db.SaveChanges();
+        }
+
+        public RuleSet GetRuleSet(long ruleSetID)
+        {
+            return db.RuleSets.Where(r => r.RuleSetID == ruleSetID).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// This will delete all stores for a ruleset and re-add the new ones. 
+        /// </summary>
+        /// <param name="stores"></param>
+        /// <param name="planid"></param>
+        /// <param name="rulesetid"></param>
         public void AddStoresToRuleset(List<StoreBase> stores, long? planid, long rulesetid)
         {
             DbCommand SQLCommand;
@@ -122,7 +138,7 @@ namespace Footlocker.Logistics.Allocation.Services
             StringWriter sw = new StringWriter();
             XmlSerializer xs = new XmlSerializer(stores.GetType());
             xs.Serialize(sw, stores);
-            String xout = sw.ToString();
+            string xout = sw.ToString();
 
             _database.AddInParameter(SQLCommand, "@xmlDetails", DbType.Xml, xout);
             _database.AddInParameter(SQLCommand, "@planid", DbType.String, planid);
@@ -148,7 +164,6 @@ namespace Footlocker.Logistics.Allocation.Services
 
             _database.ExecuteNonQuery(SQLCommand);
         }
-
 
         /// <summary>
         /// recursive function to create the lambda expression for the users set of rules
@@ -193,10 +208,9 @@ namespace Footlocker.Logistics.Allocation.Services
                     }
                     else if (rules[0].Compare.Equals("not"))
                     {
-                        if (rules.Count > 1)
-                        {
+                        if (rules.Count > 1)                        
                             return Expression.Not(GetExpression(rules.GetRange(1, rules.Count - 1), pe, divisionList));
-                        }
+                        
                         throw new Exception("invalidly formatted rule (not)!");
                     }
                     throw new Exception("invalidly formatted rule (missing first rule)!");
@@ -205,7 +219,6 @@ namespace Footlocker.Logistics.Allocation.Services
                 {
                     //we have more rules
                     return GetCompositeRule(GetExpressionFromSingleRule(rules[0], pe, divisionList), rules.GetRange(1, rules.Count - 1), pe, divisionList);
-                    //return GetCompositeRule(rules, 0, pe);
                 }
                 else
                 {
@@ -228,13 +241,8 @@ namespace Footlocker.Logistics.Allocation.Services
             Expression exp = null;
             Expression left = null;
             Expression right = null;
-            //ParameterExpression pe = Expression.Parameter(typeof(StoreLookup), "StoreLookup");
 
-
-            if (rule.Field == "AdHocCode")
-            {
-            }
-            else if ((rule.Field == "StorePlan") || (rule.Field == "RangePlan") || (rule.Field == "RangePlanDesc") || (rule.Field == "RangePlanID"))
+            if ((rule.Field == "StorePlan") || (rule.Field == "RangePlan") || (rule.Field == "RangePlanDesc") || (rule.Field == "RangePlanID"))
             {
                 //return an expression that will link to the RangePlanDetails
                 //TODO:  This is faster than manually creating and/or's but still slow
@@ -243,13 +251,13 @@ namespace Footlocker.Logistics.Allocation.Services
 
                 if (rule.Field == "RangePlan")
                 {
-                    Int64 planID;// = Convert.ToInt64(rule.Value);
+                    long planID;
                     string sku = Convert.ToString(rule.Value);
 
                     string myInClause = divisionList;
                     try
                     {
-                        planID = (from x in db.RangePlans where (x.Sku == sku) select x).First().Id;
+                        planID = (from x in db.RangePlans where x.Sku == sku select x).First().Id;
                     }
                     catch
                     {
@@ -260,14 +268,14 @@ namespace Footlocker.Logistics.Allocation.Services
                 }
                 else if (rule.Field == "RangePlanID")
                 {
-                    Int64 planID = Convert.ToInt64(rule.Value);
+                    long planID = Convert.ToInt64(rule.Value);
 
                     string myInClause = divisionList;
                     stores = (from rp in db.RangePlanDetails where ((rp.ID == planID) && (myInClause.Contains(rp.Division))) select rp.Division + rp.Store).Distinct().ToList();
                 }
                 else if (rule.Field == "RangePlanDesc")
                 {
-                    Int64 planID;// = Convert.ToInt64(rule.Value);
+                    long planID;
                     string sku = Convert.ToString(rule.Value);
                     //sku is currently desc (sku)
                     sku = sku.Substring(sku.Length - 15, 14);
@@ -295,8 +303,7 @@ namespace Footlocker.Logistics.Allocation.Services
                 Expression memberExpression = Expression.Property(pe, "Store");
                 Expression memberExpression2 = Expression.Property(pe, "Division");
                 MethodCallExpression concatExpression = Expression.Call(method, memberExpression2, memberExpression);
-
-                //Expression convertExpression = Expression.Convert(memberExpression, typeof(string));  //store only
+                
                 Expression convertExpression = Expression.Convert(concatExpression, typeof(string));  //store and divison
                 MethodCallExpression containsExpression = Expression.Call(foreignKeysParameter
                     , "Contains", new Type[] { }, convertExpression);
@@ -309,7 +316,7 @@ namespace Footlocker.Logistics.Allocation.Services
                     case "Does Not Equal":
                         return Expression.Not(containsExpression);
                     default:
-                        throw new Exception("Unsupported rule:  Operation \"" + rule.Compare + "\" not valid for \"" + rule.Field + "\"");
+                        throw new Exception(string.Format("Unsupported rule: Operation \"{0}\" not valid for \"{1}\"", rule.Compare, rule.Field));
                 }
             }
             else if (rule.Field.Contains("StoreExtension"))
@@ -429,7 +436,6 @@ namespace Footlocker.Logistics.Allocation.Services
             return exp;
         }
 
-
         /// <summary>
         /// Get a lambda expression from two or more rules
         /// </summary>
@@ -439,24 +445,16 @@ namespace Footlocker.Logistics.Allocation.Services
             rules.Remove(rule);
             Expression e2 = GetExpression(rules, pe, divisionList);
 
-            if (rule.Compare.Equals("or"))
-            {
-                return Expression.OrElse(first, e2);
-            }
+            if (rule.Compare.Equals("or"))            
+                return Expression.OrElse(first, e2);            
             else
             {
-                if (e2 != null)
-                {
-                    return Expression.AndAlso(first, e2);
-                }
-                else
-                {
-                    throw new Exception("invalid rule, missing predicate.");
-                }
+                if (e2 != null)                
+                    return Expression.AndAlso(first, e2);                
+                else                
+                    throw new Exception("invalid rule, missing predicate.");                
             }
-
         }
-
 
         public List<StoreLookup> GetStoresInRuleSet(long ruleSetID)
         {
@@ -469,7 +467,7 @@ namespace Footlocker.Logistics.Allocation.Services
             return results; 
         }
 
-        public List<StoreLookup> GetValidStoresInRuleSet(Int64 ruleSetID)
+        public List<StoreLookup> GetValidStoresInRuleSet(long ruleSetID)
         {
             var results = (from a in db.StoreLookups 
                            join b in db.RuleSelectedStores on new { div = a.Division, store = a.Store } equals new { div = b.Division, store = b.Store }

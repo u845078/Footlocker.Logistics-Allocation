@@ -1,26 +1,14 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="RuleSelectedStore.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel.DataAnnotations.Schema;
-
-    /// <summary>
-    /// TODO: Update summary.
-    /// </summary>
     public class RuleSelectedStore
     {
         [Key]
         [Column(Order=0)]
-        public Int64 RuleSetID { get; set; }
+        public long RuleSetID { get; set; }
         [Key]
         [Column(Order = 1)]
         public string Division { get; set; }

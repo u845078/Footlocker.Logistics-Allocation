@@ -417,6 +417,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (model.ShowStoreSelector == "yes")
             {
+                // the user wants to select multiple stores. See if there is a rdq ruleset established and create one if it doesn't exist.
                 if (model.RuleSetID < 1)
                 {
                     //get a new ruleset
@@ -428,6 +429,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     };
 
                     db.RuleSets.Add(rs);
+
+                    // this will generate the new RuleSetID so we can send it back
                     db.SaveChanges();
 
                     model.RuleSetID = rs.RuleSetID;

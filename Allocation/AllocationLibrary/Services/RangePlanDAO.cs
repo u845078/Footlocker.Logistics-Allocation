@@ -176,5 +176,27 @@ namespace Footlocker.Logistics.Allocation.Services
 
             return model;
         }
+
+        public void RemoveStoreFromOtherDeliveryGroups(string div, string store, long planID, long ruleSetID)
+        {
+            List<RuleSelectedStore> existing = (from a in db.RuleSelectedStores
+                                                join b in db.RuleSets on a.RuleSetID equals b.RuleSetID
+                                                where b.Type == "Delivery" &&
+                                                      b.RuleSetID != ruleSetID &&
+                                                      b.PlanID == planID &&
+                                                      a.Store == store &&
+                                                      a.Division == div
+                                                select a).ToList();
+
+            foreach (RuleSelectedStore delete in existing)           
+                db.RuleSelectedStores.Remove(delete);     
+            
+            db.SaveChanges();
+        }
+
+        public RangePlanDetail GetRangePlanDetail(string division, string store, long planID)
+        {
+            return db.RangePlanDetails.Where(rpd => rpd.ID == planID && rpd.Division == division && rpd.Store == store).FirstOrDefault();
+        }
     }
 }

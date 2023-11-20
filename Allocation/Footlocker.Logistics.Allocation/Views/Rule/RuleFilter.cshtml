@@ -109,7 +109,6 @@
         });
     }
 
-
     function moveDown(ruleID) {
         //make a call to server
         var grid = $("#RuleGrid").data("tGrid");
@@ -140,6 +139,7 @@
             }
         });
     }
+
     function moveUp(ruleID) {
         //make a call to server
         var grid = $("#RuleGrid").data("tGrid");
@@ -202,7 +202,6 @@
         });
     }
 
-
     function updateCount() {
         ruleset = $('#RuleToAdd_RuleSetID').val();
 
@@ -228,41 +227,41 @@
         });
     }
 
-        function onSelect(e) {
-            var files = e.files;
-            if (files[0].extension != ".xls") {
-                alert("Document must be a spreadsheet with a xls extension. ");
-                e.preventDefault();
-            }
-            else {
-                document.getElementById('spreadsheet').style.visibility = 'visible';
-            }
-            $('#message').empty();
-        }
-
-        function onComplete(e) {
-
-            var message = e.XMLHttpRequest.responseText;
-            $('#message').empty().append("<font color='red'>" + message + "</font>");
-
-            var grid = $("#RuleGrid").data("tGrid");
-            $('.t-status .t-icon', grid.element).addClass('t-loading');
-
-            var grid2 = $("#StoreGrid").data("tGrid");
-            $('.t-status .t-icon', grid2.element).addClass('t-loading');
-            grid.ajaxRequest();
-            grid2.ajaxRequest();
-            updateCount();
-            showStatus();
+    function onSelect(e) {
+        var files = e.files;
+        if (files[0].extension != ".xls") {
+            alert("Document must be a spreadsheet with a xls extension. ");
             e.preventDefault();
         }
+        else {
+            document.getElementById('spreadsheet').style.visibility = 'visible';
+        }
+        $('#message').empty();
+    }
 
+    function onComplete(e) {
+
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>" + message + "</font>");
+
+        var grid = $("#RuleGrid").data("tGrid");
+        $('.t-status .t-icon', grid.element).addClass('t-loading');
+
+        var grid2 = $("#StoreGrid").data("tGrid");
+        $('.t-status .t-icon', grid2.element).addClass('t-loading');
+        grid.ajaxRequest();
+        grid2.ajaxRequest();
+        updateCount();
+        showStatus();
+        e.preventDefault();
+    }
 </script>
+
 <b>Filter Stores By Rule</b>
 @Html.EditorFor(model => Model.RuleToAdd)
 @if (ViewData["rulemessage"] != null)
 {
-<font color="red">@Html.Raw(ViewData["rulemessage"])</font>
+    <font color="red">@Html.Raw(ViewData["rulemessage"])</font>
 }
 else
 {
@@ -273,26 +272,25 @@ else
 <br />
 <div id="showCount"></div>
 <fieldset>
-    <b>Upload .xls: </b><span id="message">(Spreadsheet columns should be {Div, Store}; you may include an optional column for RangeType)</span>
-    @Html.ActionLink("Template", "StoreTemplate","SkuRange", null, new { @class = "t-button" })  
-    <br />
+    <b>Upload .xls: </b><span id="message">(Spreadsheet columns should be Division, Store)</span><br />
+    @Html.ActionLink("Template", "StoreTemplate", "SkuRange", null, new { @class = "t-button" })  
+    <br /><br />
     This will select and add the stores in the spreadsheet (even if outside of rules).
     <br /> 
     @(Html.Telerik().Upload()
         .Name("attachments")
         .Multiple(true)
         .Async(async => async
-            .Save("UploadStores", "Rule", new {ruleSetID = Model.RuleSetID})
+            .Save("UploadStores", "Rule", new { ruleSetID = Model.RuleSetID })
             .AutoUpload(true))
-            .ShowFileList(false)
+        .ShowFileList(false)
         .ClientEvents(events => events
             .OnError("onComplete")
             .OnSelect("onSelect")
-            .OnSuccess("onComplete")
-            ).HtmlAttributes(new {style="display:inline"})
-        )
-        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
+            .OnSuccess("onComplete"))
+        .HtmlAttributes(new {style="display:inline"})
+    )
+    <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
 </fieldset>
-
 
 @Html.Partial(@Url.Content("~/Views/Rule/StoreLookupList.cshtml"))
