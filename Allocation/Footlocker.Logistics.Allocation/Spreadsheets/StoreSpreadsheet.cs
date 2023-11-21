@@ -110,7 +110,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             maxColumns = 2;
             headerRowNumber = 0;
 
-            columns.Add(0, "Div");
+            columns.Add(0, "Division");
             columns.Add(1, "Store");
 
             rangeDAO = rangePlanDAO;

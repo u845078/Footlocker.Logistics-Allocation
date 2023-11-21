@@ -395,8 +395,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 Hold = model.Hold
             };
-            
-            string validationMessage = holdService.ValidateHold(model.RuleSetID > 0, false, false);
+                        
             
             if (model.ShowStoreSelector == "yes")
             {
@@ -421,72 +420,76 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.Divisions = currentUser.GetUserDivisions(AppName);
                 return View(model);
             }
-
-            if (!string.IsNullOrEmpty(validationMessage))
-            {
-                ViewData["message"] = validationMessage;
-                model.Divisions = currentUser.GetUserDivisions(AppName);
-                return View(model);
-            }
             else
             {
-                model.Hold.CreateDate = DateTime.Now;
-                model.Hold.CreatedBy = currentUser.NetworkID;
-                //TODO:  Do we want dept level security on holds???
-                if (currentUser.GetUserDivisions(AppName).Exists(d => d.DivCode == model.Hold.Division))
+                string validationMessage = holdService.ValidateHold(model.RuleSetID > 0, false, false);
+
+                if (!string.IsNullOrEmpty(validationMessage))
                 {
-                    if (model.Hold.Level == "Sku" && model.Hold.Division != model.Hold.Value.Substring(0, 2))
-                    {
-                        ViewData["message"] = "Invalid Sku, division does not match selection.";
-                        model.Divisions = currentUser.GetUserDivisions(AppName);
-                        return View(model);
-                    }
-                    else
-                    {
-                        if (model.RuleSetID == 0)
-                        {
-                            db.Holds.Add(model.Hold);
-                            db.SaveChanges();
-                            ApplyHoldsToExistingWebPicks(model.Hold);
-                            return RedirectToAction("Index", new { duration = model.Hold.Duration });
-                        }
-                        else
-                        {
-                            //create hold for each store
-                            RuleDAO dao = new RuleDAO();
-                            Hold h;
-                            foreach (StoreLookup s in dao.GetStoresInRuleSet(model.RuleSetID))
-                            {
-                                h = new Hold()
-                                {
-                                    Store = s.Store,
-                                    Division = s.Division,
-                                    Comments = model.Hold.Comments,
-                                    Duration = model.Hold.Duration,
-                                    EndDate = model.Hold.EndDate,
-                                    HoldType = model.Hold.HoldType,
-                                    Level = model.Hold.Level,
-                                    ReserveInventory = model.Hold.ReserveInventory,
-                                    StartDate = model.Hold.StartDate,
-                                    Value = model.Hold.Value,
-                                    CreateDate = model.Hold.CreateDate,
-                                    CreatedBy = model.Hold.CreatedBy
-                                };
-
-                                db.Holds.Add(h);
-                                db.SaveChanges();
-
-                                ApplyHoldsToExistingWebPicks(h);
-                            }
-                            return RedirectToAction("Index", new { duration = model.Hold.Duration });
-                        }
-                    }
+                    ViewData["message"] = validationMessage;
+                    model.Divisions = currentUser.GetUserDivisions(AppName);
+                    return View(model);
                 }
                 else
                 {
-                    ViewData["message"] = "You are not authorized to create holds for this division.";
-                    model.Divisions = currentUser.GetUserDivisions(AppName);
-                    return View(model);
+                    model.Hold.CreateDate = DateTime.Now;
+                    model.Hold.CreatedBy = currentUser.NetworkID;
+                    //TODO:  Do we want dept level security on holds???
+                    if (currentUser.GetUserDivisions(AppName).Exists(d => d.DivCode == model.Hold.Division))
+                    {
+                        if (model.Hold.Level == "Sku" && model.Hold.Division != model.Hold.Value.Substring(0, 2))
+                        {
+                            ViewData["message"] = "Invalid Sku, division does not match selection.";
+                            model.Divisions = currentUser.GetUserDivisions(AppName);
+                            return View(model);
+                        }
+                        else
+                        {
+                            if (model.RuleSetID == 0)
+                            {
+                                db.Holds.Add(model.Hold);
+                                db.SaveChanges();
+                                ApplyHoldsToExistingWebPicks(model.Hold);
+                                return RedirectToAction("Index", new { duration = model.Hold.Duration });
+                            }
+                            else
+                            {
+                                //create hold for each store
+                                RuleDAO dao = new RuleDAO();
+                                Hold h;
+                                foreach (StoreLookup s in dao.GetStoresInRuleSet(model.RuleSetID))
+                                {
+                                    h = new Hold()
+                                    {
+                                        Store = s.Store,
+                                        Division = s.Division,
+                                        Comments = model.Hold.Comments,
+                                        Duration = model.Hold.Duration,
+                                        EndDate = model.Hold.EndDate,
+                                        HoldType = model.Hold.HoldType,
+                                        Level = model.Hold.Level,
+                                        ReserveInventory = model.Hold.ReserveInventory,
+                                        StartDate = model.Hold.StartDate,
+                                        Value = model.Hold.Value,
+                                        CreateDate = model.Hold.CreateDate,
+                                        CreatedBy = model.Hold.CreatedBy
+                                    };
+
+                                    db.Holds.Add(h);
+                                    db.SaveChanges();
+
+                                    ApplyHoldsToExistingWebPicks(h);
+                                }
+                                return RedirectToAction("Index", new { duration = model.Hold.Duration });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ViewData["message"] = "You are not authorized to create holds for this division.";
+                        model.Divisions = currentUser.GetUserDivisions(AppName);
+                        return View(model);
+                    }
                 }
             }
         }

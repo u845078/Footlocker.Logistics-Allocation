@@ -418,8 +418,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 planID = list.First().PlanID;            
 
             SizeAllocationDAO dao = new SizeAllocationDAO();
+            RuleDAO ruleDAO = new RuleDAO();
 
-            List<Rule> rules = db.GetRulesForPlan(planID, "SizeAlc");
+            List<Rule> rules = ruleDAO.GetRulesForPlan(planID, "SizeAlc");
 
             IEnumerable<StoreLookup> stores;
 
@@ -427,7 +428,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 RuleSet r = db.RuleSets.Where(rs => rs.PlanID == planID && rs.Type == "SizeAlc").First();
                 //check spreadsheet upload
-                stores = (new RuleDAO()).GetStoresInRuleSet(r.RuleSetID);
+                stores = ruleDAO.GetStoresInRuleSet(r.RuleSetID);
                 if (stores.Count() == 0)                
                     stores = GetStoresForRules(rules, planID);                
             }
@@ -537,16 +538,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 planID = list.First().PlanID;
 
             SizeAllocationDAO dao = new SizeAllocationDAO();
-            List<Rule> rules = db.GetRulesForPlan(planID, "SizeAlc");
+            RuleDAO ruleDAO = new RuleDAO();
+
+            List<Rule> rules = ruleDAO.GetRulesForPlan(planID, "SizeAlc");
 
             IEnumerable<StoreLookup> stores;
 
             try
             {
                 RuleSet r = db.RuleSets.Where(rs => rs.PlanID == planID && rs.Type == "SizeAlc").First();
-                stores = (new RuleDAO()).GetStoresInRuleSet(r.RuleSetID);
+                stores = ruleDAO.GetStoresInRuleSet(r.RuleSetID);
 
-                stores = (new RuleDAO()).GetStoresInRuleSet(r.RuleSetID);
+                stores = ruleDAO.GetStoresInRuleSet(r.RuleSetID);
 
                 if ((stores == null) || (stores.Count() == 0))                
                     stores = GetStoresForRules(rules, planID);                
@@ -1114,6 +1117,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             string ruleType = "SizeAlc";
             #region ruleModel
 
+            RuleDAO ruleDAO = new RuleDAO();
+
             var existingRuleSet = from a in db.RuleSets
                                    where a.PlanID == model.RangePlan.Id && 
                                          a.Type == ruleType
@@ -1137,7 +1142,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ViewData["ruleSetID"] = model.RuleSetID;
             ViewData["gridtype"] = ruleType;
 
-            model.Rules = db.GetRulesForRuleSet(model.RuleSetID, ruleType);
+            model.Rules = ruleDAO.GetRulesForRuleSet(model.RuleSetID, ruleType);
 
             SizeAllocationDAO dao = new SizeAllocationDAO();
 
@@ -1921,7 +1926,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                List<Rule> rules = db.GetRulesForPlan(planID, ruleType);
+                RuleDAO ruleDAO = new RuleDAO();
+                List<Rule> rules = ruleDAO.GetRulesForPlan(planID, ruleType);
 
                 try
                 {
@@ -1953,7 +1959,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                List<Rule> rules = db.GetRulesForPlan(planID, ruleType);
+                RuleDAO ruleDAO = new RuleDAO();
+                List<Rule> rules = ruleDAO.GetRulesForPlan(planID, ruleType);
 
                 try
                 {
@@ -2123,40 +2130,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// </summary>
         public ActionResult AddAllStores(long planID)
         {
-            List<Rule> RulesForPlan = db.GetRulesForPlan(planID, "Main");
-
-            List<StoreLookupModel> StoreList = GetStoresForRules(RulesForPlan, planID);
-
-            List<RangePlanDetail> details = new List<RangePlanDetail>();
-            RangePlanDetail det;
-            DateTime createDate = DateTime.Now;
-            foreach (StoreLookupModel s in StoreList)
-            {
-                det = new RangePlanDetail();
-                det.ID = planID;
-                det.Store = s.Store;
-                det.Division = s.Division;
-                det.CreateDate = createDate;
-                det.CreatedBy = currentUser.NetworkID;
-                details.Add(det);
-            }
-
-            RangePlanDetailDAO dao = new RangePlanDetailDAO();
-            dao.AddStores(details);
-
-            db.UpdateRangePlanDate(planID, currentUser.NetworkID);
-
-            return RedirectToAction("AddStoresByRule", new { planID = planID });
-
-        }
-
-        /// <summary>
-        /// Add only the stores that are visible in the filtered grid to the planID
-        /// TODO:  this is not implemented, it would need to create a lambda expression based on the filter.
-        /// </summary>
-        public JsonResult AddFilteredStores(long planID, string filter, string ruleType)
-        {
-            List<Rule> RulesForPlan = db.GetRulesForPlan(planID, ruleType);
+            RuleDAO ruleDAO = new RuleDAO();
+            List<Rule> RulesForPlan = ruleDAO.GetRulesForPlan(planID, "Main");
 
             List<StoreLookupModel> StoreList = GetStoresForRules(RulesForPlan, planID);
 
@@ -2181,9 +2156,45 @@ namespace Footlocker.Logistics.Allocation.Controllers
             dao.AddStores(details);
 
             db.UpdateRangePlanDate(planID, currentUser.NetworkID);
-            return Json("Success");
+
+            return RedirectToAction("AddStoresByRule", new { planID });
         }
 
+        /// <summary>
+        /// Add only the stores that are visible in the filtered grid to the planID
+        /// TODO:  this is not implemented, it would need to create a lambda expression based on the filter.
+        /// </summary>
+        public JsonResult AddFilteredStores(long planID, string filter, string ruleType)
+        {
+            RuleDAO ruleDAO = new RuleDAO();
+
+            List<Rule> RulesForPlan = ruleDAO.GetRulesForPlan(planID, ruleType);
+
+            List<StoreLookupModel> StoreList = GetStoresForRules(RulesForPlan, planID);
+
+            List<RangePlanDetail> details = new List<RangePlanDetail>();
+            RangePlanDetail det;
+
+            foreach (StoreLookupModel s in StoreList)
+            {
+                det = new RangePlanDetail()
+                {
+                    ID = planID,
+                    Store = s.Store,
+                    Division = s.Division,
+                    CreateDate = DateTime.Now,
+                    CreatedBy = currentUser.NetworkID
+                };
+
+                details.Add(det);
+            }
+
+            RangePlanDetailDAO dao = new RangePlanDetailDAO();
+            dao.AddStores(details);
+
+            db.UpdateRangePlanDate(planID, currentUser.NetworkID);
+            return Json("Success");
+        }
 
         /// <summary>
         /// Add a store to the range plan (planID)
@@ -2192,43 +2203,42 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             try
             {
-                RangePlanDetail det = new RangePlanDetail();
-                det.Store = store;
-                det.Division = div;
-                det.ID = planID;
-                det.CreateDate = DateTime.Now;
-                det.CreatedBy = currentUser.NetworkID;
+                RangePlanDetail det = new RangePlanDetail()
+                {
+                    Store = store,
+                    Division = div,
+                    ID = planID,
+                    CreateDate = DateTime.Now,
+                    CreatedBy = currentUser.NetworkID
+                };
 
                 var deliveryGroupQuery = (from a in db.DeliveryGroups
                                           join c in db.RuleSelectedStores on a.RuleSetID equals c.RuleSetID
-                                          where ((a.PlanID == planID) &&
-                                                 (c.Store == store) &&
-                                                 (c.Division == div))
+                                          where a.PlanID == planID &&
+                                                c.Store == store &&
+                                                c.Division == div
                                           select a);
 
                 if (deliveryGroupQuery.Count() > 0)
                 {
                     DeliveryGroup dg = deliveryGroupQuery.First();
-                    MaxLeadTime lt = (from c in db.MaxLeadTimes
-                                      where ((c.Store == store) && (c.Division == div))
-                                      select c).FirstOrDefault();
+                    MaxLeadTime lt = db.MaxLeadTimes.Where(mlt => mlt.Store == store && mlt.Division == div).FirstOrDefault();
                     if (lt == null)
                     {
-                        lt = new MaxLeadTime();
-                        lt.LeadTime = 5;
-                        lt.Division = div;
-                        lt.Store = store;
+                        lt = new MaxLeadTime()
+                        {
+                            Division = div,
+                            Store = store,
+                            LeadTime = 5
+                        };
                     }
 
                     //set start/end date
-                    if (dg.StartDate != null)
-                    {
+                    if (dg.StartDate != null)                    
                         det.StartDate = ((DateTime)dg.StartDate).AddDays(lt.LeadTime);
-                    }
-                    if (dg.EndDate != null)
-                    {
-                        det.EndDate = ((DateTime)dg.EndDate).AddDays(lt.LeadTime);
-                    }
+                    
+                    if (dg.EndDate != null)                    
+                        det.EndDate = ((DateTime)dg.EndDate).AddDays(lt.LeadTime);                    
                 }
 
                 db.RangePlanDetails.Add(det);

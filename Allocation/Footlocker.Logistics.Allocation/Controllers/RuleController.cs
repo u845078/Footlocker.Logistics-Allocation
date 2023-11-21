@@ -79,9 +79,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 case "Climate":
                     results = (from a in db.StoreLookups where a.Climate.StartsWith(text) select a.Climate).Distinct();
                     return new JsonResult { Data = results.ToList() };
-                case "StoreExtension.ConceptType.Name":
-                    results = (from a in db.ConceptTypes where a.Name.StartsWith(text) select a.Name).Distinct();
-                    return new JsonResult { Data = results.ToList() };
+                //case "StoreExtension.ConceptType.Name":
+                //    results = (from a in db.ConceptTypes where a.Name.StartsWith(text) select a.Name).Distinct();
+                //    return new JsonResult { Data = results.ToList() };
                 case "StoreExtension.CustomerType.Name":
                     results = (from a in db.CustomerTypes where a.Name.StartsWith(text) select a.Name).Distinct();
                     return new JsonResult { Data = results.ToList() };
@@ -141,9 +141,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 case "Climate":
                     results = (from a in db.StoreLookups select a.Climate).Distinct().Take(5);
                     return new JsonResult { Data = results.ToList() };
-                case "StoreExtension.ConceptType.Name":
-                    results = (from a in db.ConceptTypes select a.Name).Distinct().Take(5);
-                    return new JsonResult { Data = results.ToList() };
+                //case "StoreExtension.ConceptType.Name":
+                //    results = (from a in db.ConceptTypes select a.Name).Distinct().Take(5);
+                //    return new JsonResult { Data = results.ToList() };
                 case "StoreExtension.CustomerType.Name":
                     results = (from a in db.CustomerTypes select a.Name).Distinct().Take(5);
                     return new JsonResult { Data = results.ToList() };
@@ -193,7 +193,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Grid(long ruleSetID, string ruleType)
         {
-            List<Rule> rules = db.GetRulesForPlan(ruleSetID, ruleType);
+            RuleDAO ruleDAO = new RuleDAO();
+
+            List<Rule> rules = ruleDAO.GetRulesForPlan(ruleSetID, ruleType);
             return View(rules);
         }
 
@@ -201,15 +203,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _Grid(long ruleSetID, string ruleType)
         {
             List<Rule> rules;
+            RuleDAO ruleDAO = new RuleDAO();
 
-            rules = db.GetRulesForRuleSet(ruleSetID, ruleType);
+            rules = ruleDAO.GetRulesForRuleSet(ruleSetID, ruleType);
 
             return View(new GridModel(rules));
         }
 
         public ActionResult GridForPlan(long planID, string ruleType)
         {
-            List<Rule> rules = db.GetRulesForPlan(planID, ruleType);
+            RuleDAO ruleDAO = new RuleDAO();
+
+            List<Rule> rules = ruleDAO.GetRulesForPlan(planID, ruleType);
             return View(rules);
         }
 
@@ -217,8 +222,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _GridForPlan(long planID, string ruleType)
         {
             List<Rule> rules;
+            RuleDAO ruleDAO = new RuleDAO();
 
-            rules = db.GetRulesForPlan(planID, ruleType);
+            rules = ruleDAO.GetRulesForPlan(planID, ruleType);
             return View(new GridModel(rules));
         }
 
@@ -237,10 +243,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 Value = value
             };
 
-            IOrderedEnumerable<Rule> maxSort = (from a in db.Rules 
-                                                where a.RuleSetID == ruleSetID 
-                                                orderby sort descending 
-                                                select a).ToList().OrderByDescending(o => o.Sort);
+            IOrderedEnumerable<Rule> maxSort = db.Rules.Where(r => r.RuleSetID == ruleSetID).ToList().OrderByDescending(o => o.Sort);
             if (maxSort.Count() > 0)
             {
                 Rule lastRule = maxSort.First();
@@ -355,75 +358,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult GetStoreCount(long ruleSetID)
         {
-            IQueryable<StoreLookup> queryableData = db.StoreLookups.AsQueryable<StoreLookup>();
-            ParameterExpression pe = Expression.Parameter(typeof(StoreLookup), "StoreLookup");
-            List<Rule> list = (from a in db.Rules where a.RuleSetID == ruleSetID orderby a.Sort select a).ToList();
-            List<Rule> finalRules = new List<Rule>();
-
-            RuleSet rs = ((from a in db.RuleSets where a.RuleSetID == ruleSetID select a).First());
-            var divQuery = (from a in db.RuleSets join b in db.RangePlans on a.PlanID equals b.Id where (a.RuleSetID == ruleSetID) select b);
-            string div = "";
-            if (rs.Division != null)
-            {
-                div = rs.Division;
-            }
-            else if (divQuery.Count() > 0)
-            {
-                div = divQuery.First().Division;
-            }
-
-            if (div != "")
-            {
-                //add division criteria to rules
-                Rule divRule = new Rule()
-                {
-                    Compare = "Equals",
-                    Field = "Division",
-                    Value = div
-                };
-
-                finalRules.Add(divRule);
-
-                divRule = new Rule()
-                {
-                    Compare = "and"
-                };
-               
-                finalRules.Add(divRule);
-
-                foreach (Rule r in list)
-                {
-                    finalRules.Add(r);
-                }
-            }
-            else            
-                finalRules = list;            
-
             RuleDAO dao = new RuleDAO();
-            bool closedStoreRule = finalRules.Any(a => a.Field == "status" && a.Value == "C");
+            IQueryable<StoreLookup> storesInRule;
+
+            storesInRule = dao.GetStoresForRules(ruleSetID, currentUser, AppName);
+            List<Rule> ruleList = db.Rules.Where(r => r.RuleSetID == ruleSetID).OrderBy(r => r.Sort).ToList();
+
+            bool closedStoreRule = ruleList.Any(a => a.Field == "status" && a.Value == "C");
 
             try
             {
-                Expression finalExpression = dao.GetExpression(finalRules, pe, currentUser.GetUserDivisionsString(AppName));
-                // Create an expression tree that represents the expression 
+                storesInRule = storesInRule.Where(r => r.status != "C" || closedStoreRule);
 
-                MethodCallExpression whereCallExpression = Expression.Call(
-                    typeof(Queryable),
-                    "Where",
-                    new Type[] { queryableData.ElementType },
-                    queryableData.Expression,
-                    Expression.Lambda<Func<StoreLookup, bool>>(finalExpression, new ParameterExpression[] { pe }));
-                // ***** End Where ***** 
-
-                IQueryable<StoreLookup> results = queryableData.Provider.CreateQuery<StoreLookup>(whereCallExpression);
-                results = (from a in results where ((a.status != "C") || (closedStoreRule)) select a);
-                int count = results.Count();
-                if (results != null)
-                {
-                    var divisions = (from a in currentUser.GetUserDivisions(AppName) select a);
-                    List<StoreLookup> lresults = results.ToList();
-                    count = (from a in lresults join b in currentUser.GetUserDivisions(AppName) on a.Division equals b.DivCode select a).Count();
+                int count = storesInRule.Count();
+                if (storesInRule != null)
+                {                    
+                    var divisions = currentUser.GetUserDivisions(AppName);
+                    List<StoreLookup> lresults = storesInRule.ToList();
+                    count = (from a in lresults 
+                             join b in divisions 
+                             on a.Division equals b.DivCode 
+                             select a).Count();
                 }
+
                 return Json(new { Count = count });
             }
             catch
@@ -477,174 +434,64 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RuleDAO dao = new RuleDAO();
             List<StoreLookup> selectedStores = dao.GetStoresInRuleSet(ruleSetID);
             List<StoreLookupModel> filteredStores = GetStoresForRules(ruleSetID);
-            int count = (from a in selectedStores join b in filteredStores on new { a.Division, a.Store } equals new { b.Division, b.Store } select a).Count();
+            int count = (from a in selectedStores 
+                         join b in filteredStores 
+                         on new { a.Division, a.Store } equals new { b.Division, b.Store } 
+                         select a).Count();
+
             return Json(new { Count = count });
         }
 
-
-        public List<StoreLookupModel> GetAllStores()
-        {
-            List<StoreLookupModel> retlist = new List<StoreLookupModel>();
-            var stores = (from a in db.StoreLookups where a.status != "C" select a);
-            foreach (StoreLookup item in stores)
-            {
-                retlist.Add(new StoreLookupModel(item));
-            }
-            return retlist;
-        }
         /// <summary>
         /// return the stores that qualify for the current rules on a ruleset
         /// </summary>
         /// <param name="ruleSetID"></param>
         /// <returns></returns>
-        public List<StoreLookupModel> GetStoresForRules(long ruleSetID, bool useCache = true)
+        public List<StoreLookupModel> GetStoresForRules(long ruleSetID)
         {
             RuleDAO dao = new RuleDAO();
+            IQueryable<StoreLookup> storesInRule;
 
-            IQueryable<StoreLookup> queryableData = db.StoreLookups.Include("StoreExtension")
-                                                                   .Include("StoreExtension.ConceptType")
-                                                                   .Include("StoreExtension.CustomerType")
-                                                                   .Include("StoreExtension.PriorityType")
-                                                                   .Include("StoreExtension.StrategyType")
-                                                                   .AsQueryable<StoreLookup>();
+            RuleSet rs = dao.GetRuleSet(ruleSetID);
+            storesInRule = dao.GetStoresForRules(ruleSetID, currentUser, AppName);
+            List<Rule> ruleList = db.Rules.Where(r => r.RuleSetID == ruleSetID).OrderBy(r => r.Sort).ToList();
 
-            ParameterExpression pe = Expression.Parameter(typeof(StoreLookup), "StoreLookup");
-            List<Rule> list = (from a in db.Rules where a.RuleSetID == ruleSetID orderby a.Sort select a).ToList();
+            bool closedStoreRule = ruleList.Any(a => a.Field == "status" && a.Value == "C");
 
-            List<Rule> finalRules = new List<Rule>();
-
-            RuleSet rs = dao.GetRuleSet(ruleSetID);            
-            var divQuery = (from a in db.RuleSets 
-                            join b in db.RangePlans 
-                            on a.PlanID equals b.Id 
-                            where a.RuleSetID == ruleSetID 
-                            select b);
-            string div = "";
-            if (rs.Division != null)            
-                div = rs.Division;            
-            else if (divQuery.Count() > 0)            
-                div = divQuery.First().Division;            
-
-            if (div != "")
-            {
-                //add division criteria to rules
-                Rule divRule = new Rule()
-                {
-                    Compare = "Equals",
-                    Field = "Division",
-                    Value = div
-                };
-
-                finalRules.Add(divRule);
-
-                divRule = new Rule()
-                {
-                    Compare = "and"
-                };
-                
-                finalRules.Add(divRule);
-
-                foreach (Rule r in list)
-                {
-                    finalRules.Add(r);
-                }
-            }
-            else            
-                finalRules = list;            
-
-            if (rs.Type == "Delivery")
-            {
-                //add rules to only pull back stores in the range plan if this is a Delivery type.
-                Rule deliveryRule = new Rule()
-                {
-                    Compare = "Equals",
-                    Field = "RangePlanID",
-                    Value = Convert.ToString(rs.PlanID)
-                };
-
-                if (finalRules.Count() == 2)
-                {
-                    //no user rules
-                    //only have default div rules, so just add this one and show all possible stores
-                    finalRules.Add(deliveryRule);
-                }
-                else
-                {
-                    finalRules.Insert(0, deliveryRule);
-                    deliveryRule = new Rule()
-                    {
-                        Compare = "and"
-                    };
-                    
-                    finalRules.Insert(1, deliveryRule);
-
-                    deliveryRule = new Rule()
-                    {
-                        Compare = "("
-                    };
-                    
-                    finalRules.Insert(2, deliveryRule);
-
-                    deliveryRule = new Rule()
-                    {
-                        Compare = ")"
-                    };
-                    
-                    finalRules.Add(deliveryRule);
-                }
-            }
-
-            bool closedStoreRule = finalRules.Any(a => a.Field == "status" && a.Value == "C");
-            
             try
             {
-                Expression finalExpression = dao.GetExpression(finalRules, pe, currentUser.GetUserDivisionsString(AppName));
-
-                // Create an expression tree that represents the expression 
-                // 'queryableData.Where(company => (company.ToLower() == "coho winery" || company.Length > 16))'
-                MethodCallExpression whereCallExpression = Expression.Call(
-                    typeof(Queryable),
-                    "Where",
-                    new Type[] { queryableData.ElementType },
-                    queryableData.Expression,
-                    Expression.Lambda<Func<StoreLookup, bool>>(finalExpression, new ParameterExpression[] { pe }));
-                // ***** End Where ***** 
-
-                IQueryable<StoreLookup> results = queryableData.Provider.CreateQuery<StoreLookup>(whereCallExpression);
                 List<StoreLookupModel> retList = new List<StoreLookupModel>();
-                long? rangePlan = null;
-                if (rs.Type == "SizeAlc" || rs.Type == "Main")
-                {
-                    rangePlan = rs.PlanID;
-                }
+                long? rangePlanID = null;
+
+                if (rs.Type == "SizeAlc" || rs.Type == "Main")                
+                    rangePlanID = rs.PlanID;                
 
                 List<RangePlanDetail> planStores = null;
-                if ((rangePlan != null) && (rangePlan > 0))
-                {
-                    planStores = (from a in db.RangePlanDetails where a.ID == rangePlan select a).ToList();
-                }
-                List<StoreLookup> resultList = results.ToList();
+                if (rangePlanID != null && rangePlanID > 0)                
+                    planStores = db.RangePlanDetails.Where(rpd => rpd.ID == rangePlanID).ToList();
+                
+                List<StoreLookup> resultList = storesInRule.ToList();
 
-                if (rangePlan != null && rangePlan > 0)
+                if (rangePlanID != null && rangePlanID > 0)
                 {
-                    List<StoreLookup> inPlan = resultList.Where(p => planStores.Any(p2 => ((p2.Division == p.Division) && (p2.Store == p.Store)))).ToList();
-                    List<StoreLookup> notInPlan = resultList.Where(p => !planStores.Any(p2 => ((p2.Division == p.Division) && (p2.Store == p.Store)))).ToList();
+                    List<StoreLookup> inPlan = resultList.Where(p => planStores.Any(p2 => p2.Division == p.Division && p2.Store == p.Store)).ToList();
+                    List<StoreLookup> notInPlan = resultList.Where(p => !planStores.Any(p2 => p2.Division == p.Division && p2.Store == p.Store)).ToList();
                     
                     foreach (StoreLookup item in inPlan)
                     {
                         if (item.status != "C" || closedStoreRule)                        
-                            retList.Add(new StoreLookupModel(item, (long)rangePlan, true));                        
+                            retList.Add(new StoreLookupModel(item, (long)rangePlanID, true));                        
                     }
 
                     foreach (StoreLookup item in notInPlan)
                     {
                         if (item.status != "C" || closedStoreRule)
-                            retList.Add(new StoreLookupModel(item, (long)rangePlan, false));                        
+                            retList.Add(new StoreLookupModel(item, (long)rangePlanID, false));                        
                     }
                 }
                 else
                 {
-                    foreach (StoreLookup item in results)
+                    foreach (StoreLookup item in storesInRule)
                     {
                         if (item.status != "C" || closedStoreRule)                        
                             retList.Add(new StoreLookupModel(item));                        
@@ -658,6 +505,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                on a.Division equals b.DivCode 
                                select a).ToList();
                 }
+
                 Session["rulesetid"] = ruleSetID;
                 Session["ruleselectedstores"] = retList;
                 return retList;
@@ -700,7 +548,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             RuleDAO dao = new RuleDAO();
 
-            Rule rule = (from a in db.Rules where a.ID == id select a).First();
+            Rule rule = db.Rules.Where(r => r.ID == id).First();
             RuleSet rs = dao.GetRuleSet(rule.RuleSetID);            
             
             long planID = -1;
@@ -725,7 +573,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             try
             {
                 // TODO: Add delete logic here
-                Rule rule = (from a in db.Rules where a.ID == id select a).First();
+                Rule rule = db.Rules.Where(r => r.ID == id).First();
                 RuleSet rs = dao.GetRuleSet(rule.RuleSetID);                
                 
                 long planID = dao.GetPlanID(id);
@@ -744,7 +592,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         // GET: /Account/Edit/5
         public ActionResult Edit(long id)
         {
-            Rule rule = (from a in db.Rules where a.ID == id select a).First();
+            Rule rule = db.Rules.Where(r => r.ID == id).First();
             return View(rule);
         }
 
@@ -753,18 +601,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Edit(long id, FormCollection form)
         {
+            RuleDAO dao = new RuleDAO();
             try
             {
                 // TODO: Add update logic here
-                Rule rule = (from a2 in db.Rules where a2.ID == id select a2).First();
-                long planID = (new RuleDAO()).GetPlanID(id);
+                Rule rule = db.Rules.Where(r => r.ID == id).First();
+                long planID = dao.GetPlanID(id);
 
                 TryUpdateModel(rule);
 
                 if (ModelState.IsValid)                
                     db.SaveChanges();
                 
-                return RedirectToAction("AddStoresByRule", "SkuRange", new { planID = planID });
+                return RedirectToAction("AddStoresByRule", "SkuRange", new { planID });
             }
             catch
             {
@@ -774,20 +623,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Up(long id)
         {
-            Rule rule = (from a in db.Rules where a.ID == id select a).First();
+            Rule rule = db.Rules.Where(r => r.ID == id).First();
             RuleDAO ruleDAO = new RuleDAO();
             Rule ruleAbove = null;
 
             try
             {
-                ruleAbove = (from b in db.Rules where b.RuleSetID == rule.RuleSetID && b.Sort == (rule.Sort - 1) select b).First();
+                ruleAbove = db.Rules.Where(r => r.RuleSetID == rule.RuleSetID && r.Sort == rule.Sort - 1).First();
             }
             catch { }
 
             if (ruleAbove != null)
             {
-                rule.Sort = rule.Sort - 1;
-                ruleAbove.Sort = ruleAbove.Sort + 1;
+                rule.Sort--;
+                ruleAbove.Sort++;
                 
                 if (ModelState.IsValid)                
                     db.SaveChanges();                
@@ -801,20 +650,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Down(long id)
         {
-            Rule rule = (from a in db.Rules where a.ID == id select a).First();
+            Rule rule = db.Rules.Where(r => r.ID == id).First();
             RuleDAO ruleDAO = new RuleDAO();
             Rule ruleBelow = null;
 
             try
             {
-                ruleBelow = (from b in db.Rules where ((b.RuleSetID == rule.RuleSetID) && (b.Sort == (rule.Sort + 1))) select b).First();
+                ruleBelow = db.Rules.Where(r => r.RuleSetID == rule.RuleSetID && r.Sort == rule.Sort + 1).First();
             }
             catch { }
 
             if (ruleBelow != null)
             {
-                rule.Sort = rule.Sort + 1;
-                ruleBelow.Sort = ruleBelow.Sort - 1;
+                rule.Sort++;
+                ruleBelow.Sort--;
                 
                 if (ModelState.IsValid)                
                     db.SaveChanges();                
@@ -925,20 +774,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 //if plan allows multiple rulesets of same type
                 //we can tell if it's in another ruleset (for warning purposes)
-                List<StoreLookup> storesInSimilarplans = new List<StoreLookup>();
+                List<StoreLookup> storesInSamePlan = new List<StoreLookup>();
 
                 if (rs.PlanID > 0)
                 {
                     List<long> similarRulesets = (from a in db.RuleSets
                                                    where a.PlanID == rs.PlanID &&
                                                          a.Type == rs.Type &&
-                                                         rs.RuleSetID != a.RuleSetID
+                                                         a.RuleSetID != rs.RuleSetID
                                                    select a.RuleSetID).ToList();
                     foreach (long similar in similarRulesets)
                     {
                         foreach (StoreLookup s in ruleDAO.GetStoresInRuleSet(similar))
                         {
-                            storesInSimilarplans.Add(s);
+                            storesInSamePlan.Add(s);
                         }
                     }
                 }
@@ -946,7 +795,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 List<StoreLookupModel> list = GetStoresForRules(ruleSetID);
 
                 var currlist = from n in list
-                               join c in storesInSimilarplans
+                               join c in storesInSamePlan
                                on new { n.Division, n.Store } equals new { c.Division, c.Store }
                                select n;
 
@@ -954,7 +803,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     return Json("Verify");                
                 
                 if (!move)                
-                    list = list.Where(p => !storesInSimilarplans.Any(p2 => p2.Division == p.Division && p2.Store == p.Store)).ToList();
+                    list = list.Where(p => !storesInSamePlan.Any(p2 => p2.Division == p.Division && p2.Store == p.Store)).ToList();
                 
                 //change from here down...
                 List<StoreBase> dblist = new List<StoreBase>();
@@ -1059,6 +908,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     db.RuleSelectedStores.Remove(det);
                     db.SaveChanges();
                 }
+
                 //check if it's a rangeplan, save store their too.
                 RuleSet rs = ruleSetDAO.GetRuleSet(ruleSetID);    
                 
@@ -1185,7 +1035,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 List<StoreLookup> storesInSimilarplans = new List<StoreLookup>();
                 if (rs.PlanID > 0)
                 {
-                    List<long> similarRulesets = (from a in db.RuleSets where a.PlanID == rs.PlanID && a.Type == rs.Type && rs.RuleSetID != a.RuleSetID select a.RuleSetID).ToList();
+                    List<long> similarRulesets = db.RuleSets.Where(r => r.PlanID == rs.PlanID && 
+                                                                        r.Type == rs.Type && 
+                                                                        r.RuleSetID != rs.RuleSetID)
+                                                            .Select(r => r.RuleSetID)
+                                                            .ToList();
+
                     foreach (long similar in similarRulesets)
                     {
                         foreach (StoreLookup s in dao.GetStoresInRuleSet(similar))
@@ -1196,7 +1051,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 var currlist2 = from n in list
-                                join c in storesInSimilarplans on new { n.Division, n.Store } equals new { c.Division, c.Store }
+                                join c in storesInSimilarplans 
+                                on new { n.Division, n.Store } equals new { c.Division, c.Store }
                                 select n;
 
                 foreach (StoreLookupModel m in currlist2)
@@ -1249,7 +1105,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else if (rs.Type == "Delivery")
             {
-                StoresInRules = GetStoresForRules(ruleSetID, true);
+                StoresInRules = GetStoresForRules(ruleSetID);
             }
             else            
                 checkStore = false;
@@ -1284,7 +1140,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                         db.Rules.Add(newRule);
                         db.SaveChanges(currentUser.NetworkID);
-                        StoresInRules = GetStoresForRules(ruleSetID, false);
+                        StoresInRules = GetStoresForRules(ruleSetID);
                     }
 
                     if ((mySheet.Cells[0, 0].Value.ToString().Contains("Div")) && (mySheet.Cells[0, 1].Value.ToString().Contains("Store")))

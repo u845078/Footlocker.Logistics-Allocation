@@ -245,6 +245,7 @@
     <Compile Include="Spreadsheets\RingFenceExport.cs" />
     <Compile Include="Spreadsheets\RingFenceUploadSpreadsheet.cs" />
     <Compile Include="Spreadsheets\RoutesExport.cs" />
+    <Compile Include="Spreadsheets\RuleStoreSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SeasonalitySpreadsheet.cs" />
     <Compile Include="Spreadsheets\ServiceTypeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\SkuAttributeExport.cs" />

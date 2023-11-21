@@ -630,7 +630,7 @@ namespace Footlocker.Logistics.Allocation.DAO
                 {
                     if (obj.GetType().Name.StartsWith("RingFenceHistory"))
                     {
-                        this.RingFenceHistory.Add((RingFenceHistory)obj);
+                        RingFenceHistory.Add((RingFenceHistory)obj);
                     }
                     else if (obj.GetType().Name.StartsWith("RangePlanDetail"))
                     {
@@ -663,20 +663,10 @@ namespace Footlocker.Logistics.Allocation.DAO
             return returnVal;
         }
 
-        private void UpdateStoreCount(Int64 planID, int CountOfStoresAdded)
+        private void UpdateStoreCount(long planID, int CountOfStoresAdded)
         {
-            RangePlan p = (from a in this.RangePlans where a.Id == planID select a).First();
+            RangePlan p = RangePlans.Where(rp => rp.Id == planID).FirstOrDefault();
             p.StoreCount += CountOfStoresAdded;
-        }
-
-        public IEnumerable<RangePlanDetail> GetRangePlanDetail(int planID, string div, string store)
-        {
-            return RangePlanDetails.Where(d => ((d.ID == planID) && (d.Store == store) && (d.Division == div))).ToList();
-        }
-
-        public IEnumerable<RangePlanDetail> GetRangePlanDetailsForPlan(long planID)
-        {
-            return RangePlanDetails.Where(a => (a.ID == planID)).ToList();
         }
 
         public List<StoreLookupModel> GetStoreLookupsForPlan(long planID, string divisions)
@@ -743,56 +733,6 @@ namespace Footlocker.Logistics.Allocation.DAO
                 results.Add(new StoreLookupModel(s.Store, planID, false));
             }
             return results;
-        }
-
-        /// <summary>
-        /// gets all the stores that are associated with a rangeplan
-        /// </summary>
-        public List<StoreLookupModel> GetStoresForPlan(Int64 planID)
-        {
-            List<StoreLookupModel> list = new List<StoreLookupModel>();
-
-            IEnumerable<RangePlanDetail> rangeDetails = this.GetRangePlanDetailsForPlan(planID);
-            StoreLookup lookup;
-            StoreLookupModel model;
-            foreach (RangePlanDetail det in rangeDetails)
-            {
-                try
-                {
-                    lookup = (from a in this.StoreLookups where ((a.Store == det.Store) && (a.Division == det.Division)) select a).First();
-                    model = new StoreLookupModel(lookup);
-                    model.CurrentPlan = planID;
-                    list.Add(model);
-                }
-                catch
-                {
-                    //store must no longer exist, ignore it
-                }
-            }
-
-            return list;
-        }
-
-
-        public List<Rule> GetRulesForPlan(Int64 planID, string ruleType)
-        {
-            List<Rule> RulesForPlan = (from r in Rules
-                                       join rs in RuleSets
-                                           on r.RuleSetID equals rs.RuleSetID
-                                       where ((rs.PlanID == planID) && (rs.Type == ruleType))
-                                       orderby r.Sort ascending
-                                       select r).ToList();
-            return RulesForPlan;
-        }
-        public List<Rule> GetRulesForRuleSet(Int64 RuleSetID, string ruleType)
-        {
-            List<Rule> RulesForPlan = (from r in Rules
-                                       join rs in RuleSets
-                                           on r.RuleSetID equals rs.RuleSetID
-                                       where ((rs.RuleSetID == RuleSetID) && (rs.Type == ruleType))
-                                       orderby r.Sort ascending
-                                       select r).ToList();
-            return RulesForPlan;
         }
 
         public void UpdateRangePlanDate(long planID, string userName)

@@ -69,7 +69,7 @@ namespace Footlocker.Logistics.Allocation.Services
             return -1;
         }
 
-        public void Delete(Footlocker.Logistics.Allocation.Models.Rule objectToSave)
+        public void Delete(Models.Rule objectToSave)
         {
             DbCommand SQLCommand;
             string SQL;
@@ -122,6 +122,45 @@ namespace Footlocker.Logistics.Allocation.Services
             return db.RuleSets.Where(r => r.RuleSetID == ruleSetID).FirstOrDefault();
         }
 
+        public string GetDivisionForRuleSet(long ruleSetID)
+        {
+            string div = string.Empty;
+
+            RuleSet rs = GetRuleSet(ruleSetID);
+
+            if (!string.IsNullOrEmpty(rs.Division))
+                div = rs.Division;
+            else
+            {
+                if (rs.PlanID.HasValue)                
+                    div = db.RangePlans.Where(rp => rp.Id == rs.PlanID.Value).Select(rp => rp.Division).FirstOrDefault();                
+            }
+
+            return div;
+        }
+
+        public List<Models.Rule> GetRulesForPlan(long planID, string ruleType)
+        {
+            List<Models.Rule> RulesForPlan = (from r in db.Rules
+                                              join rs in db.RuleSets
+                                               on r.RuleSetID equals rs.RuleSetID
+                                              where rs.PlanID == planID && rs.Type == ruleType
+                                              orderby r.Sort ascending
+                                              select r).ToList();
+            return RulesForPlan;
+        }
+
+        public List<Models.Rule> GetRulesForRuleSet(long RuleSetID, string ruleType)
+        {
+            List<Models.Rule> RulesForPlan = (from r in db.Rules
+                                              join rs in db.RuleSets
+                                                on r.RuleSetID equals rs.RuleSetID
+                                              where rs.RuleSetID == RuleSetID && rs.Type == ruleType
+                                              orderby r.Sort ascending
+                                              select r).ToList();
+            return RulesForPlan;
+        }
+
         /// <summary>
         /// This will delete all stores for a ruleset and re-add the new ones. 
         /// </summary>
@@ -168,7 +207,7 @@ namespace Footlocker.Logistics.Allocation.Services
         /// <summary>
         /// recursive function to create the lambda expression for the users set of rules
         /// </summary>
-        public Expression GetExpression(List<Footlocker.Logistics.Allocation.Models.Rule> rules, ParameterExpression pe, string divisionList)
+        public Expression GetExpression(List<Models.Rule> rules, ParameterExpression pe, string divisionList)
         {
             if (rules.Count > 0)
             {
@@ -180,14 +219,11 @@ namespace Footlocker.Logistics.Allocation.Services
                     {
                         for (int i = 1; i < rules.Count; i++)
                         {
-                            if (rules[i].Compare.Equals("("))
-                            {
-                                openCount++;
-                            }
-                            else if (rules[i].Compare.Equals(")"))
-                            {
+                            if (rules[i].Compare.Equals("("))                            
+                                openCount++;                            
+                            else if (rules[i].Compare.Equals(")"))                            
                                 openCount--;
-                            }
+                            
                             if (openCount == 0)
                             {
                                 //get the expression for this paren block
@@ -195,7 +231,7 @@ namespace Footlocker.Logistics.Allocation.Services
                                 {
                                     //we have more rules
                                     Expression newExp = GetExpression(rules.GetRange(1, i - 1), pe, divisionList);
-                                    return GetCompositeRule(newExp, rules.GetRange(i + 1, (rules.Count - i - 1)), pe, divisionList);
+                                    return GetCompositeRule(newExp, rules.GetRange(i + 1, rules.Count - i - 1), pe, divisionList);
                                 }
                                 else
                                 {
@@ -213,6 +249,7 @@ namespace Footlocker.Logistics.Allocation.Services
                         
                         throw new Exception("invalidly formatted rule (not)!");
                     }
+
                     throw new Exception("invalidly formatted rule (missing first rule)!");
                 }
                 else if (rules.Count > 1)
@@ -236,7 +273,7 @@ namespace Footlocker.Logistics.Allocation.Services
         /// <summary>
         /// Get a lambda expression from a single rule
         /// </summary>
-        private Expression GetExpressionFromSingleRule(Footlocker.Logistics.Allocation.Models.Rule rule, ParameterExpression pe, string divisionList)
+        private Expression GetExpressionFromSingleRule(Models.Rule rule, ParameterExpression pe, string divisionList)
         {
             Expression exp = null;
             Expression left = null;
@@ -475,6 +512,124 @@ namespace Footlocker.Logistics.Allocation.Services
                            where (b.RuleSetID == ruleSetID) select a);
 
             return results.ToList();
+        }
+
+        /// <summary>
+        /// return the stores that qualify for the current rules on a ruleset
+        /// </summary>
+        /// <param name="ruleSetID"></param>
+        /// <returns></returns>
+        public IQueryable<StoreLookup> GetStoresForRules(long ruleSetID, WebUser currentUser, string AppName)
+        {
+            string div = "";
+
+            IQueryable<StoreLookup> queryableData = db.StoreLookups.Include("StoreExtension")
+                                                                   //.Include("StoreExtension.ConceptType")
+                                                                   .Include("StoreExtension.CustomerType")
+                                                                   .Include("StoreExtension.PriorityType")
+                                                                   .Include("StoreExtension.StrategyType")
+                                                                   .AsQueryable();
+
+            ParameterExpression pe = Expression.Parameter(typeof(StoreLookup), "StoreLookup");
+            List<Models.Rule> ruleList = db.Rules.Where(r => r.RuleSetID == ruleSetID).OrderBy(r => r.Sort).ToList();
+
+            List<Models.Rule> finalRules = new List<Models.Rule>();
+
+            RuleSet rs = GetRuleSet(ruleSetID);
+
+            div = GetDivisionForRuleSet(ruleSetID);
+
+            if (div != "")
+            {
+                //add division criteria to rules
+                Models.Rule divRule = new Models.Rule()
+                {
+                    Compare = "Equals",
+                    Field = "Division",
+                    Value = div
+                };
+
+                finalRules.Add(divRule);
+
+                divRule = new Models.Rule()
+                {
+                    Compare = "and"
+                };
+
+                finalRules.Add(divRule);
+
+                foreach (Models.Rule r in ruleList)
+                {
+                    finalRules.Add(r);
+                }
+            }
+            else
+                finalRules = ruleList;
+
+            if (rs.Type == "Delivery")
+            {
+                //add rules to only pull back stores in the range plan if this is a Delivery type.
+                Models.Rule deliveryRule = new Models.Rule()
+                {
+                    Compare = "Equals",
+                    Field = "RangePlanID",
+                    Value = rs.PlanID.Value.ToString()
+                };
+
+                if (finalRules.Count() == 2)
+                {
+                    //no user rules
+                    //only have default div rules, so just add this one and show all possible stores
+                    finalRules.Add(deliveryRule);
+                }
+                else
+                {
+                    finalRules.Insert(0, deliveryRule);
+                    deliveryRule = new Models.Rule()
+                    {
+                        Compare = "and"
+                    };
+
+                    finalRules.Insert(1, deliveryRule);
+
+                    deliveryRule = new Models.Rule()
+                    {
+                        Compare = "("
+                    };
+
+                    finalRules.Insert(2, deliveryRule);
+
+                    deliveryRule = new Models.Rule()
+                    {
+                        Compare = ")"
+                    };
+
+                    finalRules.Add(deliveryRule);
+                }
+            }
+
+            try
+            {
+                Expression finalExpression = GetExpression(finalRules, pe, currentUser.GetUserDivisionsString(AppName));
+
+                // Create an expression tree that represents the expression 
+                // 'queryableData.Where(company => (company.ToLower() == "coho winery" || company.Length > 16))'
+                MethodCallExpression whereCallExpression = Expression.Call(
+                    typeof(Queryable),
+                    "Where",
+                    new Type[] { queryableData.ElementType },
+                    queryableData.Expression,
+                    Expression.Lambda<Func<StoreLookup, bool>>(finalExpression, new ParameterExpression[] { pe }));
+                // ***** End Where ***** 
+
+                IQueryable<StoreLookup> results = queryableData.Provider.CreateQuery<StoreLookup>(whereCallExpression);
+                return results;
+            }
+            catch
+            {
+                // TODO: We should really think about, atleast, logging here.....
+                return new List<StoreLookup>().AsQueryable();
+            }
         }
     }
 }
