@@ -394,8 +394,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             holdService = new HoldService(currentUser, configService)
             {
                 Hold = model.Hold
-            };
-                        
+            };                        
             
             if (model.ShowStoreSelector == "yes")
             {
@@ -457,7 +456,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 //create hold for each store
                                 RuleDAO dao = new RuleDAO();
                                 Hold h;
-                                foreach (StoreLookup s in dao.GetStoresInRuleSet(model.RuleSetID))
+                                foreach (StoreLookup s in dao.GetRuleSelectedStoresInRuleSet(model.RuleSetID))
                                 {
                                     h = new Hold()
                                     {

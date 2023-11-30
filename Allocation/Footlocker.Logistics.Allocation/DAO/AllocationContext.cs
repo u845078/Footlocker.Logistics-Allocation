@@ -669,29 +669,26 @@ namespace Footlocker.Logistics.Allocation.DAO
             p.StoreCount += CountOfStoresAdded;
         }
 
-        public List<StoreLookupModel> GetStoreLookupsForPlan(long planID, string divisions)
+        public List<StoreLookupModel> GetStoreLookupsForPlan(long planID)
         {
-            RangePlan p = (from a in RangePlans
-                           where a.Id == planID
-                           select a).First();
+            RangePlan p = RangePlans.Where(rp => rp.Id == planID).First();
 
             var list = (from store in StoreLookups
                         join det in RangePlanDetails
                         on new { store.Division, store.Store } equals new { det.Division, det.Store }
-                        where ((det.ID == planID) && (det.Division == p.Sku.Substring(0, 2)))
-                        select new { Store = store, StoreExtension = store.StoreExtension });
+                        where det.ID == planID && 
+                              det.Division == p.Sku.Substring(0, 2)
+                        select new { Store = store, store.StoreExtension });
+
             List<StoreLookupModel> results = new List<StoreLookupModel>();
 
-            List<ConceptType> concepts = (from a in ConceptTypes
-                                          select a).ToList();
+            List<ConceptType> concepts = ConceptTypes.ToList();
             foreach (var s in list)
             {
                 try
                 {
                     s.Store.StoreExtension = s.StoreExtension;
-                    s.Store.StoreExtension.ConceptType = (from a in concepts
-                                                          where a.ID == s.Store.StoreExtension.ConceptTypeID
-                                                          select a).FirstOrDefault();
+                    s.Store.StoreExtension.ConceptType = concepts.Where(c => c.ID == s.Store.StoreExtension.ConceptTypeID).FirstOrDefault();
                 }
                 catch
                 { }
@@ -701,15 +698,13 @@ namespace Footlocker.Logistics.Allocation.DAO
             return results;
         }
 
-        public List<StoreLookupModel> GetStoreLookupsNotInPlan(long planID, string divisions)
+        public List<StoreLookupModel> GetStoreLookupsNotInPlan(long planID)
         {
-            RangePlan p = (from a in RangePlans
-                           where a.Id == planID
-                           select a).First();
+            RangePlan p = RangePlans.Where(rp => rp.Id == planID).First();
 
             //get list of div/store that are not in plan
             var templist = (from s in StoreLookups
-                            where (s.Division == p.Sku.Substring(0, 2))
+                            where s.Division == p.Sku.Substring(0, 2)
                             select new { s.Division, s.Store }).Except(from det in RangePlanDetails
                                                                        where det.ID == planID
                                                                        select new { det.Division, det.Store });
@@ -717,16 +712,16 @@ namespace Footlocker.Logistics.Allocation.DAO
             var list = (from s in StoreLookups
                         join det in templist
                             on new { s.Division, s.Store } equals new { det.Division, det.Store }
-                        select new { Store = s, StoreExtension = s.StoreExtension });
+                        select new { Store = s, s.StoreExtension });
 
             List<StoreLookupModel> results = new List<StoreLookupModel>();
-            List<ConceptType> concepts = (from a in ConceptTypes select a).ToList();
+            List<ConceptType> concepts = ConceptTypes.ToList();
             foreach (var s in list)
             {
                 try
                 {
                     s.Store.StoreExtension = s.StoreExtension;
-                    s.Store.StoreExtension.ConceptType = (from a in concepts where a.ID == s.Store.StoreExtension.ConceptTypeID select a).FirstOrDefault();
+                    s.Store.StoreExtension.ConceptType = concepts.Where(c => c.ID == s.Store.StoreExtension.ConceptTypeID).FirstOrDefault();
                 }
                 catch
                 { }

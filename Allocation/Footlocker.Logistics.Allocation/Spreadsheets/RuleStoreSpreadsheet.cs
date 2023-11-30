@@ -11,6 +11,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
     public class RuleStoreSpreadsheet : UploadSpreadsheet
     {
         readonly RuleDAO ruleDAO;
+        readonly RangePlanDAO rangePlanDAO;
         public List<StoreBase> validStores = new List<StoreBase>();
 
         private StoreBase ParseRow(int row)
@@ -42,78 +43,80 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
         public void Save(HttpPostedFileBase attachment, long ruleSetID)
         {
-            //StoreBase uploadRec;
-            //List<StoreLookupModel> StoresInRules = null;
-            //bool checkStore = true;
+            StoreBase uploadRec;
+            List<StoreLookupModel> StoresInRules = null;
+            bool checkStore = true;
+            List<RangePlanDetail> rangePlanDetails;
 
-            //LoadAttachment(attachment);
-            //if (!HasValidHeaderRow())
-            //    message = "Incorrectly formatted or missing header row. Please correct and re-process.";
-            //else
-            //{
-            //    int row = 1;
-            //    RuleSet rs = ruleDAO.GetRuleSet(ruleSetID);
-                
-            //    if (rs.Type == "SizeAlc")
-            //    {
-            //        StoresInRules = new List<StoreLookupModel>();
-            //        foreach (StoreLookup l in from a in config.db.RangePlanDetails
-            //                                  join b in config.db.StoreLookups
-            //                                  on new { a.Division, a.Store } equals new { b.Division, b.Store }
-            //                                  where a.ID == rs.PlanID
-            //                                  select b)
-            //        {
-            //            StoresInRules.Add(new StoreLookupModel(l, rs.PlanID.Value, true));
-            //        }
+            LoadAttachment(attachment);
+            if (!HasValidHeaderRow())
+                message = "Incorrectly formatted or missing header row. Please correct and re-process.";
+            else
+            {
+                int row = 1;
+                RuleSet rs = ruleDAO.GetRuleSet(ruleSetID);
 
-            //        //delete rules
-            //        List<Rule> rules = config.db.Rules.Where(r => r.RuleSetID == rs.RuleSetID).ToList();
+                if (rs.Type == "SizeAlc")
+                {
+                    StoresInRules = new List<StoreLookupModel>();
+                    rangePlanDetails = rangePlanDAO.GetRangePlanDetails(rs.PlanID.Value);
 
-            //        foreach (Rule rule in rules)
-            //        {
-            //            ruleDAO.Delete(rule);
-            //        }
-            //    }
-            //    else 
-            //    if (rs.Type == "Delivery")
-            //    {
-            //        StoresInRules = GetStoresForRules(ruleSetID, true);
-            //    }
-            //    else
-            //        checkStore = false;
+                    foreach (StoreLookup l in from a in rangePlanDetails
+                                              join b in config.db.StoreLookups
+                                              on new { a.Division, a.Store } equals new { b.Division, b.Store }                                              
+                                              select b)
+                    {
+                        StoresInRules.Add(new StoreLookupModel(l, rs.PlanID.Value, true));
+                    }
 
-            //    try
-            //    {
-            //        while (HasDataOnRow(row))
-            //        {
-            //            uploadRec = ParseRow(row);
+                    //delete rules
+                    List<Rule> rules = ruleDAO.GetRulesForRuleSet(rs.RuleSetID, "SizeAlc");                    
 
-            //            errorMessage = ValidateUploadValues(uploadRec);
-            //            if (!string.IsNullOrEmpty(errorMessage))
-            //            {
-            //                message = string.Format("Row {0}: {1}", row, errorMessage);
-            //                return;
-            //            }
-            //            else
-            //                validStores.Add(uploadRec);
+                    foreach (Rule rule in rules)
+                    {
+                        ruleDAO.Delete(rule);
+                    }
+                }
+                else
+                if (rs.Type == "Delivery")
+                {
+                    //StoresInRules = GetStoresForRules(ruleSetID, true);
+                }
+                else
+                    checkStore = false;
 
-            //            row++;
-            //        }
+                //    try
+                //    {
+                //        while (HasDataOnRow(row))
+                //        {
+                //            uploadRec = ParseRow(row);
 
-            //        if (validStores.Count > 0)
-            //            ruleDAO.AddStoresToPlan(validStores, planID);
+                //            errorMessage = ValidateUploadValues(uploadRec);
+                //            if (!string.IsNullOrEmpty(errorMessage))
+                //            {
+                //                message = string.Format("Row {0}: {1}", row, errorMessage);
+                //                return;
+                //            }
+                //            else
+                //                validStores.Add(uploadRec);
 
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        message = string.Format("Upload failed: One or more columns has unexpected missing or invalid data. <br /> System error message: {0}", ex.GetBaseException().Message);
-            //        FLLogger logger = new FLLogger(config.LogFile);
-            //        logger.Log(ex.Message + ": " + ex.StackTrace, FLLogger.eLogMessageType.eError);
-            //    }
-            //}
+                //            row++;
+                //        }
+
+                //        if (validStores.Count > 0)
+                //            ruleDAO.AddStoresToPlan(validStores, planID);
+
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        message = string.Format("Upload failed: One or more columns has unexpected missing or invalid data. <br /> System error message: {0}", ex.GetBaseException().Message);
+                //        FLLogger logger = new FLLogger(config.LogFile);
+                //        logger.Log(ex.Message + ": " + ex.StackTrace, FLLogger.eLogMessageType.eError);
+                //    }
+            }
         }
 
-        public RuleStoreSpreadsheet(AppConfig config, ConfigService configService, RuleDAO ruleDAO) : base(config, configService)
+        public RuleStoreSpreadsheet(AppConfig config, ConfigService configService, RuleDAO ruleDAO, RangePlanDAO rangePlanDAO) : base(config, configService)
         {
             maxColumns = 2;
             headerRowNumber = 0;
@@ -123,6 +126,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
             templateFilename = config.StoreTemplate;
             this.ruleDAO = ruleDAO;
+            this.rangePlanDAO = rangePlanDAO;
         }
     }
 }

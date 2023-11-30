@@ -89,13 +89,10 @@ namespace Footlocker.Logistics.Allocation.Services
 
         public List<StoreLookup> GetStoreLookupsForPlan(long planID)
         {
-            RangePlan p = db.RangePlans.Where(rp => rp.Id == planID).FirstOrDefault();
-            string skuDivision = p.Sku.Substring(0, 2);
-
             List<StoreLookup> list = (from store in db.StoreLookups
                                       join det in db.RangePlanDetails
                                       on new { store.Division, store.Store } equals new { det.Division, det.Store }
-                                      where det.ID == planID && det.Division == skuDivision
+                                      where det.ID == planID
                                       select store).ToList();
 
             return list;
@@ -198,5 +195,11 @@ namespace Footlocker.Logistics.Allocation.Services
         {
             return db.RangePlanDetails.Where(rpd => rpd.ID == planID && rpd.Division == division && rpd.Store == store).FirstOrDefault();
         }
+
+        public List<RangePlanDetail> GetRangePlanDetails(long planID)
+        {
+            return db.RangePlanDetails.Where(rpd => rpd.ID == planID).ToList();
+        }
+
     }
 }

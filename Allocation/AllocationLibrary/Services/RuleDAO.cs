@@ -132,8 +132,13 @@ namespace Footlocker.Logistics.Allocation.Services
                 div = rs.Division;
             else
             {
+                RangePlan range = null;
+
                 if (rs.PlanID.HasValue)                
-                    div = db.RangePlans.Where(rp => rp.Id == rs.PlanID.Value).Select(rp => rp.Division).FirstOrDefault();                
+                    range = db.RangePlans.Where(rp => rp.Id == rs.PlanID.Value).FirstOrDefault();                
+
+                if (range != null)
+                    div = range.Division;
             }
 
             return div;
@@ -159,6 +164,11 @@ namespace Footlocker.Logistics.Allocation.Services
                                               orderby r.Sort ascending
                                               select r).ToList();
             return RulesForPlan;
+        }
+
+        public List<Models.Rule> GetRulesForRuleSet(long ruleSetID)
+        {
+            return db.Rules.Where(r => r.RuleSetID == ruleSetID).OrderBy(r => r.Sort).ToList();
         }
 
         /// <summary>
@@ -294,21 +304,27 @@ namespace Footlocker.Logistics.Allocation.Services
                     string myInClause = divisionList;
                     try
                     {
-                        planID = (from x in db.RangePlans where x.Sku == sku select x).First().Id;
+                        planID = db.RangePlans.Where(rp => rp.Sku == sku).First().Id;
                     }
                     catch
                     {
                         stores = new List<string>();
                         planID = -1;
                     }
-                    stores = (from rp in db.RangePlanDetails where ((rp.ID == planID) && (myInClause.Contains(rp.Division))) select rp.Division + rp.Store).Distinct().ToList();
+                    stores = (from rp in db.RangePlanDetails 
+                              where rp.ID == planID && 
+                                    myInClause.Contains(rp.Division)
+                              select rp.Division + rp.Store).Distinct().ToList();
                 }
                 else if (rule.Field == "RangePlanID")
                 {
                     long planID = Convert.ToInt64(rule.Value);
 
                     string myInClause = divisionList;
-                    stores = (from rp in db.RangePlanDetails where ((rp.ID == planID) && (myInClause.Contains(rp.Division))) select rp.Division + rp.Store).Distinct().ToList();
+                    stores = (from rp in db.RangePlanDetails 
+                              where rp.ID == planID && 
+                                    myInClause.Contains(rp.Division)
+                              select rp.Division + rp.Store).Distinct().ToList();
                 }
                 else if (rule.Field == "RangePlanDesc")
                 {
@@ -319,19 +335,24 @@ namespace Footlocker.Logistics.Allocation.Services
                     string myInClause = divisionList;
                     try
                     {
-                        planID = (from x in db.RangePlans where (x.Sku == sku) select x).First().Id;
+                        planID = db.RangePlans.Where(rp => rp.Sku == sku).First().Id;
                     }
                     catch
                     {
                         stores = new List<string>();
                         planID = -1;
                     }
-                    stores = (from rp in db.RangePlanDetails where ((rp.ID == planID) && (myInClause.Contains(rp.Division))) select rp.Division + rp.Store).Distinct().ToList();
+                    stores = (from rp in db.RangePlanDetails 
+                              where rp.ID == planID && 
+                                    myInClause.Contains(rp.Division)
+                              select rp.Division + rp.Store).Distinct().ToList();
                 }
 
                 else
                 {
-                    stores = (from rp in db.StorePlans where rp.PlanName == rule.Value select rp.Division + rp.Store).Distinct().ToList();
+                    stores = (from rp in db.StorePlans 
+                              where rp.PlanName == rule.Value 
+                              select rp.Division + rp.Store).Distinct().ToList();
                 }
 
                 ConstantExpression foreignKeysParameter = Expression.Constant(stores, typeof(List<string>));
@@ -342,9 +363,7 @@ namespace Footlocker.Logistics.Allocation.Services
                 MethodCallExpression concatExpression = Expression.Call(method, memberExpression2, memberExpression);
                 
                 Expression convertExpression = Expression.Convert(concatExpression, typeof(string));  //store and divison
-                MethodCallExpression containsExpression = Expression.Call(foreignKeysParameter
-                    , "Contains", new Type[] { }, convertExpression);
-
+                MethodCallExpression containsExpression = Expression.Call(foreignKeysParameter, "Contains", new Type[] { }, convertExpression);
 
                 switch (rule.Compare)
                 {
@@ -493,7 +512,7 @@ namespace Footlocker.Logistics.Allocation.Services
             }
         }
 
-        public List<StoreLookup> GetStoresInRuleSet(long ruleSetID)
+        public List<StoreLookup> GetRuleSelectedStoresInRuleSet(long ruleSetID)
         {
             List<StoreLookup> results = (from a in db.StoreLookups 
                                          join b in db.RuleSelectedStores 
@@ -519,7 +538,7 @@ namespace Footlocker.Logistics.Allocation.Services
         /// </summary>
         /// <param name="ruleSetID"></param>
         /// <returns></returns>
-        public IQueryable<StoreLookup> GetStoresForRules(long ruleSetID, WebUser currentUser, string AppName)
+        public List<StoreLookup> GetStoresForRules(long ruleSetID, WebUser currentUser, string AppName)
         {
             string div = "";
 
@@ -623,12 +642,12 @@ namespace Footlocker.Logistics.Allocation.Services
                 // ***** End Where ***** 
 
                 IQueryable<StoreLookup> results = queryableData.Provider.CreateQuery<StoreLookup>(whereCallExpression);
-                return results;
+                return results.ToList();
             }
             catch
             {
                 // TODO: We should really think about, atleast, logging here.....
-                return new List<StoreLookup>().AsQueryable();
+                return new List<StoreLookup>();
             }
         }
     }

@@ -331,16 +331,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return Json("Success", JsonRequestBehavior.AllowGet);
         }
 
+        /// <summary>
+        /// This will delete all the rules for a ruleset and the RuleSelectedStores
+        /// </summary>
+        /// <param name="ruleSetID"></param>
         private void ClearRules(long ruleSetID)
         {
-            List<Rule> rules = db.Rules.Where(r => r.RuleSetID == ruleSetID).ToList();
             RuleDAO dao = new RuleDAO();
+
+            List<Rule> rules = dao.GetRulesForRuleSet(ruleSetID);
+            
             foreach (Rule rule in rules)
             {
                 dao.Delete(rule);
             }
 
-            RuleSet rs = db.RuleSets.Where(r => r.RuleSetID == ruleSetID).First();
+            RuleSet rs = dao.GetRuleSet(ruleSetID);
             if (rs.Type == "SizeAlc")
             {
                 //delete all the ruleselected stores
@@ -359,7 +365,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult GetStoreCount(long ruleSetID)
         {
             RuleDAO dao = new RuleDAO();
-            IQueryable<StoreLookup> storesInRule;
+            List<StoreLookup> storesInRule;
 
             storesInRule = dao.GetStoresForRules(ruleSetID, currentUser, AppName);
             List<Rule> ruleList = db.Rules.Where(r => r.RuleSetID == ruleSetID).OrderBy(r => r.Sort).ToList();
@@ -368,14 +374,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             try
             {
-                storesInRule = storesInRule.Where(r => r.status != "C" || closedStoreRule);
+                storesInRule = storesInRule.Where(r => r.status != "C" || closedStoreRule).ToList();
 
                 int count = storesInRule.Count();
                 if (storesInRule != null)
                 {                    
-                    var divisions = currentUser.GetUserDivisions(AppName);
-                    List<StoreLookup> lresults = storesInRule.ToList();
-                    count = (from a in lresults 
+                    var divisions = currentUser.GetUserDivisions(AppName);                    
+                    count = (from a in storesInRule
                              join b in divisions 
                              on a.Division equals b.DivCode 
                              select a).Count();
@@ -398,23 +403,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<StoreLookupModel> list = new List<StoreLookupModel>();
             RuleDAO dao = new RuleDAO();
+            RangePlanDAO rangePlanDAO = new RangePlanDAO();
             RuleSet rs = dao.GetRuleSet(ruleSetID);
             
-            long? rangePlan = null;
+            long rangePlanID = 0;
             if (rs.Type == "SizeAlc" || rs.Type == "Main")
-                rangePlan = rs.PlanID;            
+                rangePlanID = rs.PlanID.Value;
 
-            foreach (StoreLookup s in dao.GetStoresInRuleSet(ruleSetID))
+            foreach (StoreLookup s in dao.GetRuleSelectedStoresInRuleSet(ruleSetID))
             {
                 if (s.status != "C" || rs.Type == "rdq")
                 {
-                    if (rangePlan != null && rangePlan > 0)
+                    if (rangePlanID > 0)
                     {
-                        list.Add(new StoreLookupModel(s, (long)rangePlan, (from a in db.RangePlanDetails 
-                                                                           where a.ID == rangePlan && 
-                                                                                 a.Store == s.Store && 
-                                                                                 a.Division == s.Division 
-                                                                           select a).Count() > 0));
+                        RangePlanDetail detail = rangePlanDAO.GetRangePlanDetail(s.Division, s.Store, rangePlanID);
+                        list.Add(new StoreLookupModel(s, rangePlanID, detail != null));
                     }
                     else                    
                         list.Add(new StoreLookupModel(s));                    
@@ -432,7 +435,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult GetRuleSetStoreCount(long ruleSetID)
         {
             RuleDAO dao = new RuleDAO();
-            List<StoreLookup> selectedStores = dao.GetStoresInRuleSet(ruleSetID);
+            List<StoreLookup> selectedStores = dao.GetRuleSelectedStoresInRuleSet(ruleSetID);
             List<StoreLookupModel> filteredStores = GetStoresForRules(ruleSetID);
             int count = (from a in selectedStores 
                          join b in filteredStores 
@@ -450,56 +453,60 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public List<StoreLookupModel> GetStoresForRules(long ruleSetID)
         {
             RuleDAO dao = new RuleDAO();
-            IQueryable<StoreLookup> storesInRule;
+            RangePlanDAO rangePlanDAO = new RangePlanDAO();
+            List<StoreLookup> storesInRuleList;
 
-            RuleSet rs = dao.GetRuleSet(ruleSetID);
-            storesInRule = dao.GetStoresForRules(ruleSetID, currentUser, AppName);
-            List<Rule> ruleList = db.Rules.Where(r => r.RuleSetID == ruleSetID).OrderBy(r => r.Sort).ToList();
+            List<RangePlanDetail> rangePlanDetailStores = null;
 
-            bool closedStoreRule = ruleList.Any(a => a.Field == "status" && a.Value == "C");
+            storesInRuleList = dao.GetStoresForRules(ruleSetID, currentUser, AppName);  // this is gettng the stores as defined by rules            
+
+            List<Rule> ruleList = dao.GetRulesForRuleSet(ruleSetID);
+
+            bool closedStoreRule = ruleList.Any(a => a.Field == "status" && a.Value == "C"); // are the rules looking for closed stores?
 
             try
             {
                 List<StoreLookupModel> retList = new List<StoreLookupModel>();
-                long? rangePlanID = null;
+                long rangePlanID = 0;
 
-                if (rs.Type == "SizeAlc" || rs.Type == "Main")                
-                    rangePlanID = rs.PlanID;                
-
-                List<RangePlanDetail> planStores = null;
-                if (rangePlanID != null && rangePlanID > 0)                
-                    planStores = db.RangePlanDetails.Where(rpd => rpd.ID == rangePlanID).ToList();
-                
-                List<StoreLookup> resultList = storesInRule.ToList();
-
-                if (rangePlanID != null && rangePlanID > 0)
+                RuleSet rs = dao.GetRuleSet(ruleSetID);
+                if (rs.PlanID.HasValue)
                 {
-                    List<StoreLookup> inPlan = resultList.Where(p => planStores.Any(p2 => p2.Division == p.Division && p2.Store == p.Store)).ToList();
-                    List<StoreLookup> notInPlan = resultList.Where(p => !planStores.Any(p2 => p2.Division == p.Division && p2.Store == p.Store)).ToList();
-                    
-                    foreach (StoreLookup item in inPlan)
+                    rangePlanID = rs.PlanID.Value;
+
+                    rangePlanDetailStores = rangePlanDAO.GetRangePlanDetails(rangePlanID);
+
+                    // of the stores defined in the rules, which ones are already in the range and which aren't
+                    List<StoreLookup> inPlan = storesInRuleList.Where(rls => rangePlanDetailStores.Any(rpds => rpds.Division == rls.Division && rpds.Store == rls.Store)).ToList();
+                    List<StoreLookup> notInPlan = storesInRuleList.Where(rls => !rangePlanDetailStores.Any(rpds => rpds.Division == rls.Division && rpds.Store == rls.Store)).ToList();
+
+                    foreach (StoreLookup store in inPlan)
                     {
-                        if (item.status != "C" || closedStoreRule)                        
-                            retList.Add(new StoreLookupModel(item, (long)rangePlanID, true));                        
+                        // if looking for closed stores, add all of stores regardless of status, otherwise only add non-closed ones
+                        if (store.status != "C" || closedStoreRule)
+                            retList.Add(new StoreLookupModel(store, rangePlanID, true));
                     }
 
-                    foreach (StoreLookup item in notInPlan)
+                    foreach (StoreLookup store in notInPlan)
                     {
-                        if (item.status != "C" || closedStoreRule)
-                            retList.Add(new StoreLookupModel(item, (long)rangePlanID, false));                        
+                        // if looking for closed stores, add all of stores regardless of status, otherwise only add non-closed ones
+                        if (store.status != "C" || closedStoreRule)
+                            retList.Add(new StoreLookupModel(store, rangePlanID, false));
                     }
                 }
                 else
                 {
-                    foreach (StoreLookup item in storesInRule)
+                    foreach (StoreLookup store in storesInRuleList)
                     {
-                        if (item.status != "C" || closedStoreRule)                        
-                            retList.Add(new StoreLookupModel(item));                        
+                        // if looking for closed stores, add all of stores regardless of status, otherwise only add non-closed ones
+                        if (store.status != "C" || closedStoreRule)                        
+                            retList.Add(new StoreLookupModel(store));                        
                     }
                 }
 
                 if (retList != null)
                 {
+                    // only return stores that the user has divisional privs for
                     retList = (from a in retList 
                                join b in currentUser.GetUserDivisions(AppName) 
                                on a.Division equals b.DivCode 
@@ -511,7 +518,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return retList;
             }
             catch
-            {
+            {                
                 // TODO: We should really think about, atleast, logging here.....
                 return new List<StoreLookupModel>();
             }
@@ -520,15 +527,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _DeleteFromGrid(long id)
         {
             // Get specified Rule
-            var ruleQuery = (from a in db.Rules where a.ID == id select a);
-            if (ruleQuery.Count() == 0)
-            {
+            List<Rule> ruleList = db.Rules.Where(r => r.ID == id).ToList();
+
+            if (ruleList.Count() == 0)            
                 return Json("Already Deleted");
-            }
-            Rule rule = ruleQuery.First();
+            
+            Rule rule = ruleList.First();
 
             //  Get RuleSet type of Rule
-            var ruleSetType = (from a in db.RuleSets where a.RuleSetID == rule.RuleSetID select a).First().Type.ToUpper();
+            var ruleSetType = db.RuleSets.Where(rs => rs.RuleSetID == rule.RuleSetID).First().Type.ToUpper();
 
             // Delete the specified rule from its ruleset
             RuleDAO dao = new RuleDAO();
@@ -785,7 +792,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                    select a.RuleSetID).ToList();
                     foreach (long similar in similarRulesets)
                     {
-                        foreach (StoreLookup s in ruleDAO.GetStoresInRuleSet(similar))
+                        foreach (StoreLookup s in ruleDAO.GetRuleSelectedStoresInRuleSet(similar))
                         {
                             storesInSamePlan.Add(s);
                         }
@@ -846,14 +853,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult RemoveAllStoresForRules(long ruleSetID)
         {
             RuleDAO dao = new RuleDAO();
+            RangePlanDAO rangePlanDAO = new RangePlanDAO();
 
             try            
             {
                 RuleSet rs = dao.GetRuleSet(ruleSetID);
 
                 List<RangePlanDetail> details = null;
-                if (rs.Type == "Main")                
-                    details = db.RangePlanDetails.Where(rpd => rpd.ID == rs.PlanID).ToList();                
+                if (rs.Type == "Main")
+                    details = rangePlanDAO.GetRangePlanDetails(rs.PlanID.Value);
 
                 List<StoreLookupModel> list = GetStoresForRules(ruleSetID);
                 List<StoreBase> dblist = new List<StoreBase>();
@@ -977,39 +985,40 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _StoreLookupList(long ruleSetID, string gridtype)
         {
             RuleDAO dao = new RuleDAO();
-            List<StoreLookupModel> list;
+            List<StoreLookupModel> storeList;
+            List<StoreLookupModel> currStores = new List<StoreLookupModel>();
 
             if (gridtype == "AllStores")
             {
-                list = db.GetStoreLookupsForPlan(ruleSetID, currentUser.GetUserDivisionsString(AppName));
-                list.AddRange(db.GetStoreLookupsNotInPlan(ruleSetID, currentUser.GetUserDivisionsString(AppName)));
+                storeList = db.GetStoreLookupsForPlan(ruleSetID);
+                storeList.AddRange(db.GetStoreLookupsNotInPlan(ruleSetID));
             }
             else
-            {                
+            {
+                RuleSet ruleSet = dao.GetRuleSet(ruleSetID);
+
+                if (ruleSet.PlanID.HasValue)
+                    currStores = db.GetStoreLookupsForPlan(ruleSet.PlanID.Value); //these are the RangePlanDetail recs 
+                else
+                    currStores = GetStoresInRuleSet(ruleSetID);  // these are the RuleSelectedStores, unless there is a range plan, in which case it is also the RangePlanDetail recs
+
                 try
                 {
-                    list = GetStoresForRules(ruleSetID);
+                    storeList = GetStoresForRules(ruleSetID);
                 }
                 catch (Exception)
                 {
-                    list = new List<StoreLookupModel>();
-                }
+                    storeList = new List<StoreLookupModel>();
+                }               
 
-                RuleSet ruleSet = dao.GetRuleSet(ruleSetID);
-                List<StoreLookupModel> currStores = new List<StoreLookupModel>();
-                if (ruleSet.PlanID != null)                
-                    currStores = db.GetStoreLookupsForPlan((long)ruleSet.PlanID, currentUser.GetUserDivisionsString(AppName));                
-                else                
-                    currStores = GetStoresInRuleSet(ruleSetID);                
-
-                var currlist = from n in list
+                var currlist = from n in storeList
                                join c in currStores on new { n.Division, n.Store } equals new { c.Division, c.Store }
                                select n;
 
                 var currentDeliveryGroupStores = db.RuleSelectedStores.Where(rss => rss.RuleSetID.Equals(ruleSet.RuleSetID)).ToList();
 
                 var currList2 = (from a in currentDeliveryGroupStores
-                                 join b in list
+                                 join b in storeList
                                    on new { Division = a.Division, Store = a.Store }
                                equals new { Division = b.Division, Store = b.Store }
                                  select b).ToList();
@@ -1019,7 +1028,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     store.InCurrentDeliveryGroup = true;
                 }
 
-                foreach (StoreLookupModel m in list)
+                foreach (StoreLookupModel m in storeList)
                 {
                     m.InCurrentPlan = false;
                 }
@@ -1030,27 +1039,26 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 //if plan allows multiple rulesets of same type
-                //we can tell if it's in another ruleset (for warning purposes)
-                RuleSet rs = dao.GetRuleSet(ruleSetID);                
+                //we can tell if it's in another ruleset (for warning purposes)                
                 List<StoreLookup> storesInSimilarplans = new List<StoreLookup>();
-                if (rs.PlanID > 0)
+                if (ruleSet.PlanID > 0)
                 {
-                    List<long> similarRulesets = db.RuleSets.Where(r => r.PlanID == rs.PlanID && 
-                                                                        r.Type == rs.Type && 
-                                                                        r.RuleSetID != rs.RuleSetID)
+                    List<long> similarRulesets = db.RuleSets.Where(r => r.PlanID == ruleSet.PlanID && 
+                                                                        r.Type == ruleSet.Type && 
+                                                                        r.RuleSetID != ruleSet.RuleSetID)
                                                             .Select(r => r.RuleSetID)
                                                             .ToList();
 
                     foreach (long similar in similarRulesets)
                     {
-                        foreach (StoreLookup s in dao.GetStoresInRuleSet(similar))
+                        foreach (StoreLookup s in dao.GetRuleSelectedStoresInRuleSet(similar))
                         {
                             storesInSimilarplans.Add(s);
                         }
                     }
                 }
 
-                var currlist2 = from n in list
+                var currlist2 = from n in storeList
                                 join c in storesInSimilarplans 
                                 on new { n.Division, n.Store } equals new { c.Division, c.Store }
                                 select n;
@@ -1060,7 +1068,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     m.InSimilarRuleSet = true;
                 }
             }
-            return PartialView(new GridModel(list));
+
+            return PartialView(new GridModel(storeList));
         }
 
         /// <summary>
@@ -1078,6 +1087,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<StoreBase> list = new List<StoreBase>();
             
             RuleDAO dao = new RuleDAO();
+            RangePlanDAO rangePlanDAO = new RangePlanDAO();
 
             RuleSet rs = dao.GetRuleSet(ruleSetID);
 
@@ -1086,13 +1096,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (rs.Type == "SizeAlc")
             {
                 StoresInRules = new List<StoreLookupModel>();
-                foreach (StoreLookup l in (from a in db.RangePlanDetails 
-                                           join b in db.StoreLookups 
-                                           on new { a.Division, a.Store } equals new { b.Division, b.Store } 
-                                           where a.ID == rs.PlanID 
-                                           select b))
+                List<StoreLookup> rangePlanDetailStores = rangePlanDAO.GetStoreLookupsForPlan(rs.PlanID.Value);
+                foreach (StoreLookup l in rangePlanDetailStores)
                 {
-                    StoresInRules.Add(new StoreLookupModel(l, (long)rs.PlanID, true));
+                    StoresInRules.Add(new StoreLookupModel(l, rs.PlanID.Value, true));
                 }
 
                 //delete rules

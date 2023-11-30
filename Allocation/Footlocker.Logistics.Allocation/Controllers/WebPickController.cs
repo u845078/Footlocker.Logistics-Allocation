@@ -690,7 +690,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 			RuleDAO dao = new RuleDAO();
             if (ruleset > 0)
             {
-                List<StoreLookup> stores = dao.GetStoresInRuleSet(ruleset);
+                List<StoreLookup> stores = dao.GetRuleSelectedStoresInRuleSet(ruleset);
                 rdqList = (from a in rdqList 
                             join b in stores 
                                 on new { a.Division, a.Store } equals new { b.Division, b.Store } 

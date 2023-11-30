@@ -428,7 +428,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 RuleSet r = db.RuleSets.Where(rs => rs.PlanID == planID && rs.Type == "SizeAlc").First();
                 //check spreadsheet upload
-                stores = ruleDAO.GetStoresInRuleSet(r.RuleSetID);
+                stores = ruleDAO.GetRuleSelectedStoresInRuleSet(r.RuleSetID);
                 if (stores.Count() == 0)                
                     stores = GetStoresForRules(rules, planID);                
             }
@@ -547,9 +547,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             try
             {
                 RuleSet r = db.RuleSets.Where(rs => rs.PlanID == planID && rs.Type == "SizeAlc").First();
-                stores = ruleDAO.GetStoresInRuleSet(r.RuleSetID);
+                stores = ruleDAO.GetRuleSelectedStoresInRuleSet(r.RuleSetID);
 
-                stores = ruleDAO.GetStoresInRuleSet(r.RuleSetID);
+                stores = ruleDAO.GetRuleSelectedStoresInRuleSet(r.RuleSetID);
 
                 if ((stores == null) || (stores.Count() == 0))                
                     stores = GetStoresForRules(rules, planID);                
@@ -1511,7 +1511,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             model.DeliveryGroups.Insert(0, newGroup);
 
-            List<StoreLookupModel> list = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
+            List<StoreLookupModel> list = db.GetStoreLookupsForPlan(planID);
             List<RuleSelectedStore> ruleSetStores = (from a in db.RuleSets
                                                      join b in db.RuleSelectedStores
                                                         on a.RuleSetID equals b.RuleSetID
@@ -1581,7 +1581,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _DeliveryGroupStores(long planID, long deliveryGroupID)
         {
-            List<StoreLookupModel> PlanStores = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
+            List<StoreLookupModel> PlanStores = db.GetStoreLookupsForPlan(planID);
             return View(new GridModel(PlanStores));
         }
 
@@ -1822,8 +1822,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             EditStoreModel model = new EditStoreModel()
             {
                 plan = db.RangePlans.Where(rp => rp.Id == planID).First(),
-                CurrentStores = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName)),
-                RemainingStores = db.GetStoreLookupsNotInPlan(planID, currentUser.GetUserDivisionsString(AppName))
+                CurrentStores = db.GetStoreLookupsForPlan(planID),
+                RemainingStores = db.GetStoreLookupsNotInPlan(planID)
             };
 
             model.plan.ItemMaster = db.ItemMasters.Where(i => i.ID == model.plan.ItemID).FirstOrDefault();
@@ -1921,8 +1921,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             
             if (gridtype == "AllStores")
             {
-                list = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
-                list.AddRange(db.GetStoreLookupsNotInPlan(planID, currentUser.GetUserDivisionsString(AppName)));
+                list = db.GetStoreLookupsForPlan(planID);
+                list.AddRange(db.GetStoreLookupsNotInPlan(planID));
             }
             else
             {
@@ -1954,8 +1954,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (gridtype == "AllStores")
             {
-                list = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
-                list.AddRange(db.GetStoreLookupsNotInPlan(planID, currentUser.GetUserDivisionsString(AppName)));
+                list = db.GetStoreLookupsForPlan(planID);
+                list.AddRange(db.GetStoreLookupsNotInPlan(planID));
             }
             else
             {
@@ -1971,7 +1971,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     list = new List<StoreLookupModel>();
                     ShowError(ex);
                 }
-                List<StoreLookupModel> currStores = db.GetStoreLookupsForPlan(planID, currentUser.GetUserDivisionsString(AppName));
+                List<StoreLookupModel> currStores = db.GetStoreLookupsForPlan(planID);
 
                 var currlist = from n in list
                                join c in currStores 
