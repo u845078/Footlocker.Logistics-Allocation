@@ -23,7 +23,6 @@ namespace Footlocker.Logistics.Allocation.Services
             _database = DatabaseFactory.CreateDatabase("AllocationContext");
             _USdatabase = DatabaseFactory.CreateDatabase("DB2PROD_DRIVER");
             _Europedatabase = DatabaseFactory.CreateDatabase("DB2EURP_DRIVER");
-            //_prefix = "DB2TEST.";
             _prefix = System.Configuration.ConfigurationManager.AppSettings["DB2PREFIX_DRIVER"];
             this.europeDivisions = europeDivisions;
         }
@@ -200,7 +199,6 @@ namespace Footlocker.Logistics.Allocation.Services
             else            
                 db = _USdatabase;            
 
-            //SQLMF = "delete from " + System.Configuration.ConfigurationManager.AppSettings["DB2PREFIX"] + "TCQTM001 ";
             SQLMF = "delete from " + _prefix + "TCQTM001 ";
             SQLMF += " where retl_oper_div_code = '" + div + "' ";
             SQLMF += " and stk_dept_num = '" + dept + "' ";

@@ -19,8 +19,8 @@
 </table>
 
 <fieldset>
-    <b>Upload .xls: </b><span id="message">(Spreadsheet columns should be Div, Store)</span>
-    @Html.ActionLink("Template", "StoreTemplate", null, new { @class = "t-button" })   
+    <b>Upload .xls: </b><span id="message">(Spreadsheet columns should be Division, Store)</span><br />
+    @Html.ActionLink("Template", "StoreTemplate", null, new { @class = "t-button" })   <br /><br />
     @(Html.Telerik().Upload()
         .Name("attachments")
         .Multiple(true)

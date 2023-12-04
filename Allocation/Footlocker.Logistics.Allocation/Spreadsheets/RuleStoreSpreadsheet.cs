@@ -10,43 +10,32 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
     public class RuleStoreSpreadsheet : UploadSpreadsheet
     {
-        readonly RuleDAO ruleDAO;
-        readonly RangePlanDAO rangePlanDAO;
-        public List<StoreBase> validStores = new List<StoreBase>();
+        public List<StoreBase> LoadedStores = new List<StoreBase>();
+        public string MainDivision;
 
         private StoreBase ParseRow(int row)
         {
-            message = string.Empty;
-            string rangeType;
-
             StoreBase returnValue = new StoreBase()
             {
                 Division = Convert.ToString(worksheet.Cells[row, 0].Value).PadLeft(2, '0'),
                 Store = Convert.ToString(worksheet.Cells[row, 1].Value).PadLeft(5, '0')
             };
 
-            if (worksheet.Cells[row, 2].Value != null)
-                rangeType = worksheet.Cells[row, 2].Value.ToString();
-            else
-                rangeType = "ALR";
-
-            if (rangeType == "ALR" || rangeType == "OP")
-                returnValue.RangeType = rangeType;
-
-            //always default to "Both"
-            if (string.IsNullOrEmpty(returnValue.RangeType))
-                returnValue.RangeType = "Both";
-
             return returnValue;
         }
 
+        private bool ValidateUploadValues(StoreBase storeRec)
+        {
+            return storeRec.Store != "00000";
+        }
 
-        public void Save(HttpPostedFileBase attachment, long ruleSetID)
+        /// <summary>
+        /// This is going to load the stores into the loaded
+        /// </summary>
+        /// <param name="attachment"></param>
+        public void Save(HttpPostedFileBase attachment)
         {
             StoreBase uploadRec;
-            List<StoreLookupModel> StoresInRules = null;
-            bool checkStore = true;
-            List<RangePlanDetail> rangePlanDetails;
 
             LoadAttachment(attachment);
             if (!HasValidHeaderRow())
@@ -54,69 +43,32 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             else
             {
                 int row = 1;
-                RuleSet rs = ruleDAO.GetRuleSet(ruleSetID);
 
-                if (rs.Type == "SizeAlc")
+                try
                 {
-                    StoresInRules = new List<StoreLookupModel>();
-                    rangePlanDetails = rangePlanDAO.GetRangePlanDetails(rs.PlanID.Value);
-
-                    foreach (StoreLookup l in from a in rangePlanDetails
-                                              join b in config.db.StoreLookups
-                                              on new { a.Division, a.Store } equals new { b.Division, b.Store }                                              
-                                              select b)
+                    while (HasDataOnRow(row))
                     {
-                        StoresInRules.Add(new StoreLookupModel(l, rs.PlanID.Value, true));
+                        uploadRec = ParseRow(row);
+
+                        if (ValidateUploadValues(uploadRec))
+                            LoadedStores.Add(uploadRec);
+
+                        row++;
                     }
 
-                    //delete rules
-                    List<Rule> rules = ruleDAO.GetRulesForRuleSet(rs.RuleSetID, "SizeAlc");                    
-
-                    foreach (Rule rule in rules)
-                    {
-                        ruleDAO.Delete(rule);
-                    }
+                    if (LoadedStores.Count > 0)
+                        MainDivision = LoadedStores[0].Division;
                 }
-                else
-                if (rs.Type == "Delivery")
+                catch (Exception ex)
                 {
-                    //StoresInRules = GetStoresForRules(ruleSetID, true);
+                    message = string.Format("Upload failed: One or more columns has unexpected missing or invalid data. <br /> System error message: {0}", ex.GetBaseException().Message);
+                    FLLogger logger = new FLLogger(config.LogFile);
+                    logger.Log(ex.Message + ": " + ex.StackTrace, FLLogger.eLogMessageType.eError);
                 }
-                else
-                    checkStore = false;
-
-                //    try
-                //    {
-                //        while (HasDataOnRow(row))
-                //        {
-                //            uploadRec = ParseRow(row);
-
-                //            errorMessage = ValidateUploadValues(uploadRec);
-                //            if (!string.IsNullOrEmpty(errorMessage))
-                //            {
-                //                message = string.Format("Row {0}: {1}", row, errorMessage);
-                //                return;
-                //            }
-                //            else
-                //                validStores.Add(uploadRec);
-
-                //            row++;
-                //        }
-
-                //        if (validStores.Count > 0)
-                //            ruleDAO.AddStoresToPlan(validStores, planID);
-
-                //    }
-                //    catch (Exception ex)
-                //    {
-                //        message = string.Format("Upload failed: One or more columns has unexpected missing or invalid data. <br /> System error message: {0}", ex.GetBaseException().Message);
-                //        FLLogger logger = new FLLogger(config.LogFile);
-                //        logger.Log(ex.Message + ": " + ex.StackTrace, FLLogger.eLogMessageType.eError);
-                //    }
             }
         }
 
-        public RuleStoreSpreadsheet(AppConfig config, ConfigService configService, RuleDAO ruleDAO, RangePlanDAO rangePlanDAO) : base(config, configService)
+        public RuleStoreSpreadsheet(AppConfig config, ConfigService configService) : base(config, configService)
         {
             maxColumns = 2;
             headerRowNumber = 0;
@@ -125,8 +77,6 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             columns.Add(1, "Store");
 
             templateFilename = config.StoreTemplate;
-            this.ruleDAO = ruleDAO;
-            this.rangePlanDAO = rangePlanDAO;
         }
     }
 }

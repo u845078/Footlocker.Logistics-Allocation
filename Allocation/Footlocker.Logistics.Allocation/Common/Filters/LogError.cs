@@ -24,8 +24,7 @@ namespace Footlocker.Logistics.Allocation.Common
             get
             {
                 if (_logger == null)
-                {
-                    //_logger = new LogService(ConfigurationManager.AppSettings["FullyQualifiedLoggingPath"]);
+                {                    
                     _logger = new LogService("C:\\log\\Allocation.log.txt");
                 }
 

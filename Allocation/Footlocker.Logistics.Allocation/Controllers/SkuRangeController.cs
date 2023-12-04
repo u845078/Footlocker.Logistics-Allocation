@@ -232,26 +232,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 if (copyRangeRec.FromSku.Substring(0, 2) != copyRangeRec.ToSku.Substring(0, 2))                
                     errors.Add("FromSKU", "You can only copy from a sku in the same division.");
-
-                //verify the sizes match on old/new sku
-                //List<string> ToSizes = (from a in db.Sizes
-                //                        where a.Sku == copyRangeRec.ToSku
-                //                        select a.Size).OrderBy(p => p).ToList();
-                //List<string> FromSizes = (from a in db.Sizes
-                //                          where a.Sku == copyRangeRec.FromRangePlan.Sku
-                //                          select a.Size).OrderBy(p => p).ToList();
-
-                //if (ToSizes.Count != FromSizes.Count)
-                //    errors.Add("", "These skus have different sizes, cannot copy");
-                //else
-                //{
-                //    for (int i = 0; i < ToSizes.Count; i++)
-                //    {
-                //        if (errors.Count == 0)
-                //            if (ToSizes[i] != FromSizes[i])                        
-                //                errors.Add("", "These skus have different sizes, cannot copy");                        
-                //    }
-                //}
             }
 
             if (string.IsNullOrEmpty(copyRangeRec.FromSku))
@@ -443,7 +423,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             List<SizeAllocation> allocs = dao.GetSizeAllocationList(planID);
             //find stores in selected delivery groups
-            List<DeliveryGroup> selected = ((List<DeliveryGroup>)Session["selectedDeliveryGroups"]);
+            List<DeliveryGroup> selected = (List<DeliveryGroup>)Session["selectedDeliveryGroups"];
             List<RuleSelectedStore> selectedStores = new List<RuleSelectedStore>();
             foreach (DeliveryGroup dg in selected)
             {
@@ -479,7 +459,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     //we have a change on UI, write update to db
                     processedCount++;
-                    dao.SaveMin((SizeAllocation)t, stores);
+                    dao.SaveMin(t, stores);
                 }
 
                 count = totals.Where(a => a.Size == t.Size && a.Max != t.Max).Count();
@@ -488,7 +468,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     //we have a change on UI, write update to db
                     processedCount++;
-                    dao.SaveMax((SizeAllocation)t, stores);
+                    dao.SaveMax(t, stores);
                 }
 
                 count = totals.Where(a => a.Size == t.Size && a.InitialDemand != t.InitialDemand).Count();
@@ -497,7 +477,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     //we have a change on UI, write update to db
                     processedCount++;
-                    dao.SaveInitialDemand((SizeAllocation)t, stores);
+                    dao.SaveInitialDemand(t, stores);
                 }
 
                 count = totals.Where(a => a.Size == t.Size && a.Range != t.Range).Count();
@@ -506,7 +486,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     //we have a change on UI, write update to db
                     processedCount++;
-                    dao.SaveRangeFlag((SizeAllocation)t, stores);
+                    dao.SaveRangeFlag(t, stores);
                 }
 
                 count = totals.Where(a => a.Size == t.Size && a.MinEndDays != t.MinEndDays).Count();
@@ -515,7 +495,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     //we have a change on UI, write update to db
                     processedCount++;
-                    dao.SaveMinEndDays((SizeAllocation)t, stores);
+                    dao.SaveMinEndDays(t, stores);
                 }
             }
 
@@ -1086,7 +1066,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult ClearFilteredStores(long planID)
         {
-            return RedirectToAction("PresentationQuantities", new { planID = planID });
+            return RedirectToAction("PresentationQuantities", new { planID });
         }
 
         public ActionResult PresentationQuantities(long planID, string message, string page, string show, string storeCount)
@@ -2058,7 +2038,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult AddConjuction(string value, long planID, string ruleType)
         {
             Rule newRule = new Rule();
-            newRule.RuleSetID = (new RuleDAO()).GetRuleSetID(planID, ruleType, currentUser.NetworkID);
+            RuleDAO ruleDAO = new RuleDAO();
+            newRule.RuleSetID = ruleDAO.GetRuleSetID(planID, ruleType, currentUser.NetworkID);
             newRule.Compare = value.Trim();
             newRule.Sort = db.Rules.Where(r => r.RuleSetID == newRule.RuleSetID).Count() + 1;
 
@@ -2067,40 +2048,41 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             RuleSet rs = db.RuleSets.Where(r => r.RuleSetID == newRule.RuleSetID).First();
             if (rs.Type == "SizeAlc")            
-                return RedirectToAction("PresentationQuantities", new { planID = planID });            
+                return RedirectToAction("PresentationQuantities", new { planID });            
             else            
-                return RedirectToAction("AddStoresByRule", new { planID = planID });            
+                return RedirectToAction("AddStoresByRule", new { planID });            
         }
 
         /// <summary>
         /// delete all rules
         /// </summary>
-        public ActionResult ClearRules(string value, long planID, string ruleType)
+        public ActionResult ClearRules(long planID, string ruleType)
         {
             Rule newRule = new Rule();
-            long ruleSetID = (new RuleDAO()).GetRuleSetID(planID, ruleType, currentUser.NetworkID);
+            RuleDAO ruleDAO = new RuleDAO();
+            long ruleSetID = ruleDAO.GetRuleSetID(planID, ruleType, currentUser.NetworkID);
 
-            IEnumerable<Rule> rules = (from a in db.Rules where a.RuleSetID == ruleSetID select a);
-            RuleDAO dao = new RuleDAO();
+            IEnumerable<Rule> rules = ruleDAO.GetRulesForRuleSet(ruleSetID);
+            
             foreach (Rule rule in rules)
             {
-                dao.Delete(rule);
+                ruleDAO.Delete(rule);
             }
-            RuleSet rs = (from a in db.RuleSets where a.RuleSetID == ruleSetID select a).First();
+
+            RuleSet rs = ruleDAO.GetRuleSet(ruleSetID);
             if (rs.Type == "SizeAlc")
             {
                 //delete all the ruleselected stores
-                foreach (RuleSelectedStore rss in (from a in db.RuleSelectedStores where a.RuleSetID == ruleSetID select a))
+                foreach (RuleSelectedStore rss in db.RuleSelectedStores.Where(r => r.RuleSetID == ruleSetID).ToList())
                 {
                     db.RuleSelectedStores.Remove(rss);
                 }
-                db.SaveChanges(UserName);
-                return RedirectToAction("PresentationQuantities", new { planID = planID });
+
+                db.SaveChanges(currentUser.NetworkID);
+                return RedirectToAction("PresentationQuantities", new { planID });
             }
-            else
-            {
-                return RedirectToAction("AddStoresByRule", new { planID = planID });
-            }
+            else            
+                return RedirectToAction("AddStoresByRule", new { planID });            
         }
 
         /// <summary>

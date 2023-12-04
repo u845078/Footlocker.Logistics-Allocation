@@ -98,7 +98,6 @@
         });
     }
 
-
     function moveDown(ruleID) {
         //make a call to server
         var grid = $("#RuleGrid").data("tGrid");
@@ -125,6 +124,7 @@
             }
         });
     }
+
     function moveUp(ruleID) {
         //make a call to server
         var grid = $("#RuleGrid").data("tGrid");
@@ -180,7 +180,6 @@
         });
     }
 
-
     function updateCount() {
         ruleset = $('#RuleToAdd_RuleSetID').val();
 
@@ -233,8 +232,8 @@
 </script>
 <div id="UploadRules" style="display:none">
 <fieldset>
-    <b>Upload .xls: </b><span id="message">(Spreadsheet columns should be Div, Store)<br />Each upload will override previous uploads.</span>
-    @Html.ActionLink("Template", "StoreTemplate","SkuRange", null, new { @class = "t-button" })   
+    <b>Upload .xls: </b><span id="message">(Spreadsheet columns should be Division, Store)<br />Each upload will override previous uploads.</span><br />
+    @Html.ActionLink("Template", "StoreTemplate","SkuRange", null, new { @class = "t-button" })   <br /><br />
     @(Html.Telerik().Upload()
         .Name("attachments")
         .Multiple(true)

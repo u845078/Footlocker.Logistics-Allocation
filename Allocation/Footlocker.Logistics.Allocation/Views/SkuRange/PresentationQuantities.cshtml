@@ -213,17 +213,6 @@
                 .Ajax(false)
                 .Action("DeleteDeliveryGroup", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
             }).HtmlAttributes(new { style = "text-align: left" }).Width(170);
-            //columns.Bound(o => o.ALRStartDate)
-            //.Template(@<text>
-            //                    @if (item.ALRStartDate != null)
-            //                    {
-            //                        @Html.Raw(String.Format("{0:MM/dd/yyyy}", item.ALRStartDate) + "&nbsp;<a class=\"t-button\" href='/SkuRange/StopDeliveryGroup?deliveryGroupID=" + item.ID + "&planID=" + item.PlanID + "'>Stop</a>")
-            //                    }
-            //                    else
-            //                    {
-            //                        @Html.Raw("<a class=\"t-button\" href='/SkuRange/StartDeliveryGroup?deliveryGroupID=" + item.ID + "&planID=" + item.PlanID + "'>Start</a>")
-            //                    }
-            //</text>).Width(150).Title("Sending ALR Since");
 
             })
             .DataBinding(dataBinding =>
@@ -265,7 +254,7 @@
                             <th class="t-header"></th>
                         </tr>
                     </thead>
-                    <script>
+                    <!--script>
                         function showTest() {
                             $('#testdiv').empty().append('<table><tr><td>Version</td><td>PO</td><td>Comment</td><td></td></tr><tr><td>1234</td><td>6345100</td><td>25 doors</td><td><input type="button" value="Apply"/></td></tr><tr><td>1235</td><td>6345455</td><td>200 doors</td><td><input type="button" value="Apply"/></td></tr></table><input type="button" onclick="closeTest()" value="Close"/>');
                             $('#testdiv').append('<br>The list is versions that have POs created off of them.  What would we apply here, mins/max?, dates?, limit to these stores?, add these stores?')
@@ -274,7 +263,7 @@
                         function closeTest() {
                             $('#testdiv').empty();
                         }
-                    </script>
+                    </script-->
                     <tbody>
                         <tr>
                             <td>@Html.DisplayFor(m => m.OrderPlanningRequest.StartSend)</td>
@@ -297,37 +286,12 @@
         }
     </fieldset>
 }
-<!--
-<fieldset style="width:765px">
-    <b>ALR Status:</b><br />
-
-    @*if (Model.Plan.ALRStartDate != null)
-    {
-        @Html.Raw("Sending ALR Since ")
-        @Html.DisplayFor(m => m.Plan.ALRStartDate)
-        @Html.Raw("&nbsp;&nbsp;")
-        @Html.ActionLink("Stop Sending", "StopALR", new { planID = Model.PlanID }, new { @class = "t-button", onclick = "return confirm('Are you sure?');" })
-    }
-    else
-    {
-        <a class='t-button' href="StartALR?planID=@Model.PlanID">Start Sending ALR into Quantum</a>
-    }*@
-</fieldset>-->
-
 
 <div style="margin-left:0px;margin-right:200px;" class="fieldset">
     <b>Filters:</b><br />
     <div class="t-button" onclick="showRuleSelector()">Edit Filter Rules</div>
     <div class="t-button" onclick="showRuleSelectorExcel()">Filter Excel Upload</div>
-    @Html.ActionLink("Clear Filtered Stores", "ClearRules", new { value = "", planID = Model.RangePlan.Id, ruleType = "SizeAlc" }, new { @class = "t-button" })
-    @*@if ("emptyStartDates".Equals(ViewData["show"]))
-        {
-            @Html.ActionLink("Show All Filtered", "PresentationQuantities", new { planID = ViewData["planID"], message = "", page = 0, show = "" }, new { @class = "t-button" })
-        }
-        else
-        {
-            @Html.ActionLink("Show Filtered With Blank Start Dates", "PresentationQuantities", new { planID = ViewData["planID"], message = "", page = 0, show = "emptyStartDates" }, new { @class = "t-button" })
-        }*@
+    @Html.ActionLink("Clear Filtered Stores", "ClearRules", new { planID = Model.RangePlan.Id, ruleType = "SizeAlc" }, new { @class = "t-button" })
     <div id="ruleSelector" style="display:none">
         @Html.Partial(Url.Content("~/Views/Rule/RuleFilterNoStores.cshtml"), Model, ViewData)
     </div>

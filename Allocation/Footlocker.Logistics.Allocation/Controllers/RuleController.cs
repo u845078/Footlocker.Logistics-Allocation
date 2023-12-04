@@ -8,6 +8,7 @@ using Footlocker.Logistics.Allocation.Services;
 using Telerik.Web.Mvc;
 using System.Linq.Expressions;
 using System.IO;
+using Footlocker.Logistics.Allocation.Spreadsheets;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -1011,16 +1012,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     storeList = new List<StoreLookupModel>();
                 }               
 
-                var currlist = from n in storeList
+                var currlist = (from n in storeList
                                join c in currStores on new { n.Division, n.Store } equals new { c.Division, c.Store }
-                               select n;
+                               select n).ToList();
 
                 var currentDeliveryGroupStores = db.RuleSelectedStores.Where(rss => rss.RuleSetID.Equals(ruleSet.RuleSetID)).ToList();
 
                 var currList2 = (from a in currentDeliveryGroupStores
                                  join b in storeList
-                                   on new { Division = a.Division, Store = a.Store }
-                               equals new { Division = b.Division, Store = b.Store }
+                                   on new { a.Division, a.Store }
+                               equals new { b.Division, b.Store }
                                  select b).ToList();
 
                 foreach (var store in currList2)
@@ -1058,10 +1059,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                 }
 
-                var currlist2 = from n in storeList
+                var currlist2 = (from n in storeList
                                 join c in storesInSimilarplans 
                                 on new { n.Division, n.Store } equals new { c.Division, c.Store }
-                                select n;
+                                select n).ToList();
 
                 foreach (StoreLookupModel m in currlist2)
                 {
@@ -1079,11 +1080,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <returns></returns>
         public ActionResult UploadStores(IEnumerable<HttpPostedFileBase> attachments, long ruleSetID)
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
-            int errors = 0;
-            string rangeType;
+            RuleStoreSpreadsheet ruleStoreSpreadsheet = new RuleStoreSpreadsheet(appConfig, new ConfigService());
             List<StoreBase> list = new List<StoreBase>();
             
             RuleDAO dao = new RuleDAO();
@@ -1103,7 +1100,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 //delete rules
-                List<Rule> rules = db.Rules.Where(r => r.RuleSetID == rs.RuleSetID).ToList();
+                List<Rule> rules = dao.GetRulesForRuleSet(rs.RuleSetID);
                 
                 foreach (Rule rule in rules)
                 {
@@ -1121,16 +1118,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 foreach (HttpPostedFileBase file in attachments)
                 {
-                    //Instantiate a Workbook object that represents an Excel file
-                    Aspose.Excel.Excel workbook = new Aspose.Excel.Excel();
-                    Byte[] data1 = new Byte[file.InputStream.Length];
-                    file.InputStream.Read(data1, 0, data1.Length);
-                    file.InputStream.Close();
-                    MemoryStream memoryStream1 = new MemoryStream(data1);
-                    workbook.Open(memoryStream1);
-                    Aspose.Excel.Worksheet mySheet = workbook.Worksheets[0];
-
-                    int row = 1;
+                    ruleStoreSpreadsheet.Save(file);
 
                     if (checkStore == false)
                     {
@@ -1142,63 +1130,33 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             RuleSetID = ruleSetID,
                             Field = "Division",
                             Compare = "Equals",
-                            Value = mySheet.Cells[row, 0].Value.ToString().PadLeft(2, '0')
+                            Value = ruleStoreSpreadsheet.MainDivision
                         };
 
                         db.Rules.Add(newRule);
                         db.SaveChanges(currentUser.NetworkID);
+
                         StoresInRules = GetStoresForRules(ruleSetID);
                     }
 
-                    if ((mySheet.Cells[0, 0].Value.ToString().Contains("Div")) && (mySheet.Cells[0, 1].Value.ToString().Contains("Store")))
+                    foreach (StoreBase store in ruleStoreSpreadsheet.LoadedStores)
                     {
-                        while (mySheet.Cells[row, 0].Value != null)
-                        {
-                            try
-                            {
-                                StoreBase newDet = new StoreBase();
-                                newDet.Division = mySheet.Cells[row, 0].Value.ToString().PadLeft(2, '0');
-                                newDet.Store = mySheet.Cells[row, 1].Value.ToString().PadLeft(5, '0');
-                                rangeType = mySheet.Cells[row, 2].StringValue;
-
-                                if (rangeType == "ALR" || rangeType == "OP")                                
-                                    newDet.RangeType = rangeType;                                
-
-                                //always default to "Both"
-                                if (string.IsNullOrEmpty(newDet.RangeType))                                
-                                    newDet.RangeType = "Both";                                
-
-                                if (newDet.Store != "00000")
-                                {
-                                    if (StoresInRules.Where(sir => sir.Division == newDet.Division && sir.Store == newDet.Store).Count() > 0)                                    
-                                        list.Add(newDet);                                    
-                                }
-                            }
-                            catch 
-                            {
-                                errors++;
-                            }
-                            row++;
-                        }
+                        if (StoresInRules.Where(sir => sir.Division == store.Division && sir.Store == store.Store).Count() > 0)                                    
+                            list.Add(store);                                    
                     }
-                    else                    
-                        return Content("Incorrect header, first column must be \"Div\", next \"Store\".");                    
                 }
 
                 if (list.Count > 0)
                 {
                     RuleDAO ruleDAO = new RuleDAO();
                     ruleDAO.AddStoresToRuleset(list, rs.PlanID, ruleSetID);
-                    //this is for the PresentationQuantities page, since we just updated the details, we'll remove what's 
-                    //saved in the session.
+
+                    //this is for the PresentationQuantities page, since we just updated the details, we'll remove what's saved in the session.
                     Session["pqAllocs"] = null;
                     Session["pqDeliveryGroups"] = null;
                 }
 
                 string returnMessage = "Upload complete, added " + list.Count() + " stores";
-
-                if (errors > 0)                
-                    returnMessage += ", " + errors + " errors";
                 
                 Session["rulesetid"] = -1;
 
