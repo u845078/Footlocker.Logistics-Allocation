@@ -1,18 +1,12 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="StoreAttributeHeader.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
-    using System;
-    using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel.DataAnnotations.Schema;
-
     public class StoreAttribute
     {
-        public Int32 ID { get; set; }
+        public int ID { get; set; }
         public string Division { get; set; }
         public string Store { get; set; }
         public string LikeDivision { get; set; }
@@ -22,7 +16,7 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [Range(1,100)]
         [Display(Name="Like Store Weight")]
-        public Int32 Weight { get; set; }
+        public int Weight { get; set; }
 
         [Display(Name = "Like Store Demand Scaling Factor")]
         public decimal LikeStoreDemandScalingFactor { get; set; }

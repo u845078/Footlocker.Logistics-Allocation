@@ -61,16 +61,13 @@ namespace Footlocker.Logistics.Allocation.Services
         /// <param name="edit">True if you are editing an existing hold. If false, the start date must be 2 days after control date</param>
         /// <param name="fromUpload">True if from a mass upload, false if not</param>
         /// <returns></returns>
-        public string ValidateHold(bool usesRuleSet, bool edit, bool fromUpload = false)
+        public string ValidateHold(bool edit, bool fromUpload = false)
         {
             string returnMessage = "";
             string value = Hold.Value + "";
             DateTime controlDate;
             Regex levelExpression;
             string levelError;
-
-            if (Hold.Level == "All")
-                value = Hold.Store;
 
             controlDate = configService.GetControlDate(Hold.Division);
 
@@ -82,65 +79,10 @@ namespace Footlocker.Logistics.Allocation.Services
                     returnMessage = string.Format("Start date must be after {0}", controlDate.AddDays(2).ToShortDateString());
             }
 
-            if (string.IsNullOrEmpty(returnMessage))
-            {
-                if (Hold.Level == "All")
-                {
-                    if (db.Holds.Where(h => h.Division == Hold.Division &&
-                                            h.Store == Hold.Store &&
-                                            h.Level == Hold.Level &&
-                                            h.ID != Hold.ID).Count() > 0)
-                    {
-                        returnMessage = string.Format("There is already a hold for {0}", Hold.Store);
-                    }
-                    else
-                    {
-                        int divDepts = DepartmentService.ListDepartments(Hold.Division).Count();
-                        int enabledDepts = currentUser.GetUserDepartments(AppName).Where(m => m.DivCode == Hold.Division).Count();
-
-                        if (divDepts != enabledDepts)
-                            returnMessage = "You do not have authority to create this hold. Store level holds must have dept level access for ALL departments in the division.";
-                    }
-                }
-                else
-                {
-                    // all the holds that are not this hold, but have the same level and value
-                    var holds = db.Holds.Where(h => h.ID != Hold.ID && h.Level == Hold.Level && h.Value == Hold.Value).ToList();
-
-                    // if not an upload, any existing holds matching division and store OR if an upload, any existing holds matching division where there is no
-                    // end date or the new start date is after existing end dates
-                    if (holds.Any(a => (!fromUpload &&
-                                        a.Division == Hold.Division &&
-                                         ((a.Store == Hold.Store) || (a.Store == null) &&
-                                          (Hold.Store == null))) ||
-                                       (fromUpload &&
-                                       a.Division == Hold.Division &&
-                                       a.Store == Hold.Store &&
-                                         ((a.EndDate == null) || (a.EndDate > Hold.StartDate)))))
-                    {
-                        returnMessage = string.Format("There is already a hold for {0} {1} {2}", Hold.Store, Hold.Level, Hold.Value);
-                    }
-                }
-            }
-
             if (string.IsNullOrEmpty(returnMessage) && Hold.EndDate != null)
             {
                 if (Hold.EndDate < Hold.StartDate)
                     returnMessage = "End Date must be after Start date.";
-            }
-
-            if (string.IsNullOrEmpty(returnMessage) && !string.IsNullOrEmpty(Hold.Store))
-            {
-                if (Hold.Store.Length > 5)
-                    returnMessage = "Store must be in format #####";
-                else
-                {
-                    Hold.Store = Hold.Store.PadLeft(5, '0');
-
-                    StoreLookup lookupStore = db.StoreLookups.Where(sl => sl.Store == Hold.Store && sl.Division == Hold.Division).FirstOrDefault();
-                    if (lookupStore == null)
-                        returnMessage = "Store ID is not valid or it is not under the selected division";
-                }
             }
 
             switch (Hold.Level)
@@ -195,6 +137,9 @@ namespace Footlocker.Logistics.Allocation.Services
                     levelError = "Invalid Store, format should be #####";
                     break;
             }
+
+            if (Hold.Level == "All")
+                value = Hold.Store;
 
             if (string.IsNullOrEmpty(returnMessage))
             {
@@ -253,12 +198,65 @@ namespace Footlocker.Logistics.Allocation.Services
                 else
                 {
                     //store hold
-                    if ((Hold.Store == null) || (Hold.Store.Trim() == ""))
-                    {
-                        if (!usesRuleSet)
-                            returnMessage = "For Store level, you must specify store.";
-                    }
+                    if (string.IsNullOrEmpty(Hold.Store))                                            
+                        returnMessage = "For Store level, you must specify store.";
+                    
                     Hold.Value = "N/A";
+                }
+            }
+
+            if (string.IsNullOrEmpty(returnMessage))
+            {
+                if (Hold.Level == "All")
+                {
+                    if (db.Holds.Where(h => h.Division == Hold.Division &&
+                                            h.Store == Hold.Store &&
+                                            h.Level == Hold.Level &&
+                                            h.ID != Hold.ID).Count() > 0)
+                    {
+                        returnMessage = string.Format("There is already a hold for {0}", Hold.Store);
+                    }
+                    else
+                    {
+                        int divDepts = DepartmentService.ListDepartments(Hold.Division).Count();
+                        int enabledDepts = currentUser.GetUserDepartments(AppName).Where(m => m.DivCode == Hold.Division).Count();
+
+                        if (divDepts != enabledDepts)
+                            returnMessage = "You do not have authority to create this hold. Store level holds must have dept level access for ALL departments in the division.";
+                    }
+                }
+                else
+                {
+                    // all the holds that are not this hold, but have the same level and value
+                    var holds = db.Holds.Where(h => h.ID != Hold.ID && h.Level == Hold.Level && h.Value == Hold.Value).ToList();
+
+                    // if not an upload, any existing holds matching division and store OR if an upload, any existing holds matching division where there is no
+                    // end date or the new start date is after existing end dates
+                    if (holds.Any(a => (!fromUpload &&
+                                        a.Division == Hold.Division &&
+                                         ((a.Store == Hold.Store) || (a.Store == null) &&
+                                          (Hold.Store == null))) ||
+                                       (fromUpload &&
+                                       a.Division == Hold.Division &&
+                                       a.Store == Hold.Store &&
+                                         ((a.EndDate == null) || (a.EndDate > Hold.StartDate)))))
+                    {
+                        returnMessage = string.Format("There is already a hold for {0} {1} {2}", Hold.Store, Hold.Level, Hold.Value);
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(returnMessage) && !string.IsNullOrEmpty(Hold.Store))
+            {
+                if (Hold.Store.Length > 5)
+                    returnMessage = "Store must be in format #####";
+                else
+                {
+                    Hold.Store = Hold.Store.PadLeft(5, '0');
+
+                    StoreLookup lookupStore = db.StoreLookups.Where(sl => sl.Store == Hold.Store && sl.Division == Hold.Division).FirstOrDefault();
+                    if (lookupStore == null)
+                        returnMessage = "Store ID is not valid or it is not under the selected division";
                 }
             }
 

@@ -1,19 +1,5 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="MainframeLink.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
-
-namespace Footlocker.Logistics.Allocation.Models
+﻿namespace Footlocker.Logistics.Allocation.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-
-    /// <summary>
-    /// TODO: Update summary.
-    /// </summary>
     public class MainframeLink
     {
         public string Division;
@@ -28,6 +14,6 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public string Warehouse;
 
-        public Int32 Qty;
+        public int Qty;
     }
 }

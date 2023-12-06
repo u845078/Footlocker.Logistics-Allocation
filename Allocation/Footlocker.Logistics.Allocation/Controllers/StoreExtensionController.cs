@@ -3,11 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
-
 using Telerik.Web.Mvc;
-
 using Footlocker.Logistics.Allocation.Models;
-using Footlocker.Logistics.Allocation.Common;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {

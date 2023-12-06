@@ -46,8 +46,6 @@ namespace Footlocker.Logistics.Allocation.Services
             }
             return _que;
         }
-
-
         
         public void Save(SizeAllocation sa, IEnumerable<StoreLookup> stores)
         {
@@ -90,7 +88,6 @@ namespace Footlocker.Logistics.Allocation.Services
             {
                 _database.AddInParameter(SQLCommand, "@range", DbType.Int16, 0);
             }
-
 
             _database.ExecuteNonQuery(SQLCommand);
         }
@@ -270,7 +267,6 @@ namespace Footlocker.Logistics.Allocation.Services
             _database.ExecuteNonQuery(SQLCommand);
         }
 
-
         public void SaveList(List<SizeAllocation> list)
         {
             DbCommand SQLCommand;
@@ -287,6 +283,5 @@ namespace Footlocker.Logistics.Allocation.Services
 
             _database.ExecuteNonQuery(SQLCommand);
         }
-
     }
 }

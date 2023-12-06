@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
-using Footlocker.Common;
 using Telerik.Web.Mvc;
 
 namespace Footlocker.Logistics.Allocation.Controllers
@@ -49,7 +47,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         [GridAction]
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,Admin,Support")]
-        public ActionResult _StoreDefaults(int InstanceID, Int64 ItemID)
+        public ActionResult _StoreDefaults(int InstanceID, long ItemID)
         {
             List<MandatoryCrossdockDefault> model = (from a in db.MandatoryCrossdockDefaults where ((a.InstanceID == InstanceID) && (a.ItemID == ItemID)) select a).ToList();
             return View(new GridModel(model));
@@ -59,7 +57,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <summary>
         /// Add a default store for the sku
         /// </summary>
-        public JsonResult AddStore(int instanceid, Int64 itemid, string store, int percent)
+        public JsonResult AddStore(int instanceid, long itemid, string store, int percent)
         {
             store = store.PadLeft(5, '0');
             try
@@ -89,11 +87,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-
         /// <summary>
         /// Remove a default store for the sku
         /// </summary>
-        public JsonResult DeleteStore(int instanceid, Int64 itemid, string store)
+        public JsonResult DeleteStore(int instanceid, long itemid, string store)
         {
             try
             {
@@ -113,7 +110,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <summary>
         /// Add a store to the range plan (planID)
         /// </summary>
-        public JsonResult GetMessage(int instanceid, Int64 itemid)
+        public JsonResult GetMessage(int instanceid, long itemid)
         {
             try
             {
@@ -131,8 +128,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-
-        public ActionResult Edit(int instanceID, Int64 itemID)
+        public ActionResult Edit(int instanceID, long itemID)
         {
 
             EditMandatoryCrossdock model = new EditMandatoryCrossdock();
@@ -202,28 +198,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("Edit", new { instanceID = model.MandatoryCrossdock.InstanceID, itemID = model.MandatoryCrossdock.ItemID });
         }
 
-
         [AcceptVerbs(HttpVerbs.Post)]
         [GridAction]
         public ActionResult _SaveStoreDefaults([Bind(Prefix = "updated")]IEnumerable<MandatoryCrossdockDefault> updated)
         {
             int instanceid=0;
-            Int64 itemid=0;
+            long itemid =0;
             foreach (MandatoryCrossdockDefault mcd in updated)
             {
                 db.Entry(mcd).State = System.Data.EntityState.Modified;
                 instanceid = mcd.InstanceID;
                 itemid = mcd.ItemID;
             }
+
             db.SaveChanges(UserName);
 
             List<MandatoryCrossdockDefault> model = (from a in db.MandatoryCrossdockDefaults where ((a.InstanceID == instanceid) && (a.ItemID == itemid)) select a).ToList();
 
             return View(new GridModel(model));
-
         }
 
-        public ActionResult Delete(int instanceID, Int64 itemID)
+        public ActionResult Delete(int instanceID, long itemID)
         {
             EditMandatoryCrossdock model = new EditMandatoryCrossdock();
             model.MandatoryCrossdock = (from a in db.MandatoryCrossdocks where ((a.InstanceID == instanceID) && (a.ItemID == itemID)) select a).First();
@@ -238,13 +233,5 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return RedirectToAction("Index");
         }
-        //[HttpPost]
-        //public ActionResult Edit(EditMandatoryCrossdock model)
-        //{
-        //    //TODO save the edits (crossdock defaults)
-        //    return View(model);
-        //}
-
-
     }
 }

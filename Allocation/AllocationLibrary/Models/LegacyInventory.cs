@@ -1,18 +1,9 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="LegacyInventory.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel.DataAnnotations.Schema;
-
     /// <summary>
     /// Inventory from input file from legacy (mainframe) system.
     /// </summary>
@@ -55,6 +46,5 @@ namespace Footlocker.Logistics.Allocation.Models
             }
             set { }
         }
-
     }
 }

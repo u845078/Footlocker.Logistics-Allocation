@@ -132,7 +132,6 @@
     <Compile Include="Factories\SizeAllocationFactory.cs" />
     <Compile Include="Factories\WarehouseInventoryFactory.cs" />
     <Compile Include="Factories\WSMFactory.cs" />
-    <Compile Include="Models\AccessControl.cs" />
     <Compile Include="Models\ActiveHolds.cs" />
     <Compile Include="Models\AllocationDivision.cs" />
     <Compile Include="Models\AllocationDriver.cs" />
@@ -269,7 +268,6 @@
     <Compile Include="Models\ValidStoreLookup.cs" />
     <Compile Include="Models\VendorGroup.cs" />
     <Compile Include="Models\VendorGroupDetail.cs" />
-    <Compile Include="Models\VendorGroupLeadTime.cs" />
     <Compile Include="Models\Vendors.cs" />
     <Compile Include="Models\WarehouseAllocationType.cs" />
     <Compile Include="Models\WarehouseBlackout.cs" />
@@ -298,7 +296,6 @@
     <Compile Include="Services\ExistingPODAO.cs" />
     <Compile Include="Services\FamilyOfBusinessDAO.cs" />
     <Compile Include="Services\NetworkZoneStoreDAO.cs" />
-    <Compile Include="Services\PickService.cs" />
     <Compile Include="Services\PurgeArchiveDAO.cs" />
     <Compile Include="Services\QuantumDAO.cs" />
     <Compile Include="Services\RangeFileItemDAO.cs" />

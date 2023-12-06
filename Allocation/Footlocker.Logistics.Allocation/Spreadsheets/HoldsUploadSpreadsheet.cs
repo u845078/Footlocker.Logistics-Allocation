@@ -202,7 +202,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     {
                         //validate values dependent on business logic and sql server data type restrictions
                         holdService.Hold = hold;
-                        hold.ErrorMessage = holdService.ValidateHold(false, false, true);
+                        hold.ErrorMessage = holdService.ValidateHold(false, true);
                     }
 
                     List<Hold> erroredHolds = validHolds.Where(vh => !string.IsNullOrEmpty(vh.ErrorMessage)).ToList();

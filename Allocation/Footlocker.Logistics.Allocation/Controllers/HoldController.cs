@@ -421,74 +421,87 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                string validationMessage = holdService.ValidateHold(model.RuleSetID > 0, false, false);
+                model.Hold.CreateDate = DateTime.Now;
+                model.Hold.CreatedBy = currentUser.NetworkID;
 
-                if (!string.IsNullOrEmpty(validationMessage))
+                if (currentUser.GetUserDivisions(AppName).Exists(d => d.DivCode == model.Hold.Division))
                 {
-                    ViewData["message"] = validationMessage;
-                    model.Divisions = currentUser.GetUserDivisions(AppName);
-                    return View(model);
-                }
-                else
-                {
-                    model.Hold.CreateDate = DateTime.Now;
-                    model.Hold.CreatedBy = currentUser.NetworkID;
-                    //TODO:  Do we want dept level security on holds???
-                    if (currentUser.GetUserDivisions(AppName).Exists(d => d.DivCode == model.Hold.Division))
+                    if (model.Hold.Level == "Sku" && model.Hold.Division != model.Hold.Value.Substring(0, 2))
                     {
-                        if (model.Hold.Level == "Sku" && model.Hold.Division != model.Hold.Value.Substring(0, 2))
+                        ViewData["message"] = "Invalid Sku, division does not match selection.";
+                        model.Divisions = currentUser.GetUserDivisions(AppName);
+                        return View(model);
+                    }
+                    else
+                    {
+                        if (model.RuleSetID == 0)
                         {
-                            ViewData["message"] = "Invalid Sku, division does not match selection.";
-                            model.Divisions = currentUser.GetUserDivisions(AppName);
-                            return View(model);
-                        }
-                        else
-                        {
-                            if (model.RuleSetID == 0)
+                            string validationMessage = holdService.ValidateHold(false, false);
+
+                            if (!string.IsNullOrEmpty(validationMessage))
+                            {
+                                ViewData["message"] = validationMessage;
+                                model.Divisions = currentUser.GetUserDivisions(AppName);
+                                return View(model);
+                            }
+                            else
                             {
                                 db.Holds.Add(model.Hold);
                                 db.SaveChanges();
                                 ApplyHoldsToExistingWebPicks(model.Hold);
                                 return RedirectToAction("Index", new { duration = model.Hold.Duration });
                             }
-                            else
+                        }
+                        else
+                        {
+                            //create hold for each store
+                            RuleDAO dao = new RuleDAO();
+                            Hold h;
+                            foreach (StoreLookup s in dao.GetRuleSelectedStoresInRuleSet(model.RuleSetID))
                             {
-                                //create hold for each store
-                                RuleDAO dao = new RuleDAO();
-                                Hold h;
-                                foreach (StoreLookup s in dao.GetRuleSelectedStoresInRuleSet(model.RuleSetID))
+                                h = new Hold()
                                 {
-                                    h = new Hold()
-                                    {
-                                        Store = s.Store,
-                                        Division = s.Division,
-                                        Comments = model.Hold.Comments,
-                                        Duration = model.Hold.Duration,
-                                        EndDate = model.Hold.EndDate,
-                                        HoldType = model.Hold.HoldType,
-                                        Level = model.Hold.Level,
-                                        ReserveInventory = model.Hold.ReserveInventory,
-                                        StartDate = model.Hold.StartDate,
-                                        Value = model.Hold.Value,
-                                        CreateDate = model.Hold.CreateDate,
-                                        CreatedBy = model.Hold.CreatedBy
-                                    };
+                                    Store = s.Store,
+                                    Division = s.Division,
+                                    Comments = model.Hold.Comments,
+                                    Duration = model.Hold.Duration,
+                                    EndDate = model.Hold.EndDate,
+                                    HoldType = model.Hold.HoldType,
+                                    Level = model.Hold.Level,
+                                    ReserveInventory = model.Hold.ReserveInventory,
+                                    StartDate = model.Hold.StartDate,
+                                    Value = model.Hold.Value,
+                                    CreateDate = model.Hold.CreateDate,
+                                    CreatedBy = model.Hold.CreatedBy
+                                };
 
+                                holdService.Hold = h;
+
+                                string validationMessage = holdService.ValidateHold(false, false);
+
+                                if (!string.IsNullOrEmpty(validationMessage))
+                                {
+                                    ViewData["message"] = validationMessage;
+                                    model.Divisions = currentUser.GetUserDivisions(AppName);
+                                    return View(model);
+                                }
+                                else
+                                {
                                     db.Holds.Add(h);
                                     db.SaveChanges();
-
                                     ApplyHoldsToExistingWebPicks(h);
                                 }
-                                return RedirectToAction("Index", new { duration = model.Hold.Duration });
                             }
+
+                            return RedirectToAction("Index", new { duration = model.Hold.Duration });
                         }
                     }
-                    else
-                    {
-                        ViewData["message"] = "You are not authorized to create holds for this division.";
-                        model.Divisions = currentUser.GetUserDivisions(AppName);
-                        return View(model);
-                    }
+                }
+                else
+                {
+                    ViewData["message"] = "You are not authorized to create holds for this division.";
+                    model.Divisions = currentUser.GetUserDivisions(AppName);
+                    return View(model);
                 }
             }
         }
@@ -504,6 +517,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     needsave = true;
                     rdq.Status = "REJECTED";
+                    rdq.RDQRejectedReasonCode = 13;
                     db.Entry(rdq).State = System.Data.EntityState.Modified;
                 }
                 else if (rdq.Status.Contains("WEB PICK"))
@@ -540,7 +554,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 Hold = model.Hold
             };
             
-            string validationMessage = holdService.ValidateHold(false, true, false);
+            string validationMessage = holdService.ValidateHold(true, false);
             
             if (model.OriginalStartDate > model.Hold.StartDate)            
                 validationMessage = "Start date must be after original start date of hold";
@@ -636,7 +650,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 holdService.Hold = h;                
                 
-                string tempvalidationMessage = holdService.ValidateHold(false, true, false);
+                string tempvalidationMessage = holdService.ValidateHold(true, false);
                 
                 if (startdate > model.Hold.StartDate)                
                     tempvalidationMessage = string.Format("Start date must be after original start date of hold for store {0}<br>", h.Store);                
@@ -698,7 +712,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     h.Comments = model.Hold.Comments;                
 
                 holdService.Hold = h;
-                string tempvalidationMessage = holdService.ValidateHold(false, true, false);
+                string tempvalidationMessage = holdService.ValidateHold(true, false);
                 
                 if (startdate > model.Hold.StartDate)                
                     tempvalidationMessage = "Start date must be after original start date of hold for store " + h.Store + "<br>";                

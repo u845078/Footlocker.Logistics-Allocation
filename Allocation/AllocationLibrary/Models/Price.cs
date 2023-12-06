@@ -1,26 +1,14 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="Price.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel.DataAnnotations.Schema;
-
-    /// <summary>
-    /// TODO: Update summary.
-    /// </summary>
     public class Price
     {
         [Key]
         [Column(Order=0)]
-        public Int32 InstanceID { get; set; }
+        public int InstanceID { get; set; }
         [Key]
         [Column(Order = 1)]
         public string Division { get; set; }
@@ -30,10 +18,9 @@ namespace Footlocker.Logistics.Allocation.Models
         [Key]
         [Column(Order = 3)]
         public string Stock { get; set; }
-        public Decimal RetailPrice { get; set; }
-        public Decimal SalePrice { get; set; }
+        public decimal RetailPrice { get; set; }
+        public decimal SalePrice { get; set; }
         public DateTime BusinessDate { get; set; }
-        public Decimal ItemCost { get; set; }
-
+        public decimal ItemCost { get; set; }
     }
 }

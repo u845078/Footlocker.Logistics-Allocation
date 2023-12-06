@@ -1,12 +1,4 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="StoreBase.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
-
-using System;
-
-namespace Footlocker.Logistics.Allocation.Models
+﻿namespace Footlocker.Logistics.Allocation.Models
 {
     public class StoreBase
     {

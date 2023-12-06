@@ -1,19 +1,8 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="ValidStoreLookup.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel.DataAnnotations.Schema;
-    using System.Xml;
-
     /// <summary>
     /// Basically the same as StoreLookup, but we get it back from our vValidStores view (for open, nonexcluded stores)
     /// Entity Framework wouldn't let us inherit from StoreLookup, which was the preferred approach.  May want to revisit later.
@@ -49,7 +38,6 @@ namespace Footlocker.Logistics.Allocation.Models
             get { return _region; }
             set { _region = value; }
         }
-
 
         private string _league;
 
@@ -128,7 +116,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public string AdHoc11 { get; set; }
         public string AdHoc12 { get; set; }
 
-        public string status { get; set; }
+        public string Status { get; set; }
 
 
         [NotMapped]

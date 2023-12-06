@@ -1,20 +1,7 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="RingFenceSizeSummary.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-using System.ComponentModel.DataAnnotations;
-
-    /// <summary>
-    /// TODO: Update summary.
-    /// </summary>
     public class RingFenceSizeSummary
     {
         public string Size { get; set; }
@@ -26,6 +13,5 @@ using System.ComponentModel.DataAnnotations;
         public int CaselotQty { get; set; }
         [Display(Name = "Bin Units")]
         public int BinQty { get; set; }
-
     }
 }

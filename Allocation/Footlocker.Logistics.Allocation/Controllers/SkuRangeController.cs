@@ -753,7 +753,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
                 if (currentTotal.StartDate != sa.StartDate || currentTotal.EndDate != sa.EndDate)
                 {
-                    //TODO, show on screen that all dates aren't the same
+                    //show on screen that all dates aren't the same
                     currentTotal.ModifiedDates = true;
                 }
 

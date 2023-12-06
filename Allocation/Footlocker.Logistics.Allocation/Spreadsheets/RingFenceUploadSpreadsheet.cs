@@ -660,7 +660,14 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     {                        
                         foreach (RingFenceUploadModel rf in explodingEcomRingFences)
                         {
-                            ecomRFs.Add(new EcommRingFence(rf.SKU, rf.Size, rf.PO, rf.Quantity, rf.Comments));
+                            ecomRFs.Add(new EcommRingFence()
+                            {
+                                Sku = rf.SKU, 
+                                Size = rf.Size, 
+                                PO = rf.PO,
+                                Qty = rf.Quantity, 
+                                Comments = rf.Comments
+                            });
                         }
 
                         // process ecom explosion ringfences                        

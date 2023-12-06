@@ -1,21 +1,9 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="MandatoryCrossdockDefault.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel.DataAnnotations.Schema;
-
-    /// <summary>
-    /// TODO: Update summary.
-    /// </summary>
     public class MandatoryCrossdockDefault
     {
         [Key]
@@ -24,7 +12,7 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [Key]
         [Column(Order = 1)]
-        public Int64 ItemID { get; set; }
+        public long ItemID { get; set; }
 
         [Key]
         [Column(Order = 2)]
@@ -39,7 +27,8 @@ namespace Footlocker.Logistics.Allocation.Models
         [NotMapped]
         public int PercentAsInt 
         {
-            get {
+            get 
+            {
                 return Convert.ToInt32(Percent * 100);
             }
 

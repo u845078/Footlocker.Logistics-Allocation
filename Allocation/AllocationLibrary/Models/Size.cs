@@ -1,17 +1,8 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="Size.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
-    using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel.DataAnnotations.Schema;
-
-    /// <summary>
-    /// TODO: Update summary.
-    /// </summary>
     [Table("Sizes")]
     public class SizeObj
     {

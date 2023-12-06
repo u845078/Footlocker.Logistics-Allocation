@@ -1,19 +1,9 @@
 ﻿namespace Footlocker.Logistics.Allocation.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-
-    /// <summary>
-    /// TODO: Update summary.
-    /// </summary>
     public class RangeFileItem 
     {
         #region Fields
-
         private readonly string _DEFAULT_END_OF_TIME_DATE_VALUE = "99991231";
-
         #endregion
 
         private bool valid = true;
@@ -34,8 +24,7 @@
             get
             {
                 try
-                {
-                    //return SkuSize.Substring(0, 14);
+                {                    
                     return ProductIdent.Substring(0, 2) + "-" + ProductIdent.Substring(2, 2) + "-" + ProductIdent.Substring(4, 5) + "-" + ProductIdent.Substring(9, 2);
                 }
                 catch
@@ -145,6 +134,5 @@
         public string LearningTransitionCode { get; set; }
         public string MinEndDate { get; set; }
         public bool Ranged { get; set; }
-
     }
 }

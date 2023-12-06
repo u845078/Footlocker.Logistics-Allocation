@@ -580,7 +580,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RuleDAO dao = new RuleDAO();
             try
             {
-                // TODO: Add delete logic here
                 Rule rule = db.Rules.Where(r => r.ID == id).First();
                 RuleSet rs = dao.GetRuleSet(rule.RuleSetID);                
                 
@@ -612,7 +611,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RuleDAO dao = new RuleDAO();
             try
             {
-                // TODO: Add update logic here
                 Rule rule = db.Rules.Where(r => r.ID == id).First();
                 long planID = dao.GetPlanID(id);
 
