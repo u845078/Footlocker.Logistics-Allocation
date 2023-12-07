@@ -10,7 +10,7 @@ using System.Drawing;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class SeasonalitySpreadsheet : UploadSpreadsheet
+    public class SeasonalitySpreadsheet : UploadExcelSpreadsheet
     {
         public List<StoreSeasonalityDetail> errorList = new List<StoreSeasonalityDetail>();
         public List<StoreSeasonalityDetail> validData = new List<StoreSeasonalityDetail>();

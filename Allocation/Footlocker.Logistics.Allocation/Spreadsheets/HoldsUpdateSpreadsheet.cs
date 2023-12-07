@@ -7,7 +7,7 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class HoldsUpdateSpreadsheet : UploadSpreadsheet
+    public class HoldsUpdateSpreadsheet : UploadExcelSpreadsheet
     {
         public HoldsUpdateSpreadsheet(AppConfig config, ConfigService configService) : base(config, configService)
         {
@@ -24,7 +24,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             columns.Add(7, "Hold Type");
             columns.Add(8, "Comments");
 
-            templateFilename = config.HoldsUploadTemplate;
+            templateFilename = config.HoldUpdateTemplate;
         }
     }
 }

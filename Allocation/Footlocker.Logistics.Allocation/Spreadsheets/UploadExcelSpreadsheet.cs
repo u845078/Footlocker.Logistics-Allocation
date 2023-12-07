@@ -8,7 +8,7 @@ using Footlocker.Logistics.Allocation.Services;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    abstract public class UploadSpreadsheet : BaseSpreadsheet
+    abstract public class UploadExcelSpreadsheet : BaseExcelSpreadsheet
     {
         public string message = string.Empty;
         public Worksheet worksheet;
@@ -55,7 +55,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             worksheet = workbook.Worksheets[0];
         }
 
-        protected UploadSpreadsheet(AppConfig config, ConfigService configService) : base(config)
+        protected UploadExcelSpreadsheet(AppConfig config, ConfigService configService) : base(config)
         {            
             this.configService = configService;
         }

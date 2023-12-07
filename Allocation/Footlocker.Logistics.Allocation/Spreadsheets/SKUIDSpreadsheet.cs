@@ -110,7 +110,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         }
     }
 
-    public class SKUIDSpreadsheet : UploadSpreadsheet
+    public class SKUIDSpreadsheet : UploadExcelSpreadsheet
     {
         string ftpFileName;
         string mainDivision;

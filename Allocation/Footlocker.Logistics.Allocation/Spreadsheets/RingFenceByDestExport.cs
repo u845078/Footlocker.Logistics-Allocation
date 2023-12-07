@@ -6,7 +6,7 @@ using Footlocker.Logistics.Allocation.Common;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class RingFenceByDestExport : ExportSpreadsheet
+    public class RingFenceByDestExport : ExportExcelSpreadsheet
     {
         public void WriteData(string div, string store)
         {

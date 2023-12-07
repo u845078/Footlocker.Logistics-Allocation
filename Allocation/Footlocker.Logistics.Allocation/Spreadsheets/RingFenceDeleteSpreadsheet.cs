@@ -10,7 +10,7 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class RingFenceDeleteSpreadsheet : UploadSpreadsheet
+    public class RingFenceDeleteSpreadsheet : UploadExcelSpreadsheet
     {
         public List<RingFenceUploadModel> errorList = new List<RingFenceUploadModel>();
         public List<RingFenceUploadModel> validRingFenceDeletes = new List<RingFenceUploadModel>();

@@ -11,7 +11,7 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class RDQRestrictionsSpreadsheet : UploadSpreadsheet
+    public class RDQRestrictionsSpreadsheet : UploadExcelSpreadsheet
     {
         public List<RDQRestriction> validRecs = new List<RDQRestriction>();
         public List<Tuple<RDQRestriction, string>> errorList = new List<Tuple<RDQRestriction, string>>();

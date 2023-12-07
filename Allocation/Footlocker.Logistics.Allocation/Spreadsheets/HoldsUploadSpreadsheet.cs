@@ -11,7 +11,7 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class HoldsUploadSpreadsheet : UploadSpreadsheet
+    public class HoldsUploadSpreadsheet : UploadExcelSpreadsheet
     {
         public List<Hold> validHolds = new List<Hold>();
         public List<Hold> errorList = new List<Hold>();

@@ -10,7 +10,7 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class CrossdockLinkSpreadsheet : UploadSpreadsheet
+    public class CrossdockLinkSpreadsheet : UploadExcelSpreadsheet
     {
         public List<POCrossdockData> errorList = new List<POCrossdockData>();
         public List<POCrossdockData> validPOCrossdocks = new List<POCrossdockData>();

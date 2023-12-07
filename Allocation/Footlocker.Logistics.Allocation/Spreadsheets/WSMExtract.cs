@@ -8,7 +8,7 @@ using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class WSMExtract : ExportSpreadsheet
+    public class WSMExtract : ExportExcelSpreadsheet
     {
         readonly QuantumDAO quantumDAO;
 

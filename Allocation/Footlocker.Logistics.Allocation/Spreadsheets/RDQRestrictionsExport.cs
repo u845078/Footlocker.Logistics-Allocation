@@ -10,7 +10,7 @@ using System.Runtime;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class RDQRestrictionsExport : ExportSpreadsheet
+    public class RDQRestrictionsExport : ExportExcelSpreadsheet
     {
         public void WriteData(IList<IFilterDescriptor> filterDescriptors)
         {

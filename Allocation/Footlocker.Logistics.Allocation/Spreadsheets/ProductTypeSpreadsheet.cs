@@ -13,7 +13,7 @@ using System.Drawing;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class ProductTypeSpreadsheet : UploadSpreadsheet
+    public class ProductTypeSpreadsheet : UploadExcelSpreadsheet
     {
         readonly ProductTypeDAO productTypeDAO;
         public List<ProductType> validRows = new List<ProductType>();

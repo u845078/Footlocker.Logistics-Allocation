@@ -10,7 +10,7 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class VendorGroupSpreadsheet : UploadSpreadsheet
+    public class VendorGroupSpreadsheet : UploadExcelSpreadsheet
     {
         readonly VendorGroupDetailDAO vendorGroupDAO; 
         public List<VendorGroupDetail> errorList = new List<VendorGroupDetail>();

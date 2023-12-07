@@ -8,7 +8,7 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class SkuAttributeSpreadsheet : UploadSpreadsheet
+    public class SkuAttributeSpreadsheet : UploadExcelSpreadsheet
     {
         public List<SkuAttributeHeader> parsedSKUAttributes = new List<SkuAttributeHeader>();
         public List<SkuAttributeHeader> validSKUAttributes = new List<SkuAttributeHeader>();

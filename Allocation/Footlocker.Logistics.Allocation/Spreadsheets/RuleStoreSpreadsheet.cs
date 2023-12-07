@@ -8,7 +8,7 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class RuleStoreSpreadsheet : UploadSpreadsheet
+    public class RuleStoreSpreadsheet : UploadExcelSpreadsheet
     {
         public List<StoreBase> LoadedStores = new List<StoreBase>();
         public string MainDivision;

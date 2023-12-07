@@ -12,7 +12,7 @@ using System.Runtime.Remoting.Messaging;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class SkuAttributeExport : ExportSpreadsheet
+    public class SkuAttributeExport : ExportExcelSpreadsheet
     {
         public string headerFileName;
 

@@ -86,7 +86,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         }
     }
 
-    public class ServiceTypeSpreadsheet : UploadSpreadsheet
+    public class ServiceTypeSpreadsheet : UploadExcelSpreadsheet
     {
         readonly MainframeDAO mainframeDAO;
         string mainDivision;

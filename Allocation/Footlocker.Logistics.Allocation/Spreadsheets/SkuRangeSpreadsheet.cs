@@ -13,7 +13,7 @@ using Microsoft.Practices.EnterpriseLibrary.Common.Utility;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class SkuRangeSpreadsheet : UploadSpreadsheet
+    public class SkuRangeSpreadsheet : UploadExcelSpreadsheet
     {
         public List<BulkRange> errorList = new List<BulkRange>();
         public List<BulkRange> validRanges = new List<BulkRange>();

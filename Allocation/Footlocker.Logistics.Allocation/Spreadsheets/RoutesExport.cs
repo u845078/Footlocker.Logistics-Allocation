@@ -7,7 +7,7 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class RoutesExport : ExportSpreadsheet
+    public class RoutesExport : ExportExcelSpreadsheet
     {
         public void WriteData(int instanceID)
         {

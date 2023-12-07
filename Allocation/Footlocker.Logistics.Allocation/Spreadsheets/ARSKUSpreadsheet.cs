@@ -7,7 +7,7 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class ARSKUSpreadsheet : UploadSpreadsheet
+    public class ARSKUSpreadsheet : UploadExcelSpreadsheet
     {
         public List<DirectToStoreSku> parsedARSKUs = new List<DirectToStoreSku>();
 

@@ -4,7 +4,7 @@ using Footlocker.Logistics.Allocation.Common;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    abstract public class BaseSpreadsheet
+    abstract public class BaseExcelSpreadsheet
     {
         public string templateFilename;
         public AppConfig config;
@@ -24,7 +24,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             return excelDocument;
         }
 
-        public BaseSpreadsheet(AppConfig config)
+        public BaseExcelSpreadsheet(AppConfig config)
         {
             this.config = config;
 

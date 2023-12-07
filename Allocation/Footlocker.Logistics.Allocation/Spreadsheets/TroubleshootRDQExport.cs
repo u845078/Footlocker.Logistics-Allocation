@@ -6,7 +6,7 @@ using Footlocker.Logistics.Allocation.Services;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class TroubleshootRDQExport : ExportSpreadsheet
+    public class TroubleshootRDQExport : ExportExcelSpreadsheet
     {
         readonly private RDQDAO rdqDAO;
 

@@ -8,7 +8,7 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class ZoneStoreExport : ExportSpreadsheet
+    public class ZoneStoreExport : ExportExcelSpreadsheet
     {
         public void WriteData(int instanceID)
         {

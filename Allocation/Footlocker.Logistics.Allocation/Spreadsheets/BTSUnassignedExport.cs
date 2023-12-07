@@ -8,7 +8,7 @@ using System.Globalization;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class BTSUnassignedExport : ExportSpreadsheet
+    public class BTSUnassignedExport : ExportExcelSpreadsheet
     {
         readonly MainframeStoreDAO mainframeStoreDAO;
 

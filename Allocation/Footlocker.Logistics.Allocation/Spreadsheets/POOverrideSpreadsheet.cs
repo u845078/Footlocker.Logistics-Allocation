@@ -12,7 +12,7 @@ using System.Web.ApplicationServices;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class POOverrideSpreadsheet : UploadSpreadsheet
+    public class POOverrideSpreadsheet : UploadExcelSpreadsheet
     {
         readonly ExistingPODAO existingPODAO;
         public List<ExpeditePO> validRecs = new List<ExpeditePO>();

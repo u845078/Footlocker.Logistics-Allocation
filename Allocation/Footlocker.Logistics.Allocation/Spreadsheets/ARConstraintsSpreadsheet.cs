@@ -7,7 +7,7 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class ARConstraintsSpreadsheet : UploadSpreadsheet
+    public class ARConstraintsSpreadsheet : UploadExcelSpreadsheet
     {
         public List<DirectToStoreConstraint> parsedARConstraints = new List<DirectToStoreConstraint>();
 

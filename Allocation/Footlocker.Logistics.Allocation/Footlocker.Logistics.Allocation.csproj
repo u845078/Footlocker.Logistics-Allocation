@@ -221,13 +221,13 @@
     <Compile Include="Common\AppConfig.cs" />
     <Compile Include="Spreadsheets\ARConstraintsSpreadsheet.cs" />
     <Compile Include="Spreadsheets\ARSKUSpreadsheet.cs" />
-    <Compile Include="Spreadsheets\BaseSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\BaseExcelSpreadsheet.cs" />
     <Compile Include="Spreadsheets\BTSSpreadsheet.cs" />
     <Compile Include="Spreadsheets\BTSUnassignedExport.cs" />
     <Compile Include="Spreadsheets\CrossdockLinkSpreadsheet.cs" />
     <Compile Include="Common\DeleteValidationException.cs" />
     <Compile Include="Common\ExistsValidationException.cs" />
-    <Compile Include="Spreadsheets\ExportSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\ExportExcelSpreadsheet.cs" />
     <Compile Include="Common\Extensions.cs" />
     <Compile Include="Common\Filters\HandleAjaxError.cs" />
     <Compile Include="Common\Filters\HandleAjaxValidationError.cs" />
@@ -259,7 +259,7 @@
     <Compile Include="Spreadsheets\StoreNSSExport.cs" />
     <Compile Include="Spreadsheets\StoreSpreadsheet.cs" />
     <Compile Include="Spreadsheets\TroubleshootRDQExport.cs" />
-    <Compile Include="Spreadsheets\UploadSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\UploadExcelSpreadsheet.cs" />
     <Compile Include="Spreadsheets\VendorGroupSpreadsheet.cs" />
     <Compile Include="Spreadsheets\WebPickSpreadsheet.cs" />
     <Compile Include="Controllers\AppController.cs" />

@@ -8,7 +8,7 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class SKURangePlanDGSpreadsheet : UploadSpreadsheet
+    public class SKURangePlanDGSpreadsheet : UploadExcelSpreadsheet
     {
         public List<DeliveryGroupUploadModel> parsedDeliveryGroups = new List<DeliveryGroupUploadModel>();
         public List<DeliveryGroupUploadModel> errorList = new List<DeliveryGroupUploadModel>();

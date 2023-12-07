@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class SKURangeStoreExport : ExportSpreadsheet
+    public class SKURangeStoreExport : ExportExcelSpreadsheet
     {
         readonly RangePlanDAO rangeDAO;
 

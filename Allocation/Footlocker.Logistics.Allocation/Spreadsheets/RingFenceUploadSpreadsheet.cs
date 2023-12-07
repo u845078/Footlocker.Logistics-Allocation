@@ -15,7 +15,7 @@ using Telerik.Web.Mvc.Extensions;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class RingFenceUploadSpreadsheet : UploadSpreadsheet
+    public class RingFenceUploadSpreadsheet : UploadExcelSpreadsheet
     {
         public List<RingFenceUploadModel> errorList = new List<RingFenceUploadModel>();
         public List<RingFenceUploadModel> validRingFences = new List<RingFenceUploadModel>();

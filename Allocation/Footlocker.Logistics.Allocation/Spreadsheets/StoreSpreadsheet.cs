@@ -8,7 +8,7 @@ using Footlocker.Logistics.Allocation.Common;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class StoreSpreadsheet : UploadSpreadsheet
+    public class StoreSpreadsheet : UploadExcelSpreadsheet
     {
         readonly RangePlanDAO rangeDAO;   
         readonly RuleDAO ruleDAO;

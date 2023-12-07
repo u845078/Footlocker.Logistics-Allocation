@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class StoreNSSExport : ExportSpreadsheet
+    public class StoreNSSExport : ExportExcelSpreadsheet
     {
         public StoreNSSExport(AppConfig config, NetworkZoneStoreDAO nssStoreDAO) : base(config)
         {

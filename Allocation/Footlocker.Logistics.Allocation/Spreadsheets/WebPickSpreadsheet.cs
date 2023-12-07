@@ -10,7 +10,7 @@ using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class WebPickSpreadsheet : UploadSpreadsheet
+    public class WebPickSpreadsheet : UploadExcelSpreadsheet
     {
         List<RDQ> parsedRDQs = new List<RDQ>();
         public List<RDQ> validRDQs = new List<RDQ>();

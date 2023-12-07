@@ -7,7 +7,7 @@ using Aspose.Excel;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class LostSalesExtract : ExportSpreadsheet
+    public class LostSalesExtract : ExportExcelSpreadsheet
     {
         readonly QuantumDAO quantumDAO;
 

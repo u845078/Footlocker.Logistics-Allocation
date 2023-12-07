@@ -10,7 +10,7 @@ using System.Drawing;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class BTSSpreadsheet : UploadSpreadsheet
+    public class BTSSpreadsheet : UploadExcelSpreadsheet
     {
         public List<StoreBTSDetail> errorList = new List<StoreBTSDetail>();
         public List<StoreBTSDetail> validData = new List<StoreBTSDetail>();

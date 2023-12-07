@@ -1490,7 +1490,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
         #endregion
 
-        #region Holds Delete Upload
+        #region Holds Updates Upload
         public ActionResult UploadHoldsUpdates()
         {
             return View();

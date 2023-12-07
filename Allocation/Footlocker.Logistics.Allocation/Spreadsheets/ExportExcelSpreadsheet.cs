@@ -5,7 +5,7 @@ using Aspose.Excel;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    abstract public class ExportSpreadsheet : BaseSpreadsheet
+    abstract public class ExportExcelSpreadsheet : BaseExcelSpreadsheet
     {
         public string message = string.Empty;
         public Worksheet worksheet;
@@ -45,7 +45,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             }
         }
 
-        protected ExportSpreadsheet(AppConfig config) : base (config) 
+        protected ExportExcelSpreadsheet(AppConfig config) : base (config) 
         {            
             worksheetNum = 0;
             currentRow = 0;

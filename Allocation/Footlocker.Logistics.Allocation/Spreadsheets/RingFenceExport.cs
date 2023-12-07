@@ -7,7 +7,7 @@ using Telerik.Web.Mvc;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class RingFenceExport : ExportSpreadsheet
+    public class RingFenceExport : ExportExcelSpreadsheet
     {
         readonly RingFenceDAO ringFenceDAO;
 
