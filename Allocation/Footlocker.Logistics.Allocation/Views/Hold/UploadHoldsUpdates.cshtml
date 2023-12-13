@@ -7,7 +7,7 @@
     <legend>Upload Holds Updates</legend>
     This will mass update Holds<br />
     <br />
-    @Html.ActionLink("Download Template", "ExcelDeleteTemplate", new { }, new { @class = "t-button" })
+    @Html.ActionLink("Download Template", "ExcelUpdateTemplate", new { }, new { @class = "t-button" })
     <br />
     <br />
     <b>The following fields are required in order to change a specified Hold:</b>
@@ -35,7 +35,7 @@
               .Name("attachments")
               .Multiple(true)
               .Async(async => async
-                  .Save("MassDeleteHolds", "Hold")                  
+                  .Save("MassUpdateHolds", "Hold")                  
                   .AutoUpload(false))
                   .ShowFileList(true)
               .ClientEvents(events => events
@@ -68,7 +68,7 @@
         if (message.indexOf("Incorrectly formatted or missing header row") != -1)
         $('#message').empty().append("<font color='red'>" + message + "</font>");
         else
-        $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='DownloadDeleteErrors'>Download Errors</a>");
+        $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='DownloadUpdateErrors'>Download Errors</a>");
 
         e.preventDefault();
     }

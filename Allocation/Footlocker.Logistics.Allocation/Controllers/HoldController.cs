@@ -1496,187 +1496,118 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
-        public ActionResult ExcelDeleteTemplate()
+        public ActionResult ExcelUpdateTemplate()
         {
-            Aspose.Cells.License license = new Aspose.Cells.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Cells.lic");
-                        
-            string templateFilename = Convert.ToString(System.Configuration.ConfigurationManager.AppSettings["HoldsUpdates"]);
-            Workbook excelDocument = new Workbook(System.Web.HttpContext.Current.Server.MapPath(templateFilename));            
-
-            OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
-            excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsUpdates.xlsx", ContentDisposition.Attachment, save);            
+            HoldsUpdateSpreadsheet holdsUpdateSpreadsheet = new HoldsUpdateSpreadsheet(appConfig, configService);
+            holdsUpdateSpreadsheet.GetTemplate().Save(System.Web.HttpContext.Current.Response, "HoldsUpdates.xlsx", ContentDisposition.Attachment, holdsUpdateSpreadsheet.SaveOptions);
             return View();
         }
 
-        public ActionResult MassDeleteHolds(IEnumerable<HttpPostedFileBase> attachments)
+        public ActionResult MassUpdateHolds(IEnumerable<HttpPostedFileBase> attachments)
         {
-            Aspose.Cells.License license = new Aspose.Cells.License();
-            license.SetLicense("C:\\Aspose\\Aspose.Cells.lic");
-            
+            HoldsUpdateSpreadsheet holdsUpdateSpreadsheet = new HoldsUpdateSpreadsheet(appConfig, configService);
+
             foreach (HttpPostedFileBase file in attachments)
             {
-                Workbook workbook = new Workbook(file.InputStream);
-                Aspose.Cells.Worksheet worksheet = workbook.Worksheets[0];
+                holdsUpdateSpreadsheet.Save(file);
 
-                int rows = worksheet.Cells.MaxDataRow;
-                int columns = worksheet.Cells.MaxDataColumn;
+                //List<DataRow> errorData = excelData.AsEnumerable().Where(x => x[7].ToString().Contains("Reserve")).ToList();                    
 
-                DataTable excelData = worksheet.Cells.ExportDataTable(0, 0, rows + 1, columns + 1, new ExportTableOptions() { ExportAsString = true, ExportColumnName = true});
+                //List<HoldsUploadDeleteModel> errorList = new List<HoldsUploadDeleteModel>();
 
-                if (!(excelData.Columns[0].ColumnName == "Division" && excelData.Columns[1].ColumnName == "Store" && excelData.Columns[2].ColumnName == "Level" &&
-                        excelData.Columns[3].ColumnName == "Value" && excelData.Columns[4].ColumnName == "Start Date" && excelData.Columns[5].ColumnName == "End Date" &&
-                        excelData.Columns[6].ColumnName == "Duration" && excelData.Columns[7].ColumnName == "Hold Type" && excelData.Columns[8].ColumnName == "Comments"))
-                {
-                    return Content("Incorrectly formatted or missing header row. Please correct and re-process.");
-                }
+                //foreach (DataRow reserveData in errorData)
+                //{
+                //    HoldsUploadDeleteModel error = new HoldsUploadDeleteModel();
 
-                List<DataRow> errorData = excelData.AsEnumerable().Where(x => x[7].ToString().Contains("Reserve")).ToList();                    
+                //    string division = reserveData["Division"].ToString().Trim();    
+                //    string store = String.IsNullOrEmpty(reserveData["Store"].ToString().Trim()) ? null : reserveData["Store"].ToString().Trim();
+                //    string level = reserveData["Level"].ToString().Trim();
+                //    string value = reserveData["Value"].ToString().Trim();
+                //    DateTime StartDate = DateTime.Parse(reserveData["Start Date"].ToString().Trim());
 
-                List<HoldsUploadDeleteModel> errorList = new List<HoldsUploadDeleteModel>();
+                //    Hold hold = (from a in db.Holds
+                //                 where (a.Division == division) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 1) && 
+                //                        (a.StartDate == StartDate) && (a.Store == store)
+                //                  select a).FirstOrDefault();
 
-                foreach (DataRow reserveData in errorData)
-                {
-                    HoldsUploadDeleteModel error = new HoldsUploadDeleteModel();
+                //    if (hold != null && hold.ReserveInventoryBool)
+                //    {
+                //        RDQDAO dao = new RDQDAO();
+                //        if (dao.GetUniqueRDQsForHold(hold.ID).Count > 0)
+                //        {
+                //            DateTime? dt = null;
+                //            error.Division = division;
+                //            error.Store = store;
+                //            error.Level = level;
+                //            error.Value = value;
+                //            error.StartDate = StartDate;
+                //            error.EndDate = String.IsNullOrEmpty(reserveData["End Date"].ToString().Trim()) ? dt : DateTime.Parse(reserveData["End Date"].ToString().Trim());
+                //            error.Duration = reserveData["Duration"].ToString().Trim();
+                //            error.HoldType = reserveData["Hold Type"].ToString().Trim();
+                //            error.Comments = reserveData["Comments"].ToString().Trim();
+                //            error.ErrorMessage = "You must release all RDQs before you can delete this hold.";
 
-                    string division = reserveData["Division"].ToString().Trim();    
-                    string store = String.IsNullOrEmpty(reserveData["Store"].ToString().Trim()) ? null : reserveData["Store"].ToString().Trim();
-                    string level = reserveData["Level"].ToString().Trim();
-                    string value = reserveData["Value"].ToString().Trim();
-                    DateTime StartDate = DateTime.Parse(reserveData["Start Date"].ToString().Trim());
-
-                    Hold hold = (from a in db.Holds
-                                 where (a.Division == division) && (a.Level == level) && (a.Value == value) && (a.ReserveInventory == 1) && 
-                                        (a.StartDate == StartDate) && (a.Store == store)
-                                  select a).FirstOrDefault();
-
-                    if (hold != null && hold.ReserveInventoryBool)
-                    {
-                        RDQDAO dao = new RDQDAO();
-                        if (dao.GetUniqueRDQsForHold(hold.ID).Count > 0)
-                        {
-                            DateTime? dt = null;
-                            error.Division = division;
-                            error.Store = store;
-                            error.Level = level;
-                            error.Value = value;
-                            error.StartDate = StartDate;
-                            error.EndDate = String.IsNullOrEmpty(reserveData["End Date"].ToString().Trim()) ? dt : DateTime.Parse(reserveData["End Date"].ToString().Trim());
-                            error.Duration = reserveData["Duration"].ToString().Trim();
-                            error.HoldType = reserveData["Hold Type"].ToString().Trim();
-                            error.Comments = reserveData["Comments"].ToString().Trim();
-                            error.ErrorMessage = "You must release all RDQs before you can delete this hold.";
-
-                            errorList.Add(error);
-                            excelData.Rows.Remove(reserveData);
-                        }
-                    }                    
-                }
+                //            errorList.Add(error);
+                //            excelData.Rows.Remove(reserveData);
+                //        }
+                //    }                    
+                //}
                 
-                foreach (DataRow validRows in excelData.Rows)
+                //foreach (DataRow validRows in excelData.Rows)
+                //{
+
+                //    string division = validRows["Division"].ToString().Trim();
+                //    string store = String.IsNullOrEmpty(validRows["Store"].ToString().Trim()) ? null : validRows["Store"].ToString().Trim();
+                //    string level = validRows["Level"].ToString().Trim();
+                //    string value = validRows["Value"].ToString().Trim();
+                //    DateTime StartDate = DateTime.Parse(validRows["Start Date"].ToString().Trim());
+
+                //    Hold hold = (from a in db.Holds
+                //                 where (a.Division == division) && (a.Level == level) && (a.Value == value) &&
+                //                        (a.StartDate == StartDate) && (a.Store == store)
+                //                 select a).FirstOrDefault();
+
+                //    if (hold != null)
+                //    {
+                //        string endDateString = validRows["End Date"].ToString().Trim();
+
+                //        if (!string.IsNullOrEmpty(endDateString))
+                //            hold.EndDate = Convert.ToDateTime(endDateString);
+                //        else
+                //            hold.EndDate = null;
+
+                //        //hold.EndDate = String.IsNullOrEmpty(validRows["End Date"].ToString().Trim()) ? dt : DateTime.Parse(validRows["End Date"].ToString().Trim());
+                //        hold.Duration = validRows["Duration"].ToString().Trim();
+                //        hold.HoldType = validRows["Hold Type"].ToString().Trim();
+                //        hold.Comments = validRows["Comments"].ToString().Trim();
+                //        hold.CreateDate = DateTime.Now;
+                //        hold.CreatedBy = User.Identity.Name;
+
+                //        db.Entry(hold).State = System.Data.EntityState.Modified;
+                //    }
+                //}
+                //db.SaveChanges();
+
+                if (holdsUpdateSpreadsheet.errorList.Count() > 0)
                 {
+                    Session["errorList"] = holdsUpdateSpreadsheet.errorList;
 
-                    string division = validRows["Division"].ToString().Trim();
-                    string store = String.IsNullOrEmpty(validRows["Store"].ToString().Trim()) ? null : validRows["Store"].ToString().Trim();
-                    string level = validRows["Level"].ToString().Trim();
-                    string value = validRows["Value"].ToString().Trim();
-                    DateTime StartDate = DateTime.Parse(validRows["Start Date"].ToString().Trim());
-
-                    Hold hold = (from a in db.Holds
-                                 where (a.Division == division) && (a.Level == level) && (a.Value == value) &&
-                                        (a.StartDate == StartDate) && (a.Store == store)
-                                 select a).FirstOrDefault();
-
-                    if (hold != null)
-                    {
-                        string endDateString = validRows["End Date"].ToString().Trim();
-
-                        if (!string.IsNullOrEmpty(endDateString))
-                            hold.EndDate = Convert.ToDateTime(endDateString);
-                        else
-                            hold.EndDate = null;
-
-                        //hold.EndDate = String.IsNullOrEmpty(validRows["End Date"].ToString().Trim()) ? dt : DateTime.Parse(validRows["End Date"].ToString().Trim());
-                        hold.Duration = validRows["Duration"].ToString().Trim();
-                        hold.HoldType = validRows["Hold Type"].ToString().Trim();
-                        hold.Comments = validRows["Comments"].ToString().Trim();
-                        hold.CreateDate = DateTime.Now;
-                        hold.CreatedBy = User.Identity.Name;
-
-                        db.Entry(hold).State = System.Data.EntityState.Modified;
-                    }
-                }
-                db.SaveChanges();
-
-                if (errorList.Count() > 0)
-                {
-                    Session["errorList"] = errorList;
-
-                    string msg = excelData.Rows.Count + " Successfully uploaded";
-                    // and " + errorList.Count() + " error records downloaded to excel";
-
-                    //Workbook excelDocument = CreateErrorListExcel(errorList);
-
-                    //OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
-                    //excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsErrorList.xlsx", ContentDisposition.Attachment, save);
-                    //excelDocument.Save("HoldsErrorList.xlsx", save);
+                    string msg = string.Format("Successfully updated {0} rows, {1} errors.", holdsUpdateSpreadsheet.validHolds.Count, holdsUpdateSpreadsheet.errorList.Count);
 
                     return Content(msg);
                 }
             }
 
-            return Content("");
+            return Json(new { message = string.Format("{0} Hold(s) updated", holdsUpdateSpreadsheet.validHolds.Count) }, "application/json");
         }
 
-        public ActionResult DownloadDeleteErrors()
+        public ActionResult DownloadUpdateErrors()
         {
-            List<HoldsUploadDeleteModel> errorList = (List<HoldsUploadDeleteModel>)Session["errorList"];
+            List<HoldsUploadUpdateModel> errorList = (List<HoldsUploadUpdateModel>)Session["errorList"];
+            HoldsUpdateSpreadsheet holdsUpdateSpreadsheet = new HoldsUpdateSpreadsheet(appConfig, configService);
+            Workbook excelDocument = holdsUpdateSpreadsheet.GetErrors(errorList);
 
-            Aspose.Cells.License license = new Aspose.Cells.License();
-            license.SetLicense("C:\\Aspose\\Aspose.Cells.lic");
-
-            Workbook excelDocument = RetrieveHoldsExcelFile(true);
-            int row = 1;
-            Aspose.Cells.Worksheet workSheet = excelDocument.Worksheets[0];
-            foreach (HoldsUploadDeleteModel rr in errorList)
-            {
-                Aspose.Cells.Style align = excelDocument.CreateStyle();
-                align.HorizontalAlignment = Aspose.Cells.TextAlignmentType.Right;
-
-                Aspose.Cells.Style date = excelDocument.CreateStyle();
-                date.Number = 14;
-
-                workSheet.Cells[row, 0].PutValue(rr.Division);
-                workSheet.Cells[row, 0].SetStyle(align);
-                workSheet.Cells[row, 1].PutValue(rr.Store);
-                workSheet.Cells[row, 1].SetStyle(align);
-                workSheet.Cells[row, 2].PutValue(rr.Level);
-                workSheet.Cells[row, 2].SetStyle(align);
-                workSheet.Cells[row, 3].PutValue(rr.Value);
-                workSheet.Cells[row, 3].SetStyle(align);
-                workSheet.Cells[row, 4].PutValue(rr.StartDate);
-                workSheet.Cells[row, 4].SetStyle(date);
-                workSheet.Cells[row, 5].PutValue(rr.EndDate);
-                workSheet.Cells[row, 5].SetStyle(date);
-                workSheet.Cells[row, 6].PutValue(rr.Duration);
-                workSheet.Cells[row, 6].SetStyle(align);
-                workSheet.Cells[row, 7].PutValue(rr.HoldType);
-                workSheet.Cells[row, 7].SetStyle(align);
-                workSheet.Cells[row, 8].PutValue(rr.Comments);
-                workSheet.Cells[row, 8].SetStyle(align);
-                workSheet.Cells[row, 9].PutValue(rr.ErrorMessage);
-                workSheet.Cells[row, 9].SetStyle(align);
-                row++;
-            }
-
-            for (int i = 0; i < 10; i++)
-            {
-                workSheet.AutoFitColumn(i);
-            }
-
-            OoxmlSaveOptions save = new OoxmlSaveOptions(SaveFormat.Xlsx);
-            excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsErrorList.xlsx", ContentDisposition.Attachment, save);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsErrorList.xlsx", ContentDisposition.Attachment, holdsUpdateSpreadsheet.SaveOptions);
 
             return View();
         }

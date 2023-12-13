@@ -456,71 +456,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult DownnloadStoreLeadTimes(string div)
         {
-            Aspose.Excel.License license = new Aspose.Excel.License();
-            //Set the license 
-            license.SetLicense("C:\\Aspose\\Aspose.Excel.lic");
+            StoreNSSExport storeNSSExport = new StoreNSSExport(appConfig, configService, new NetworkZoneStoreDAO());
+            storeNSSExport.WriteData(div);
 
-            Excel excelDocument = new Excel();
-            Aspose.Excel.Worksheet mySheet = excelDocument.Worksheets[0];
-            int instanceID = configService.GetInstance(div);
-
-            NetworkZoneStoreDAO networkZoneStoreDAO = new NetworkZoneStoreDAO();
-            List<NetworkZone> list = networkZoneStoreDAO.GetStoreLeadTimes(instanceID);
-
-            List<NetworkZoneStore> storeList;
-
-            int row = 1;
-            mySheet.Cells[0, 0].PutValue("Zone");
-            mySheet.Cells[0, 1].PutValue("Division");
-            mySheet.Cells[0, 2].PutValue("Store");
-            int col = 3;
-            List<int> DCs = new List<int>();
-            List<DistributionCenter> dcList = db.DistributionCenters.ToList();
-
-            foreach (DistributionCenter dc in dcList)
-            {
-                DCs.Add(dc.ID);
-                mySheet.Cells[0, col].PutValue(dc.Name);
-                col++;
-            }
-
-            int rankcol = col-1;
-            for (int i = 1; i <= 5; i++)
-            {
-                mySheet.Cells[0, col].PutValue("Rank " + i);
-                col++;
-            }
-
-            foreach (NetworkZone z in list)
-            {
-                storeList = db.NetworkZoneStores.Where(nzs => nzs.ZoneID == z.ID).ToList();
-
-                foreach (NetworkZoneStore s in storeList)
-                {
-                    if (s.Division == div)
-                    {
-                        mySheet.Cells[row, 0].PutValue(z.Name);
-                        mySheet.Cells[row, 1].PutValue(s.Division);
-                        mySheet.Cells[row, 2].PutValue(s.Store);
-
-                        foreach (StoreLeadTime slt in db.StoreLeadTimes.Where(slt => slt.Store == s.Store && slt.Division == s.Division).ToList())
-                        {
-                            col = 3 + DCs.IndexOf(slt.DCID);
-                            mySheet.Cells[row, col].PutValue(slt.LeadTime);
-                            if (slt.Rank <= 5 && slt.Active)
-                            {
-                                mySheet.Cells[row, rankcol + slt.Rank].PutValue((from a in dcList 
-                                                                                 where a.ID == slt.DCID 
-                                                                                 select a.Name).FirstOrDefault());
-                            }
-                        }
-
-                        row++;
-                    }
-                }
-            }
-
-            excelDocument.Save("StoreLeadTimes.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            storeNSSExport.excelDocument.Save("StoreLeadTimes.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View();
         }
 

@@ -2,14 +2,72 @@
 using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.Services;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
     public class StoreNSSExport : ExportExcelSpreadsheet
     {
-        public StoreNSSExport(AppConfig config, NetworkZoneStoreDAO nssStoreDAO) : base(config)
+        readonly private NetworkZoneStoreDAO networkZoneStoreDAO;
+        private int instanceID;
+
+        public void WriteData(string division)
         {
-            maxColumns = 22;
+            List<NetworkZoneStore> storeList;
+            int col;
+            string dcName;
+
+            instanceID = configService.GetInstance(division);
+            List<NetworkZone> networkZoneList = networkZoneStoreDAO.GetStoreLeadTimes(instanceID);
+            List<DistributionCenter> dcList = config.db.DistributionCenters.ToList();
+            List<StoreLeadTime> storeLeadTimeList = config.db.StoreLeadTimes.Where(slt => slt.Division == division).ToList();
+
+            currentSheet = excelDocument.Worksheets[worksheetNum];
+
+            WriteHeaderRecord();
+
+            foreach (NetworkZone zone in networkZoneList)
+            {
+                storeList = config.db.NetworkZoneStores.Where(nzs => nzs.ZoneID == zone.ID).ToList();
+                foreach (NetworkZoneStore s in storeList)
+                {
+                    if (s.Division == division)
+                    {
+                        currentSheet.Cells[currentRow, 0].PutValue(s.Division);
+                        currentSheet.Cells[currentRow, 1].PutValue(s.Store);
+                        currentSheet.Cells[currentRow, 22].PutValue(zone.Name);
+
+                        foreach (StoreLeadTime slt in storeLeadTimeList.Where(slt => slt.Division == s.Division && 
+                                                                                     slt.Store == s.Store && 
+                                                                                     slt.Active == true && 
+                                                                                     slt.Rank > 0).ToList())
+                        {
+                            col = slt.Rank + 1;
+                            dcName = dcList.Where(dc => dc.ID == slt.DCID).FirstOrDefault().Name;
+
+                            currentSheet.Cells[currentRow, col].PutValue(dcName);
+                            currentSheet.Cells[currentRow, col + 10].PutValue(slt.LeadTime);
+                        }
+
+                        currentRow++;
+                        recordCount++;
+
+                        if (currentRow >= 65535)
+                        {
+                            AutofitColumns();
+                            worksheetNum++;
+                            WriteHeaderRecord();
+                        }
+                    }
+                }
+            }
+
+            AutofitColumns();
+        }
+
+        public StoreNSSExport(AppConfig config, ConfigService configService, NetworkZoneStoreDAO nssStoreDAO) : base(config)
+        {
+            maxColumns = 23;
 
             columns.Add(0, "Division");
             columns.Add(1, "Store");
@@ -33,6 +91,10 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             columns.Add(19, "Leadtime 8");
             columns.Add(20, "Leadtime 9");
             columns.Add(21, "Leadtime 10");
+            columns.Add(22, "Zone");
+
+            this.configService = configService;
+            networkZoneStoreDAO = nssStoreDAO;
         }
     }
 }
