@@ -1588,13 +1588,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 //}
                 //db.SaveChanges();
 
-                if (holdsUpdateSpreadsheet.errorList.Count() > 0)
+                if (!string.IsNullOrEmpty(holdsUpdateSpreadsheet.message))
+                    return Content(holdsUpdateSpreadsheet.message);
+                else
                 {
-                    Session["errorList"] = holdsUpdateSpreadsheet.errorList;
+                    if (holdsUpdateSpreadsheet.errorList.Count() > 0)
+                    {
+                        Session["errorList"] = holdsUpdateSpreadsheet.errorList;
 
-                    string msg = string.Format("Successfully updated {0} rows, {1} errors.", holdsUpdateSpreadsheet.validHolds.Count, holdsUpdateSpreadsheet.errorList.Count);
+                        string msg = string.Format("Successfully updated {0} rows, {1} errors.", holdsUpdateSpreadsheet.validHolds.Count, holdsUpdateSpreadsheet.errorList.Count);
 
-                    return Content(msg);
+                        return Content(msg);
+                    }
                 }
             }
 

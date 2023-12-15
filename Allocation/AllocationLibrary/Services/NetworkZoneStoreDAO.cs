@@ -87,5 +87,42 @@ namespace Footlocker.Logistics.Allocation.Services
 
             return list;
         }
+
+        public int CreateNewZone(string division, string store, string creatingUser)
+        {
+            //create new zone
+            NetworkZone zone = new NetworkZone
+            {
+                Name = string.Format("Zone {0}", store),
+                LeadTimeID = (from a in db.InstanceDivisions
+                              join b in db.NetworkLeadTimes
+                              on a.InstanceID equals b.InstanceID
+                              where a.Division == division
+                              select b.ID).First(),
+                CreateDate = DateTime.Now,
+                CreatedBy = creatingUser
+            };
+
+            // see if there are any zones already out there that have the name of the new zone
+            List<NetworkZone> oldZones = db.NetworkZones.Where(nz => nz.Name == "Zone " + store).ToList();
+
+            foreach (NetworkZone netZone in oldZones)
+            {
+                string newZoneStore = (from nzs in db.NetworkZoneStores
+                                       where nzs.ZoneID == netZone.ID
+                                       orderby nzs.Store
+                                       select nzs.Store).FirstOrDefault();
+
+                netZone.Name = string.Format("Zone {0}", newZoneStore);
+                netZone.CreatedBy = creatingUser;
+                netZone.CreateDate = DateTime.Now;
+                db.Entry(netZone).State = EntityState.Modified;
+            }
+
+            db.NetworkZones.Add(zone);
+            db.SaveChanges();
+
+            return zone.ID;
+        }
     }
 }

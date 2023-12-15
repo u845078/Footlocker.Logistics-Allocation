@@ -219,6 +219,7 @@
     <Compile Include="Common\ActionResultCode.cs" />
     <Compile Include="Common\AjaxValidationException.cs" />
     <Compile Include="Common\AppConfig.cs" />
+    <Compile Include="Models\NSSUpload.cs" />
     <Compile Include="Spreadsheets\ARConstraintsSpreadsheet.cs" />
     <Compile Include="Spreadsheets\ARSKUSpreadsheet.cs" />
     <Compile Include="Spreadsheets\BaseExcelSpreadsheet.cs" />
@@ -241,6 +242,7 @@
     <Compile Include="Spreadsheets\ProductTypeSpreadsheet.cs" />
     <Compile Include="Spreadsheets\RDQRestrictionsExport.cs" />
     <Compile Include="Spreadsheets\RDQRestrictionsSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\RerankStoresSpreadsheet.cs" />
     <Compile Include="Spreadsheets\RingFenceByDestExport.cs" />
     <Compile Include="Spreadsheets\RingFenceDeleteSpreadsheet.cs" />
     <Compile Include="Spreadsheets\RingFenceExport.cs" />

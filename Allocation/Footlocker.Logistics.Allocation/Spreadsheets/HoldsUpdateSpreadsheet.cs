@@ -58,19 +58,25 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             if (string.IsNullOrEmpty(item.Division))
                 item.ErrorMessage = "Division is a required field";
 
-            if (string.IsNullOrEmpty(item.Level))
+            if (string.IsNullOrEmpty(item.Level) && string.IsNullOrEmpty(item.ErrorMessage))
                 item.ErrorMessage = "Level is a required field";
 
-            if (string.IsNullOrEmpty(item.Value))
+            if (string.IsNullOrEmpty(item.Value) && string.IsNullOrEmpty(item.ErrorMessage))
                 item.ErrorMessage = "Value is a required field";
 
-            if (item.StartDate == DateTime.MinValue)
+            if (item.StartDate == DateTime.MinValue && string.IsNullOrEmpty(item.ErrorMessage))
                 item.ErrorMessage = "Start Date is not a valid value - it is required";
 
-            if (item.Duration != "Permanent" && item.Duration != "Temporary")
+            if (item.EndDate.HasValue)
+            {
+                if (item.EndDate.Value.Date < DateTime.Now.Date && string.IsNullOrEmpty(item.ErrorMessage))
+                    item.ErrorMessage = "You can't back-date the End Date. It can be today if you want to expire the hold.";
+            }
+
+            if (item.Duration != "Permanent" && item.Duration != "Temporary" && string.IsNullOrEmpty(item.ErrorMessage))
                 item.ErrorMessage = "Duration must be either Permanent or Temporary";
 
-            if (item.HoldType != "Reserve Inventory" && item.HoldType != "Cancel Inventory")
+            if (item.HoldType != "Reserve Inventory" && item.HoldType != "Cancel Inventory" && string.IsNullOrEmpty(item.ErrorMessage))
                 item.ErrorMessage = "Hold Type must be either 'Reserve Inventory' or 'Cancel Inventory'"; 
             
             if (string.IsNullOrEmpty(item.ErrorMessage))
@@ -160,16 +166,16 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     mySheet.Cells[row, 7].PutValue(p.HoldType);
                     mySheet.Cells[row, 8].PutValue(p.Comments);
 
-                    mySheet.Cells[row, 9].PutValue(p.ErrorMessage);
+                    mySheet.Cells[row, maxColumns].PutValue(p.ErrorMessage);
 
-                    Style errorStyle = mySheet.Cells[row, 9].GetStyle();
+                    Style errorStyle = mySheet.Cells[row, maxColumns].GetStyle();
                     errorStyle.Font.Color = Color.Red;
 
-                    mySheet.Cells[row, 9].SetStyle(errorStyle);
+                    mySheet.Cells[row, maxColumns].SetStyle(errorStyle);
                     row++;
                 }
 
-                mySheet.AutoFitColumn(9);
+                mySheet.AutoFitColumn(maxColumns);
 
                 return excelDocument;
             }

@@ -52,7 +52,14 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             currentSheet = worksheet;
             maxRows = worksheet.Cells.MaxDataRow;
 
-            excelData = worksheet.Cells.ExportDataTable(0, 0, maxRows + 1, maxColumns, new ExportTableOptions() { ExportAsString = true, ExportColumnName = true });
+            ExportTableOptions tableOptions = new ExportTableOptions
+            {
+                SkipErrorValue = true,
+                ExportColumnName = true,
+                ExportAsString = true
+            };
+
+            excelData = worksheet.Cells.ExportDataTable(0, 0, maxRows + 1, maxColumns, tableOptions);
         }
 
         protected UploadSpreadsheet(AppConfig config, ConfigService configService) : base(config)
