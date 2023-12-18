@@ -16,7 +16,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Index(string div)
         {
-            AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions);
+            AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions, appConfig.DB2PrefixDriver);
             DriverModel model = new DriverModel()
             {
                 Divisions = currentUser.GetUserDivisions(AppName)
@@ -49,14 +49,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Create(DriverModel model)
         {
-            AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions);
-            dao.Save(model.NewDriver, User.Identity.Name);
+            AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions, appConfig.DB2PrefixDriver);
+            dao.Save(model.NewDriver, currentUser.NetworkID, appConfig.UpdateMF);
             return RedirectToAction("Index", new { div = model.NewDriver.Division });
         }
 
         public ActionResult Edit(string div, string dept)
         {
-            AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions);
+            AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions, appConfig.DB2PrefixDriver);
             DriverModel model = new DriverModel();
             model.Divisions = currentUser.GetUserDivisions(AppName);
             model.NewDriver = dao.GetAllocationDriver(div, dept);
@@ -67,8 +67,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Edit(DriverModel model)
         {
-            AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions);
-            dao.Save(model.NewDriver, User.Identity.Name);
+            AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions, appConfig.DB2PrefixDriver);
+            dao.Save(model.NewDriver, currentUser.NetworkID, appConfig.UpdateMF);
 
             return RedirectToAction("Index", new { div = model.NewDriver.Division });
         }
@@ -107,7 +107,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Delete(string div, string dept)
         {
-            AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions);
+            AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions, appConfig.DB2PrefixDriver);
             dao.DeleteAllocationDriver(div, dept);
 
             return RedirectToAction("Index", new { div = div });

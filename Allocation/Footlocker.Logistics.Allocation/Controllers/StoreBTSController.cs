@@ -134,7 +134,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             btsDetailsExport.WriteData(settings, ID);
 
             btsDetailsExport.excelDocument.Save(System.Web.HttpContext.Current.Response, "BackToSchoolDetails.xlsx", ContentDisposition.Attachment, btsDetailsExport.SaveOptions);
-
             return RedirectToAction("Details", new { ID });
         }
 

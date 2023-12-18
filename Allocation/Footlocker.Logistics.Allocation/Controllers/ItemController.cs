@@ -160,7 +160,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                              t.TeamCode == item.TeamCode).FirstOrDefault();
                 }
 
-                AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions);
+                AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions, appConfig.DB2PrefixDriver);
                 model.AllocationDriver = dao.GetAllocationDriverList(item.Div).Where(adl => adl.Department == item.Dept).FirstOrDefault();
 
                 instanceID = configService.GetInstance(div);
@@ -614,7 +614,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<Hold> holds = db.Holds.ToList();
 
             ItemMaster item = db.ItemMasters.Where(im => im.MerchantSku == sku).FirstOrDefault();
-            AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions);
+            AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions, appConfig.DB2PrefixDriver);
 
             holds = (from a in holds
                      where ((a.Division == item.Div) &&

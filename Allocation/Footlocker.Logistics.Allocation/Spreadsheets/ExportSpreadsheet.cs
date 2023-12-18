@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Footlocker.Logistics.Allocation.Common;
 using Aspose.Cells;
-using System.Drawing;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {

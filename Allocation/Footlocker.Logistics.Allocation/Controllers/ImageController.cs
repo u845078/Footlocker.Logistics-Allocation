@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+﻿using System.Web.Mvc;
+using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.Models;
 
 namespace Footlocker.Logistics.Allocation.Controllers
@@ -19,12 +16,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult ShowImage(string sku)
         {
+            AppConfig config = new AppConfig();
+
             SkuImage image = new SkuImage
             {
                 Sku = sku,
-                ImageUrl = System.Configuration.ConfigurationManager.AppSettings["imageURL"] + sku
+                ImageUrl = string.Format("{0}{1}", config.ImageURL, sku)                
             };
-
+                      
             Response.Redirect(image.ImageUrl);
             return View(image);
         }

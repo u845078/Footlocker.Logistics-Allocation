@@ -47,6 +47,10 @@ namespace Footlocker.Logistics.Allocation.Common
         private string _skuIDFTPUserName;
         private string _skuIDFTPPassword;
         private string _skuIDQuoteFTPCommand;
+        private string _imageURL;
+        private string _db2PrefixDriver;
+        private string _updateMF;
+
         public string AppName;
         public string AppPath;
         public WebUser currentUser;
@@ -500,5 +504,39 @@ namespace Footlocker.Logistics.Allocation.Common
                 return _skuIDQuoteFTPCommand;
             }
         }
+
+        public string ImageURL
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_imageURL))
+                    _imageURL = ConfigurationManager.AppSettings["imageURL"].ToString();
+
+                return _imageURL;
+            }
+        }
+
+        public string DB2PrefixDriver
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_db2PrefixDriver))
+                    _db2PrefixDriver = ConfigurationManager.AppSettings["DB2PREFIX_DRIVER"].ToString();
+
+                return _db2PrefixDriver;
+            }
+        }
+
+        public bool UpdateMF
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_updateMF))
+                    _updateMF = ConfigurationManager.AppSettings["UPDATE_MF"].ToString();
+
+                return _updateMF.ToLower() == "true";                    
+            }
+        }
+
     }
 }

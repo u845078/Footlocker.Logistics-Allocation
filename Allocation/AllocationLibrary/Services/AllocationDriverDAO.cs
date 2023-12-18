@@ -17,19 +17,20 @@ namespace Footlocker.Logistics.Allocation.Services
         Database _Europedatabase;
         string _prefix;
         readonly string europeDivisions;
+        
 
-        public AllocationDriverDAO(string europeDivisions)
+        public AllocationDriverDAO(string europeDivisions, string db2PrefixDriver)
         {
             _database = DatabaseFactory.CreateDatabase("AllocationContext");
             _USdatabase = DatabaseFactory.CreateDatabase("DB2PROD_DRIVER");
             _Europedatabase = DatabaseFactory.CreateDatabase("DB2EURP_DRIVER");
-            _prefix = System.Configuration.ConfigurationManager.AppSettings["DB2PREFIX_DRIVER"];
+            _prefix = db2PrefixDriver;
             this.europeDivisions = europeDivisions;
         }
         
-        public void Save(AllocationDriver objectToSave, string user)
+        public void Save(AllocationDriver objectToSave, string user, bool updateMF)
         {
-            if (System.Configuration.ConfigurationManager.AppSettings["UPDATE_MF"] != "FALSE")
+            if (updateMF)
             {
                 Database db;
 
