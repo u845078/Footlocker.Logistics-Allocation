@@ -167,10 +167,6 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     mySheet.Cells[row, 8].PutValue(p.Comments);
 
                     mySheet.Cells[row, maxColumns].PutValue(p.ErrorMessage);
-
-                    Style errorStyle = mySheet.Cells[row, maxColumns].GetStyle();
-                    errorStyle.Font.Color = Color.Red;
-
                     mySheet.Cells[row, maxColumns].SetStyle(errorStyle);
                     row++;
                 }

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Drawing;
+using System.IO;
 using Aspose.Cells;
 using Footlocker.Logistics.Allocation.Common;
 
@@ -12,6 +13,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         public Workbook excelDocument;
         public Worksheet currentSheet;
         public OoxmlSaveOptions SaveOptions;
+        public Style headerStyle;
+        public Style dateStyle;
+        public Style errorStyle;
 
         public Workbook GetTemplate()
         {            
@@ -28,6 +32,16 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             license.SetLicense(config.AsposeCellsLicenseFile);
             SaveOptions = new OoxmlSaveOptions(SaveFormat.Xlsx);
             excelDocument = new Workbook();
+            
+            headerStyle = excelDocument.CreateStyle();
+            headerStyle.Font.IsBold = true;
+            headerStyle.Font.Underline = FontUnderlineType.Single;
+
+            dateStyle = excelDocument.CreateStyle();
+            dateStyle.Number = 14;
+
+            errorStyle = excelDocument.CreateStyle();
+            errorStyle.Font.Color = Color.Red;
         }
 
         public void VerifyWritableDirectory(string directory)

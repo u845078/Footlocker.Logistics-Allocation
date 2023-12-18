@@ -224,6 +224,8 @@
     <Compile Include="Spreadsheets\ARSKUSpreadsheet.cs" />
     <Compile Include="Spreadsheets\BaseExcelSpreadsheet.cs" />
     <Compile Include="Spreadsheets\BaseSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\BTSDetailsExport.cs" />
+    <Compile Include="Spreadsheets\BTSExport.cs" />
     <Compile Include="Spreadsheets\BTSSpreadsheet.cs" />
     <Compile Include="Spreadsheets\BTSUnassignedExport.cs" />
     <Compile Include="Spreadsheets\CrossdockLinkSpreadsheet.cs" />
@@ -234,6 +236,8 @@
     <Compile Include="Common\Filters\HandleAjaxError.cs" />
     <Compile Include="Common\Filters\HandleAjaxValidationError.cs" />
     <Compile Include="Common\Filters\LogError.cs" />
+    <Compile Include="Spreadsheets\ExportSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\HoldsExport.cs" />
     <Compile Include="Spreadsheets\HoldsUpdateSpreadsheet.cs" />
     <Compile Include="Spreadsheets\HoldsUploadSpreadsheet.cs" />
     <Compile Include="Common\JsonResultData.cs" />
