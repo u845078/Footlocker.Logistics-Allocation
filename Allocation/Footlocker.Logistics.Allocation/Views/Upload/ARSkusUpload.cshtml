@@ -18,9 +18,7 @@
         <li>Skus must be in a division you have permissions to</li>
         <li>Skus must exist in ItemMaster</li>
     </ul>
-    <b>Please select spreadsheet with AR Skus to upload: </b>
-        <br />
-        <br />
+    <b>Please select spreadsheet with AR Skus to upload: </b><br /><br />
     @(Html.Telerik().Upload()
         .Name("attachments")
         .Multiple(false)
@@ -31,40 +29,39 @@
         .ClientEvents(events => events
             .OnError("onError")
             .OnSelect("onSelect")
-                    .OnSuccess("onSuccess")
-            )
+            .OnSuccess("onSuccess")
         )
-        <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
-        <br />
-        <h4 id="message"></h4>
+     )
+     <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
+     <br />
+     <h4 id="message"></h4>
 </fieldset>
  
 <script type="text/javascript">
-
 function onSelect(e) {
     var files = e.files;
-    if (files[0].extension != ".xls") {
-        alert("Document must be a spreadsheet with a xls extension. ");
+    if (files[0].extension != ".xlsx") {
+        alert("Document must be a spreadsheet with a xlsx extension. ");
         e.preventDefault();
     }
-    else{
-            document.getElementById('spreadsheet').style.visibility = 'visible';
-        }
-        $('#message').empty();
+    else {
+        document.getElementById('spreadsheet').style.visibility = 'visible';
+    }
+
+    $('#message').empty();
 }
 
 function onError(e) {
     var message = e.XMLHttpRequest.responseText;
     $('#message').empty().append("<font color='red'>"+message+"</font>");
+    e.preventDefault();
+}
 
-        e.preventDefault();
-    }
+function onSuccess(e) {
+   var message = e.XMLHttpRequest.responseText;
+   $('#message').empty().append("<font color='red'>Success</font>");
 
-    function onSuccess(e) {
-        var message = e.XMLHttpRequest.responseText;
-        $('#message').empty().append("<font color='red'>Success</font>");
-
-        e.preventDefault();
-    }
+   e.preventDefault();
+}
 </script>
     

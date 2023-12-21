@@ -32,19 +32,6 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             return isValid;
         }
 
-        //public bool HasDataOnRow(int row)
-        //{
-        //    bool hasData = false;
-
-        //    for (int i = 0; i < maxColumns; i++)
-        //    {
-        //        if (excelData.Columns[i].Value != null)
-        //            hasData = true;
-        //    }
-
-        //    return hasData;
-        //}
-
         public void LoadAttachment(Stream file)
         {
             excelDocument = new Workbook(file);

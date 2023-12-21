@@ -570,12 +570,6 @@
     <Content Include="Content\Templates\BulkRangeTemplate.xls">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Templates\ARConstraintsUploadTemplate.xls">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Templates\ARSkusUploadTemplate.xls">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Content\Templates\HoldsUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -587,9 +581,6 @@
     </Content>
     <Content Include="Content\Templates\CrossdockLinkDataTemplate.xls">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Templates\ProductTypeTemplate.xls">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\Templates\RingFenceDeleteTemplate.xls">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -606,9 +597,6 @@
     <Content Include="Content\Templates\SkuRangePlanDGUploadTemplate.xls">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Templates\SkuTypeUpload.xls">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Content\Templates\WebPickUploadTemplate.xls">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -624,6 +612,10 @@
     <Content Include="Content\Templates\POOverrideTemplate.xls" />
     <Content Include="Content\Templates\SeasonalityTemplate.xls" />
     <Content Include="Content\Templates\BTSUnassignedTemplate.xls" />
+    <Content Include="Content\Templates\ARConstraintsUploadTemplate.xlsx" />
+    <Content Include="Content\Templates\SkuTypeUpload.xlsx" />
+    <Content Include="Content\Templates\ARSkusUploadTemplate.xlsx" />
+    <Content Include="Content\Templates\ProductTypeTemplate.xlsx" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="readme.txt" />
     <Content Include="Views\Shared\EditorTemplates\Date.cshtml" />

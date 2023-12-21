@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Aspose.Excel;
+using Aspose.Cells;
 using Footlocker.Logistics.Allocation.Spreadsheets;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
@@ -31,12 +32,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult ExcelTemplate()
         {
-            Excel excelDocument;
+            Workbook excelDocument;
             ServiceTypeSpreadsheet serviceTypeSpreadsheet = new ServiceTypeSpreadsheet(appConfig, configService, new MainframeDAO(appConfig.EuropeDivisions));
 
             excelDocument = serviceTypeSpreadsheet.GetTemplate();
 
-            excelDocument.Save("ServiceTypeUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "ServiceTypeUpload.xlsx", ContentDisposition.Attachment, serviceTypeSpreadsheet.SaveOptions);
             return View();
         }
 
@@ -73,10 +74,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult ExcelARSkusUploadTemplate()
         {
             ARSKUSpreadsheet arSKUSpreadsheet = new ARSKUSpreadsheet(appConfig, configService);
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = arSKUSpreadsheet.GetTemplate();
-            excelDocument.Save("ARSkusUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "ARSkusUpload.xlsx", ContentDisposition.Attachment, arSKUSpreadsheet.SaveOptions);
             return View("ARSkusUpload");
         }
 
@@ -109,10 +110,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult ExcelARConstraintsUploadTemplate()
         {
             ARConstraintsSpreadsheet arConstraintsSpreadsheet = new ARConstraintsSpreadsheet(appConfig, configService);
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = arConstraintsSpreadsheet.GetTemplate();
-            excelDocument.Save("ARConstraintsUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "ARConstraintsUpload.xlsx", ContentDisposition.Attachment, arConstraintsSpreadsheet.SaveOptions);            
             return View("ARConstraintsUpload");
         }
 
@@ -144,10 +145,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult ExcelProductTemplate()
         {
             ProductTypeSpreadsheet productTypeSpreadsheet = new ProductTypeSpreadsheet(appConfig, configService, new ProductTypeDAO());
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = productTypeSpreadsheet.GetTemplate();
-            excelDocument.Save("LifeOfSkuTemplate.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "LifeOfSkuTemplate.xlsx", ContentDisposition.Attachment, productTypeSpreadsheet.SaveOptions);
             return View();
         }
 
@@ -178,7 +179,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult DownloadProductErrors()
         {
             ProductTypeSpreadsheet productTypeSpreadsheet = new ProductTypeSpreadsheet(appConfig, configService, new ProductTypeDAO());
-            Excel excelDocument;
+            Workbook excelDocument;
 
             List<ProductType> errorList = new List<ProductType>();
 
@@ -186,7 +187,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 errorList = (List<ProductType>)Session["errorList"];
 
             excelDocument = productTypeSpreadsheet.GetErrors(errorList);
-            excelDocument.Save("ProductTypeUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "ProductTypeUploadErrors.xlsx", ContentDisposition.Attachment, productTypeSpreadsheet.SaveOptions);
 
             return View();
         }
@@ -204,7 +205,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             Excel excelDocument;
 
             excelDocument = crossdockLinkSpreadsheet.GetTemplate();
-            excelDocument.Save("crossdockLinkUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("crossdockLinkUpload.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return View("CrossdockLinkUpload");
         }
 
@@ -243,7 +244,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (errors != null)
             {
                 excelDocument = crossdockLinkSpreadsheet.GetErrors(errors);
-                excelDocument.Save("CrossdockLinkErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                excelDocument.Save("CrossdockLinkErrors.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             }
             return View();
         }
@@ -294,7 +295,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             Excel excelDocument;
 
             excelDocument = skuIDSpreadsheet.GetTemplate();
-            excelDocument.Save("SkuIdUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save("SkuIdUpload.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
             return RedirectToAction("SkuIdUpload");
         }
 
