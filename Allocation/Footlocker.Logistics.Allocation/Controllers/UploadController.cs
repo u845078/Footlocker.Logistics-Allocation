@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-using Aspose.Excel;
 using Aspose.Cells;
 using Footlocker.Logistics.Allocation.Spreadsheets;
 using Footlocker.Logistics.Allocation.Models;
@@ -202,10 +201,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult CrossdockLinkUploadTemplate()
         {
             CrossdockLinkSpreadsheet crossdockLinkSpreadsheet = new CrossdockLinkSpreadsheet(appConfig, configService);
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = crossdockLinkSpreadsheet.GetTemplate();
-            excelDocument.Save("crossdockLinkUpload.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "CrossdockLinkUpload.xlsx", ContentDisposition.Attachment, crossdockLinkSpreadsheet.SaveOptions);
             return View("CrossdockLinkUpload");
         }
 
@@ -238,13 +237,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult DownloadCrossdockLinkErrors()
         {
             List<POCrossdockData> errors = (List<POCrossdockData>)Session["errorList"];
-            Excel excelDocument;
+            Workbook excelDocument;
             CrossdockLinkSpreadsheet crossdockLinkSpreadsheet = new CrossdockLinkSpreadsheet(appConfig, configService);
 
             if (errors != null)
             {
                 excelDocument = crossdockLinkSpreadsheet.GetErrors(errors);
-                excelDocument.Save("CrossdockLinkErrors.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                excelDocument.Save(System.Web.HttpContext.Current.Response, "CrossdockLinkErrors.xlsx", ContentDisposition.Attachment, crossdockLinkSpreadsheet.SaveOptions);
             }
             return View();
         }
@@ -292,10 +291,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult ExcelSkuIdUploadTemplate()
         {
             SKUIDSpreadsheet skuIDSpreadsheet = new SKUIDSpreadsheet(appConfig, configService);
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = skuIDSpreadsheet.GetTemplate();
-            excelDocument.Save("SkuIdUpload.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "SkuIdUpload.xlsx", ContentDisposition.Attachment, skuIDSpreadsheet.SaveOptions);
             return RedirectToAction("SkuIdUpload");
         }
 

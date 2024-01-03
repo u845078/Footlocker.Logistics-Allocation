@@ -1,29 +1,29 @@
-﻿using Aspose.Excel;
+﻿using Aspose.Cells;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Common;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Web;
+using System.Data;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class CrossdockLinkSpreadsheet : UploadExcelSpreadsheet
+    public class CrossdockLinkSpreadsheet : UploadSpreadsheet
     {
         public List<POCrossdockData> errorList = new List<POCrossdockData>();
         public List<POCrossdockData> validPOCrossdocks = new List<POCrossdockData>();
 
-        private POCrossdockData ParseUploadRow(int row)
+        private POCrossdockData ParseUploadRow(DataRow row)
         {
             POCrossdockData returnValue = new POCrossdockData
             {
-                WarehouseID = Convert.ToString(worksheet.Cells[row, 0].Value).Trim(),
-                Division = Convert.ToString(worksheet.Cells[row, 1].Value).Trim(),
-                PO = Convert.ToString(worksheet.Cells[row, 2].Value).Trim(),
-                ExpectedReceiptDateString = Convert.ToString(worksheet.Cells[row, 3].Value),
-                CancelIndString = Convert.ToString(worksheet.Cells[row, 4].Value).ToUpper(),                
+                WarehouseID = Convert.ToString(row[0]).Trim(),
+                Division = Convert.ToString(row[1]).Trim(),
+                PO = Convert.ToString(row[2]).Trim(),
+                ExpectedReceiptDateString = Convert.ToString(row[3]),
+                CancelIndString = Convert.ToString(row[4]).ToUpper(),                
                 LastModifiedDate = DateTime.Now,
                 LastModifiedUser = config.currentUser.NetworkID
             };
@@ -99,7 +99,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
         public void Save(HttpPostedFileBase attachment)
         {
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
 
             if (!HasValidHeaderRow())
                 message = "Upload failed: Incorrect header - please use template.";
@@ -109,9 +109,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        POCrossdockData newRec = ParseUploadRow(row);
+                        POCrossdockData newRec = ParseUploadRow(dataRow);
 
                         if (string.IsNullOrEmpty(newRec.ErrorMessage))
                             validPOCrossdocks.Add(newRec);
@@ -143,11 +143,11 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             }
         }
 
-        public Excel GetErrors(List<POCrossdockData> errorList)
+        public Workbook GetErrors(List<POCrossdockData> errorList)
         {
             if (errorList != null)
             {
-                Excel excelDocument = GetTemplate();
+                Workbook excelDocument = GetTemplate();
                 Worksheet mySheet = excelDocument.Worksheets[0];
 
                 int row = 1;
@@ -160,9 +160,11 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     mySheet.Cells[row, 4].PutValue(p.CancelIndString);
 
                     mySheet.Cells[row, 5].PutValue(p.ErrorMessage);
-                    mySheet.Cells[row, 5].Style.Font.Color = Color.Red;
+                    mySheet.Cells[row, 5].SetStyle(errorStyle);
                     row++;
                 }
+
+                mySheet.AutoFitColumn(maxColumns);
 
                 return excelDocument;
             }
