@@ -5,14 +5,10 @@ using System.Web;
 using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.DAO;
-using System.IO;
 using Aspose.Excel;
 using Telerik.Web.Mvc;
 using Footlocker.Logistics.Allocation.Services;
-using System.Web.Helpers;
 using Footlocker.Logistics.Allocation.Spreadsheets;
-using System.Web.ApplicationServices;
-using System.Web.Services.Description;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
