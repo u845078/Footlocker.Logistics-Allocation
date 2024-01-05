@@ -47,12 +47,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Aspose.Cells, Version=8.7.1.0, Culture=neutral, PublicKeyToken=716fcc553a201e56, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\FootLocker\Aspose.Cells\v8.4.1.0\net2.0\Aspose.Cells.dll</HintPath>
-    </Reference>
-    <Reference Include="Aspose.Excel, Version=3.6.0.0, Culture=neutral, PublicKeyToken=716fcc553a201e56">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Footlocker\Aspose.Excel.dll</HintPath>
+      <HintPath>..\packages\Aspose.Cells.8.7.1\lib\net40\Aspose.Cells.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.5.0.0\lib\net40\EntityFramework.dll</HintPath>
