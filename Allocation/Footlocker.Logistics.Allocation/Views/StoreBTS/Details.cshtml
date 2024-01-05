@@ -90,8 +90,7 @@
         @Html.DropDownList("CopyFrom", new SelectList(Model.CopyFrom, "ID", "DisplayName"))
         <input type="submit" value="import stores from group" class="t-button" style="width:200px" />
     </fieldset>
-    }
-    
+    }   
 }
 <fieldset>
     <legend>Upload Spreadsheet</legend>
@@ -115,49 +114,49 @@
     <br />
     <h4 id="message"></h4>
 </fieldset>
-     <script type="text/javascript">
-         function exportSelected() {
-             var grid = $('#StoreBTSDetail').data('tGrid');
-             if (grid.filterBy === "") {
-                 $('#ExportDetailsGrid').attr('href', function () {
-                     return "/StoreBTS/ExportDetailsGrid?ID=" + $('#ID').val();
-                 });
-             } else {
-                 $('#ExportDetailsGrid').attr('href', function () {
-                     return "/StoreBTS/ExportDetailsGrid?filter=" + grid.filterBy + "&ID=" + $('#ID').val();
-                 });
-             }
-         }
+<script type="text/javascript">
+    function exportSelected() {
+        var grid = $('#StoreBTSDetail').data('tGrid');
+        if (grid.filterBy === "") {
+            $('#ExportDetailsGrid').attr('href', function () {
+                return "/StoreBTS/ExportDetailsGrid?ID=" + $('#ID').val();
+            });
+        } else {
+            $('#ExportDetailsGrid').attr('href', function () {
+                return "/StoreBTS/ExportDetailsGrid?filter=" + grid.filterBy + "&ID=" + $('#ID').val();
+            });
+        }
+    }
 
-         function onSelect(e) {
-             var files = e.files;
-             if (files[0].extension != ".xls") {
-                 alert("Document must be a spreadsheet with a xls extension. ");
-                 e.preventDefault();
-             }
-             else {
-                 document.getElementById('spreadsheet').style.visibility = 'visible';
-             }
-             $('#message').empty();
-         }
+    function onSelect(e) {
+        var files = e.files;
+        if (files[0].extension != ".xlsx") {
+            alert("Document must be a spreadsheet with a xlsx extension. ");
+            e.preventDefault();
+        }
+        else {
+            document.getElementById('spreadsheet').style.visibility = 'visible';
+        }
+        $('#message').empty();
+    }
 
-         function onError(e) {
-             var message = e.XMLHttpRequest.responseText;
-             $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='../BTSErrors'>Download Errors</a>");
+    function onError(e) {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='../BTSErrors'>Download Errors</a>");
 
-             e.preventDefault();
-         }
+        e.preventDefault();
+    }
 
-         function onSuccess(e) {
-             var message = e.XMLHttpRequest.responseText;
-             $('#message').empty().append("<font color='red'>Success</font>");
+    function onSuccess(e) {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>Success</font>");
 
-             e.preventDefault();
+        e.preventDefault();
 
-             var grid = $("#StoreSeason").data("tGrid");
-             grid.ajaxRequest();
-         }
-    </script>
+        var grid = $("#StoreSeason").data("tGrid");
+        grid.ajaxRequest();
+    }
+</script>
 <br />
 <fieldset>
     <legend> Unassigned Stores </legend>
@@ -197,7 +196,6 @@
         .Filterable(filtering => filtering.Enabled(true))
         .Groupable(grouping => grouping.Enabled(false))
         .Footer(true)
-
 )
 </fieldset>
 <br />

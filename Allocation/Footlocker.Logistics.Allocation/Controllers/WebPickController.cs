@@ -8,14 +8,10 @@ using Footlocker.Common;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Spreadsheets;
 using Footlocker.Logistics.Allocation.DAO;
-using System.IO;
-using Aspose.Excel;
+using Aspose.Cells;
 using Telerik.Web.Mvc;
 using System.Data;
 using Footlocker.Logistics.Allocation.Common;
-using System.Web.Script.Serialization;
-using Footlocker.Common.Entities;
-using Telerik.Web.Mvc.Infrastructure;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -866,12 +862,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult ExcelTemplate()
         {
-            Excel excelDocument;
+            Workbook excelDocument;
             WebPickSpreadsheet webPickSpreadsheet = new WebPickSpreadsheet(appConfig, webPickRoles, configService);
 
             excelDocument = webPickSpreadsheet.GetTemplate();
 
-            excelDocument.Save("WebPickUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "WebPickUpload.xlsx", ContentDisposition.Attachment, webPickSpreadsheet.SaveOptions);
             return View();
         }
 
@@ -903,7 +899,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult GetErrors()
         {
-            Excel excelDocument;
+            Workbook excelDocument;
             WebPickSpreadsheet webPickSpreadsheet = new WebPickSpreadsheet(appConfig, webPickRoles, configService);
             
             var errorList = (List<Tuple<RDQ, string>>)Session["errorList"];
@@ -912,7 +908,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (!string.IsNullOrEmpty(webPickSpreadsheet.message))
                 return RedirectToAction("ExcelUpload", new { webPickSpreadsheet.message });
 
-            excelDocument.Save("WebPicks.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "WebPicks.xlsx", ContentDisposition.Attachment, webPickSpreadsheet.SaveOptions);
             
             return View();
         }

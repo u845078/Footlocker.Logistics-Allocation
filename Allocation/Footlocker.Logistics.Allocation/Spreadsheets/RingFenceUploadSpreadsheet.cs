@@ -1,4 +1,4 @@
-﻿using Aspose.Excel;
+﻿using Aspose.Cells;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Models.Services;
 using Footlocker.Logistics.Allocation.Services;
@@ -8,14 +8,13 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
-using System.Drawing;
 using System.Linq;
 using System.Web;
 using Telerik.Web.Mvc.Extensions;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class RingFenceUploadSpreadsheet : UploadExcelSpreadsheet
+    public class RingFenceUploadSpreadsheet : UploadSpreadsheet
     {
         public List<RingFenceUploadModel> errorList = new List<RingFenceUploadModel>();
         public List<RingFenceUploadModel> validRingFences = new List<RingFenceUploadModel>();
@@ -34,19 +33,19 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         List<InstanceDivision> instanceDivisions;
         List<ControlDate> controlDates;
 
-        private RingFenceUploadModel ParseRow(int row)
+        private RingFenceUploadModel ParseRow(DataRow row)
         {
             RingFenceUploadModel returnValue = new RingFenceUploadModel()
             {
-                Division = Convert.ToString(worksheet.Cells[row, 0].Value).Trim(),
-                Store = Convert.ToString(worksheet.Cells[row, 1].Value).Trim(),
-                SKU = Convert.ToString(worksheet.Cells[row, 2].Value).Trim(),
-                EndDate = Convert.ToString(worksheet.Cells[row, 3].Value),
-                PO = Convert.ToString(worksheet.Cells[row, 4].Value),
-                Warehouse = Convert.ToString(worksheet.Cells[row, 5].Value).Trim().PadLeft(2, '0'),
-                Size = Convert.ToString(worksheet.Cells[row, 6].Value).ToUpper(),
-                QtyString = Convert.ToString(worksheet.Cells[row, 7].Value).ToUpper(),
-                Comments = Convert.ToString(worksheet.Cells[row, 8].Value)
+                Division = Convert.ToString(row[0]).Trim(),
+                Store = Convert.ToString(row[1]).Trim(),
+                SKU = Convert.ToString(row[2]).Trim(),
+                EndDate = Convert.ToString(row[3]),
+                PO = Convert.ToString(row[4]),
+                Warehouse = Convert.ToString(row[5]).Trim().PadLeft(2, '0'),
+                Size = Convert.ToString(row[6]).ToUpper(),
+                QtyString = Convert.ToString(row[7]).ToUpper(),
+                Comments = Convert.ToString(row[8])
             };
 
             returnValue.Store = string.IsNullOrEmpty(returnValue.Store) ? "" : returnValue.Store.PadLeft(5, '0');
@@ -590,7 +589,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             instanceDivisions = config.db.InstanceDivisions.ToList();
             controlDates = config.db.ControlDates.ToList();
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Incorrectly formatted or missing header row. Please correct and re-process.";
             else
@@ -598,9 +597,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 int row = 1;
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        uploadRec = ParseRow(row);                        
+                        uploadRec = ParseRow(dataRow);                        
 
                         if (!ValidateRow(uploadRec, out errorMessage))
                         {
@@ -687,11 +686,11 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             }
         }
 
-        public Excel GetErrors(List<RingFenceUploadModel> errorList)
+        public Workbook GetErrors(List<RingFenceUploadModel> errorList)
         {
             if (errorList != null)
             {
-                Excel excelDocument = GetTemplate();
+                excelDocument = GetTemplate();
                 Worksheet mySheet = excelDocument.Worksheets[0];
 
                 int row = 1;
@@ -711,8 +710,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                         mySheet.Cells[row, 7].PutValue(p.Quantity);
 
                     mySheet.Cells[row, 8].PutValue(p.Comments);
-                    mySheet.Cells[row, 9].PutValue(p.ErrorMessage);
-                    mySheet.Cells[row, 9].Style.Font.Color = Color.Red;
+                    mySheet.Cells[row, maxColumns].PutValue(p.ErrorMessage);
+                    mySheet.Cells[row, maxColumns].SetStyle(errorStyle);
                     row++;
                 }
 

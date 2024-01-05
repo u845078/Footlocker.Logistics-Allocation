@@ -1,16 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System;
 using Footlocker.Logistics.Allocation.Models;
-using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Common;
-using System.Globalization;
 using Telerik.Web.Mvc;
-using System.Runtime;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class RDQRestrictionsExport : ExportExcelSpreadsheet
+    public class RDQRestrictionsExport : ExportSpreadsheet
     {
         public void WriteData(IList<IFilterDescriptor> filterDescriptors)
         {

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class SKURangeStoreExport : ExportExcelSpreadsheet
+    public class SKURangeStoreExport : ExportSpreadsheet
     {
         readonly RangePlanDAO rangeDAO;
 
@@ -36,7 +36,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 currentRow++;
                 recordCount++;
 
-                if (currentRow >= 65535)
+                if (currentRow >= maxSpreadsheetRows)
                 {
                     AutofitColumns();
                     worksheetNum++;

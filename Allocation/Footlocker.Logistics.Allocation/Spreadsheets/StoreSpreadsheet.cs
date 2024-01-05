@@ -5,29 +5,30 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Web;
 using Footlocker.Logistics.Allocation.Common;
+using System.Data;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class StoreSpreadsheet : UploadExcelSpreadsheet
+    public class StoreSpreadsheet : UploadSpreadsheet
     {
         readonly RangePlanDAO rangeDAO;   
         readonly RuleDAO ruleDAO;
         public List<StoreBase> validStores = new List<StoreBase>();
         RangePlan range;
 
-        private StoreBase ParseRow(int row)
+        private StoreBase ParseRow(DataRow row)
         {
             message = string.Empty;
             string rangeType;
 
             StoreBase returnValue = new StoreBase()
             {
-                Division = Convert.ToString(worksheet.Cells[row, 0].Value).PadLeft(2, '0'),
-                Store = Convert.ToString(worksheet.Cells[row, 1].Value).PadLeft(5, '0')
+                Division = Convert.ToString(row[0]).PadLeft(2, '0'),
+                Store = Convert.ToString(row[1]).PadLeft(5, '0')
             };
 
-            if (worksheet.Cells[row, 2].Value != null)
-                rangeType = worksheet.Cells[row, 2].Value.ToString();
+            if (row[2] != null)
+                rangeType = row[2].ToString();
             else
                 rangeType = "ALR";
 
@@ -66,7 +67,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         {
             StoreBase uploadRec;
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Incorrectly formatted or missing header row. Please correct and re-process.";
             else
@@ -76,9 +77,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        uploadRec = ParseRow(row);
+                        uploadRec = ParseRow(dataRow);
                       
                         errorMessage = ValidateUploadValues(uploadRec);
                         if (!string.IsNullOrEmpty(errorMessage))

@@ -4,14 +4,9 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
-using System.IO;
-using Aspose.Excel;
 using Telerik.Web.Mvc;
 using Footlocker.Logistics.Allocation.Services;
-using Footlocker.Logistics.Allocation.Common;
 using Aspose.Cells;
-using System.Web.UI;
-using Footlocker.Common.Entities;
 using Footlocker.Logistics.Allocation.Spreadsheets;
 
 namespace Footlocker.Logistics.Allocation.Controllers
@@ -300,7 +295,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             BTSUnassignedExport exportBTS = new BTSUnassignedExport(appConfig, new MainframeStoreDAO(appConfig.EuropeDivisions));
             exportBTS.WriteData(div, year);
             
-            exportBTS.excelDocument.Save("BTS_Unassigned.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            exportBTS.excelDocument.Save(System.Web.HttpContext.Current.Response, "BTS_Unassigned.xlsx", ContentDisposition.Attachment, exportBTS.SaveOptions);
             return View();
         }
 
@@ -475,11 +470,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult ExcelTemplate()
         {
             BTSSpreadsheet btsSpreadsheet = new BTSSpreadsheet(appConfig, new ConfigService());
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = btsSpreadsheet.GetTemplate();
 
-            excelDocument.Save("StoreBTSDetails.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "StoreBTSDetails.xlsx", ContentDisposition.Attachment, btsSpreadsheet.SaveOptions);
             return View();
         }
 
@@ -523,13 +518,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult BTSErrors()
         {
             List<StoreBTSDetail> errors = (List<StoreBTSDetail>)Session["errorList"];
-            Excel excelDocument;
+            Workbook excelDocument;
             BTSSpreadsheet btsSpreadsheet = new BTSSpreadsheet(appConfig, new ConfigService());
 
             if (errors != null)
             {
                 excelDocument = btsSpreadsheet.GetErrors(errors);
-                excelDocument.Save("BTSUploadErrors.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                excelDocument.Save(System.Web.HttpContext.Current.Response, "BTSUploadErrors.xlsx", ContentDisposition.Attachment, btsSpreadsheet.SaveOptions);
             }
             return View();
         }

@@ -33,35 +33,34 @@
 
 @Html.ActionLink("Back To List", "Index",null, new { @class="t-button"})
 
-     <script type="text/javascript">
+<script type="text/javascript">
+    function onSelect(e) {
+        var files = e.files;
+        if (files[0].extension != ".xlsx") {
+            alert("Document must be a spreadsheet with a xlsx extension. ");
+            e.preventDefault();
+        }
+        else {
+            document.getElementById('spreadsheet').style.visibility = 'visible';
+        }
+        $('#message').empty();
+    }
 
-         function onSelect(e) {
-             var files = e.files;
-             if (files[0].extension != ".xls") {
-                 alert("Document must be a spreadsheet with a xls extension. ");
-                 e.preventDefault();
-             }
-             else {
-                 document.getElementById('spreadsheet').style.visibility = 'visible';
-             }
-             $('#message').empty();
-         }
+    function onError(e) {
+        var message = e.XMLHttpRequest.responseText;
+        if (message.indexOf("Incorrectly formatted or missing header row") != -1)
+        $('#message').empty().append("<font color='red'>" + message + "</font>");
+        else
+        $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='DownloadDeleteErrors'>Download Errors</a>");
 
-         function onError(e) {
-             var message = e.XMLHttpRequest.responseText;
-             if (message.indexOf("Incorrectly formatted or missing header row") != -1)
-                $('#message').empty().append("<font color='red'>" + message + "</font>");
-             else
-                $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='DownloadDeleteErrors'>Download Errors</a>");
+        e.preventDefault();
+    }
 
-             e.preventDefault();
-         }
+    function onSuccess(e) {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>Success</font>");
 
-         function onSuccess(e) {
-             var message = e.XMLHttpRequest.responseText;
-             $('#message').empty().append("<font color='red'>Success</font>");
-
-             e.preventDefault();
-         }
-    </script>
+        e.preventDefault();
+    }
+</script>
     

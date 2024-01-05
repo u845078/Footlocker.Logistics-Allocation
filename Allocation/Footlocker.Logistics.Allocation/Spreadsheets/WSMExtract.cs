@@ -3,12 +3,10 @@ using System.Linq;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.Services;
-using Aspose.Excel;
-using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class WSMExtract : ExportExcelSpreadsheet
+    public class WSMExtract : ExportSpreadsheet
     {
         readonly QuantumDAO quantumDAO;
 

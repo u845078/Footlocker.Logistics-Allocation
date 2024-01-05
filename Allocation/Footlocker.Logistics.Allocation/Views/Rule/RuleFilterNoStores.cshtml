@@ -205,8 +205,8 @@
 
     function onSelect(e) {
         var files = e.files;
-        if (files[0].extension != ".xls") {
-            alert("Document must be a spreadsheet with a xls extension. ");
+        if (files[0].extension != ".xlsx") {
+            alert("Document must be a spreadsheet with a xlsx extension. ");
             e.preventDefault();
         }
         else {
@@ -228,11 +228,10 @@
         showStatus();
         e.preventDefault();
     }
-
 </script>
 <div id="UploadRules" style="display:none">
 <fieldset>
-    <b>Upload .xls: </b><span id="message">(Spreadsheet columns should be Division, Store)<br />Each upload will override previous uploads.</span><br />
+    <b>Upload .xlsx: </b><span id="message">(Spreadsheet columns should be Division, Store)<br />Each upload will override previous uploads.</span><br />
     @Html.ActionLink("Template", "StoreTemplate","SkuRange", null, new { @class = "t-button" })   <br /><br />
     @(Html.Telerik().Upload()
         .Name("attachments")

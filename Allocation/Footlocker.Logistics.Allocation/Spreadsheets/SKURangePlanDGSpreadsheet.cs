@@ -5,40 +5,41 @@ using System.Collections.Generic;
 using Footlocker.Logistics.Allocation.Common;
 using System.Linq;
 using System.Web;
+using System.Data;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class SKURangePlanDGSpreadsheet : UploadExcelSpreadsheet
+    public class SKURangePlanDGSpreadsheet : UploadSpreadsheet
     {
         public List<DeliveryGroupUploadModel> parsedDeliveryGroups = new List<DeliveryGroupUploadModel>();
         public List<DeliveryGroupUploadModel> errorList = new List<DeliveryGroupUploadModel>();
         readonly RangePlanDAO rangeDAO;
         private List<DeliveryGroup> updatedDeliveryGroups = new List<DeliveryGroup>();
 
-        private DeliveryGroupUploadModel ParseUploadRow(int row)
+        private DeliveryGroupUploadModel ParseUploadRow(DataRow row)
         {
             DeliveryGroupUploadModel returnValue = new DeliveryGroupUploadModel
             {
-                SKU = Convert.ToString(worksheet.Cells[row, 0].Value).Trim(),
-                DeliveryGroupName = Convert.ToString(worksheet.Cells[row, 1].Value).Trim()                
+                SKU = Convert.ToString(row[0]).Trim(),
+                DeliveryGroupName = Convert.ToString(row[1]).Trim()                
             };
 
-            if (!string.IsNullOrEmpty(worksheet.Cells[row, 2].Value.ToString()))
-                returnValue.StartDate = Convert.ToDateTime(worksheet.Cells[row, 2].Value);
+            if (!string.IsNullOrEmpty(row[2].ToString()))
+                returnValue.StartDate = Convert.ToDateTime(row[2]);
 
-            if (!string.IsNullOrEmpty(worksheet.Cells[row, 3].Value.ToString()))
-                returnValue.EndDate = Convert.ToDateTime(worksheet.Cells[row, 3].Value);
+            if (!string.IsNullOrEmpty(row[3].ToString()))
+                returnValue.EndDate = Convert.ToDateTime(row[3]);
 
-            if (!string.IsNullOrEmpty(worksheet.Cells[row, 4].Value.ToString()))
-                returnValue.MinEndDays = Convert.ToInt32(worksheet.Cells[row, 4].Value);
+            if (!string.IsNullOrEmpty(row[4].ToString()))
+                returnValue.MinEndDays = Convert.ToInt32(row[4]);
 
             returnValue.RangePlanID = rangeDAO.GetRangePlanID(returnValue.SKU);
             returnValue.DeliveryGroup = config.db.DeliveryGroups.Where(dg => dg.PlanID == returnValue.RangePlanID && 
                                                                              dg.Name == returnValue.DeliveryGroupName).FirstOrDefault();
 
-            if (string.IsNullOrEmpty(worksheet.Cells[row, 2].Value.ToString()) &&
-                string.IsNullOrEmpty(worksheet.Cells[row, 3].Value.ToString()) &&
-                string.IsNullOrEmpty(worksheet.Cells[row, 4].Value.ToString()))
+            if (string.IsNullOrEmpty(row[2].ToString()) &&
+                string.IsNullOrEmpty(row[3].ToString()) &&
+                string.IsNullOrEmpty(row[4].ToString()))
                 returnValue.ErrorMessage = "Missing required fields";
 
             return returnValue;
@@ -56,7 +57,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
         public void Save(HttpPostedFileBase attachment)
         {
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Upload failed: Incorrect header - please use template.";
             else
@@ -65,9 +66,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        DeliveryGroupUploadModel newRow = ParseUploadRow(row);
+                        DeliveryGroupUploadModel newRow = ParseUploadRow(dataRow);
                         ValidateRow(newRow);
 
                         if (string.IsNullOrEmpty(newRow.ErrorMessage))

@@ -3,11 +3,10 @@ using System.Linq;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.Services;
-using Aspose.Excel;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class LostSalesExtract : ExportExcelSpreadsheet
+    public class LostSalesExtract : ExportSpreadsheet
     {
         readonly QuantumDAO quantumDAO;
 
@@ -77,16 +76,13 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             for (int i = 0; i < 3; i++)
             {
                 excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].PutValue(columns[i]);
-                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].Style.Font.IsBold = true;
-                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].Style.Font.Underline = FontUnderlineType.Single;
+                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].SetStyle(headerStyle);
             }
 
             for (int i = 3; i < maxColumns; i++)
             {                
                 excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].PutValue(start.AddDays(i - 3));
-                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].Style.Number = 14;
-                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].Style.Font.IsBold = true;
-                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].Style.Font.Underline = FontUnderlineType.Single;
+                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].SetStyle(headerDateStyle);
             }
 
             currentRow++;

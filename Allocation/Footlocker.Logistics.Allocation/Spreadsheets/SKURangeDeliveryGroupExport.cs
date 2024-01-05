@@ -6,7 +6,7 @@ using Footlocker.Logistics.Allocation.Common;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class SKURangeDeliveryGroupExport : ExportExcelSpreadsheet
+    public class SKURangeDeliveryGroupExport : ExportSpreadsheet
     {
         readonly RangePlanDetailDAO rangePlanDAO;
         public string SKU;

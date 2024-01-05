@@ -222,7 +222,6 @@
     <Compile Include="Models\NSSUpload.cs" />
     <Compile Include="Spreadsheets\ARConstraintsSpreadsheet.cs" />
     <Compile Include="Spreadsheets\ARSKUSpreadsheet.cs" />
-    <Compile Include="Spreadsheets\BaseExcelSpreadsheet.cs" />
     <Compile Include="Spreadsheets\BaseSpreadsheet.cs" />
     <Compile Include="Spreadsheets\BTSDetailsExport.cs" />
     <Compile Include="Spreadsheets\BTSExport.cs" />
@@ -231,7 +230,6 @@
     <Compile Include="Spreadsheets\CrossdockLinkSpreadsheet.cs" />
     <Compile Include="Common\DeleteValidationException.cs" />
     <Compile Include="Common\ExistsValidationException.cs" />
-    <Compile Include="Spreadsheets\ExportExcelSpreadsheet.cs" />
     <Compile Include="Common\Extensions.cs" />
     <Compile Include="Common\Filters\HandleAjaxError.cs" />
     <Compile Include="Common\Filters\HandleAjaxValidationError.cs" />
@@ -266,7 +264,6 @@
     <Compile Include="Spreadsheets\StoreNSSExport.cs" />
     <Compile Include="Spreadsheets\StoreSpreadsheet.cs" />
     <Compile Include="Spreadsheets\TroubleshootRDQExport.cs" />
-    <Compile Include="Spreadsheets\UploadExcelSpreadsheet.cs" />
     <Compile Include="Spreadsheets\UploadSpreadsheet.cs" />
     <Compile Include="Spreadsheets\VendorGroupSpreadsheet.cs" />
     <Compile Include="Spreadsheets\WebPickSpreadsheet.cs" />
@@ -567,49 +564,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="packages.config" />
-    <Content Include="Content\Templates\BulkRangeTemplate.xls">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Templates\HoldsUploadTemplate.xls">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Content\Templates\HoldsUpdatesTemplate.xlsx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\Templates\NetworkScheduleUpdateTemplate.xlsx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Templates\RingFenceDeleteTemplate.xls">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Templates\RDQRestrictionUploadTemplate.xls">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Templates\SkuAttributeUploadTemplate.xls">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Templates\RingFenceUploadTemplate.xls">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Templates\SkuRangePlanDGUploadTemplate.xls">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Templates\WebPickUploadTemplate.xls">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Templates\StoreTemplate.xls">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Templates\VendorGroupTemplate.xls">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Templates\POOverrideTemplate.xls">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Templates\SeasonalityTemplate.xls">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Templates\BTSUnassignedTemplate.xls">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\Templates\ARConstraintsUploadTemplate.xlsx">
@@ -627,7 +585,51 @@
     <Content Include="Content\Templates\CrossdockLinkDataTemplate.xlsx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Templates\SkuIdUploadTemplate.xlsx" />
+    <Content Include="Content\Templates\SkuIdUploadTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\HoldsUploadTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\SkuRangePlanDGUploadTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\BulkRangeTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\BTSUnassignedTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\POOverrideTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\RDQRestrictionsExportTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\RDQRestrictionUploadTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\RingFenceDeleteTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\RingFenceUploadTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\SeasonalityTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\SkuAttributeUploadTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\StoreTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\VendorGroupTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Templates\WebPickUploadTemplate.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="readme.txt" />
     <Content Include="Views\Shared\EditorTemplates\Date.cshtml" />
@@ -724,9 +726,6 @@
     <Content Include="Views\EcomCustXref\FormLayout.cshtml" />
     <Content Include="Views\EcomCustXref\Edit.cshtml" />
     <Content Include="Views\RingFence\Release.cshtml" />
-    <Content Include="Content\Templates\RDQRestrictionsExportTemplate.xls">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />

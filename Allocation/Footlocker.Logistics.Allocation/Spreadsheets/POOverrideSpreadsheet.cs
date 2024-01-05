@@ -1,30 +1,29 @@
-﻿using Aspose.Excel;
+﻿using Aspose.Cells;
 using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Models.Services;
 using Footlocker.Logistics.Allocation.Services;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Data;
 using System.Linq;
 using System.Web;
-using System.Web.ApplicationServices;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class POOverrideSpreadsheet : UploadExcelSpreadsheet
+    public class POOverrideSpreadsheet : UploadSpreadsheet
     {
         readonly ExistingPODAO existingPODAO;
         public List<ExpeditePO> validRecs = new List<ExpeditePO>();
         public List<ExpeditePO> errorList = new List<ExpeditePO>();
 
-        private ExpeditePO ParseRow(int row)
+        private ExpeditePO ParseRow(DataRow row)
         {
             ExpeditePO newExpeditePO = new ExpeditePO()
             {
-                Division = Convert.ToString(worksheet.Cells[row, 0].Value).Trim(),
-                PO = Convert.ToString(worksheet.Cells[row, 1].Value).Trim(),
-                OverrideDate = Convert.ToDateTime(worksheet.Cells[row, 2].Value), 
+                Division = Convert.ToString(row[0]).Trim(),
+                PO = Convert.ToString(row[1]).Trim(),
+                OverrideDate = Convert.ToDateTime(row[2]), 
                 Departments = "",
                 Sku = "",
                 CreateDate = DateTime.Now, 
@@ -90,7 +89,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         {
             ExpeditePO item;
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Incorrectly formatted or missing header row. Please correct and re-process.";
             else
@@ -99,9 +98,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        item = ParseRow(row);
+                        item = ParseRow(dataRow);
 
                         if (!ValidateRow(item))                        
                             errorList.Add(item);                        
@@ -138,11 +137,11 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             }
         }
 
-        public Excel GetErrors(List<ExpeditePO> errorList)
+        public Workbook GetErrors(List<ExpeditePO> errorList)
         {
             if (errorList != null)
             {
-                Excel excelDocument = GetTemplate();
+                excelDocument = GetTemplate();
                 Worksheet mySheet = excelDocument.Worksheets[0];
 
                 int row = 1;
@@ -151,8 +150,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     mySheet.Cells[row, 0].PutValue(p.Division);
                     mySheet.Cells[row, 1].PutValue(p.PO);
                     mySheet.Cells[row, 2].PutValue(p.OverrideDate);
-                    mySheet.Cells[row, 3].PutValue(p.ErrorMessage);
-                    mySheet.Cells[row, 3].Style.Font.Color = Color.Red;
+                    mySheet.Cells[row, maxColumns].PutValue(p.ErrorMessage);
+                    mySheet.Cells[row, maxColumns].SetStyle(errorStyle);
                     row++;
                 }
 

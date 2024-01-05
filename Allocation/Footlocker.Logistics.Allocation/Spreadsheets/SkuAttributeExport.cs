@@ -1,18 +1,13 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Common;
-using Footlocker.Logistics.Allocation.Services;
-using Aspose.Excel;
 using System.Collections.Generic;
 using Telerik.Web.Mvc;
-using System.Runtime;
-using System.Runtime.Remoting.Messaging;
-//using Aspose.Cells;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class SkuAttributeExport : ExportExcelSpreadsheet
+    public class SkuAttributeExport : ExportSpreadsheet
     {
         public string headerFileName;
 
@@ -56,7 +51,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 if (!string.IsNullOrEmpty(sah.SKU))
                     headerFileName += "-" + sah.SKU;
 
-                headerFileName += "-SkuAttributes.xls";
+                headerFileName += "-SkuAttributes.xlsx";
 
                 WriteData(headers);
             }                
@@ -79,9 +74,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 currentSheet.Cells[currentRow, 3].PutValue(header.BrandForDisplay);
                 currentSheet.Cells[currentRow, 4].PutValue(header.SKU);
                 currentSheet.Cells[currentRow, 5].PutValue(header.CreateDate);
-                currentSheet.Cells[currentRow, 5].Style.Number = 14;
+                currentSheet.Cells[currentRow, 5].SetStyle(dateStyle);                
                 currentSheet.Cells[currentRow, 6].PutValue(header.WeightActiveInt);
-                AddBorder(currentRow, 6, currentSheet);
+                currentSheet.Cells[currentRow, 6].SetStyle(boxStyle);
 
                 // attribute weighting
                 PopulateRowValue(currentRow, 7, header, currentSheet, "department");
@@ -120,19 +115,6 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             AutofitColumns();
         }
 
-        private void AddBorder(int row, int col, Worksheet mySheet)
-        {
-            mySheet.Cells[row, col].Style.Borders[BorderType.LeftBorder].LineStyle = CellBorderType.Thin;
-            mySheet.Cells[row, col].Style.Borders[BorderType.RightBorder].LineStyle = CellBorderType.Thin;
-            mySheet.Cells[row, col].Style.Borders[BorderType.BottomBorder].LineStyle = CellBorderType.Thin;
-            mySheet.Cells[row, col].Style.Borders[BorderType.TopBorder].LineStyle = CellBorderType.Thin;
-
-            mySheet.Cells[row, col].Style.Borders[BorderType.LeftBorder].Color = System.Drawing.Color.Black;
-            mySheet.Cells[row, col].Style.Borders[BorderType.RightBorder].Color = System.Drawing.Color.Black;
-            mySheet.Cells[row, col].Style.Borders[BorderType.BottomBorder].Color = System.Drawing.Color.Black;
-            mySheet.Cells[row, col].Style.Borders[BorderType.TopBorder].Color = System.Drawing.Color.Black;
-        }
-
         /// <summary>
         /// This was made so I didn't have to create an if/else for every attribute type since the PutValue method does
         /// not allow you to use a turing operator to determine what value to put (if they are of two different types i.e. int/string)
@@ -146,9 +128,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             else if (attribute.WeightInt == 0)            
                 mySheet.Cells[row, col].PutValue(string.Empty);            
             else            
-                mySheet.Cells[row, col].PutValue(attribute.WeightInt);            
+                mySheet.Cells[row, col].PutValue(attribute.WeightInt);
 
-            AddBorder(row, col, mySheet);
+            mySheet.Cells[row, col].SetStyle(boxStyle);            
         }
 
         public SkuAttributeExport(AppConfig config) : base(config)

@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Common;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class RingFenceByDestExport : ExportExcelSpreadsheet
+    public class RingFenceByDestExport : ExportSpreadsheet
     {
         public void WriteData(string div, string store)
         {

@@ -10,17 +10,10 @@ using Footlocker.Common;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Models.Services;
 using Footlocker.Logistics.Allocation.Spreadsheets;
-using Aspose.Excel;
-using System.IO;
+using Aspose.Cells;
 using Footlocker.Logistics.Allocation.Common;
-using System.Web.Services.Description;
-using Footlocker.Common.Entities;
-using Telerik.Web.Mvc.Infrastructure;
 using Footlocker.Logistics.Allocation.Factories;
 using Telerik.Web.Mvc.Extensions;
-using System.Text.RegularExpressions;
-using System.Data.Entity.Infrastructure;
-//using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -2557,7 +2550,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
             RingFenceExport exportRF = new RingFenceExport(appConfig, dao);
             exportRF.WriteData(settings);
-            exportRF.excelDocument.Save("RingFences.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            exportRF.excelDocument.Save(System.Web.HttpContext.Current.Response, "RingFences.xlsx", ContentDisposition.Attachment, exportRF.SaveOptions);
             return RedirectToAction("Index");
         }
 
@@ -2565,7 +2558,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             RingFenceByDestExport exportRF = new RingFenceByDestExport(appConfig);
             exportRF.WriteData(div, store);
-            exportRF.excelDocument.Save("RingFenceWebUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            exportRF.excelDocument.Save(System.Web.HttpContext.Current.Response, "RingFenceWebUpload.xlsx", ContentDisposition.Attachment, exportRF.SaveOptions);
 
             return View();
         }
@@ -2575,11 +2568,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult ExcelDeleteTemplate()
         {
             RingFenceDeleteSpreadsheet ringFenceDeleteSpreadsheet = new RingFenceDeleteSpreadsheet(appConfig, configService);
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = ringFenceDeleteSpreadsheet.GetTemplate();
 
-            excelDocument.Save("RingFenceDeleteUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "RingFenceDeleteUpload.xlsx", ContentDisposition.Attachment, ringFenceDeleteSpreadsheet.SaveOptions);
             return View();
         }
 
@@ -2620,13 +2613,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult DownloadDeleteErrors()
         {
             List<RingFenceUploadModel> errors = (List<RingFenceUploadModel>)Session["errorList"];
-            Excel excelDocument;
+            Workbook excelDocument;
             RingFenceDeleteSpreadsheet ringFenceDeleteSpreadsheet = new RingFenceDeleteSpreadsheet(appConfig, configService);
 
             if (errors != null)
             {
                 excelDocument = ringFenceDeleteSpreadsheet.GetErrors(errors); 
-                excelDocument.Save("RingFenceDeleteErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                excelDocument.Save(System.Web.HttpContext.Current.Response, "RingFenceDeleteErrors.xlsx", ContentDisposition.Attachment, ringFenceDeleteSpreadsheet.SaveOptions);
             }
             return View();
         }
@@ -2639,11 +2632,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             RingFenceUploadSpreadsheet ringFenceUploadSpreadsheet = new RingFenceUploadSpreadsheet(appConfig, configService, dao, 
                                                                                                    new LegacyFutureInventoryDAO());
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = ringFenceUploadSpreadsheet.GetTemplate();
 
-            excelDocument.Save("RingFenceUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "RingFenceUpload.xlsx", ContentDisposition.Attachment, ringFenceUploadSpreadsheet.SaveOptions);
             return View();
         }
 
@@ -2692,7 +2685,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult DownloadErrors()
         {
             List<RingFenceUploadModel> errors = (List<RingFenceUploadModel>)Session["errorList"];
-            Excel excelDocument;
+            Workbook excelDocument;
             RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
 
             RingFenceUploadSpreadsheet ringFenceUploadSpreadsheet = new RingFenceUploadSpreadsheet(appConfig, configService, dao, 
@@ -2701,7 +2694,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (errors != null)
             {
                 excelDocument = ringFenceUploadSpreadsheet.GetErrors(errors);
-                excelDocument.Save("RingFenceUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                excelDocument.Save(System.Web.HttpContext.Current.Response, "RingFenceUploadErrors.xlsx", ContentDisposition.Attachment, ringFenceUploadSpreadsheet.SaveOptions);
             }
             return View();
         }

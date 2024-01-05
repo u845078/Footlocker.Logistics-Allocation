@@ -7,13 +7,9 @@ using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Common;
 using Footlocker.Logistics.Allocation.DAO;
 using Telerik.Web.Mvc;
-using Aspose.Excel;
-using System.IO;
-using Footlocker.Logistics.Allocation.Common;
+using Aspose.Cells;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Spreadsheets;
-using Telerik.Web.Mvc.Infrastructure;
-using System.Text.RegularExpressions;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -66,7 +62,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 
             rdqRestrictionsExport.WriteData(filterDescriptors);
 
-            rdqRestrictionsExport.excelDocument.Save("RDQRestrictions.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            rdqRestrictionsExport.excelDocument.Save(System.Web.HttpContext.Current.Response, "RDQRestrictions.xlsx", ContentDisposition.Attachment, rdqRestrictionsExport.SaveOptions);
             return RedirectToAction("Index");
         }
 
@@ -770,11 +766,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult ExcelTemplate()
         {
             RDQRestrictionsSpreadsheet rdqRestrictionsSpreadsheet = new RDQRestrictionsSpreadsheet(appConfig, new ConfigService(), new RDQDAO());
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = rdqRestrictionsSpreadsheet.GetTemplate();
 
-            excelDocument.Save("RDQRestrictionUpload.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "RDQRestrictionUpload.xlsx", ContentDisposition.Attachment, rdqRestrictionsSpreadsheet.SaveOptions);
             return View();
         }
 
@@ -813,13 +809,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult DownloadErrors()
         {
             List<Tuple<RDQRestriction, string>> errors = (List<Tuple<RDQRestriction, string>>)Session["errorList"];
-            Excel excelDocument;
+            Workbook excelDocument;
             RDQRestrictionsSpreadsheet rdqRestrictionsSpreadsheet = new RDQRestrictionsSpreadsheet(appConfig, new ConfigService(), new RDQDAO());
 
             if (errors != null)
             {
                 excelDocument = rdqRestrictionsSpreadsheet.GetErrors(errors);
-                excelDocument.Save("RDQRestrictionErrors.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                excelDocument.Save(System.Web.HttpContext.Current.Response, "RDQRestrictionErrors.xlsx", ContentDisposition.Attachment, rdqRestrictionsSpreadsheet.SaveOptions);
             }
 
             return View();

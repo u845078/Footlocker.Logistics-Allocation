@@ -4,13 +4,10 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
-using System.IO;
-using Aspose.Excel;
+using Aspose.Cells;
 using Telerik.Web.Mvc;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Spreadsheets;
-using System.Web.Services.Description;
-using Footlocker.Logistics.Allocation.Models.Services;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -284,11 +281,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult SeasonalityTemplate()
         {
             SeasonalitySpreadsheet seasonalitySpreadsheet = new SeasonalitySpreadsheet(appConfig, configService);
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = seasonalitySpreadsheet.GetTemplate();
 
-            excelDocument.Save("SeasonalityTemplate.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "SeasonalityTemplate.xlsx", ContentDisposition.Attachment, seasonalitySpreadsheet.SaveOptions);
             return View();
         }
 
@@ -332,13 +329,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult SeasonalityErrors()
         {
             List<StoreSeasonalityDetail> errors = (List<StoreSeasonalityDetail>)Session["errorList"];
-            Excel excelDocument;
+            Workbook excelDocument;
             SeasonalitySpreadsheet seasonalitySpreadsheet = new SeasonalitySpreadsheet(appConfig, configService);
 
             if (errors != null)
             {
                 excelDocument = seasonalitySpreadsheet.GetErrors(errors);
-                excelDocument.Save("SeasonalityUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                excelDocument.Save(System.Web.HttpContext.Current.Response, "SeasonalityUploadErrors.xlsx", ContentDisposition.Attachment, seasonalitySpreadsheet.SaveOptions);
             }
             return View();
         }

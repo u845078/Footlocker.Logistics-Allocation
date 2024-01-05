@@ -5,23 +5,23 @@ using System.Collections.Generic;
 using System.Web;
 using Footlocker.Logistics.Allocation.Common;
 using System.Linq;
-using Aspose.Excel;
-using System.Drawing;
+using System.Data;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class SeasonalitySpreadsheet : UploadExcelSpreadsheet
+    public class SeasonalitySpreadsheet : UploadSpreadsheet
     {
         public List<StoreSeasonalityDetail> errorList = new List<StoreSeasonalityDetail>();
         public List<StoreSeasonalityDetail> validData = new List<StoreSeasonalityDetail>();
         int groupID;
 
-        private StoreSeasonalityDetail ParseRow(int row)
+        private StoreSeasonalityDetail ParseRow(DataRow row)
         {
             StoreSeasonalityDetail returnValue = new StoreSeasonalityDetail()
             {
-                Division = Convert.ToString(worksheet.Cells[row, 0].Value).PadLeft(2, '0'),
-                Store = Convert.ToString(worksheet.Cells[row, 1].Value).PadLeft(5, '0'),
+                Division = Convert.ToString(row[0]).PadLeft(2, '0'),
+                Store = Convert.ToString(row[1]).PadLeft(5, '0'),
                 GroupID = groupID,
                 CreateDate = DateTime.Now, 
                 CreatedBy = config.currentUser.NetworkID
@@ -42,7 +42,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         {
             StoreSeasonalityDetail uploadRec;
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Incorrectly formatted or missing header row. Please correct and re-process.";
             else
@@ -52,9 +52,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        uploadRec = ParseRow(row);
+                        uploadRec = ParseRow(dataRow);
                         ValidateUploadValues(uploadRec);
 
                         if (!string.IsNullOrEmpty(uploadRec.errorMessage))
@@ -82,11 +82,11 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             }
         }
 
-        public Excel GetErrors(List<StoreSeasonalityDetail> errorList)
+        public Workbook GetErrors(List<StoreSeasonalityDetail> errorList)
         {
             if (errorList != null)
             {
-                Excel excelDocument = GetTemplate();
+                excelDocument = GetTemplate();
                 Worksheet mySheet = excelDocument.Worksheets[0];
 
                 int row = 1;
@@ -94,8 +94,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 {
                     mySheet.Cells[row, 0].PutValue(p.Division);
                     mySheet.Cells[row, 1].PutValue(p.Store);
-                    mySheet.Cells[row, 2].PutValue(p.errorMessage);
-                    mySheet.Cells[row, 2].Style.Font.Color = Color.Red;
+                    mySheet.Cells[row, maxColumns].PutValue(p.errorMessage);
+                    mySheet.Cells[row, maxColumns].SetStyle(errorStyle);
                     row++;
                 }
 

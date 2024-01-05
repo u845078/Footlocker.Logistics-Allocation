@@ -16,7 +16,7 @@ namespace AllocationTests
             AppConfig appConfig = new AppConfig();
             Assert.AreEqual("C:\\Log\\allocation", appConfig.LogFile);
             Assert.AreEqual("\\Content\\Templates\\WebPickUploadTemplate.xls", appConfig.WebPickTemplate);
-            Assert.AreEqual("C:\\Aspose\\Aspose.Excel.lic", appConfig.AsposeLicenseFile);
+            Assert.AreEqual("C:\\Aspose\\Aspose.Cells.lic", appConfig.AsposeCellsLicenseFile);
         }
     }
 }

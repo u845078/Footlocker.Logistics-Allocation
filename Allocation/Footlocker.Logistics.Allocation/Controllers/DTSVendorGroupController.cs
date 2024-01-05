@@ -5,14 +5,10 @@ using System.Web;
 using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.DAO;
-using System.IO;
-using Aspose.Excel;
 using Telerik.Web.Mvc;
 using Footlocker.Logistics.Allocation.Services;
-using System.Web.Helpers;
 using Footlocker.Logistics.Allocation.Spreadsheets;
-using System.Web.ApplicationServices;
-using System.Web.Services.Description;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -240,11 +236,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult ExcelTemplate(int ID)
         {
             VendorGroupSpreadsheet vendorGroupSpreadsheet = new VendorGroupSpreadsheet(appConfig, new ConfigService(), vendorGroupDetailDAO);
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = vendorGroupSpreadsheet.GetTemplate();
 
-            excelDocument.Save("VendorGroupUpload.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "VendorGroupUpload.xlsx", ContentDisposition.Attachment, vendorGroupSpreadsheet.SaveOptions);
             VendorGroupDetailsModel model = new VendorGroupDetailsModel()
             {
                 HasDetails = db.VendorGroupDetails.Where(vgd => vgd.GroupID == ID).Any(),
@@ -278,7 +274,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult SeasonalityErrors()
         {
             VendorGroupSpreadsheet vendorGroupSpreadsheet = new VendorGroupSpreadsheet(appConfig, new ConfigService(), vendorGroupDetailDAO);
-            Excel excelDocument;
+            Workbook excelDocument;
 
             List<VendorGroupDetail> errorList = new List<VendorGroupDetail>();
 
@@ -286,7 +282,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 errorList = (List<VendorGroupDetail>)Session["errorList"];
 
             excelDocument = vendorGroupSpreadsheet.GetErrors(errorList);
-            excelDocument.Save("VendorGroupErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "VendorGroupErrors.xlsx", ContentDisposition.Attachment, vendorGroupSpreadsheet.SaveOptions);
 
             return View();
         }
