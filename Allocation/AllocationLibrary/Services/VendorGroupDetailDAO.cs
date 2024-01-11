@@ -49,10 +49,12 @@ namespace Footlocker.Logistics.Allocation.Services
         public bool IsVendorSetupForEDI(string vendor)
         {
             DbCommand SQLCommand;
-            string SQL = "select AUTO_APPROVAL_IND from TCEDI001 where ";
-            SQL += " VND_ID='" + vendor.PadLeft(5,'0') + "'";
+
+            string SQL = "select AUTO_APPROVAL_IND from TCEDI001 ";
+            SQL += " where VND_ID = ?";
 
             SQLCommand = _databaseDB2.GetSqlStringCommand(SQL);
+            _databaseDB2.AddInParameter(SQLCommand, "@1", DbType.String, vendor.PadLeft(5, '0'));
 
             DataSet data;
             data = _databaseDB2.ExecuteDataSet(SQLCommand);
