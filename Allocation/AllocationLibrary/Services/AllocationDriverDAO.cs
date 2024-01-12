@@ -43,28 +43,36 @@ namespace Footlocker.Logistics.Allocation.Services
                 string SQLMF;
                 try
                 {
-                    SQLMF = "insert into " + _prefix + "TCQTM001 values (";
-                    SQLMF += "'" + objectToSave.Division + "', ";
-                    SQLMF += "'" + objectToSave.Department + "', ";
-                    SQLMF += "'" + objectToSave.ConvertDate.ToString("yyyy-MM-dd") + "', ";
-                    SQLMF += "'" + objectToSave.AllocateDate.ToString("yyyy-MM-dd") + "', ";
-                    SQLMF += "'" + user + "', ";
-                    SQLMF += "'" + DateTime.Now.ToString("yyyy-MM-dd") + "') ";
+                    SQLMF = "insert into " + _prefix + "TCQTM001 values (?, ?, ?, ?, ?, ?)";                                        
 
                     SQLCommandMF = db.GetSqlStringCommand(SQLMF);
+                    db.AddInParameter(SQLCommandMF, "@1", DbType.String, objectToSave.Division);
+                    db.AddInParameter(SQLCommandMF, "@2", DbType.String, objectToSave.Department);
+                    db.AddInParameter(SQLCommandMF, "@3", DbType.String, objectToSave.ConvertDate.ToString("yyyy-MM-dd"));
+                    db.AddInParameter(SQLCommandMF, "@4", DbType.String, objectToSave.AllocateDate.ToString("yyyy-MM-dd"));
+                    db.AddInParameter(SQLCommandMF, "@5", DbType.String, user);
+                    db.AddInParameter(SQLCommandMF, "@6", DbType.String, DateTime.Now.ToString("yyyy-MM-dd"));
+
                     db.ExecuteNonQuery(SQLCommandMF);
                 }
                 catch
                 {
                     SQLMF = "update " + _prefix + "TCQTM001 set ";
-                    SQLMF += " convert_date = '" + objectToSave.ConvertDate.ToString("yyyy-MM-dd") + "', ";
-                    SQLMF += " allocate_date = '" + objectToSave.AllocateDate.ToString("yyyy-MM-dd") + "', ";
-                    SQLMF += " user_name = '" + user + "', ";
-                    SQLMF += " create_date = '" + DateTime.Now.ToString("yyyy-MM-dd") + "' ";
-                    SQLMF += " where retl_oper_div_code = '" + objectToSave.Division + "' ";
-                    SQLMF += " and stk_dept_num = '" + objectToSave.Department + "' ";
+                    SQLMF += " convert_date = ?, ";
+                    SQLMF += " allocate_date = ?, ";
+                    SQLMF += " user_name = ?, ";
+                    SQLMF += " create_date = ? ";
+                    SQLMF += " where retl_oper_div_code = ? ";
+                    SQLMF += " and stk_dept_num = ? ";
 
                     SQLCommandMF = db.GetSqlStringCommand(SQLMF);
+                    db.AddInParameter(SQLCommandMF, "@1", DbType.String, objectToSave.ConvertDate.ToString("yyyy-MM-dd"));
+                    db.AddInParameter(SQLCommandMF, "@2", DbType.String, objectToSave.AllocateDate.ToString("yyyy-MM-dd"));
+                    db.AddInParameter(SQLCommandMF, "@3", DbType.String, user);
+                    db.AddInParameter(SQLCommandMF, "@4", DbType.String, DateTime.Now.ToString("yyyy-MM-dd"));
+                    db.AddInParameter(SQLCommandMF, "@5", DbType.String, objectToSave.Division);
+                    db.AddInParameter(SQLCommandMF, "@6", DbType.String, objectToSave.Department);
+
                     db.ExecuteNonQuery(SQLCommandMF);
                 }
             }
@@ -201,9 +209,13 @@ namespace Footlocker.Logistics.Allocation.Services
                 db = _USdatabase;            
 
             SQLMF = "delete from " + _prefix + "TCQTM001 ";
-            SQLMF += " where retl_oper_div_code = '" + div + "' ";
-            SQLMF += " and stk_dept_num = '" + dept + "' ";
+            SQLMF += " where retl_oper_div_code = ? and ";
+            SQLMF += "  stk_dept_num = ? ";
+
             SQLCommandMF = db.GetSqlStringCommand(SQLMF);
+            db.AddInParameter(SQLCommandMF, "@1", DbType.String, div);
+            db.AddInParameter(SQLCommandMF, "@2", DbType.String, dept);            
+
             db.ExecuteNonQuery(SQLCommandMF);
 
             DbCommand SQLCommand;

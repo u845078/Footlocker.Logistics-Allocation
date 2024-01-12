@@ -55,9 +55,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Edit(string div, string dept)
         {
             AllocationDriverDAO dao = new AllocationDriverDAO(appConfig.EuropeDivisions, appConfig.DB2PrefixDriver);
-            DriverModel model = new DriverModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
-            model.NewDriver = dao.GetAllocationDriver(div, dept);
+            DriverModel model = new DriverModel()
+            {
+                Divisions = currentUser.GetUserDivisions(AppName),
+                NewDriver = dao.GetAllocationDriver(div, dept)
+            };
 
             return View(model);
         }
@@ -88,11 +90,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             switch (model.SelectedDatabase)
             {
                 case MaintenanceDataBases.Allocation:
-                    recordsAffected = db.Database.ExecuteSqlCommand(model.SQLCommand);
+                    recordsAffected = db.Database.ExecuteSqlCommand(model.GeneratedSQLCommand);
                     break;
                 case MaintenanceDataBases.Footlocker_Common:
                     FootLockerCommonContext commDB = new FootLockerCommonContext();
-                    recordsAffected = commDB.Database.ExecuteSqlCommand(model.SQLCommand);
+                    recordsAffected = commDB.Database.ExecuteSqlCommand(model.GeneratedSQLCommand);
                     break;
             }         
             

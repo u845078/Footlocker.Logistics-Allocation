@@ -1,18 +1,14 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Data;
 using System.Data.Common;
 using Microsoft.Practices.EnterpriseLibrary.Data;
-using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Factories;
 using Footlocker.Logistics.Allocation.Services;
-using Footlocker.Common;
 using System.Linq;
 using System.IO;
 using System.Xml.Serialization;
-using System.Text.RegularExpressions;
 
 namespace Footlocker.Logistics.Allocation.Models.Services
 {
@@ -20,7 +16,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
     {
         readonly Database _database;
         readonly Database _databaseEurope;
-        readonly Microsoft.Practices.EnterpriseLibrary.Data.Database allocationDatabase;
+        readonly Database allocationDatabase;
         readonly AllocationLibraryContext db = new AllocationLibraryContext();
         readonly Repository<ItemMaster> skuRespository;
         public List<DistributionCenter> distributionCenters = new List<DistributionCenter>();
@@ -407,7 +403,8 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
         public List<RingFenceDetail> GetFuturePOs(RingFence rf)
         {
-            Database currDatabase=null;
+            Database currDatabase;
+
             if (europeDivisions.Contains(rf.Division))            
                 currDatabase = _databaseEurope;            
             else            
@@ -416,10 +413,6 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             List<RingFenceDetail> _que;
             _que = new List<RingFenceDetail>();
             
-            //int instanceid = (from a in db.InstanceDivisions
-            //                    where a.Division == rf.Division
-            //                    select a.InstanceID).First();
-
             DbCommand SQLCommand;
             string stock, color, dept;
             string[] tokens = rf.Sku.Split('-');
@@ -430,8 +423,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             string SQL = "select a.EXPECTED_DELV_DATE, a.retl_oper_div_code, a.PO_NUM,b.STATUS_IND,a.PRIORITY_CODE, ";
             SQL += "c.WHSE_ID_NUM,RTRIM(c.STK_SIZE_NUM) as STK_SIZE_NUM,SUM(c.ORDER_QTY - c.RECEIVED_QTY) as due_in ";
             SQL += " from tkpod001 a,tkpod003 b, tkpod005 c ";
-            SQL += " where ";
-            SQL += " a.retl_oper_div_code = b.retl_oper_div_code ";
+            SQL += " where a.retl_oper_div_code = b.retl_oper_div_code ";
             SQL += " and b.retl_oper_div_code = c.retl_oper_div_code ";
             SQL += " and a.PO_NUM = b.PO_NUM ";
             SQL += " and b.PO_NUM = c.PO_NUM ";
@@ -440,10 +432,10 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             SQL += " and b.STK_DEPT_NUM = c.STK_DEPT_NUM ";
             SQL += " and b.STK_NUM = c.STK_NUM  ";
             SQL += " and b.WDTH_COLOR_NUM = c.WDTH_COLOR_NUM ";
-            SQL += " and a.RETL_OPER_DIV_CODE = '" + rf.Division + "'";
-            SQL += " and b.STK_DEPT_NUM = '" + dept + "' ";
-            SQL += " and b.STK_NUM = '" + stock + "' ";
-            SQL += " and b.WDTH_COLOR_NUM = '" + color + "' ";
+            SQL += " and a.RETL_OPER_DIV_CODE = ?";
+            SQL += " and b.STK_DEPT_NUM = ? ";
+            SQL += " and b.STK_NUM = ? ";
+            SQL += " and b.WDTH_COLOR_NUM = ? ";
             SQL += " and c.WHSE_ID_NUM != '' ";
             SQL += " group by a.EXPECTED_DELV_DATE, a.retl_oper_div_code, a.PO_NUM,a.PRIORITY_CODE,b.STATUS_IND,c.WHSE_ID_NUM,c.STK_SIZE_NUM ";
             SQL += " having SUM(c.ORDER_QTY - c.RECEIVED_QTY) > 0 ";
@@ -462,15 +454,23 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             SQL += " and b.STK_DEPT_NUM = c.STK_DEPT_NUM ";
             SQL += " and b.STK_NUM = c.STK_NUM  ";
             SQL += " and b.WDTH_COLOR_NUM = c.WDTH_COLOR_NUM ";
-            SQL += " and a.RETL_OPER_DIV_CODE = '" + rf.Division + "'";
-            SQL += " and b.STK_DEPT_NUM = '" + dept + "' ";
-            SQL += " and b.STK_NUM = '" + stock + "' ";
-            SQL += " and b.WDTH_COLOR_NUM = '" + color + "' ";
+            SQL += " and a.RETL_OPER_DIV_CODE = ?";
+            SQL += " and b.STK_DEPT_NUM = ? ";
+            SQL += " and b.STK_NUM = ? ";
+            SQL += " and b.WDTH_COLOR_NUM = ? ";
             SQL += " and c.WHSE_ID_NUM != '' ";
             SQL += " group by a.EXPECTED_DELV_DATE, a.retl_oper_div_code, a.PO_NUM,a.PRIORITY_CODE,b.STATUS_IND,c.WHSE_ID_NUM,c.CASELOT_NUMBER ";
             SQL += " having SUM(c.ORDER_QTY - c.RECEIVED_QTY) > 0 ";
 
             SQLCommand = currDatabase.GetSqlStringCommand(SQL);
+            currDatabase.AddInParameter(SQLCommand, "@1", DbType.String, rf.Division);
+            currDatabase.AddInParameter(SQLCommand, "@2", DbType.String, dept);
+            currDatabase.AddInParameter(SQLCommand, "@3", DbType.String, stock);
+            currDatabase.AddInParameter(SQLCommand, "@4", DbType.String, color);
+            currDatabase.AddInParameter(SQLCommand, "@5", DbType.String, rf.Division);
+            currDatabase.AddInParameter(SQLCommand, "@6", DbType.String, dept);
+            currDatabase.AddInParameter(SQLCommand, "@7", DbType.String, stock);
+            currDatabase.AddInParameter(SQLCommand, "@8", DbType.String, color);
 
             DataSet data = new DataSet();
             data = currDatabase.ExecuteDataSet(SQLCommand);
@@ -510,7 +510,7 @@ namespace Footlocker.Logistics.Allocation.Models.Services
                 {
                     det = BuildFutureRingFenceDetail(rf.Sku, Convert.ToString(dr["STK_SIZE_NUM"]),
                                  Convert.ToString(dr["WHSE_ID_NUM"]), rf.ID, Convert.ToString(dr["PO_NUM"]),
-                                 Convert.ToString(dr["PRIORITY_CODE"]), //list, 
+                                 Convert.ToString(dr["PRIORITY_CODE"]), 
                                  Convert.ToInt32(dr["due_in"]),
                                  Convert.ToDateTime(dr["EXPECTED_DELV_DATE"]), reductionData, ringFenceDetails);
 
