@@ -94,7 +94,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                             rec.ProductTypeName = lookupRec.ProductTypeName;
                         }
 
-                        productTypeDAO.UpdateList(validRows);
+                        if (config.UpdateMF)
+                            productTypeDAO.UpdateList(validRows);
                     }                        
                 }
                 catch (Exception ex)

@@ -8,6 +8,7 @@ using Microsoft.Practices.EnterpriseLibrary.Data;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Factories;
 using Footlocker.Common;
+using System.Data.SqlClient;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
@@ -30,9 +31,10 @@ namespace Footlocker.Logistics.Allocation.Services
             string SQL = "select a.RETL_OPER_DIV_CODE, a.STK_DEPT_NUM, b.PRODUCT_TYP_CODE, b.PRODUCT_TYP_NAME, b.PRODUCT_TYP_ID ";
             SQL += " from TCISR082 a, TCISR079 b";
             SQL += " where a.product_typ_id = b.product_typ_id and ";
-            SQL += " a.retl_oper_div_code = '" + division + "'";
+            SQL += " a.retl_oper_div_code = ?";
 
             SQLCommand = myDatabase.GetSqlStringCommand(SQL);
+            myDatabase.AddInParameter(SQLCommand, "@1", DbType.String, division);
 
             DataSet data;
             data = myDatabase.ExecuteDataSet(SQLCommand);
@@ -51,17 +53,15 @@ namespace Footlocker.Logistics.Allocation.Services
 
         public void UpdateList(List<ProductType> list)
         {
-
             Database myDatabase;
+         
             if (list.Count > 0)
             {
                 Division div = Footlocker.Common.DivisionService.GetDivision(list[0].Division);
                 myDatabase = DatabaseFactory.CreateDatabase(Convert.ToString(div.ConnectionName));
             }
-            else
-            {
-                myDatabase = DatabaseFactory.CreateDatabase("DB2PROD");
-            }
+            else            
+                myDatabase = DatabaseFactory.CreateDatabase("DB2PROD");            
 
             Footlocker.FLLogger log = new FLLogger("c:\\log\\allocationupload");
             DbCommand SQLCommand;
@@ -112,10 +112,9 @@ namespace Footlocker.Logistics.Allocation.Services
                 myDatabase.AddInParameter(SQLCommand2, "@4", DbType.Int32, p.ProductTypeID);
 
                 myDatabase.ExecuteNonQuery(SQLCommand2);
-
             }
-            log.Log("finished loading " + list.Count, FLLogger.eLogMessageType.eInfo);
 
+            log.Log("finished loading " + list.Count, FLLogger.eLogMessageType.eInfo);
         }
     }
 }
