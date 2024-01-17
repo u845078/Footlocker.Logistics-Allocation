@@ -1,9 +1,5 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 using System.Data;
-using Footlocker.Logistics.Allocation.Models;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
@@ -178,6 +174,5 @@ namespace Footlocker.Logistics.Allocation.Services
 
             return line;
         }
-
     }
 }

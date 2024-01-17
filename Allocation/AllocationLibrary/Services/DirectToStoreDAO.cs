@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.Practices.EnterpriseLibrary.Data;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Factories;
@@ -14,9 +12,9 @@ namespace Footlocker.Logistics.Allocation.Services
 {
     public class DirectToStoreDAO
     {
-        Database _database;
-        Database _databaseEurope;
-        Database _databaseAllocation;
+        readonly Database _database;
+        readonly Database _databaseEurope;
+        readonly Database _databaseAllocation;
         readonly string europeDivisions;
 
         public DirectToStoreDAO(string europeDivisions)
@@ -27,13 +25,9 @@ namespace Footlocker.Logistics.Allocation.Services
             this.europeDivisions = europeDivisions;
         }
 
-        public Boolean IsVendorValidForSku(string vendor, string sku)
+        public bool IsVendorValidForSku(string vendor, string sku)
         {
-            Database currentDB;
-            
-            List<VendorGroupDetail> _que;
-            _que = new List<VendorGroupDetail>();
-
+            Database currentDB;            
             DbCommand SQLCommand;
             string[] tokens = sku.Split('-');
 
@@ -42,18 +36,20 @@ namespace Footlocker.Logistics.Allocation.Services
             else            
                 currentDB = _database;            
 
-            string SQL = "select count(*) as CNT from TC051026 where ";
-            SQL += " VEND_NUM='" + vendor.PadLeft(5, '0') + "' ";
-            SQL += " and RETL_OPER_DIV_CD='" + tokens[0] + "' ";
-            SQL += " and STK_DEPT_NUM='" + tokens[1] + "' ";
-            SQL += " and STK_NUM='" + tokens[2] + "' ";
+            string SQL = "select count(*) as CNT from TC051026 ";
+            SQL += " where VEND_NUM = ? and ";
+            SQL += " RETL_OPER_DIV_CD = ? and ";
+            SQL += " STK_DEPT_NUM = ? and ";
+            SQL += " STK_NUM = ?";
 
             SQLCommand = currentDB.GetSqlStringCommand(SQL);
+            currentDB.AddInParameter(SQLCommand, "@1", DbType.String, vendor.PadLeft(5, '0'));
+            currentDB.AddInParameter(SQLCommand, "@2", DbType.String, tokens[0]);
+            currentDB.AddInParameter(SQLCommand, "@3", DbType.String, tokens[1]);
+            currentDB.AddInParameter(SQLCommand, "@4", DbType.String, tokens[2]);
 
             DataSet data;
             data = currentDB.ExecuteDataSet(SQLCommand);
-
-            VendorGroupDetailFactory factory = new VendorGroupDetailFactory();
 
             if (data.Tables.Count > 0)
             {
@@ -69,9 +65,7 @@ namespace Footlocker.Logistics.Allocation.Services
         public List<string> GetVendors(string sku)
         {
             Database currentDB;
-
-            List<string> _que;
-            _que = new List<string>();
+            List<string> _que = new List<string>();
 
             DbCommand SQLCommand;
             string[] tokens = sku.Split('-');
@@ -81,12 +75,15 @@ namespace Footlocker.Logistics.Allocation.Services
             else            
                 currentDB = _database;            
 
-            string SQL = "select DISTINCT VEND_NUM from TC051026 where ";
-            SQL += " RETL_OPER_DIV_CD='" + tokens[0] + "' ";
-            SQL += " and STK_DEPT_NUM='" + tokens[1] + "' ";
-            SQL += " and STK_NUM='" + tokens[2] + "' ";
+            string SQL = "select DISTINCT VEND_NUM from TC051026 ";
+            SQL += " where RETL_OPER_DIV_CD = ? and ";
+            SQL += " STK_DEPT_NUM = ? and ";
+            SQL += " STK_NUM = ?";
 
-            SQLCommand = currentDB.GetSqlStringCommand(SQL);
+            SQLCommand = currentDB.GetSqlStringCommand(SQL);            
+            currentDB.AddInParameter(SQLCommand, "@1", DbType.String, tokens[0]);
+            currentDB.AddInParameter(SQLCommand, "@2", DbType.String, tokens[1]);
+            currentDB.AddInParameter(SQLCommand, "@3", DbType.String, tokens[2]);
 
             DataSet data;
             data = currentDB.ExecuteDataSet(SQLCommand);
@@ -110,9 +107,8 @@ namespace Footlocker.Logistics.Allocation.Services
             string SQL = "dbo.[getDTSConstraintsOneSize]";
 
             SQLCommand = _databaseAllocation.GetStoredProcCommand(SQL);
-            //_database.AddInParameter(SQLCommand, "@variable", DbType.String, variable);
 
-            DataSet data = new DataSet();
+            DataSet data;
             data = _databaseAllocation.ExecuteDataSet(SQLCommand);
 
             DirectToStoreConstraintFactory factory = new DirectToStoreConstraintFactory();
@@ -128,7 +124,6 @@ namespace Footlocker.Logistics.Allocation.Services
                     constraint.VendorPackQty = Convert.ToInt32(dr["VendorPackQty"]);
                     constraint.OrderDays = dr["OrderDays"].ToString();
                     
-
                     _que.Add(constraint);
                 }
             }
