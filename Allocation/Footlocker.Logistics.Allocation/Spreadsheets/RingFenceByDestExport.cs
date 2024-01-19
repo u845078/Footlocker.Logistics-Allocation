@@ -48,6 +48,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                 currentRow++;
             }
+
+            AutofitColumns();
         }
 
         public RingFenceByDestExport(AppConfig config) : base(config)
