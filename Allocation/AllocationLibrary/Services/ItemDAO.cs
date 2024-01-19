@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Data;
 using System.Data.Common;
 using Microsoft.Practices.EnterpriseLibrary.Data;
-using Footlocker.Logistics.Allocation.Factories;
 using Footlocker.Logistics.Allocation.Models;
 using System.Linq;
-using System.Data.SqlClient;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
@@ -38,10 +35,14 @@ namespace Footlocker.Logistics.Allocation.Services
             string[] tokens = sku.Split('-');
 
             string SQLMF = "SELECT * FROM TC051007 ";
-            SQLMF += string.Format("WHERE RETL_OPER_DIV_CD = '{0}' and STK_DEPT_NUM = '{1}' and STK_NUM = '{2}' and STK_WC_NUM = '{3}'", 
-                tokens[0], tokens[1], tokens[2], tokens[3]);
+            SQLMF += "WHERE RETL_OPER_DIV_CD = ? and STK_DEPT_NUM = ? and STK_NUM = ? and STK_WC_NUM = ?";
 
             SQLCommandMF = mfDatabase.GetSqlStringCommand(SQLMF);
+            mfDatabase.AddInParameter(SQLCommandMF, "@1", DbType.String, tokens[0]);
+            mfDatabase.AddInParameter(SQLCommandMF, "@2", DbType.String, tokens[1]);
+            mfDatabase.AddInParameter(SQLCommandMF, "@3", DbType.String, tokens[2]);
+            mfDatabase.AddInParameter(SQLCommandMF, "@4", DbType.String, tokens[3]);
+
             DataSet data = mfDatabase.ExecuteDataSet(SQLCommandMF);
 
             List<SizeObj> newSizes = new List<SizeObj>();
@@ -142,7 +143,7 @@ namespace Footlocker.Logistics.Allocation.Services
             string dept;
             string stock;
             string divCountryCode;
-            Database currentDB;
+            Microsoft.Practices.EnterpriseLibrary.Data.Database currentDB;
             DbCommand SQLCommand;
             decimal price = 0.0M;
 
@@ -162,11 +163,11 @@ namespace Footlocker.Logistics.Allocation.Services
 
             string SQL = "SELECT A.CURR_RETL_PRICE AS RETAIL ";
             SQL += "  FROM TCMPS016 A ";
-            SQL += " WHERE A.RETL_OPER_DIV_CODE = '" + div + "' and ";
-            SQL += "  A.STK_DEPT_NUM = '" + dept + "' and ";
-            SQL += "  A.STK_NUM = '" + stock + "' and ";
+            SQL += " WHERE A.RETL_OPER_DIV_CODE = ? and ";
+            SQL += "  A.STK_DEPT_NUM = ? and ";
+            SQL += "  A.STK_NUM = ? and ";
             SQL += "  A.PRICE_GROUP_CODE = '01' and ";
-            SQL += "  A.COUNTRY_CODE = '" + divCountryCode + "' and ";
+            SQL += "  A.COUNTRY_CODE = ? and ";
             SQL += "  A.RPA_EFF_DATE = (SELECT MAX(B.RPA_EFF_DATE) ";
             SQL += "     FROM TCMPS016 B";
             SQL += "  WHERE B.RETL_OPER_DIV_CODE =  A.RETL_OPER_DIV_CODE and ";
@@ -176,6 +177,10 @@ namespace Footlocker.Logistics.Allocation.Services
             SQL += "        B.STK_NUM            =  A.STK_NUM)";
 
             SQLCommand = currentDB.GetSqlStringCommand(SQL);
+            currentDB.AddInParameter(SQLCommand, "@1", DbType.String, div);
+            currentDB.AddInParameter(SQLCommand, "@2", DbType.String, dept);
+            currentDB.AddInParameter(SQLCommand, "@3", DbType.String, stock);
+            currentDB.AddInParameter(SQLCommand, "@4", DbType.String, divCountryCode);
 
             DataSet data;
             data = currentDB.ExecuteDataSet(SQLCommand);

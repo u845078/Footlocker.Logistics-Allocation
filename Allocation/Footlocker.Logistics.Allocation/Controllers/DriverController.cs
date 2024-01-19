@@ -96,8 +96,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     FootLockerCommonContext commDB = new FootLockerCommonContext();
                     recordsAffected = commDB.Database.ExecuteSqlCommand(model.GeneratedSQLCommand);
                     break;
-            }         
-            
+            }
+
             db.SaveChanges();
 
             model.ReturnMessage = string.Format("There were {0} records affected", recordsAffected);

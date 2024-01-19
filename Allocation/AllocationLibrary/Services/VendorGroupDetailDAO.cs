@@ -31,8 +31,7 @@ namespace Footlocker.Logistics.Allocation.Services
             SQLCommand = _database.GetStoredProcCommand(SQL);
             _database.AddInParameter(SQLCommand, "@ID", DbType.String, ID);
 
-            DataSet data = new DataSet();
-            data = _database.ExecuteDataSet(SQLCommand);
+            DataSet data = _database.ExecuteDataSet(SQLCommand);
 
             VendorGroupDetailFactory factory = new VendorGroupDetailFactory();
 

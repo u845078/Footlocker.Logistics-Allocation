@@ -70,8 +70,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private void InitializeCreate(WebPickModel model)
         {
             model.Divisions = currentUser.GetUserDivisions(AppName);
-            model.DCs = (from a in db.DistributionCenters
-                         select a).ToList();
+            model.DCs = db.DistributionCenters.ToList();
 
             model.PickOptions = new List<SelectListItem>
             {
@@ -125,10 +124,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     if (model.RDQ.Status == "E-PICK")
                         ModelState.AddModelError("RDQ.Status", "You cannot do an E-Pick with a PO");
-                    else
-                    {
-                        message = CreateFutureUserRDQ(model.RDQ);
-                    }
+                    else                    
+                        message = CreateFutureUserRDQ(model.RDQ);                    
                 }
                 else
                 {
@@ -162,15 +159,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     int holdcount = rdqDAO.ApplyHolds(list, instance);
                     int cancelholdcount = rdqDAO.ApplyCancelHolds(list);
                     message = "Web/emergency pick generated.  ";
-                    if (cancelholdcount > 0)
-                    {
-                        message += string.Format("{0} rejected by cancel inventory hold. ", cancelholdcount);
-                    }
+                    if (cancelholdcount > 0)                    
+                        message += string.Format("{0} rejected by cancel inventory hold. ", cancelholdcount);                    
 
-                    if (holdcount > 0)
-                    {
+                    if (holdcount > 0)                    
                         message += string.Format("{0} on hold. Please go to Release Held RDQs to see held RDQs. ", holdcount);
-                    }
+                    
                     return RedirectToAction("Index", new { message });
                 }
 
@@ -378,10 +372,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 if (validateInventory)
                 {
                     int qtyAvailable = InventoryAvailableToPick(rdq);
-                    if (qtyAvailable < rdq.Qty)
-                    {
-                        message = string.Format("Not enough inventory. Amount available (for size) is {0}", qtyAvailable);
-                    }
+                    
+                    if (qtyAvailable < rdq.Qty)                    
+                        message = string.Format("Not enough inventory. Amount available (for size) is {0}", qtyAvailable);                    
                 }
             }
             return message;

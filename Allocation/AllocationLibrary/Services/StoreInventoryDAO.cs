@@ -46,17 +46,24 @@ namespace Footlocker.Logistics.Allocation.Services
             SQL += "  sum(BS_OH_QTY) AS ON_HAND, sum(CURR_STR_BIN_PICK) AS BIN_PICK_RESERVE, ";     
             SQL += "  sum(CURR_STR_CASE_PICK) AS CASE_PICK_RESRVE ";
             SQL += " FROM TCCRS001 ";
-            SQL += " WHERE RETL_OPER_DIV_CODE = '" + div + "' AND ";
-            SQL += "    STK_DEPT_NUM = '" + dept + "' AND ";                                   
-            SQL += "    STK_NUM = '" + stock + "' AND ";
-            SQL += "    STK_WDTH_COLOR_NUM = '" + color + "'";
+            SQL += " WHERE RETL_OPER_DIV_CODE = ? AND ";
+            SQL += "    STK_DEPT_NUM = ? AND ";                                   
+            SQL += "    STK_NUM = ? AND ";
+            SQL += "    STK_WDTH_COLOR_NUM = ?";
 
             if (!string.IsNullOrEmpty(store))            
-                SQL += " AND STR_NUM = '" + store + "'";            
+                SQL += " AND STR_NUM = ?";            
 
             SQL += " group by STK_SIZE_NUM";
 
             SQLCommand = currDatabase.GetSqlStringCommand(SQL);
+            currDatabase.AddInParameter(SQLCommand, "@1", DbType.String, div);
+            currDatabase.AddInParameter(SQLCommand, "@2", DbType.String, dept);
+            currDatabase.AddInParameter(SQLCommand, "@3", DbType.String, stock);
+            currDatabase.AddInParameter(SQLCommand, "@4", DbType.String, color);
+
+            if (!string.IsNullOrEmpty(store))
+                currDatabase.AddInParameter(SQLCommand, "@5", DbType.String, store);
 
             DataSet data;
             data = currDatabase.ExecuteDataSet(SQLCommand);
@@ -92,10 +99,7 @@ namespace Footlocker.Logistics.Allocation.Services
             color = tokens[3];
            
             List<StoreInventory> storeInventoryList = new List<StoreInventory>();
-
-            List<StoreLookup> allStores = (from s in db.StoreLookups
-                                           where s.Division == div
-                                           select s).ToList();
+            List<StoreLookup> allStores = db.StoreLookups.Where(s => s.Division == div).ToList();
 
             Database currDatabase;
             if (europeDivisions.Contains(div))            
@@ -108,18 +112,26 @@ namespace Footlocker.Logistics.Allocation.Services
             SQL += "  sum(BS_OH_QTY) AS ON_HAND, sum(CURR_STR_BIN_PICK) AS BIN_PICK_RESERVE, ";
             SQL += "  sum(CURR_STR_CASE_PICK) AS CASE_PICK_RESRVE ";
             SQL += " FROM TCCRS001 ";
-            SQL += " WHERE RETL_OPER_DIV_CODE = '" + div + "' AND ";
-            SQL += "    STK_DEPT_NUM = '" + dept + "' AND ";
-            SQL += "    STK_NUM = '" + stock + "' AND ";
-            SQL += "    STK_WDTH_COLOR_NUM = '" + color + "' AND ";
-            SQL += "    STK_SIZE_NUM = '" + size + "'";
+            SQL += " WHERE RETL_OPER_DIV_CODE = ? AND ";
+            SQL += "    STK_DEPT_NUM = ? AND ";
+            SQL += "    STK_NUM = ? AND ";
+            SQL += "    STK_WDTH_COLOR_NUM = ? AND ";
+            SQL += "    STK_SIZE_NUM = ?";
 
             if (!string.IsNullOrEmpty(store))            
-                SQL += " AND STR_NUM = '" + store + "'";            
+                SQL += " AND STR_NUM = ?";            
 
             SQL += " group by STR_NUM";
 
             SQLCommand = currDatabase.GetSqlStringCommand(SQL);
+            currDatabase.AddInParameter(SQLCommand, "@1", DbType.String, div);
+            currDatabase.AddInParameter(SQLCommand, "@2", DbType.String, dept);
+            currDatabase.AddInParameter(SQLCommand, "@3", DbType.String, stock);
+            currDatabase.AddInParameter(SQLCommand, "@4", DbType.String, color);
+            currDatabase.AddInParameter(SQLCommand, "@5", DbType.String, size);
+
+            if (!string.IsNullOrEmpty(store))
+                currDatabase.AddInParameter(SQLCommand, "@6", DbType.String, store);
 
             DataSet data = new DataSet();
             data = currDatabase.ExecuteDataSet(SQLCommand);

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Data;
 using System.Data.Common;
 using Microsoft.Practices.EnterpriseLibrary.Data;
 using Footlocker.Logistics.Allocation.Models;
 using System.Linq;
+using System.Data.Entity;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
@@ -17,9 +17,9 @@ namespace Footlocker.Logistics.Allocation.Services
             ListOnlyAvailableSizes
         }
 
-        readonly Database _database;
-        readonly Database _databaseEurope;
-        Database _currentDB2Database;
+        readonly Microsoft.Practices.EnterpriseLibrary.Data.Database _database;
+        readonly Microsoft.Practices.EnterpriseLibrary.Data.Database _databaseEurope;
+        Microsoft.Practices.EnterpriseLibrary.Data.Database _currentDB2Database;
         readonly AllocationLibraryContext db = new AllocationLibraryContext();
         readonly SKUStruct _SKU;
         readonly string _WarehouseID;
@@ -96,33 +96,54 @@ namespace Footlocker.Logistics.Allocation.Services
             string SQL = "select to_char(WHSE_ID_NUM) as WHSE_ID_NUM, lpad(to_char(STK_SIZE_NUM), 3, '0') as Size, ";
             SQL += " to_number(ALLOCATABLE_BS_QTY) as OnHandQty, pick_rsrv_bs_qty as PickReserve ";
             SQL += " from TC052002 ";
-            SQL += " where retl_oper_div_cd = '" + _SKU.Division + "' and ";
-            SQL += " stk_dept_num = '" + _SKU.Department + "' and ";
-            SQL += " stk_num = '" + _SKU.Stock + "' and ";
-            SQL += " stk_wc_num = '" + _SKU.Color + "' ";
+            SQL += " where retl_oper_div_cd = ? and ";
+            SQL += " stk_dept_num = ? and ";
+            SQL += " stk_num = ? and ";
+            SQL += " stk_wc_num = ? ";
 
             if (_inventoryListType == InventoryListType.ListOnlyAvailableSizes)
                SQL += " and ALLOCATABLE_BS_QTY > 0 ";
 
             if (_WarehouseID != "-1")
-                SQL += " and WHSE_ID_NUM = '" + _WarehouseID + "'";
+                SQL += " and WHSE_ID_NUM = ?";
 
             SQL += " union ";
             SQL += "select to_char(WHSE_ID_NUM) as WHSE_ID_NUM, to_char(CL_SCHED_NUM) as Size, ";
             SQL += " to_number(ALLOCATABLE_CL_QTY) as OnHandQty, pick_rsrv_cl_qty as PickReserve ";
             SQL += " from TC052010 ";
-            SQL += " where retl_oper_div_cd = '" + _SKU.Division + "' and ";
-            SQL += " stk_dept_num = '" + _SKU.Department + "' and ";
-            SQL += " stk_num = '" + _SKU.Stock + "' and ";
-            SQL += " stk_wc_num = '" + _SKU.Color + "' ";
+            SQL += " where retl_oper_div_cd = ? and ";
+            SQL += " stk_dept_num = ? and ";
+            SQL += " stk_num = ? and ";
+            SQL += " stk_wc_num = ? ";
 
             if (_inventoryListType == InventoryListType.ListOnlyAvailableSizes)
                 SQL += " and ALLOCATABLE_CL_QTY > 0 ";
 
             if (_WarehouseID != "-1")
-                SQL += " and WHSE_ID_NUM = '" + _WarehouseID + "'";
+                SQL += " and WHSE_ID_NUM = ?";
 
             SQLCommand = _currentDB2Database.GetSqlStringCommand(SQL);
+            _currentDB2Database.AddInParameter(SQLCommand, "@1", DbType.String, _SKU.Division);
+            _currentDB2Database.AddInParameter(SQLCommand, "@2", DbType.String, _SKU.Department);
+            _currentDB2Database.AddInParameter(SQLCommand, "@3", DbType.String, _SKU.Stock);
+            _currentDB2Database.AddInParameter(SQLCommand, "@4", DbType.String, _SKU.Color);
+
+            if (_WarehouseID != "-1")
+            {
+                _currentDB2Database.AddInParameter(SQLCommand, "@5", DbType.String, _WarehouseID);
+                _currentDB2Database.AddInParameter(SQLCommand, "@6", DbType.String, _SKU.Division);
+                _currentDB2Database.AddInParameter(SQLCommand, "@7", DbType.String, _SKU.Department);
+                _currentDB2Database.AddInParameter(SQLCommand, "@8", DbType.String, _SKU.Stock);
+                _currentDB2Database.AddInParameter(SQLCommand, "@9", DbType.String, _SKU.Color);
+                _currentDB2Database.AddInParameter(SQLCommand, "@10", DbType.String, _WarehouseID);
+            }
+            else
+            {
+                _currentDB2Database.AddInParameter(SQLCommand, "@5", DbType.String, _SKU.Division);
+                _currentDB2Database.AddInParameter(SQLCommand, "@6", DbType.String, _SKU.Department);
+                _currentDB2Database.AddInParameter(SQLCommand, "@7", DbType.String, _SKU.Stock);
+                _currentDB2Database.AddInParameter(SQLCommand, "@8", DbType.String, _SKU.Color);
+            }
 
             DataSet data;
             data = _currentDB2Database.ExecuteDataSet(SQLCommand);

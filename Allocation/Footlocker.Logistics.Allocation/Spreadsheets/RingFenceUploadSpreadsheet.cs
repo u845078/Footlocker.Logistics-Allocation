@@ -60,7 +60,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         {
             errorMessage = string.Empty;
             bool canConvert;
-            string[] validFormats = { "d/M/yyyy", "d/M/yyyy hh:mm:ss tt" };
+            string[] validFormats = { "M/d/yyyy", "M/d/yyyy hh:mm:ss tt" };
             DateTime parsedDate;
 
             if (string.IsNullOrEmpty(inputData.Division))
@@ -87,7 +87,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             if (!string.IsNullOrEmpty(inputData.EndDate))
             {
                 if (!DateTime.TryParseExact(inputData.EndDate, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
-                    errorMessage += "End date is not in a dd/mm/yyyy format ";
+                    errorMessage += "End date is not in a mm/dd/yyyy format ";
                 else
                 {
                     if (!string.IsNullOrEmpty(inputData.Division))
@@ -129,8 +129,6 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             if (inputData.Size == "ALL")
                 if (string.IsNullOrEmpty(inputData.PO) || inputData.QtyString != "ALL")
                     errorMessage += "When using ALL Size, Quantity must be ALL and a PO must be given. ";
-
-
 
             return string.IsNullOrEmpty(errorMessage);
         }
@@ -301,7 +299,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
         private void CreateOrUpdateRingFences(bool accumulateQuantity)
         {
-            string[] validFormats = { "d/M/yyyy", "d/M/yyyy hh:mm:ss tt" };
+            string[] validFormats = { "M/d/yyyy", "M/d/yyyy hh:mm:ss tt" };
             DateTime convertedDate;
 
             List<RingFenceDetail> ringFenceDetails = new List<RingFenceDetail>();
