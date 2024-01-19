@@ -278,12 +278,12 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                                                                               im.MerchantSku == s.SKU))
                                         .ToList();
 
-            badData = validRecs.Where(vr => allSKUData.Any(ic => ic.Division == vr.Division &&
-                                                                 ic.Vendor == vr.Vendor &&
-                                                                 ic.Brand == vr.Brand &&
-                                                                 ic.Category == vr.Category &&
-                                                                 ic.Department == vr.Department &&
-                                                                 ic.SKU == vr.SKU)).ToList();
+            badData = validRecs.Where(vr => invalidSKUs.Any(ic => ic.Division == vr.Division &&
+                                                                  ic.Vendor == vr.Vendor &&
+                                                                  ic.Brand == vr.Brand &&
+                                                                  ic.Category == vr.Category &&
+                                                                  ic.Department == vr.Department &&
+                                                                  ic.SKU == vr.SKU)).ToList();
 
             ProcessBadData(badData, "The Div/Vendor/Brand/Category/Department combination does not exist for this SKU.");
 
