@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using Footlocker.Logistics.Allocation.Common;
 using System.Data;
+using System.Linq;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
@@ -27,8 +28,13 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 Store = Convert.ToString(row[1]).PadLeft(5, '0')
             };
 
-            if (row[2] != null)
-                rangeType = row[2].ToString();
+            if (row.ItemArray.Count() > 2)
+            {
+                if (row[2] != null)
+                    rangeType = row[2].ToString();
+                else
+                    rangeType = "ALR";
+            }
             else
                 rangeType = "ALR";
 
