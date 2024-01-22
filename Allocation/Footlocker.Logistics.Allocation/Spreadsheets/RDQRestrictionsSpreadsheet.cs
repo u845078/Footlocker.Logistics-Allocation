@@ -451,6 +451,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     row++;
                 }
 
+                AutofitColumns();
+
                 return excelDocument;
             }
             else

@@ -18,6 +18,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         public Style errorStyle;
         public Style headerDateStyle;
         public Style boxStyle;
+        public int maxColumns;
+        public int worksheetNum;
 
         public Workbook GetTemplate()
         {            
@@ -70,6 +72,14 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         public string GetDirectory(string fullFileName)
         {
             return fullFileName.Substring(0, fullFileName.LastIndexOf("\\") + 1);
+        }
+
+        public void AutofitColumns()
+        {
+            for (int i = 0; i < maxColumns; i++)
+            {
+                excelDocument.Worksheets[worksheetNum].AutoFitColumn(i);
+            }
         }
     }
 }

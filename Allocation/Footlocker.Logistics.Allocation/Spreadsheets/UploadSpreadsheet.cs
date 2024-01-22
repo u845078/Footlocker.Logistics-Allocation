@@ -12,7 +12,6 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         public string message = string.Empty;
         public Worksheet worksheet;
         public Dictionary<int, string> columns = new Dictionary<int, string>();
-        public int maxColumns;
         public int maxRows;
         public ConfigService configService;
         public string errorMessage;
