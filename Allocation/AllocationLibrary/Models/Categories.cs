@@ -33,7 +33,9 @@ namespace Footlocker.Logistics.Allocation.Models
         #region override comparisons
         public override bool Equals(object obj)
         {
-            if (!(obj is Categories c))            
+            Categories c = obj as Categories;
+
+            if (c == null)
                 return false;            
             else
             {
