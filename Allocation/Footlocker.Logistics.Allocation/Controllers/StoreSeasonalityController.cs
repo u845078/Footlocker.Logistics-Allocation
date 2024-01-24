@@ -100,10 +100,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Edit(StoreSeasonality model)
         {
-            model.CreateDate = DateTime.Now;
-            model.CreatedBy = currentUser.NetworkID;
+            StoreSeasonality group = db.StoreSeasonality.Where(ss => ss.ID == model.ID).FirstOrDefault();
 
-            db.Entry(model).State = System.Data.EntityState.Modified;
+            group.CreateDate = DateTime.Now;
+            group.CreatedBy = currentUser.NetworkID;
+            group.Name = model.Name; 
+            
             db.SaveChanges();
 
             return RedirectToAction("Index", new { message = "", div = model.Division});
@@ -356,6 +358,34 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 .Include("Details.ValidStore")
                 .Where(ss => userInstanceDivCodes.Contains(ss.Division));
             var ssGroupsOfDiv = userInstanceSSGroups.Where(g => g.Division == div);
+
+            Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+            var uniqueNames = (from a in ssGroupsOfDiv
+                               where !string.IsNullOrEmpty(a.CreatedBy)
+                               select a.CreatedBy).Distinct();
+
+            List<ApplicationUser> allUserNames = GetAllUserNamesFromDatabase();
+
+            foreach (var item in uniqueNames)
+            {
+                if (!item.Contains(" ") && !string.IsNullOrEmpty(item))
+                {
+                    string userLookup = item.Replace('\\', '/');
+                    userLookup = userLookup.Replace("CORP/", "");
+
+                    if (userLookup.Substring(0, 1) == "u")
+                        fullNamePairs.Add(item, allUserNames.Where(aun => aun.UserName == userLookup).Select(aun => aun.FullName).FirstOrDefault());
+                    else
+                        fullNamePairs.Add(item, item);
+                }
+                else
+                    fullNamePairs.Add(item, item);
+            }
+
+            foreach (var item in fullNamePairs.Where(fnp => !string.IsNullOrEmpty(fnp.Value)))
+            {
+                ssGroupsOfDiv.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+            }
 
             return View(new GridModel(ssGroupsOfDiv));
         }
