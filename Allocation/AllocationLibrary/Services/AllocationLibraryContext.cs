@@ -5,8 +5,6 @@ using System.Data.Entity;
 using Footlocker.Logistics.Allocation.Models;
 using System.Data.Entity.Infrastructure;
 using System.Data;
-using System.Runtime.InteropServices;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Services
 {

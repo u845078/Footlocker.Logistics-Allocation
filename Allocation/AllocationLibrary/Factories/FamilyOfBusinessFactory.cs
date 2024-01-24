@@ -1,9 +1,5 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 using System.Data;
-using Footlocker.Logistics.Allocation.Models;
 
 namespace Footlocker.Logistics.Allocation.Models.Factories
 {
@@ -11,10 +7,12 @@ namespace Footlocker.Logistics.Allocation.Models.Factories
     {
         public FamilyOfBusiness Create(DataRow dr)
         {
-            FamilyOfBusiness _newObject = new FamilyOfBusiness();
-            _newObject.Code = Convert.ToString(dr["DeptGroup"]);
-            _newObject.Description = Convert.ToString(dr["Description"]);
-            _newObject.Division = Convert.ToString(dr["division"]);
+            FamilyOfBusiness _newObject = new FamilyOfBusiness()
+            {
+                Code = Convert.ToString(dr["DeptGroup"]),
+                Description = Convert.ToString(dr["Description"]),
+                Division = Convert.ToString(dr["division"])
+            };
 
             return _newObject;
         }

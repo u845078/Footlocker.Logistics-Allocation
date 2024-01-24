@@ -1,7 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 using System.Data;
 using Footlocker.Logistics.Allocation.Models;
 
@@ -11,14 +8,15 @@ namespace Footlocker.Logistics.Allocation.Factories
     {
         public InventorySummary Create(DataRow dr)
         {
-            InventorySummary _newObject = new InventorySummary();
-            _newObject.ItemID = Convert.ToInt64(dr["id"]);
-            _newObject.Sku = Convert.ToString(dr["Sku"]);
-            _newObject.Size = Convert.ToString(dr["Size"]);
-            if (!(Convert.IsDBNull(dr["Qty"])))
+            InventorySummary _newObject = new InventorySummary()
             {
-                _newObject.Qty = Convert.ToInt32(dr["Qty"]);
-            }
+                ItemID = Convert.ToInt64(dr["id"]),
+                Sku = Convert.ToString(dr["Sku"]),
+                Size = Convert.ToString(dr["Size"])
+            };
+
+            if (!Convert.IsDBNull(dr["Qty"]))            
+                _newObject.Qty = Convert.ToInt32(dr["Qty"]);            
 
             return _newObject;
         }

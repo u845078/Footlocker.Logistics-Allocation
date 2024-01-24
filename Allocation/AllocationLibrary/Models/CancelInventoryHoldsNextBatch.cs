@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
@@ -22,19 +18,10 @@ namespace Footlocker.Logistics.Allocation.Models
         public CancelInventoryHoldsNextBatch()
             : base()
         {
-            this.InstanceID = 0;
-            this.Division = string.Empty;
-            this.Store = string.Empty;
-            this.ItemID = 0;
-        }
-
-        public CancelInventoryHoldsNextBatch(int instanceID, string division, string store, long itemID)
-            : this()
-        {
-            this.InstanceID = instanceID;
-            this.Division = division;
-            this.Store = store;
-            this.ItemID = itemID;
+            InstanceID = 0;
+            Division = string.Empty;
+            Store = string.Empty;
+            ItemID = 0;
         }
     }
 }

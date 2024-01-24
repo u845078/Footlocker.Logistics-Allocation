@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Data;
+﻿using System.Data;
 using System.Data.Common;
 using Microsoft.Practices.EnterpriseLibrary.Data;
-using System.IO;
-using System.Xml.Serialization;
-using System.Linq;
-using Footlocker.Logistics.Allocation.Models;
 
 namespace Footlocker.Logistics.Allocation.Services
 {

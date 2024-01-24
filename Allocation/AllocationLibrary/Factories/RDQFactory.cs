@@ -1,11 +1,6 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 using System.Data;
 using Footlocker.Logistics.Allocation.Models;
-using Footlocker.Logistics.Allocation.Services;
-using System.Security.Cryptography;
 
 namespace Footlocker.Logistics.Allocation.Factories
 {

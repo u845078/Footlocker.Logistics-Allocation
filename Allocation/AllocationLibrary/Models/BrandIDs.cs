@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
@@ -35,29 +31,24 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         #region override comparisons
-
         public override bool Equals(object obj)
         {
-            BrandIDs b = obj as BrandIDs;
-
-            if (b == null)
-            {
-                return false;
-            }
+            if (!(obj is BrandIDs b))            
+                return false;            
             else
             {
-                if (string.IsNullOrEmpty(this.departmentCode))
+                if (string.IsNullOrEmpty(departmentCode))
                 {
-                    return b.divisionCode == this.divisionCode &&
-                           b.brandIDCode == this.brandIDCode &&
-                           b.brandIDName == this.brandIDName;
+                    return b.divisionCode == divisionCode &&
+                           b.brandIDCode == brandIDCode &&
+                           b.brandIDName == brandIDName;
                 }
                 else
                 {
-                    return b.divisionCode == this.divisionCode &&
-                           b.departmentCode == this.departmentCode &&
-                           b.brandIDCode == this.brandIDCode &&
-                           b.brandIDName == this.brandIDName;
+                    return b.divisionCode == divisionCode &&
+                           b.departmentCode == departmentCode &&
+                           b.brandIDCode == brandIDCode &&
+                           b.brandIDName == brandIDName;
                 }
 
             }
@@ -66,11 +57,8 @@ namespace Footlocker.Logistics.Allocation.Models
         public override int GetHashCode()
         {
             string departmentCode = string.IsNullOrEmpty(this.departmentCode) ? "" : this.departmentCode;
-            return (this.divisionCode + departmentCode + this.brandIDCode + this.brandIDName).GetHashCode();
+            return (divisionCode + departmentCode + brandIDCode + brandIDName).GetHashCode();
         }
-
         #endregion
-
-
     }
 }

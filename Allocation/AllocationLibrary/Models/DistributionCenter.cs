@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -67,7 +65,7 @@ namespace Footlocker.Logistics.Allocation.Models
         {
             get
             {
-                return MFCode + " - " + Name;
+                return string.Format("{0} - {1}", MFCode, Name);
             }
         }
     }
