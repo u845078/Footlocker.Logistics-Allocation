@@ -43,7 +43,7 @@
     </Reference>
     <Reference Include="flcommon, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\..\..\..\Footlocker\flcommon.dll</HintPath>
+      <HintPath>..\packages\flcommon.dll</HintPath>
     </Reference>
     <Reference Include="Footlocker.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
