@@ -1048,7 +1048,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RangeFileItemDAO dao = new RangeFileItemDAO();
             System.Data.IDataReader reader = dao.GetRangeFileExtractDataReader(rp.Sku);
 
-            RangeReformat reformat = new RangeReformat(instance);
+            RangeReformat reformat = new RangeReformat(configService);
 
             string results = "";
             results += reformat.GetHeader() + "\r\n";

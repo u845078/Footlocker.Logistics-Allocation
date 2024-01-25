@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Data;
@@ -57,13 +56,13 @@ namespace Footlocker.Logistics.Allocation.Services
          
             if (list.Count > 0)
             {
-                Division div = Footlocker.Common.DivisionService.GetDivision(list[0].Division);
+                Division div = DivisionService.GetDivision(list[0].Division);
                 myDatabase = DatabaseFactory.CreateDatabase(Convert.ToString(div.ConnectionName));
             }
             else            
                 myDatabase = DatabaseFactory.CreateDatabase("DB2PROD");            
 
-            Footlocker.FLLogger log = new FLLogger("c:\\log\\allocationupload");
+            FLLogger log = new FLLogger("c:\\log\\allocationupload");
             DbCommand SQLCommand;
             string SQL = "update TCISR083 set PRODUCT_TYP_ID = ?";
             SQL += ",MODIFIED_BY_USERID ='ALLCUPL'";
