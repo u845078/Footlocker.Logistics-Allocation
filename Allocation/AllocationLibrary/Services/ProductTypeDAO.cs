@@ -62,7 +62,7 @@ namespace Footlocker.Logistics.Allocation.Services
             else            
                 myDatabase = DatabaseFactory.CreateDatabase("DB2PROD");            
 
-            FLLogger log = new FLLogger("c:\\log\\allocationupload");
+            Footlocker.FLLogger log = new Footlocker.FLLogger("c:\\log\\allocationupload");
             DbCommand SQLCommand;
             string SQL = "update TCISR083 set PRODUCT_TYP_ID = ?";
             SQL += ",MODIFIED_BY_USERID ='ALLCUPL'";
