@@ -6,7 +6,6 @@ using Microsoft.Practices.EnterpriseLibrary.Data;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Factories;
 using Footlocker.Common;
-using Footlocker;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
