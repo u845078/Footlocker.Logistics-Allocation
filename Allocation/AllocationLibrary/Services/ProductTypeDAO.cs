@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Data;
 using System.Data.Common;
 using Microsoft.Practices.EnterpriseLibrary.Data;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Factories;
 using Footlocker.Common;
-using System.Data.SqlClient;
+using Footlocker;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
@@ -62,7 +61,7 @@ namespace Footlocker.Logistics.Allocation.Services
             else            
                 myDatabase = DatabaseFactory.CreateDatabase("DB2PROD");            
 
-            Footlocker.FLLogger log = new Footlocker.FLLogger("c:\\log\\allocationupload");
+            FLLogger log = new FLLogger("c:\\log\\allocationupload");
             DbCommand SQLCommand;
             string SQL = "update TCISR083 set PRODUCT_TYP_ID = ?";
             SQL += ",MODIFIED_BY_USERID ='ALLCUPL'";
