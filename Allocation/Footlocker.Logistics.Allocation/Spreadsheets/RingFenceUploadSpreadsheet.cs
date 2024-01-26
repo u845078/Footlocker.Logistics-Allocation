@@ -11,6 +11,8 @@ using System.Globalization;
 using System.Linq;
 using System.Web;
 using Telerik.Web.Mvc.Extensions;
+using System.Text.RegularExpressions;
+using System.Linq.Expressions;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
@@ -68,10 +70,16 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
             if (string.IsNullOrEmpty(inputData.SKU))
                 errorMessage += "Sku must be provided. ";
-            else 
+            else
+            {
+                Regex skuExpression = new Regex(@"^\d{2}-\d{2}-\d{5}-\d{2}$");
+                if (!skuExpression.IsMatch(inputData.SKU))
+                    errorMessage += "Sku must be in the format ##-##-#####-##";
+
                 if (inputData.Division != inputData.SKU.Substring(0, 2))
                     errorMessage += "The division entered does not match the Sku's division. ";
-
+            }
+                
             if (string.IsNullOrEmpty(inputData.Size))
                 errorMessage += "Size or caselot must be provided. ";
             else

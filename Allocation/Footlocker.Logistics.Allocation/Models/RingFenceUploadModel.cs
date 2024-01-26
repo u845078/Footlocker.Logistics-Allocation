@@ -63,7 +63,7 @@ namespace Footlocker.Logistics.Allocation.Models
                     _po = value;
             }
         }
-
+        
         public string SKU { get; set; }
         public string EndDate { get; set; }
         public string Warehouse { get; set; }

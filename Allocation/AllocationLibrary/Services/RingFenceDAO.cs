@@ -645,23 +645,15 @@ namespace Footlocker.Logistics.Allocation.Models.Services
 
                 whereCondition = string.Format(whereConditionFormat, division, department, stockNumber, widthColor, combo.Item2);
 
-                if (!string.IsNullOrEmpty(combo.Item3))
-                {
-                    whereCondition += string.Format(" AND WHSE_ID_NUM = '{0}')", combo.Item3);
-                }
-                else
-                {
-                    whereCondition += ")";
-                }
+                if (!string.IsNullOrEmpty(combo.Item3))                
+                    whereCondition += string.Format(" AND WHSE_ID_NUM = '{0}')", combo.Item3);                
+                else                
+                    whereCondition += ")";                
 
-                if (uniqueCombos.Last().Equals(combo))
-                {
-                    builder.Append(whereCondition);
-                }
-                else
-                {
-                    builder.Append(whereCondition + " OR");
-                }
+                if (uniqueCombos.Last().Equals(combo))                
+                    builder.Append(whereCondition);                
+                else                
+                    builder.Append(whereCondition + " OR");                
             }
 
             return builder.ToString();
