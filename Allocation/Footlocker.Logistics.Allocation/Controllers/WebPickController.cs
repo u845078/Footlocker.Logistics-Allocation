@@ -396,6 +396,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult BulkAdmin(BulkRDQModel model)
         {
             ViewData["ruleSetID"] = model.RuleSetID;
@@ -471,7 +472,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        [HttpPost]
         public ActionResult RefreshDivisions(BulkRDQModel model)
         {
             InitializeDivisions(model);
@@ -479,7 +479,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View("BulkAdmin", model);
         }
 
-        [HttpPost]
         public ActionResult RefreshDepartments(BulkRDQModel model)
         {
             InitializeDivisions(model);

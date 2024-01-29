@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.EditConfigModel
+﻿@model EditConfigModel
 
 @{
     ViewBag.Title = "Edit";
@@ -6,7 +6,9 @@
 
 <h2>Edit Configuration</h2>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
 
     <fieldset>

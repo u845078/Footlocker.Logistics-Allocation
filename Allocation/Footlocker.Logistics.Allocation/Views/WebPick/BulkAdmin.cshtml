@@ -42,6 +42,7 @@
 
     @using (Html.BeginForm("BulkAdmin", "WebPick", FormMethod.Post, new { id = "BulkAdminForm" }))
     {
+        @Html.AntiForgeryToken()
         @Html.HiddenFor(model => model.Instance)
         @Html.HiddenFor(model => model.Division)
 

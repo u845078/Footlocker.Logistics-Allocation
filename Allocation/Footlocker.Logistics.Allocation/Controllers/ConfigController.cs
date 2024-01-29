@@ -90,6 +90,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         [CheckPermission(Roles = "IT")]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(EditConfigModel model)
         {
             model.Config.UpdateDate = DateTime.Now;
@@ -119,6 +120,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         [CheckPermission(Roles = "IT")]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(CreateConfigModel model)
         {
             model.Config.CreateDate = DateTime.Now;
@@ -164,9 +166,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         [CheckPermission(Roles = "IT")]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult CreateParam(CreateConfigParamModel model)
         {
-
             db.ConfigParams.Add(model.Param);
             try
             {
@@ -178,14 +180,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     ex = ex.InnerException;
                 }
-                if (ex.Message.Contains("PRIMARY KEY"))
-                {
-                    ViewData["Message"] = "Config param already setup.";
-                }
-                else
-                {
-                    ViewData["Message"] = ex.Message;
-                }
+
+                if (ex.Message.Contains("PRIMARY KEY"))                
+                    ViewData["Message"] = "Config param already setup.";                
+                else                
+                    ViewData["Message"] = ex.Message;                
 
                 model.Params = db.ConfigParams.ToList();
                 return View(model);

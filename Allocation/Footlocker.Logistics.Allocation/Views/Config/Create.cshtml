@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.CreateConfigModel
+﻿@model CreateConfigModel
 
 @{
     ViewBag.Title = "Create";
@@ -13,12 +13,14 @@
 <h2>Create Config</h2>
 
 <font color="red">@ViewData["Message"]</font>
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
 
     <fieldset>
         <legend>Config</legend>
-            @Html.HiddenFor(model => model.Config.InstanceID)
+        @Html.HiddenFor(model => model.Config.InstanceID)
 
         <div class="editor-label">
             @Html.LabelFor(model => model.Config.ParamID)
@@ -27,8 +29,8 @@
             @Html.DropDownListFor(model => model.Config.ParamID, new SelectList(Model.Params, "ParamID", "Name"))
         </div>
         @foreach (Footlocker.Logistics.Allocation.Models.ConfigParam p in Model.Params)
-        { 
-            @Html.Raw("<div class='desc' style=\"display:none;\" id=\"paramDesc" + @p.ParamID + "\">" + @p.Comment + "</div>")            
+        {
+            @Html.Raw("<div class='desc' style=\"display:none;\" id=\"paramDesc" + @p.ParamID + "\">" + @p.Comment + "</div>")
         }
         <script>
             showDescription(1);
@@ -48,7 +50,6 @@
             @Html.EditorFor(model => model.Config.Value)
             @Html.ValidationMessageFor(model => model.Config.Value)
         </div>
-
 
         <p>
             <input type="submit" value="Create" />

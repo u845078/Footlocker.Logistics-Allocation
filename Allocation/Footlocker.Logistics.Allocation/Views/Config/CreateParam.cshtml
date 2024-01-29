@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.CreateConfigParamModel
+﻿@model CreateConfigParamModel
 
 @{
     ViewBag.Title = "CreateParam";
@@ -11,20 +11,17 @@ Current Params:
         .Name("Existing")
         .Columns(columns =>
         {
-            //columns.Bound(o => o.ID);
             columns.Bound(o => o.Name);
             columns.Bound(o => o.Type);
             columns.Bound(o => o.Comment);
         })
-        //.Sortable(sorting => sorting.Enabled(true))
-        //.Pageable(paging => paging.Enabled(true))
-        //.Filterable(filtering => filtering.Enabled(true))
         .Groupable(grouping => grouping.Enabled(false))
-        //.Footer(true)
 )
 
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
 
     <fieldset>
@@ -61,7 +58,7 @@ Current Params:
 }
 
 <div>
-    @Html.ActionLink("Back to List", "Index", new { }, new { @class = "t-button"})
+    @Html.ActionLink("Back to List", "Index", new { }, new { @class = "t-button" })
 </div>
 
 @section Scripts {
