@@ -573,9 +573,6 @@
     <Content Include="Content\Templates\ARConstraintsUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\Templates\ARSkusUploadTemplate.xls">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Content\Templates\HoldsUploadTemplate.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -624,6 +621,7 @@
     <Content Include="Content\Templates\POOverrideTemplate.xls" />
     <Content Include="Content\Templates\SeasonalityTemplate.xls" />
     <Content Include="Content\Templates\BTSUnassignedTemplate.xls" />
+    <Content Include="Content\Templates\ARSkusUploadTemplate.xls" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="readme.txt" />
     <Content Include="Views\Shared\EditorTemplates\Date.cshtml" />
