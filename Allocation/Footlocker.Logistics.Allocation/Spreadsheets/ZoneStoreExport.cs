@@ -1,14 +1,11 @@
 ﻿using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.Models;
-using Footlocker.Logistics.Allocation.Services;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class ZoneStoreExport : ExportExcelSpreadsheet
+    public class ZoneStoreExport : ExportSpreadsheet
     {
         public void WriteData(int instanceID)
         {

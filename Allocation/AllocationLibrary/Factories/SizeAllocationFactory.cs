@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Footlocker.Logistics.Allocation.Models;
 using System.Data;
 
@@ -16,7 +14,8 @@ namespace Footlocker.Logistics.Allocation.Factories
                 Division = Convert.ToString(dr["Division"]),
                 Store = Convert.ToString(dr["Store"]),
                 Size = Convert.ToString(dr["Size"]),
-                League = Convert.ToString(dr["League"])
+                League = Convert.ToString(dr["League"]),
+                Fringe = Convert.ToInt32(dr["Fringe"]) == 1
             };
 
             if (!Convert.IsDBNull(dr["Min"]))            
@@ -50,9 +49,7 @@ namespace Footlocker.Logistics.Allocation.Factories
                 _newObject.DeliveryGroupStartDate = Convert.ToDateTime(dr["DeliveryGroupStartDate"]);
 
             if (!Convert.IsDBNull(dr["DeliveryGroupMinEndDays"]))
-                _newObject.DeliveryGroupMinEndDays = Convert.ToInt32(dr["DeliveryGroupMinEndDays"]);
-                       
-            _newObject.Fringe = Convert.ToInt32(dr["Fringe"]) == 1;
+                _newObject.DeliveryGroupMinEndDays = Convert.ToInt32(dr["DeliveryGroupMinEndDays"]);                       
 
             return _newObject;
         }

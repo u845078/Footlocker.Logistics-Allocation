@@ -5,12 +5,12 @@ using System.Collections.Generic;
 using System.Web;
 using Footlocker.Logistics.Allocation.Common;
 using System.Linq;
-using Aspose.Excel;
-using System.Drawing;
+using System.Data;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class BTSSpreadsheet : UploadExcelSpreadsheet
+    public class BTSSpreadsheet : UploadSpreadsheet
     {
         public List<StoreBTSDetail> errorList = new List<StoreBTSDetail>();
         public List<StoreBTSDetail> validData = new List<StoreBTSDetail>();
@@ -18,12 +18,12 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         StoreBTS group;
         int year;
 
-        private StoreBTSDetail ParseRow(int row)
+        private StoreBTSDetail ParseRow(DataRow row)
         {
             StoreBTSDetail returnValue = new StoreBTSDetail()
             {
-                Division = Convert.ToString(worksheet.Cells[row, 0].Value).PadLeft(2, '0'),
-                Store = Convert.ToString(worksheet.Cells[row, 1].Value).PadLeft(5, '0'),
+                Division = Convert.ToString(row[0]).PadLeft(2, '0'),
+                Store = Convert.ToString(row[1]).PadLeft(5, '0'),
                 GroupID = groupID,
                 Year = year,
                 CreateDate = DateTime.Now,
@@ -45,7 +45,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         {
             StoreBTSDetail uploadRec;            
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Incorrectly formatted or missing header row. Please correct and re-process.";
             else
@@ -57,9 +57,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        uploadRec = ParseRow(row);
+                        uploadRec = ParseRow(dataRow);
                         ValidateUploadValues(uploadRec);
 
                         if (!string.IsNullOrEmpty(uploadRec.errorMessage))
@@ -87,11 +87,11 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             }
         }
 
-        public Excel GetErrors(List<StoreBTSDetail> errorList)
+        public Workbook GetErrors(List<StoreBTSDetail> errorList)
         {
             if (errorList != null)
             {
-                Excel excelDocument = GetTemplate();
+                excelDocument = GetTemplate();
                 Worksheet mySheet = excelDocument.Worksheets[0];
 
                 int row = 1;
@@ -99,8 +99,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 {
                     mySheet.Cells[row, 0].PutValue(p.Division);
                     mySheet.Cells[row, 1].PutValue(p.Store);
-                    mySheet.Cells[row, 2].PutValue(p.errorMessage);
-                    mySheet.Cells[row, 2].Style.Font.Color = Color.Red;
+                    mySheet.Cells[row, maxColumns].PutValue(p.errorMessage);
+                    mySheet.Cells[row, maxColumns].SetStyle(errorStyle);
+                    
                     row++;
                 }
 

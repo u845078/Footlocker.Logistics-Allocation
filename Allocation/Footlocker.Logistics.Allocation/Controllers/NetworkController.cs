@@ -3,7 +3,7 @@ using System.Linq;
 using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Common;
-using Aspose.Excel;
+using Aspose.Cells;
 using Footlocker.Logistics.Allocation.Spreadsheets;
 
 namespace Footlocker.Logistics.Allocation.Controllers
@@ -13,7 +13,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     {
         //
         // GET: /NetworkLeadTime/
-        Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        DAO.AllocationContext db = new DAO.AllocationContext();
 
         public ActionResult Index(int instanceID = -1)
         {
@@ -60,7 +60,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ZoneStoreExport zoneStoreExport = new ZoneStoreExport(appConfig);
             zoneStoreExport.WriteData(instanceID);
 
-            zoneStoreExport.excelDocument.Save("ZoneStores.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            zoneStoreExport.excelDocument.Save(System.Web.HttpContext.Current.Response, "ZoneStores.xlsx", ContentDisposition.Attachment, zoneStoreExport.SaveOptions);
             return View();
         }
 

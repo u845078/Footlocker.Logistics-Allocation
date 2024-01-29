@@ -6,7 +6,6 @@ namespace Footlocker.Logistics.Allocation.Common
 {
     public class AppConfig
     {
-        private string _asposeLicenseFile;
         private string _asposeCellsLicenseFile;
         private string _logFile;
         private string _skuTypeTemplate;
@@ -197,17 +196,6 @@ namespace Footlocker.Logistics.Allocation.Common
 
                 return _vendorGroupTemplate;
             }
-        }
-
-        public string AsposeLicenseFile 
-        { 
-            get
-            {
-                if (string.IsNullOrEmpty(_asposeLicenseFile))               
-                    _asposeLicenseFile = ConfigurationManager.AppSettings["AsposeLicenseFile"].ToString();
-                
-                return _asposeLicenseFile;
-            }            
         }
 
         public string AsposeCellsLicenseFile

@@ -1,5 +1,4 @@
-﻿using Footlocker.Logistics.Allocation.Models;
-using Footlocker.Logistics.Allocation.Services;
+﻿using Footlocker.Logistics.Allocation.Services;
 using System;
 using System.Collections.Generic;
 using Footlocker.Common.Services;
@@ -7,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using Footlocker.Logistics.Allocation.Common;
 using System.IO;
+using System.Data;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
@@ -86,22 +86,22 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         }
     }
 
-    public class ServiceTypeSpreadsheet : UploadExcelSpreadsheet
+    public class ServiceTypeSpreadsheet : UploadSpreadsheet
     {
         readonly MainframeDAO mainframeDAO;
         string mainDivision;
         string ftpFileName;
 
-        private ServiceTypeUploadData ParseRow(int row)
+        private ServiceTypeUploadData ParseRow(DataRow row)
         {
             message = string.Empty;
 
             ServiceTypeUploadData returnValue = new ServiceTypeUploadData()
             {
-                SKU = Convert.ToString(worksheet.Cells[row, 0].Value),
-                ServiceType = Convert.ToString(worksheet.Cells[row, 1].Value),
-                EffectiveDateString = Convert.ToString(worksheet.Cells[row, 2].Value), 
-                Availability = Convert.ToString(worksheet.Cells[row, 3].Value),
+                SKU = Convert.ToString(row[0]),
+                ServiceType = Convert.ToString(row[1]),
+                EffectiveDateString = Convert.ToString(row[2]), 
+                Availability = Convert.ToString(row[3]),
                 UserID = config.currentUser.NetworkID, 
                 currentDate = DateTime.Now
             };
@@ -163,7 +163,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             ftpFileName = string.Format("{0}_{1}.txt", config.SkuTypeFile, DateTime.Now.ToString("yyyyMMdd_HHmmssffffff"));
             TextWriter txtWrite;
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Incorrectly formatted or missing header row. Please correct and re-process.";
             else
@@ -174,9 +174,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        uploadRec = ParseRow(row);
+                        uploadRec = ParseRow(dataRow);
 
                         if (!string.IsNullOrEmpty(errorMessage))
                         {

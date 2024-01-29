@@ -10,7 +10,6 @@ using Telerik.Web.Mvc;
 using Footlocker.Common;
 using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.DAO;
-using Aspose.Excel;
 using Aspose.Cells;
 using System.Data;
 
@@ -1329,11 +1328,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult ExcelHoldsUploadTemplate()
         {
             HoldsUploadSpreadsheet holdsUploadSpreadsheet = new HoldsUploadSpreadsheet(appConfig, configService, holdService);
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = holdsUploadSpreadsheet.GetTemplate();
 
-            excelDocument.Save("HoldsUpload.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsUpload.xlsx", ContentDisposition.Attachment, holdsUploadSpreadsheet.SaveOptions);
             return View("HoldsUpload");
         }
 
@@ -1374,13 +1373,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult DownloadErrors()
         {
             List<Hold> errors = (List<Hold>)Session["errorList"];
-            Excel excelDocument;
+            Workbook excelDocument;
             HoldsUploadSpreadsheet holdsUploadSpreadsheet = new HoldsUploadSpreadsheet(appConfig, configService, holdService);
 
             if (errors != null)
             {
                 excelDocument = holdsUploadSpreadsheet.GetErrors(errors);
-                excelDocument.Save("HoldsUploadErrors.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                excelDocument.Save(System.Web.HttpContext.Current.Response, "HoldsUploadErrors.xlsx", ContentDisposition.Attachment, holdsUploadSpreadsheet.SaveOptions);
             }
             return View();
         }

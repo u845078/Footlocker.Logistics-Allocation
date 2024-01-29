@@ -6,6 +6,7 @@ using System.Data.Common;
 using Microsoft.Practices.EnterpriseLibrary.Data;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Factories;
+using System.Data.SqlClient;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
@@ -32,14 +33,18 @@ namespace Footlocker.Logistics.Allocation.Services
             if (europeDivisions.Contains(division))            
                 db = _Europedatabase;            
             else            
-                db = _USdatabase;            
-            
+                db = _USdatabase;
+
+            string parmvlgp = string.Format("{0}0000000000000000000000000000", division.PadLeft(2, '0'));
+
             SQLMF = "SELECT COL02001 ";
             SQLMF += " FROM TC050002 ";
-            SQLMF += " WHERE PARMVLGP = '" + division.PadLeft(2,'0') + "0000000000000000000000000000' ";
+            SQLMF += " WHERE PARMVLGP = ? ";
             SQLMF += " AND PARMCODE = 'PR0009' ";
             
             SQLCommandMF = db.GetSqlStringCommand(SQLMF);
+            db.AddInParameter(SQLCommandMF, "@1", DbType.String, parmvlgp);
+
             DataSet data = db.ExecuteDataSet(SQLCommandMF);
 
             if (data.Tables.Count > 0)
@@ -62,10 +67,10 @@ namespace Footlocker.Logistics.Allocation.Services
 
             DbCommand SQLCommand;
             string SQL = "select XDOCK_INTRN_NUM, WHSE_ID_NUM, CASELOT_NUMBER, RETL_OPER_DIV_CODE, STR_NUM, SACC_IND, LOCK_IND from tcwms010 ";
-            SQL += "where retl_oper_div_code = '" + tokens[0] + "' ";
-            SQL += "and stk_dept_num = '" + tokens[1] + "' ";
-            SQL += "and stk_num = '" + tokens[2] + "' ";
-            SQL += "and stk_WDTH_COLOR_NUM = '" + tokens[3] + "' ";
+            SQL += "where retl_oper_div_code = ? ";
+            SQL += "and stk_dept_num = ? ";
+            SQL += "and stk_num = ? ";
+            SQL += "and stk_WDTH_COLOR_NUM = ? ";
 
             Database db;
 
@@ -75,6 +80,10 @@ namespace Footlocker.Logistics.Allocation.Services
                 db = _USdatabase;
             
             SQLCommand = db.GetSqlStringCommand(SQL);
+            db.AddInParameter(SQLCommand, "@1", DbType.String, tokens[0]);
+            db.AddInParameter(SQLCommand, "@2", DbType.String, tokens[1]);
+            db.AddInParameter(SQLCommand, "@3", DbType.String, tokens[2]);
+            db.AddInParameter(SQLCommand, "@4", DbType.String, tokens[3]);
 
             DataSet data;
             data = db.ExecuteDataSet(SQLCommand);

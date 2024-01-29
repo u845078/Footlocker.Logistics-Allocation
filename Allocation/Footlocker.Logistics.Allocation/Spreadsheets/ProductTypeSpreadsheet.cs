@@ -2,32 +2,29 @@
 using Footlocker.Logistics.Allocation.Services;
 using System;
 using System.Collections.Generic;
-using Footlocker.Common.Services;
-using System.Text.RegularExpressions;
 using System.Web;
 using Footlocker.Logistics.Allocation.Common;
-using System.IO;
 using System.Linq;
-using Aspose.Excel;
-using System.Drawing;
+using System.Data;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class ProductTypeSpreadsheet : UploadExcelSpreadsheet
+    public class ProductTypeSpreadsheet : UploadSpreadsheet
     {
         readonly ProductTypeDAO productTypeDAO;
         public List<ProductType> validRows = new List<ProductType>();
         public List<ProductType> errorRows = new List<ProductType>();
         List<ProductType> validProductTypes;
 
-        private ProductType ParseRow(int row)
+        private ProductType ParseRow(DataRow row)
         {
             ProductType returnValue = new ProductType()
             {
-                Division = Convert.ToString(worksheet.Cells[row, 0].Value).PadLeft(2, '0'),
-                Dept = Convert.ToString(worksheet.Cells[row, 1].Value).PadLeft(2, '0'),
-                StockNumber = Convert.ToString(worksheet.Cells[row, 2].Value).PadLeft(5, '0'),
-                ProductTypeCode = Convert.ToString(worksheet.Cells[row, 3].Value)
+                Division = Convert.ToString(row[0]).PadLeft(2, '0'),
+                Dept = Convert.ToString(row[1]).PadLeft(2, '0'),
+                StockNumber = Convert.ToString(row[2]).PadLeft(5, '0'),
+                ProductTypeCode = Convert.ToString(row[3])
             };
 
             return returnValue;
@@ -57,7 +54,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             ProductType uploadRec;
             ProductType lookupRec;
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
 
             if (!HasValidHeaderRow())
                 message = "Incorrectly formatted or missing header row. Please correct and re-process.";
@@ -66,9 +63,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 int row = 1;
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        uploadRec = ParseRow(row);
+                        uploadRec = ParseRow(dataRow);
 
                         if (row == 1)                        
                             validProductTypes = productTypeDAO.GetProductTypeList(uploadRec.Division);
@@ -90,14 +87,15 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                         foreach (ProductType rec in validRows)
                         {
                             lookupRec = validProductTypes.Where(vpt => vpt.Division == rec.Division &&
-                                                                (vpt.Dept == rec.Dept || vpt.Dept == "00") &&
-                                                                vpt.ProductTypeCode == rec.ProductTypeCode).First();
+                                                                       (vpt.Dept == rec.Dept || vpt.Dept == "00") &&
+                                                                       vpt.ProductTypeCode == rec.ProductTypeCode).First();
                             
                             rec.ProductTypeID = lookupRec.ProductTypeID;
                             rec.ProductTypeName = lookupRec.ProductTypeName;
                         }
 
-                        productTypeDAO.UpdateList(validRows);
+                        if (config.UpdateMF)
+                            productTypeDAO.UpdateList(validRows);
                     }                        
                 }
                 catch (Exception ex)
@@ -109,11 +107,11 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             }
         }
 
-        public Excel GetErrors(List<ProductType> errorList)
+        public Workbook GetErrors(List<ProductType> errorList)
         {
             if (errorList != null)
             {
-                Excel excelDocument = GetTemplate();
+                Workbook excelDocument = GetTemplate();
                 Worksheet mySheet = excelDocument.Worksheets[0];
 
                 int row = 1;
@@ -124,9 +122,12 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     mySheet.Cells[row, 2].PutValue(p.StockNumber);
                     mySheet.Cells[row, 3].PutValue(p.ProductTypeCode);
                     mySheet.Cells[row, 4].PutValue(p.ErrorMessage);
-                    mySheet.Cells[row, 4].Style.Font.Color = Color.Red;
+                    mySheet.Cells[row, 4].SetStyle(errorStyle);
+
                     row++;
                 }
+
+                mySheet.AutoFitColumn(maxColumns);
 
                 return excelDocument;
             }

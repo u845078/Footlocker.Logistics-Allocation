@@ -52,7 +52,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RoutesExport routesExport = new RoutesExport(appConfig);
             routesExport.WriteData(instanceID);
 
-            routesExport.excelDocument.Save("Routes.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            routesExport.excelDocument.Save(System.Web.HttpContext.Current.Response, "Routes.xlsx", ContentDisposition.Attachment, routesExport.SaveOptions);
             return View();
         }
 
@@ -456,7 +456,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             StoreNSSExport storeNSSExport = new StoreNSSExport(appConfig, configService, new NetworkZoneStoreDAO());
             storeNSSExport.WriteData(div);
 
-            storeNSSExport.excelDocument.Save("StoreLeadTimes.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            storeNSSExport.excelDocument.Save(System.Web.HttpContext.Current.Response, "StoreLeadTimes.xlsx", ContentDisposition.Attachment, storeNSSExport.SaveOptions);
             return View();
         }
 

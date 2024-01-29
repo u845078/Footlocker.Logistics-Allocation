@@ -7,6 +7,7 @@ using System.Data.Common;
 using Microsoft.Practices.EnterpriseLibrary.Data;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Factories;
+using System.Data.SqlClient;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
@@ -38,19 +39,27 @@ namespace Footlocker.Logistics.Allocation.Services
             DbCommand SQLCommandMF;
             string SQLMF;
             SQLMF = "select str_num, STR_CLOSED_DT from TC070017 where str_num in (";
-            bool notfirst = false;
+            bool first = true;
             foreach (string store in stores)
             {
-                if (notfirst)                
+                if (!first)                
                     SQLMF += ",";
                 
-                SQLMF += "'" + store + "'";
-                notfirst = true;
+                SQLMF += "?";
+                first = false;
             }
 
             SQLMF += ") ";
 
             SQLCommandMF = db.GetSqlStringCommand(SQLMF);
+
+            int storeCount = 1;
+            foreach (string store in stores)
+            {
+                db.AddInParameter(SQLCommandMF, string.Format("@{0}", storeCount.ToString()), DbType.String, store);
+                storeCount++;
+            }
+
             DataSet data = db.ExecuteDataSet(SQLCommandMF);
             MainframeStore mfStore;
             if (data.Tables.Count > 0)

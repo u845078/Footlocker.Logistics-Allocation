@@ -31,29 +31,26 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         #region override comparisons
-
         public override bool Equals(object obj)
         {
             Categories c = obj as Categories;
 
             if (c == null)
-            {
-                return false;
-            }
+                return false;            
             else
             {
-                if (string.IsNullOrEmpty(this.departmentCode))
+                if (string.IsNullOrEmpty(departmentCode))
                 {
-                    return c.divisionCode == this.divisionCode &&
-                           c.categoryCode == this.categoryCode &&
-                           c.CategoryName == this.CategoryName;
+                    return c.divisionCode == divisionCode &&
+                           c.categoryCode == categoryCode &&
+                           c.CategoryName == CategoryName;
                 }
                 else
                 {
-                    return c.divisionCode == this.divisionCode &&
-                           c.departmentCode == this.departmentCode &&
-                           c.categoryCode == this.categoryCode &&
-                           c.CategoryName == this.CategoryName;
+                    return c.divisionCode == divisionCode &&
+                           c.departmentCode == departmentCode &&
+                           c.categoryCode == categoryCode &&
+                           c.CategoryName == CategoryName;
                 }
 
             }
@@ -62,9 +59,8 @@ namespace Footlocker.Logistics.Allocation.Models
         public override int GetHashCode()
         {
             string departmentCode = string.IsNullOrEmpty(this.departmentCode) ? "" : this.departmentCode;
-            return (this.divisionCode + departmentCode + this.categoryCode + this.CategoryName).GetHashCode();
+            return (divisionCode + departmentCode + categoryCode + CategoryName).GetHashCode();
         }
-
         #endregion
     }
 }

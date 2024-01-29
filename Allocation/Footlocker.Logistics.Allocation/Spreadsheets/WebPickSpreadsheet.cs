@@ -1,5 +1,4 @@
-﻿using Aspose.Excel;
-using Footlocker.Logistics.Allocation.Models;
+﻿using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Models.Services;
 using Footlocker.Logistics.Allocation.Services;
 using System;
@@ -7,10 +6,12 @@ using System.Collections.Generic;
 using Footlocker.Logistics.Allocation.Common;
 using System.Linq;
 using System.Web;
+using System.Data;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class WebPickSpreadsheet : UploadExcelSpreadsheet
+    public class WebPickSpreadsheet : UploadSpreadsheet
     {
         List<RDQ> parsedRDQs = new List<RDQ>();
         public List<RDQ> validRDQs = new List<RDQ>();
@@ -18,16 +19,16 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         readonly List<string> webPickRoles;
         public List<Tuple<RDQ, string>> errorList = new List<Tuple<RDQ, string>>();
 
-        private RDQ ParseUploadRow(int row)
+        private RDQ ParseUploadRow(DataRow row)
         {
             RDQ returnValue = new RDQ
             {
-                Sku = Convert.ToString(worksheet.Cells[row, 1].Value).Trim(),
-                Size = Convert.ToString(worksheet.Cells[row, 2].Value).Trim(),
-                PO = Convert.ToString(worksheet.Cells[row, 3].Value).Trim(),
-                Qty = Convert.ToInt32(worksheet.Cells[row, 4].Value),
-                DC = Convert.ToString(worksheet.Cells[row, 6].Value).Trim(),
-                RingFencePickStore = Convert.ToString(worksheet.Cells[row, 7].Value).Trim()
+                Sku = Convert.ToString(row[1]).Trim(),
+                Size = Convert.ToString(row[2]).Trim(),
+                PO = Convert.ToString(row[3]).Trim(),
+                Qty = Convert.ToInt32(row[4]),
+                DC = Convert.ToString(row[6]).Trim(),
+                RingFencePickStore = Convert.ToString(row[7]).Trim()
             };
 
             returnValue.DC = string.IsNullOrEmpty(returnValue.DC) ? "" : returnValue.DC.PadLeft(2, '0');
@@ -38,15 +39,15 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 returnValue.Division = returnValue.Sku.Substring(0, 2);
             }
 
-            if (!string.IsNullOrEmpty(Convert.ToString(worksheet.Cells[row, 0].Value).Trim()))
-                returnValue.Store = Convert.ToString(worksheet.Cells[row, 0].Value).Trim().PadLeft(5, '0');
+            if (!string.IsNullOrEmpty(Convert.ToString(row[0]).Trim()))
+                returnValue.Store = Convert.ToString(row[0]).Trim().PadLeft(5, '0');
             else
             {
-                if (!string.IsNullOrEmpty(Convert.ToString(worksheet.Cells[row, 5].Value).Trim()))
-                    returnValue.Store = Convert.ToString(worksheet.Cells[row, 5].Value).Trim().PadLeft(2, '0');
+                if (!string.IsNullOrEmpty(Convert.ToString(row[5]).Trim()))
+                    returnValue.Store = Convert.ToString(row[5]).Trim().PadLeft(2, '0');
             }
 
-            if (Convert.ToString(worksheet.Cells[row, 8].Value).Trim() == "Y")
+            if (Convert.ToString(row[8]).Trim() == "Y")
                 returnValue.Status = "E-PICK";
             else
                 returnValue.Status = "WEB PICK";
@@ -743,7 +744,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
         public void Save(HttpPostedFileBase attachment)
         {           
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())                
                 message = "Upload failed: Incorrect header - please use template.";
             else
@@ -753,9 +754,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 try
                 {
                     // create a local list of type RDQ to store the values from the upload
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        parsedRDQs.Add(ParseUploadRow(row));
+                        parsedRDQs.Add(ParseUploadRow(dataRow));
                         row++;
                     }
 
@@ -836,85 +837,45 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             }    
         }
 
-        public Excel GetErrors(List<Tuple<RDQ, string>> errorList)
+        public Workbook GetErrors(List<Tuple<RDQ, string>> errorList)
         {
             if (errorList != null)
             {
-                Excel excelDocument = new Excel();
+                excelDocument = GetTemplate();
                 Worksheet mySheet = excelDocument.Worksheets[0];
-                int col = 0;
-                mySheet.Cells[0, col].PutValue("Store (#####)");
-                mySheet.Cells[0, col].Style.Font.IsBold = true;
-                col++;
-                mySheet.Cells[0, col].PutValue("Warehouse (##)");
-                mySheet.Cells[0, col].Style.Font.IsBold = true;
-                col++;
-                mySheet.Cells[0, col].PutValue("SKU (##-##-#####-##)");
-                mySheet.Cells[0, col].Style.Font.IsBold = true;
-                col++;
-                mySheet.Cells[0, col].PutValue("Size Caselot (### or #####)");
-                mySheet.Cells[0, col].Style.Font.IsBold = true;
-                col++;
-                mySheet.Cells[0, col].PutValue("PO (#)");
-                mySheet.Cells[0, col].Style.Font.IsBold = true;
-                col++;
-                mySheet.Cells[0, col].PutValue("Quantity (#)");
-                mySheet.Cells[0, col].Style.Font.IsBold = true;
-                col++;
-                mySheet.Cells[0, col].PutValue("Pick from DC (##)");
-                mySheet.Cells[0, col].Style.Font.IsBold = true;
-                col++;
-                mySheet.Cells[0, col].PutValue("Pick from Ring Fence Store (#####)");
-                mySheet.Cells[0, col].Style.Font.IsBold = true;
-                col++;
-                mySheet.Cells[0, col].PutValue("Pick Right Away? (Y/N)");
-                mySheet.Cells[0, col].Style.Font.IsBold = true;
-                col++;
-                mySheet.Cells[0, col].PutValue("Message");
-                mySheet.Cells[0, col].Style.Font.IsBold = true;
 
                 int row = 1;
                 if (errorList != null && errorList.Count > 0)
                 {
                     foreach (var error in errorList)
                     {
-                        col = 0;
                         if (error.Item1.Store != null && error.Item1.Store.Length == 5)
-                            mySheet.Cells[row, col].PutValue(error.Item1.Store);
+                            mySheet.Cells[row, 0].PutValue(error.Item1.Store);
                         else
-                            mySheet.Cells[row, col].PutValue("");
+                            mySheet.Cells[row, 0].PutValue("");
 
-                        col++;
+                        mySheet.Cells[row, 1].PutValue(error.Item1.Sku);
+                        
+                        mySheet.Cells[row, 2].PutValue(error.Item1.Size);
+                        mySheet.Cells[row, 3].PutValue(error.Item1.PO);                        
+                        mySheet.Cells[row, 4].PutValue(error.Item1.Qty);
 
                         if (error.Item1.Store != null && error.Item1.Store.Length == 2)
-                            mySheet.Cells[row, col].PutValue(error.Item1.Store);
+                            mySheet.Cells[row, 5].PutValue(error.Item1.Store);
                         else
-                            mySheet.Cells[row, col].PutValue("");
+                            mySheet.Cells[row, 5].PutValue("");
 
-                        col++;
-                        mySheet.Cells[row, col].PutValue(error.Item1.Sku);
-                        col++;
-                        mySheet.Cells[row, col].PutValue(error.Item1.Size);
-                        col++;
-                        mySheet.Cells[row, col].PutValue(error.Item1.PO);
-                        col++;
-                        mySheet.Cells[row, col].PutValue(error.Item1.Qty);
-                        col++;
                         // if the DC is not populated and the Distribution Center object is populated and this is a DC RDQ
-                        if (error.Item1.DC == null && error.Item1.DistributionCenter != null && string.IsNullOrEmpty(error.Item1.RingFencePickStore))
-                        {
-                            mySheet.Cells[row, col].PutValue(error.Item1.DistributionCenter.MFCode);
-                        }
-                        else
-                        {
-                            mySheet.Cells[row, col].PutValue(error.Item1.DC);
-                        }
-                        col++;
-                        mySheet.Cells[row, col].PutValue(error.Item1.RingFencePickStore);
-                        col++;
-                        mySheet.Cells[row, col].PutValue(error.Item1.Status == "WEB PICK" ? "N" : "Y");
-                        col++;
-                        mySheet.Cells[row, col].PutValue(error.Item2);
+                        if (error.Item1.DC == null && error.Item1.DistributionCenter != null && string.IsNullOrEmpty(error.Item1.RingFencePickStore))                        
+                            mySheet.Cells[row, 6].PutValue(error.Item1.DistributionCenter.MFCode);                        
+                        else                        
+                            mySheet.Cells[row, 6].PutValue(error.Item1.DC);
+                                                
+                        mySheet.Cells[row, 7].PutValue(error.Item1.RingFencePickStore);                       
+                        mySheet.Cells[row, 8].PutValue(error.Item1.Status == "WEB PICK" ? "N" : "Y");                        
+                        mySheet.Cells[row, maxColumns].PutValue(error.Item2);
+                        mySheet.Cells[row, maxColumns].SetStyle(errorStyle);
+
                         row++;
                     }
 
@@ -934,7 +895,6 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 return null;
             }
         }
-
 
         public WebPickSpreadsheet(AppConfig config, List<string> userRoles, ConfigService configService) : base(config, configService)
         {

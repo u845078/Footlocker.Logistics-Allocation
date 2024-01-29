@@ -5,10 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.Data;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class SkuAttributeSpreadsheet : UploadExcelSpreadsheet
+    public class SkuAttributeSpreadsheet : UploadSpreadsheet
     {
         public List<SkuAttributeHeader> parsedSKUAttributes = new List<SkuAttributeHeader>();
         public List<SkuAttributeHeader> validSKUAttributes = new List<SkuAttributeHeader>();
@@ -42,40 +43,40 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             return "";
         }
 
-        private SkuAttributeHeader ParseRow(int row)
+        private SkuAttributeHeader ParseRow(DataRow row)
         {
             message = string.Empty;
 
             SkuAttributeHeader returnValue = new SkuAttributeHeader()
             {
-                Division = Convert.ToString(worksheet.Cells[row, 0].Value).Trim(),
-                Dept = Convert.ToString(worksheet.Cells[row, 1].Value).Trim(),
-                Category = Convert.ToString(worksheet.Cells[row, 2].Value).Trim(),
-                Brand = Convert.ToString(worksheet.Cells[row, 3].Value).Trim(),
-                SKU = Convert.ToString(worksheet.Cells[row, 4].Value).Trim(),
-                CreateDate = Convert.ToDateTime(worksheet.Cells[row, 5].Value),
-                WeightActiveInt = Convert.ToInt32(worksheet.Cells[row, 6].Value)
+                Division = Convert.ToString(row[0]).Trim(),
+                Dept = Convert.ToString(row[1]).Trim(),
+                Category = Convert.ToString(row[2]).Trim(),
+                Brand = Convert.ToString(row[3]).Trim(),
+                SKU = Convert.ToString(row[4]).Trim(),
+                CreateDate = Convert.ToDateTime(row[5]),
+                WeightActiveInt = Convert.ToInt32(row[6])
             };
 
-            message += CreateDetailRecord(returnValue, "Department", Convert.ToString(worksheet.Cells[row, 7].Value).Trim());
-            message += CreateDetailRecord(returnValue, "Category", Convert.ToString(worksheet.Cells[row, 8].Value).Trim());
-            message += CreateDetailRecord(returnValue, "VendorNumber", Convert.ToString(worksheet.Cells[row, 9].Value).Trim());
-            message += CreateDetailRecord(returnValue, "BrandID", Convert.ToString(worksheet.Cells[row, 10].Value).Trim());
-            message += CreateDetailRecord(returnValue, "Size", Convert.ToString(worksheet.Cells[row, 11].Value).Trim());
-            message += CreateDetailRecord(returnValue, "SizeRange", Convert.ToString(worksheet.Cells[row, 12].Value).Trim());
-            message += CreateDetailRecord(returnValue, "Color1", Convert.ToString(worksheet.Cells[row, 13].Value).Trim());
-            message += CreateDetailRecord(returnValue, "Color2", Convert.ToString(worksheet.Cells[row, 14].Value).Trim());
-            message += CreateDetailRecord(returnValue, "Color3", Convert.ToString(worksheet.Cells[row, 15].Value).Trim());
-            message += CreateDetailRecord(returnValue, "Gender", Convert.ToString(worksheet.Cells[row, 16].Value).Trim());
-            message += CreateDetailRecord(returnValue, "LifeOfSku", Convert.ToString(worksheet.Cells[row, 17].Value).Trim());
-            message += CreateDetailRecord(returnValue, "Material", Convert.ToString(worksheet.Cells[row, 18].Value).Trim());
-            message += CreateDetailRecord(returnValue, "PlayerID", Convert.ToString(worksheet.Cells[row, 19].Value).Trim());
-            message += CreateDetailRecord(returnValue, "SkuID1", Convert.ToString(worksheet.Cells[row, 20].Value).Trim());
-            message += CreateDetailRecord(returnValue, "SkuID2", Convert.ToString(worksheet.Cells[row, 21].Value).Trim());
-            message += CreateDetailRecord(returnValue, "SkuID3", Convert.ToString(worksheet.Cells[row, 22].Value).Trim());
-            message += CreateDetailRecord(returnValue, "SkuID4", Convert.ToString(worksheet.Cells[row, 23].Value).Trim());
-            message += CreateDetailRecord(returnValue, "SkuID5", Convert.ToString(worksheet.Cells[row, 24].Value).Trim());
-            message += CreateDetailRecord(returnValue, "TeamCode", Convert.ToString(worksheet.Cells[row, 25].Value).Trim());
+            message += CreateDetailRecord(returnValue, "Department", Convert.ToString(row[7]).Trim());
+            message += CreateDetailRecord(returnValue, "Category", Convert.ToString(row[8]).Trim());
+            message += CreateDetailRecord(returnValue, "VendorNumber", Convert.ToString(row[9]).Trim());
+            message += CreateDetailRecord(returnValue, "BrandID", Convert.ToString(row[10]).Trim());
+            message += CreateDetailRecord(returnValue, "Size", Convert.ToString(row[11]).Trim());
+            message += CreateDetailRecord(returnValue, "SizeRange", Convert.ToString(row[12]).Trim());
+            message += CreateDetailRecord(returnValue, "Color1", Convert.ToString(row[13]).Trim());
+            message += CreateDetailRecord(returnValue, "Color2", Convert.ToString(row[14]).Trim());
+            message += CreateDetailRecord(returnValue, "Color3", Convert.ToString(row[15]).Trim());
+            message += CreateDetailRecord(returnValue, "Gender", Convert.ToString(row[16]).Trim());
+            message += CreateDetailRecord(returnValue, "LifeOfSku", Convert.ToString(row[17]).Trim());
+            message += CreateDetailRecord(returnValue, "Material", Convert.ToString(row[18]).Trim());
+            message += CreateDetailRecord(returnValue, "PlayerID", Convert.ToString(row[19]).Trim());
+            message += CreateDetailRecord(returnValue, "SkuID1", Convert.ToString(row[20]).Trim());
+            message += CreateDetailRecord(returnValue, "SkuID2", Convert.ToString(row[21]).Trim());
+            message += CreateDetailRecord(returnValue, "SkuID3", Convert.ToString(row[22]).Trim());
+            message += CreateDetailRecord(returnValue, "SkuID4", Convert.ToString(row[23]).Trim());
+            message += CreateDetailRecord(returnValue, "SkuID5", Convert.ToString(row[24]).Trim());
+            message += CreateDetailRecord(returnValue, "TeamCode", Convert.ToString(row[25]).Trim());
 
             if (!string.IsNullOrEmpty(message))
                 message = string.Format("Row #{0}: {1}", row, message);
@@ -180,7 +181,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         {
             SkuAttributeHeader uploadRec;
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Incorrectly formatted or missing header row. Please correct and re-process.";
             else
@@ -188,9 +189,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 int row = 2;
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        uploadRec = ParseRow(row);
+                        uploadRec = ParseRow(dataRow);
                         
                         if (!string.IsNullOrEmpty(message))
                             return;

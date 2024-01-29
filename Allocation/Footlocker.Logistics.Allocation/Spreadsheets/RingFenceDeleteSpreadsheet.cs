@@ -1,5 +1,4 @@
-﻿using Aspose.Excel;
-using Footlocker.Logistics.Allocation.Models;
+﻿using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Common;
 using System;
@@ -7,22 +6,24 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Web;
+using System.Data;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class RingFenceDeleteSpreadsheet : UploadExcelSpreadsheet
+    public class RingFenceDeleteSpreadsheet : UploadSpreadsheet
     {
         public List<RingFenceUploadModel> errorList = new List<RingFenceUploadModel>();
         public List<RingFenceUploadModel> validRingFenceDeletes = new List<RingFenceUploadModel>();
         public List<RingFenceUploadModel> parsedRingFenceDeletes = new List<RingFenceUploadModel>();
 
-        private RingFenceUploadModel ParseRow(int row)
+        private RingFenceUploadModel ParseRow(DataRow row)
         {
             RingFenceUploadModel returnValue = new RingFenceUploadModel()
             {
-                Store = Convert.ToString(worksheet.Cells[row, 0].Value),
-                SKU = Convert.ToString(worksheet.Cells[row, 1].Value),                
-                Division = Convert.ToString(worksheet.Cells[row, 1].Value).Substring(0, 2)
+                Store = Convert.ToString(row[0]),
+                SKU = Convert.ToString(row[1]),                
+                Division = Convert.ToString(row[1]).Substring(0, 2)
             };
 
             return returnValue;
@@ -73,7 +74,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             List<RingFenceUploadModel> skuOnlyList;
             List<RingFenceUploadModel> skuStoreList;
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Incorrectly formatted or missing header row. Please correct and re-process.";
             else
@@ -81,9 +82,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 int row = 1;
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        uploadRec = ParseRow(row);
+                        uploadRec = ParseRow(dataRow);
                         parsedRingFenceDeletes.Add(uploadRec);
 
                         if (!ValidateRow(uploadRec, out errorMessage))
@@ -149,11 +150,11 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             }
         }
 
-        public Excel GetErrors(List<RingFenceUploadModel> errorList)
+        public Workbook GetErrors(List<RingFenceUploadModel> errorList)
         {
             if (errorList != null)
             {
-                Excel excelDocument = GetTemplate();
+                excelDocument = GetTemplate();
                 Worksheet mySheet = excelDocument.Worksheets[0];
 
                 int row = 1;
@@ -161,8 +162,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 {
                     mySheet.Cells[row, 0].PutValue(p.Store);
                     mySheet.Cells[row, 1].PutValue(p.SKU);
-                    mySheet.Cells[row, 2].PutValue(p.ErrorMessage);
-                    mySheet.Cells[row, 2].Style.Font.Color = Color.Red;
+                    mySheet.Cells[row, maxColumns].PutValue(p.ErrorMessage);
+                    mySheet.Cells[row, maxColumns].SetStyle(errorStyle);
                     row++;
                 }
 

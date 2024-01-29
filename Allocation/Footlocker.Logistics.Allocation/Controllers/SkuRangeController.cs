@@ -8,11 +8,11 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Footlocker.Logistics.Allocation.Services;
 using Telerik.Web.Mvc;
-using Aspose.Excel;
 using Footlocker.Common;
 using System.Text;
 using System.Text.RegularExpressions;
 using Footlocker.Logistics.Allocation.Spreadsheets;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -1048,7 +1048,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RangeFileItemDAO dao = new RangeFileItemDAO();
             System.Data.IDataReader reader = dao.GetRangeFileExtractDataReader(rp.Sku);
 
-            RangeReformat reformat = new RangeReformat(instance);
+            RangeReformat reformat = new RangeReformat(configService);
 
             string results = "";
             results += reformat.GetHeader() + "\r\n";
@@ -1838,11 +1838,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult StoreTemplate()
         {
             StoreSpreadsheet storeSpreadsheet = new StoreSpreadsheet(appConfig, configService, rangePlanDAO, new RuleDAO());
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = storeSpreadsheet.GetTemplate();
 
-            excelDocument.Save("StoreTemplate.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "StoreTemplate.xlsx", ContentDisposition.Attachment, storeSpreadsheet.SaveOptions);
             return View();
         }
 
@@ -1850,7 +1850,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             SKURangeStoreExport rangeStoreExport = new SKURangeStoreExport(appConfig, rangePlanDAO);
             rangeStoreExport.WriteData(planID);
-            rangeStoreExport.excelDocument.Save("SkuRangePlanStores.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            rangeStoreExport.excelDocument.Save(System.Web.HttpContext.Current.Response, "SkuRangePlanStores.xlsx", ContentDisposition.Attachment, rangeStoreExport.SaveOptions);
             return View();
         }
 
@@ -3103,7 +3103,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult DownloadRangeErrors()
         {
             SkuRangeSpreadsheet skuRangeSpreadsheet = new SkuRangeSpreadsheet(appConfig, configService);
-            Excel excelDocument;
+            Workbook excelDocument;
 
             List<BulkRange> errorList = new List<BulkRange>();
 
@@ -3111,18 +3111,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 errorList = (List<BulkRange>)Session["errorList"];            
 
             excelDocument = skuRangeSpreadsheet.GetErrors(errorList);           
-            excelDocument.Save("RangeUploadErrors.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "RangeUploadErrors.xlsx", ContentDisposition.Attachment, skuRangeSpreadsheet.SaveOptions);
 
             return View();
         }
 
         public ActionResult ExcelRangeTemplate()
         {
-            Excel excelDocument;
+            Workbook excelDocument;
             SkuRangeSpreadsheet rangeSpreadsheet = new SkuRangeSpreadsheet(appConfig, configService);
 
             excelDocument = rangeSpreadsheet.GetTemplate();
-            excelDocument.Save("RangeUpload.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "RangeUpload.xlsx", ContentDisposition.Attachment, rangeSpreadsheet.SaveOptions);
             return View();
         }
         #endregion
@@ -3131,7 +3131,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             SKURangeExport exportRange = new SKURangeExport(appConfig, new RangePlanDetailDAO());
             exportRange.WriteData(sku);
-            exportRange.excelDocument.Save("RangeUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            exportRange.excelDocument.Save(System.Web.HttpContext.Current.Response, "RangeUpload.xlsx", ContentDisposition.Attachment, exportRange.SaveOptions);
             return View();
         }
 
@@ -3145,7 +3145,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             SKURangeDeliveryGroupExport exportRange = new SKURangeDeliveryGroupExport(appConfig, new RangePlanDetailDAO());
             exportRange.WriteData(deliveryGroupID);
-            exportRange.excelDocument.Save(string.Format("{0}-{1}.xls", exportRange.SKU, exportRange.DGName), SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            exportRange.excelDocument.Save(System.Web.HttpContext.Current.Response, string.Format("{0}-{1}.xlsx", exportRange.SKU, exportRange.DGName), ContentDisposition.Attachment, exportRange.SaveOptions);
+
+            return View();
+        }
+
+        #region SKU Range Plan Delivery Group upload
+        [CheckPermission(Roles = "Merchandiser, Head Merchandiser, Buyer Planner, Director of Allocation, Admin, Support")]
+        public ActionResult ExcelSkuRangePlanDGUploadTemplate()
+        {
+            SKURangePlanDGSpreadsheet skuRangePlanDGSpreadsheet = new SKURangePlanDGSpreadsheet(appConfig, configService, rangePlanDAO);
+            Workbook excelDocument;
+
+            excelDocument = skuRangePlanDGSpreadsheet.GetTemplate();
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "SkuRangePlanDGUploadTemplate.xlsx", ContentDisposition.Attachment, skuRangePlanDGSpreadsheet.SaveOptions);
 
             return View();
         }
@@ -3179,17 +3192,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             string message = string.Format("Success! {0} lines were processed.", skuRangePlanDGSpreadsheet.parsedDeliveryGroups.Count.ToString());
             return Json(new { successMessage = message }, "application/json");
         }
-
-        [CheckPermission(Roles = "Merchandiser, Head Merchandiser, Buyer Planner, Director of Allocation, Admin, Support")]
-        public ActionResult ExcelSkuRangePlanDGUploadTemplate()
-        {
-            SKURangePlanDGSpreadsheet skuRangePlanDGSpreadsheet = new SKURangePlanDGSpreadsheet(appConfig, configService, rangePlanDAO);
-            Excel excelDocument;
-
-            excelDocument = skuRangePlanDGSpreadsheet.GetTemplate();
-            excelDocument.Save("SkuRangePlanDGUploadTemplate.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
-
-            return View();
-        }
+        #endregion
     }
 }

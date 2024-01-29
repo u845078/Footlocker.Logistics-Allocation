@@ -1,5 +1,4 @@
-﻿using Aspose.Excel;
-using Footlocker.Logistics.Allocation.Models;
+﻿using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Common;
 using System;
@@ -9,40 +8,41 @@ using System.Linq;
 using System.Web;
 using System.Text.RegularExpressions;
 using System.Globalization;
-using Microsoft.Practices.EnterpriseLibrary.Common.Utility;
+using System.Data;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class SkuRangeSpreadsheet : UploadExcelSpreadsheet
+    public class SkuRangeSpreadsheet : UploadSpreadsheet
     {
         public List<BulkRange> errorList = new List<BulkRange>();
         public List<BulkRange> validRanges = new List<BulkRange>();
         public List<BulkRange> parsedRanges = new List<BulkRange>();
 
-        private BulkRange ParseRow(int row)
+        private BulkRange ParseRow(DataRow row)
         {
             BulkRange returnValue = new BulkRange()
             {
                 Range = "1",
-                Division = Convert.ToString(worksheet.Cells[row, 0].Value).Trim().PadLeft(2, '0'),
-                Store = Convert.ToString(worksheet.Cells[row, 3].Value).Trim().PadLeft(5, '0'),
-                Sku = Convert.ToString(worksheet.Cells[row, 4].Value).Trim(),
-                Size = Convert.ToString(worksheet.Cells[row, 5].Value).Trim().PadLeft(3, '0').ToUpper(),
-                RangeStartDate = Convert.ToString(worksheet.Cells[row, 6].Value).Trim(),
-                DeliveryGroupName = Convert.ToString(worksheet.Cells[row, 7].Value).Trim(),
-                Min = Convert.ToString(worksheet.Cells[row, 8].Value).Trim(),
-                Max = Convert.ToString(worksheet.Cells[row, 9].Value).Trim(),
-                MinEndDaysOverride = Convert.ToString(worksheet.Cells[row, 11].Value).Trim(),
-                EndDate = Convert.ToString(worksheet.Cells[row, 12].Value),
-                OPStartSend = Convert.ToString(worksheet.Cells[row, 13].Value),
-                OPStopSend = Convert.ToString(worksheet.Cells[row, 14].Value),
-                OPRequestComments = Convert.ToString(worksheet.Cells[row, 15].Value)
+                Division = Convert.ToString(row[0]).Trim().PadLeft(2, '0'),
+                Store = Convert.ToString(row[3]).Trim().PadLeft(5, '0'),
+                Sku = Convert.ToString(row[4]).Trim(),
+                Size = Convert.ToString(row[5]).Trim().PadLeft(3, '0').ToUpper(),
+                RangeStartDate = Convert.ToString(row[6]).Trim(),
+                DeliveryGroupName = Convert.ToString(row[7]).Trim(),
+                Min = Convert.ToString(row[8]).Trim(),
+                Max = Convert.ToString(row[9]).Trim(),
+                MinEndDaysOverride = Convert.ToString(row[11]).Trim(),
+                EndDate = Convert.ToString(row[12]),
+                OPStartSend = Convert.ToString(row[13]),
+                OPStopSend = Convert.ToString(row[14]),
+                OPRequestComments = Convert.ToString(row[15])
             };
 
-            string baseDemand = Convert.ToString(worksheet.Cells[row, 10].Value).Trim();
+            string baseDemand = Convert.ToString(row[10]).Trim();
 
             if (!string.IsNullOrEmpty(baseDemand))            
-                returnValue.BaseDemand = Convert.ToDecimal(worksheet.Cells[row, 10].FloatValue).ToString();
+                returnValue.BaseDemand = Convert.ToDecimal(row[10]).ToString();
             else            
                 returnValue.BaseDemand = "";            
 
@@ -113,7 +113,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             BulkRange range;
             string errorMessage;
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Incorrectly formatted or missing header row. Please correct and re-process.";
             else
@@ -121,9 +121,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 int row = 1;
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        range = ParseRow(row);
+                        range = ParseRow(dataRow);
                         
                         if (!ValidateRow(range, out errorMessage))
                             range.Error = errorMessage;
@@ -158,11 +158,11 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             }
         }
 
-        public Excel GetErrors(List<BulkRange> errorList)
+        public Workbook GetErrors(List<BulkRange> errorList)
         {
             if (errorList != null)
             {                
-                Excel excelDocument = GetTemplate();
+                excelDocument = GetTemplate();
                 Worksheet mySheet = excelDocument.Worksheets[0];
 
                 int row = 1;
@@ -184,8 +184,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     mySheet.Cells[row, 13].PutValue(p.OPStartSend);
                     mySheet.Cells[row, 14].PutValue(p.OPStopSend);
                     mySheet.Cells[row, 15].PutValue(p.OPRequestComments);
-                    mySheet.Cells[row, 16].PutValue(p.Error);
-                    mySheet.Cells[row, 16].Style.Font.Color = Color.Red;
+                    mySheet.Cells[row, maxColumns].PutValue(p.Error);
+                    mySheet.Cells[row, maxColumns].SetStyle(errorStyle);
                     row++;
                 }
 

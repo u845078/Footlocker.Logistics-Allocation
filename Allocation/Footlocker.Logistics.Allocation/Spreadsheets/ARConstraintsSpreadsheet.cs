@@ -4,25 +4,33 @@ using Footlocker.Logistics.Allocation.Services;
 using System;
 using System.Collections.Generic;
 using System.Web;
+using System.Data;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class ARConstraintsSpreadsheet : UploadExcelSpreadsheet
+    public class ARConstraintsSpreadsheet : UploadSpreadsheet
     {
         public List<DirectToStoreConstraint> parsedARConstraints = new List<DirectToStoreConstraint>();
 
-        private DirectToStoreConstraint ParseUploadRow(int row)
+        private DirectToStoreConstraint ParseUploadRow(DataRow row)
         {
+            string startDate = row[2].ToString();
+            string endDate = row[3].ToString();
+
             DirectToStoreConstraint returnValue = new DirectToStoreConstraint
             {
-                Sku = Convert.ToString(worksheet.Cells[row, 0].Value).Trim(),
-                Size = Convert.ToString(worksheet.Cells[row, 1].Value).Trim(),
-                StartDate = Convert.ToDateTime(worksheet.Cells[row, 2].Value),
-                EndDate = Convert.ToDateTime(worksheet.Cells[row, 3].Value),
-                MaxQty = Convert.ToInt32(worksheet.Cells[row, 4].Value),
-                CreateDate = DateTime.Now,
+                Sku = Convert.ToString(row[0]).Trim(),
+                Size = Convert.ToString(row[1]).Trim(),
+                MaxQty = Convert.ToInt32(row[4]),
+                CreateDate = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc),
                 CreatedBy = config.currentUser.NetworkID
             };
+
+            if (!string.IsNullOrEmpty(startDate))
+                returnValue.StartDate = Convert.ToDateTime(startDate);
+
+            if (!string.IsNullOrEmpty(endDate))
+                returnValue.EndDate = Convert.ToDateTime(endDate);
 
             return returnValue;
         }
@@ -31,7 +39,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         {
             var dao = new DirectToStoreDAO(config.EuropeDivisions);
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Upload failed: Incorrect header - please use template.";
             else
@@ -40,9 +48,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        parsedARConstraints.Add(ParseUploadRow(row));
+                        parsedARConstraints.Add(ParseUploadRow(dataRow));
                         row++;
                     }
 

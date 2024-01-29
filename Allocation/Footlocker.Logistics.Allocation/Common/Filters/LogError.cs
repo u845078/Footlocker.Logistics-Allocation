@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-
+﻿using System.Web.Mvc;
 using Footlocker.Common.Utilities;
 
 namespace Footlocker.Logistics.Allocation.Common

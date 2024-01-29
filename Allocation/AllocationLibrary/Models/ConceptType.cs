@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -35,9 +34,7 @@ namespace Footlocker.Logistics.Allocation.Models
         {
             get
             {
-                return Divisions != null ?
-                    String.Concat(Divisions.Select(d => d.Division + ",")).TrimEnd(',') :
-                    String.Empty;
+                return Divisions != null ? string.Concat(Divisions.Select(d => d.Division + ",")).TrimEnd(',') : string.Empty;
             }
         }
 

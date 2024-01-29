@@ -1,13 +1,11 @@
 ﻿using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class RoutesExport : ExportExcelSpreadsheet
+    public class RoutesExport : ExportSpreadsheet
     {
         public void WriteData(int instanceID)
         {

@@ -79,29 +79,29 @@
 
     }
 
-        function onSelect(e) {
-            var files = e.files;
-            if (files[0].extension != ".xls") {
-                alert("Document must be a spreadsheet with a xls extension. ");
-                e.preventDefault();
+    function onSelect(e) {
+        var files = e.files;
+        if (files[0].extension != ".xlsx") {
+            alert("Document must be a spreadsheet with a xlsx extension. ");
+            e.preventDefault();
+        }
+        else{
+                document.getElementById('spreadsheet').style.visibility = 'visible';
             }
-            else{
-                 document.getElementById('spreadsheet').style.visibility = 'visible';
-             }
-             $('#message').empty();
+            $('#message').empty();
+    }
+
+    function onError(e) {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>" + message + "<br /></font><br><a class='t-button' href='DownloadRangeErrors'>Download Errors</a>");
+
+            e.preventDefault();
         }
 
-        function onError(e) {
+        function onSuccess(e) {
             var message = e.XMLHttpRequest.responseText;
-            $('#message').empty().append("<font color='red'>" + message + "<br /></font><br><a class='t-button' href='DownloadRangeErrors'>Download Errors</a>");
+            $('#message').empty().append("<font color='red'>Success</font>");
 
-             e.preventDefault();
-         }
-
-         function onSuccess(e) {
-             var message = e.XMLHttpRequest.responseText;
-             $('#message').empty().append("<font color='red'>Success</font>");
-
-             e.preventDefault();
-         }
+            e.preventDefault();
+        }
 </script>

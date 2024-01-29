@@ -1,21 +1,18 @@
 ﻿@model Footlocker.Logistics.Allocation.Models.StoreBatchFilterModel
-
 @{
     ViewBag.Title = "Filter";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
 <script type="text/javascript">
     // On DocumentReady...
     $(function () {
         $('#hideStoreSelectorButton').hide();
     });
 
-
     function onSelect(e) {
         var files = e.files;
-        if (files[0].extension != ".xls") {
-            alert("Document must be a spreadsheet with a xls extension. ");
+        if (files[0].extension != ".xlsx") {
+            alert("Document must be a spreadsheet with a xlsx extension. ");
             e.preventDefault();
         }
         else {
@@ -25,7 +22,6 @@
     }
 
     function onComplete(e) {
-
         var message = e.XMLHttpRequest.responseText;
         $('#message').empty().append("<font color='red'>" + message + "</font>");
 
@@ -40,11 +36,9 @@
         showStatus();
         e.preventDefault();
     }
-
 </script>
 
 <h2>Choose Stores</h2>
-
 <div class="fieldset">
     @Html.Partial(Url.Content("~/Views/Rule/RuleFilter.cshtml"), Model, ViewData)
     <br />

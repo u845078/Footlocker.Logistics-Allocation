@@ -5,18 +5,11 @@ using System.Web;
 using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Spreadsheets;
 using Footlocker.Logistics.Allocation.Models;
-using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Common;
 using Footlocker.Logistics.Allocation.DAO;
 using Telerik.Web.Mvc;
-using Aspose.Excel;
-using System.IO;
-using System.Linq.Expressions;
-using System.Reflection;
 using Footlocker.Logistics.Allocation.Services;
-using Telerik.Web.Mvc.Infrastructure;
-using System.Runtime;
-using System.ComponentModel;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -460,11 +453,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
             SkuAttributeSpreadsheet skuAttributeSpreadsheet = new SkuAttributeSpreadsheet(appConfig, configService, itemDAO);
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = skuAttributeSpreadsheet.GetTemplate();
 
-            excelDocument.Save("SkuAttributeUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "SkuAttributeUpload.xlsx", ContentDisposition.Attachment, skuAttributeSpreadsheet.SaveOptions);
             return View("Upload");
         }
 
@@ -498,7 +491,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             skuAttributeExport.ExtractGrid(settings.FilterDescriptors);
 
-            skuAttributeExport.excelDocument.Save("SkuAttributes.xls", Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            skuAttributeExport.excelDocument.Save(System.Web.HttpContext.Current.Response, "SkuAttributes.xlsx", ContentDisposition.Attachment, skuAttributeExport.SaveOptions);
             return RedirectToAction("Index");
         }
 
@@ -509,7 +502,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             skuAttributeExport.ExtractHeader(ID);
 
             if (string.IsNullOrEmpty(skuAttributeExport.errorMessage))            
-                skuAttributeExport.excelDocument.Save(skuAttributeExport.headerFileName, Aspose.Excel.SaveType.OpenInExcel, Aspose.Excel.FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                skuAttributeExport.excelDocument.Save(System.Web.HttpContext.Current.Response, skuAttributeExport.headerFileName, ContentDisposition.Attachment, skuAttributeExport.SaveOptions);
             else
                 throw new Exception(skuAttributeExport.errorMessage);
             

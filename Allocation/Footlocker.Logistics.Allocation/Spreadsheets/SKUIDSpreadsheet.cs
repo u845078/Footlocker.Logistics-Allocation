@@ -6,6 +6,7 @@ using System.Web;
 using Footlocker.Logistics.Allocation.Common;
 using System.IO;
 using System.Linq;
+using System.Data;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
@@ -110,7 +111,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         }
     }
 
-    public class SKUIDSpreadsheet : UploadExcelSpreadsheet
+    public class SKUIDSpreadsheet : UploadSpreadsheet
     {
         string ftpFileName;
         string mainDivision;
@@ -126,16 +127,16 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     message = "You do not have permission to update this division.";            
         }
 
-        private SKUIDRecord ParseRow(int row)
+        private SKUIDRecord ParseRow(DataRow row)
         {
             SKUIDRecord record = new SKUIDRecord()
             {
-                SKU = Convert.ToString(worksheet.Cells[row, 0].Value),
-                RawSKUID1 = Convert.ToString(worksheet.Cells[row, 1].Value).PadLeft(1, ' ')[0],
-                RawSKUID2 = Convert.ToString(worksheet.Cells[row, 2].Value).PadLeft(1, ' ')[0],
-                RawSKUID3 = Convert.ToString(worksheet.Cells[row, 3].Value).PadLeft(1, ' ')[0],
-                RawSKUID4 = Convert.ToString(worksheet.Cells[row, 4].Value).PadLeft(1, ' ')[0],
-                RawSKUID5 = Convert.ToString(worksheet.Cells[row, 5].Value).PadLeft(1, ' ')[0],
+                SKU = Convert.ToString(row[0]),
+                RawSKUID1 = Convert.ToString(row[1]).PadLeft(1, ' ')[0],
+                RawSKUID2 = Convert.ToString(row[2]).PadLeft(1, ' ')[0],
+                RawSKUID3 = Convert.ToString(row[3]).PadLeft(1, ' ')[0],
+                RawSKUID4 = Convert.ToString(row[4]).PadLeft(1, ' ')[0],
+                RawSKUID5 = Convert.ToString(row[5]).PadLeft(1, ' ')[0],
                 UserID = config.currentUser.NetworkID,
                 CurrentDate = DateTime.Now
             };
@@ -197,7 +198,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             filePath = GetDirectory(ftpFileName);
             VerifyWritableDirectory(filePath);
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Incorrectly formatted or missing header row. Please correct and re-process.";
             else
@@ -219,9 +220,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                 if (string.IsNullOrEmpty(message))
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        SKUIDRecord rec = ParseRow(row);
+                        SKUIDRecord rec = ParseRow(dataRow);
                         ValidateRec(rec);
 
                         if (string.IsNullOrEmpty(message))

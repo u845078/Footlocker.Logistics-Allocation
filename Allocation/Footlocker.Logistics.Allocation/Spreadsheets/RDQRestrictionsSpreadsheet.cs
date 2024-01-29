@@ -1,42 +1,41 @@
-﻿using Aspose.Excel;
+﻿using Aspose.Cells;
 using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.Models;
-using Footlocker.Logistics.Allocation.Models.Services;
 using Footlocker.Logistics.Allocation.Services;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Data;
 using System.Linq;
 using System.Web;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class RDQRestrictionsSpreadsheet : UploadExcelSpreadsheet
+    public class RDQRestrictionsSpreadsheet : UploadSpreadsheet
     {
         public List<RDQRestriction> validRecs = new List<RDQRestriction>();
         public List<Tuple<RDQRestriction, string>> errorList = new List<Tuple<RDQRestriction, string>>();
         readonly RDQDAO rdqDAO;
 
-        private RDQRestriction ParseRow(int row)
+        private RDQRestriction ParseRow(DataRow row)
         {
             const string defaultValue = "N/A";
 
             RDQRestriction returnValue = new RDQRestriction()
             {
-                Division = Convert.ToString(worksheet.Cells[row, 0].Value).Trim(),
-                Department = Convert.ToString(worksheet.Cells[row, 1].Value).Trim(),
-                Category = Convert.ToString(worksheet.Cells[row, 2].Value).Trim(),
-                Brand = Convert.ToString(worksheet.Cells[row, 3].Value).Trim(),
-                Vendor = Convert.ToString(worksheet.Cells[row, 4].Value).Trim(),
-                SKU = Convert.ToString(worksheet.Cells[row, 5].Value).Trim(),
-                RDQType = Convert.ToString(worksheet.Cells[row, 6].Value).Trim(),
-                FromDate = Convert.ToDateTime(worksheet.Cells[row, 7].Value),   
-                ToDate = Convert.ToDateTime(worksheet.Cells[row, 8].Value),
-                FromDCCode = Convert.ToString(worksheet.Cells[row, 9].Value).Trim(),
-                ToLeague = Convert.ToString(worksheet.Cells[row, 10].Value).Trim(),
-                ToRegion = Convert.ToString(worksheet.Cells[row, 11].Value).Trim(),
-                ToStore = Convert.ToString(worksheet.Cells[row, 12].Value).Trim(),
-                ToDCCode = Convert.ToString(worksheet.Cells[row, 13].Value).Trim(),
+                Division = Convert.ToString(row[0]).Trim(),
+                Department = Convert.ToString(row[1]).Trim(),
+                Category = Convert.ToString(row[2]).Trim(),
+                Brand = Convert.ToString(row[3]).Trim(),
+                Vendor = Convert.ToString(row[4]).Trim(),
+                SKU = Convert.ToString(row[5]).Trim(),
+                RDQType = Convert.ToString(row[6]).Trim(),
+                FromDate = Convert.ToDateTime(row[7]),   
+                ToDate = Convert.ToDateTime(row[8]),
+                FromDCCode = Convert.ToString(row[9]).Trim(),
+                ToLeague = Convert.ToString(row[10]).Trim(),
+                ToRegion = Convert.ToString(row[11]).Trim(),
+                ToStore = Convert.ToString(row[12]).Trim(),
+                ToDCCode = Convert.ToString(row[13]).Trim(),
                 LastModifiedDate = DateTime.Now, 
                 LastModifiedUser = config.currentUser.NetworkID
             };
@@ -370,7 +369,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         {
             RDQRestriction uploadRec;
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Incorrectly formatted or missing header row. Please correct and re-process.";
             else
@@ -378,9 +377,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 int row = 1;
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        uploadRec = ParseRow(row);
+                        uploadRec = ParseRow(dataRow);
 
                         if (!ValidateRow(uploadRec, out errorMessage))                        
                             errorList.Add(Tuple.Create(uploadRec, errorMessage));
@@ -408,11 +407,11 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             }
         }
 
-        public Excel GetErrors(List<Tuple<RDQRestriction, string>> errorList)
+        public Workbook GetErrors(List<Tuple<RDQRestriction, string>> errorList)
         {
             if (errorList != null)
             {
-                Excel excelDocument = GetTemplate();
+                excelDocument = GetTemplate();
                 Worksheet mySheet = excelDocument.Worksheets[0];
 
                 int row = 1;
@@ -430,7 +429,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                         mySheet.Cells[row, 7].PutValue(string.Empty);                    
                     else
                     {
-                        mySheet.Cells[row, 7].Style.Number = 14;
+                        mySheet.Cells[row, 7].SetStyle(dateStyle);
                         mySheet.Cells[row, 7].PutValue(p.Item1.FromDate);
                     }
 
@@ -438,7 +437,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                         mySheet.Cells[row, 8].PutValue(string.Empty);
                     else
                     {
-                        mySheet.Cells[row, 8].Style.Number = 14;
+                        mySheet.Cells[row, 8].SetStyle(dateStyle);
                         mySheet.Cells[row, 8].PutValue(p.Item1.ToDate);
                     }
 
@@ -447,10 +446,12 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     mySheet.Cells[row, 11].PutValue(p.Item1.ToRegion);
                     mySheet.Cells[row, 12].PutValue(p.Item1.ToStore);
                     mySheet.Cells[row, 13].PutValue(p.Item1.ToDCCode);
-                    mySheet.Cells[row, 14].PutValue(p.Item2);
-                    mySheet.Cells[row, 14].Style.Font.Color = Color.Red;
+                    mySheet.Cells[row, maxColumns].PutValue(p.Item2);
+                    mySheet.Cells[row, maxColumns].SetStyle(errorStyle);
                     row++;
                 }
+
+                AutofitColumns();
 
                 return excelDocument;
             }

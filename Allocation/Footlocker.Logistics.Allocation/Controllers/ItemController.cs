@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
-using Aspose.Excel;
+using Aspose.Cells;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Models.Services;
@@ -857,7 +857,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             
             try
 			{				
-                exportRDQSheet.excelDocument.Save("RDQsToMF.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                exportRDQSheet.excelDocument.Save(System.Web.HttpContext.Current.Response, "RDQsToMF.xlsx", ContentDisposition.Attachment, exportRDQSheet.SaveOptions);
 				return RedirectToAction("TroubleshootRDQForSku");
 			}
 			catch (Exception ex)
@@ -891,7 +891,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     return View(model);
                 }
 
-                lostSalesExtract.excelDocument.Save(model.Sku + "-LostSales.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                lostSalesExtract.excelDocument.Save(System.Web.HttpContext.Current.Response, model.Sku + "-LostSales.xlsx", ContentDisposition.Attachment, lostSalesExtract.SaveOptions);
             } 
             else if (submitAction == "WSMextract")
             {
@@ -904,7 +904,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     return View(model);
                 }
 
-                wsmExtract.excelDocument.Save(model.Sku + "-WSMextract.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                wsmExtract.excelDocument.Save(System.Web.HttpContext.Current.Response, model.Sku + "-WSMextract.xlsx", ContentDisposition.Attachment, wsmExtract.SaveOptions);
             }
             return View(model);
         }

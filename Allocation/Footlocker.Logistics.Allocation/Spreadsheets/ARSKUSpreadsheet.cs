@@ -4,29 +4,32 @@ using Footlocker.Logistics.Allocation.Services;
 using System;
 using System.Collections.Generic;
 using System.Web;
+using System.Data;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class ARSKUSpreadsheet : UploadExcelSpreadsheet
+    public class ARSKUSpreadsheet : UploadSpreadsheet
     {
         public List<DirectToStoreSku> parsedARSKUs = new List<DirectToStoreSku>();
 
-        private DirectToStoreSku ParseUploadRow(int row)
+        private DirectToStoreSku ParseUploadRow(DataRow row)
         {
             DirectToStoreSku returnValue = new DirectToStoreSku
             {
-                Sku = Convert.ToString(worksheet.Cells[row, 0].Value).Trim(),
-                StartDate = Convert.ToDateTime(worksheet.Cells[row, 1].Value),
-                EndDate = Convert.ToDateTime(worksheet.Cells[row, 2].Value),
-                VendorPackQty = Convert.ToInt32(worksheet.Cells[row, 3].Value),
-                OrderSun = Convert.ToBoolean(worksheet.Cells[row, 4].Value),
-                OrderMon = Convert.ToBoolean(worksheet.Cells[row, 5].Value),
-                OrderTue = Convert.ToBoolean(worksheet.Cells[row, 6].Value),
-                OrderWed = Convert.ToBoolean(worksheet.Cells[row, 7].Value),
-                OrderThur = Convert.ToBoolean(worksheet.Cells[row, 8].Value),
-                CreateDate = DateTime.Now,
+                Sku = Convert.ToString(row[0]).Trim(),
+                StartDate = Convert.ToDateTime(row[1]),                
+                VendorPackQty = Convert.ToInt32(row[3]),
+                OrderSun = Convert.ToString(row[4]) == "1",
+                OrderMon = Convert.ToString(row[5]) == "1",
+                OrderTue = Convert.ToString(row[6]) == "1",
+                OrderWed = Convert.ToString(row[7]) == "1",
+                OrderThur = Convert.ToString(row[8]) == "1",
+                CreateDate = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc),
                 CreatedBy = config.currentUser.NetworkID
             };
+
+            if (!string.IsNullOrEmpty(row[2].ToString().Trim()))
+                returnValue.EndDate = DateTime.Parse(row[2].ToString().Trim());
 
             return returnValue;
         }
@@ -35,7 +38,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         {
             var dao = new DirectToStoreDAO(config.EuropeDivisions);
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Upload failed: Incorrect header - please use template.";
             else
@@ -44,9 +47,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        parsedARSKUs.Add(ParseUploadRow(row));
+                        parsedARSKUs.Add(ParseUploadRow(dataRow));
                         row++;
                     }
 
@@ -54,10 +57,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     {
                         foreach (DirectToStoreSku rec in parsedARSKUs)
                         {
-                            if (!config.currentUser.GetUserDivList(config.AppName).Contains(rec.Division))
-                            {
-                                message = "Upload failed: One ore more Skus are in a division you do not have permissions for.";
-                            }
+                            if (!config.currentUser.GetUserDivList(config.AppName).Contains(rec.Division))                            
+                                message = "Upload failed: One ore more Skus are in a division you do not have permissions for.";                            
                         }
 
                         if (string.IsNullOrEmpty(message))                           

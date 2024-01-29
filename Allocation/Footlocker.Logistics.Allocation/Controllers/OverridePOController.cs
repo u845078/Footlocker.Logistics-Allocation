@@ -6,10 +6,9 @@ using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Models.Services;
 using Telerik.Web.Mvc;
-using Aspose.Excel;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Spreadsheets;
-
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -633,11 +632,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult ExcelTemplate()
         {
             POOverrideSpreadsheet poOverrideSpreadsheet = new POOverrideSpreadsheet(appConfig, configService, new ExistingPODAO(appConfig.EuropeDivisions));
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = poOverrideSpreadsheet.GetTemplate();
 
-            excelDocument.Save("POOverrideUpload.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "POOverrideUpload.xlsx", ContentDisposition.Attachment, poOverrideSpreadsheet.SaveOptions);
             return View();
         }
 
@@ -681,13 +680,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult DownloadErrors()
         {
             List<ExpeditePO> errors = (List<ExpeditePO>)Session["errorList"];
-            Excel excelDocument;
+            Workbook excelDocument;
             POOverrideSpreadsheet poOverrideSpreadsheet = new POOverrideSpreadsheet(appConfig, configService, new ExistingPODAO(appConfig.EuropeDivisions));
 
             if (errors != null)
             {
                 excelDocument = poOverrideSpreadsheet.GetErrors(errors);
-                excelDocument.Save("POOverrideErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                excelDocument.Save(System.Web.HttpContext.Current.Response, "POOverrideErrors.xlsx", ContentDisposition.Attachment, poOverrideSpreadsheet.SaveOptions);
             }
             return View();
         }

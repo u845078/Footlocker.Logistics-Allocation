@@ -1,23 +1,23 @@
-﻿using Aspose.Excel;
-using Footlocker.Logistics.Allocation.Models;
+﻿using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Common;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Web;
+using System.Data;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class HoldsUploadSpreadsheet : UploadExcelSpreadsheet
+    public class HoldsUploadSpreadsheet : UploadSpreadsheet
     {
         public List<Hold> validHolds = new List<Hold>();
         public List<Hold> errorList = new List<Hold>();
         readonly HoldService holdService;
 
-        private Hold ParseRow(int row)
+        private Hold ParseRow(DataRow row)
         {
             bool deptExists;
             bool brandExists;
@@ -28,19 +28,19 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
             Hold returnValue = new Hold()
             {
-                Division = Convert.ToString(worksheet.Cells[row, 0].Value).Trim(),
-                Store = Convert.ToString(worksheet.Cells[row, 1].Value).Trim(),
-                Duration = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(Convert.ToString(worksheet.Cells[row, 2].Value).Trim().ToLower()),
-                Department = Convert.ToString(worksheet.Cells[row, 3].Value).Trim(),
-                Brand = Convert.ToString(worksheet.Cells[row, 4].Value).Trim(),
-                Team = Convert.ToString(worksheet.Cells[row, 5].Value).Trim(),
-                Category = Convert.ToString(worksheet.Cells[row, 6].Value).Trim(),
-                Vendor = Convert.ToString(worksheet.Cells[row, 7].Value).Trim(),
-                SKU = Convert.ToString(worksheet.Cells[row, 8].Value).Trim(),
-                StartDate = Convert.ToDateTime(worksheet.Cells[row, 9].Value),
-                EndDate = Convert.ToDateTime(worksheet.Cells[row, 10].Value),
-                HoldType = Convert.ToString(worksheet.Cells[row, 11].Value).Trim().ToLower(),
-                Comments = string.Format("(Upload) - {0}", Convert.ToString(worksheet.Cells[row, 12].Value).Trim()),
+                Division = Convert.ToString(row[0]).Trim(),
+                Store = Convert.ToString(row[1]).Trim(),
+                Duration = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(Convert.ToString(row[2]).Trim().ToLower()),
+                Department = Convert.ToString(row[3]).Trim(),
+                Brand = Convert.ToString(row[4]).Trim(),
+                Team = Convert.ToString(row[5]).Trim(),
+                Category = Convert.ToString(row[6]).Trim(),
+                Vendor = Convert.ToString(row[7]).Trim(),
+                SKU = Convert.ToString(row[8]).Trim(),
+                StartDate = Convert.ToDateTime(row[9]),
+                EndDate = Convert.ToDateTime(row[10]),
+                HoldType = Convert.ToString(row[11]).Trim().ToLower(),
+                Comments = string.Format("(Upload) - {0}", Convert.ToString(row[12]).Trim()),
                 CreateDate = DateTime.Now,
                 CreatedBy = config.currentUser.NetworkID                
             };
@@ -152,7 +152,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             Hold item;
             string rowErrorMessage;
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Incorrectly formatted or missing header row. Please correct and re-process.";
             else
@@ -161,9 +161,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        item = ParseRow(row);
+                        item = ParseRow(dataRow);
 
                         if (!ValidateRow(item, out rowErrorMessage))
                         {
@@ -227,11 +227,11 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             }
         }
 
-        public Excel GetErrors(List<Hold> errorList)
+        public Workbook GetErrors(List<Hold> errorList)
         {
             if (errorList != null)
             {
-                Excel excelDocument = GetTemplate();
+                Workbook excelDocument = GetTemplate();
                 Worksheet mySheet = excelDocument.Worksheets[0];
 
                 int row = 1;
@@ -251,8 +251,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     mySheet.Cells[row, 11].PutValue(p.HoldType);
                     mySheet.Cells[row, 12].PutValue(p.Comments);
 
-                    mySheet.Cells[row, 13].PutValue(p.ErrorMessage);
-                    mySheet.Cells[row, 13].Style.Font.Color = Color.Red;
+                    mySheet.Cells[row, maxColumns].PutValue(p.ErrorMessage);
+                    mySheet.Cells[row, maxColumns].SetStyle(errorStyle);
                     row++;
                 }
 

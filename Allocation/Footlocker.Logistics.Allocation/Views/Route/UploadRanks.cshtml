@@ -34,21 +34,17 @@
     @(Html.Telerik().Upload()
         .Name("leadTimeAttachments")
         .Multiple(true)
-        .Async(async => async
-        .Save("SaveLeadTimes", "Route")
-        .AutoUpload(false))
+        .Async(async => async.Save("SaveLeadTimes", "Route")
+                             .AutoUpload(false))
         .ShowFileList(true)
-        .ClientEvents(events => events
-        .OnError("onError")
-        .OnSelect("onSelect")
-        .OnSuccess("onSuccess")
-        )
-        )
-
+        .ClientEvents(events => events.OnError("onError")
+                                      .OnSelect("onSelect")
+                                      .OnSuccess("onSuccess"))
+     )    
 <br />
 <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
 <br />
-<h4> <div id="message"></div> </h4>
+<h4 id="message"></h4>
 
 </fieldset>
 
@@ -56,8 +52,8 @@
 
          function onSelect(e) {
              var files = e.files;
-             if (files[0].extension != ".xls") {
-                 alert("Document must be a spreadsheet with a xls extension. ");
+             if (files[0].extension != ".xlsx") {
+                 alert("Document must be a spreadsheet with a xlsx extension. ");
                  e.preventDefault();
              }
              else {

@@ -6,7 +6,7 @@
 <fieldset>
     <legend> Life of Sku Upload </legend>
     Spreadsheet columns should be Div, Dept, Stock, ProductType and should only be for one division.<br />
-    @Html.ActionLink("Download Template","ExcelProductTemplate",new {}, new {@class = "t-button"})
+    @Html.ActionLink("Download Template", "ExcelProductTemplate",new {}, new {@class = "t-button"})
     <br />
     <br />
     <b>Please select spreadsheets: </b> <br /><br />
@@ -31,8 +31,8 @@
 <script type="text/javascript">
     function onSelect(e) {
         var files = e.files;
-        if (files[0].extension != ".xls") {
-            alert("Document must be a spreadsheet with a xls extension. ");
+        if (files[0].extension != ".xlsx") {
+            alert("Document must be a spreadsheet with a xlsx extension. ");
             e.preventDefault();
         }
         else {

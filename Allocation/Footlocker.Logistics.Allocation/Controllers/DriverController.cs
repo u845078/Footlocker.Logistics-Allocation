@@ -81,29 +81,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        [CheckPermission(Roles = "IT")]
-        [HttpPost]
-        public ActionResult Maintenance(MaintenanceModel model)
-        {
-            int recordsAffected = 0;
+        //[CheckPermission(Roles = "IT")]
+        //[HttpPost]
+        //public ActionResult Maintenance(MaintenanceModel model)
+        //{
+        //    int recordsAffected = 0;
 
-            switch (model.SelectedDatabase)
-            {
-                case MaintenanceDataBases.Allocation:
-                    recordsAffected = db.Database.ExecuteSqlCommand(model.GeneratedSQLCommand);
-                    break;
-                case MaintenanceDataBases.Footlocker_Common:
-                    FootLockerCommonContext commDB = new FootLockerCommonContext();
-                    recordsAffected = commDB.Database.ExecuteSqlCommand(model.GeneratedSQLCommand);
-                    break;
-            }
+        //    switch (model.SelectedDatabase)
+        //    {
+        //        case MaintenanceDataBases.Allocation:
+        //            recordsAffected = db.Database.ExecuteSqlCommand(model.GeneratedSQLCommand);
+        //            break;
+        //        case MaintenanceDataBases.Footlocker_Common:
+        //            FootLockerCommonContext commDB = new FootLockerCommonContext();
+        //            recordsAffected = commDB.Database.ExecuteSqlCommand(model.GeneratedSQLCommand);
+        //            break;
+        //    }
 
-            db.SaveChanges();
+        //    db.SaveChanges();
 
-            model.ReturnMessage = string.Format("There were {0} records affected", recordsAffected);
+        //    model.ReturnMessage = string.Format("There were {0} records affected", recordsAffected);
 
-            return View(model);
-        }
+        //    return View(model);
+        //}
 
         public ActionResult Delete(string div, string dept)
         {

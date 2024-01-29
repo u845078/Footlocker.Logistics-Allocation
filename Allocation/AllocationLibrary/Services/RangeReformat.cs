@@ -5,13 +5,13 @@ namespace Footlocker.Logistics.Allocation.Services
 {
     public class RangeReformat
     {
-        public RangeReformat()
-        { }
+        private readonly ConfigService configService;
 
-        public RangeReformat(int instance)
-        {
-
+        public RangeReformat(ConfigService configService)
+        { 
+            this.configService = configService;
         }
+
         public string Format(IDataReader dr, int instance)
         {
             return Format(dr, "Y", instance);
@@ -30,50 +30,40 @@ namespace Footlocker.Logistics.Allocation.Services
 
         public string Format(IDataReader dr, string MLD, int instance)
         {
+            int configDefaultDemand;
+            
+            configDefaultDemand = Convert.ToInt32(configService.GetValue(instance, "DEFAULT_DEMAND"));
+
             string line = "";
-            line = line + "\"" + Convert.ToString(dr["ProductIdent"]) + "\",";
-            line = line + "\"" + Convert.ToString(dr["LocationTypeCode"]) + "\",";
-            line = line + "\"" + Convert.ToString(dr["LocationID"]) + "\",";
-            line = line + ",,";
-            line = line + Convert.ToString(dr["Max"]) + ",";
-            line = line + ",";
-            line = line + Convert.ToString(dr["Min"]) + ",";
-            line = line + ",,,,";
-            line = line + "\"" + Convert.ToString(dr["OnRangeDt"]).Trim() + "\",";
+            line += "\"" + Convert.ToString(dr["ProductIdent"]) + "\",";
+            line += "\"" + Convert.ToString(dr["LocationTypeCode"]) + "\",";
+            line += "\"" + Convert.ToString(dr["LocationID"]) + "\",";
+            line += ",," + Convert.ToString(dr["Max"]) + ",,";           
+            line += Convert.ToString(dr["Min"]) + ",";
+            line += ",,,,";
+            line += "\"" + Convert.ToString(dr["OnRangeDt"]).Trim() + "\",";
 
-            if (Convert.IsDBNull(dr["Markdown"]))
-            {
-                line = line + ",";
-            }
-            else
-            {
-                line = line + "\"" + Convert.ToString(dr["Markdown"]).Trim() + "\",";
-            }
+            if (Convert.IsDBNull(dr["Markdown"]))            
+                line += ",";            
+            else            
+                line += "\"" + Convert.ToString(dr["Markdown"]).Trim() + "\",";
+            
+			line += "\"" + Convert.ToString(dr["OffRangeDt1"]).Trim() + "\",";            
 
-			line = line + "\"" + Convert.ToString(dr["OffRangeDt1"]).Trim() + "\",";            
+            if (Convert.IsDBNull(dr["TodayUnitCost"]))            
+                line += ",";            
+            else            
+                line += "\"" + Convert.ToString(dr["TodayUnitCost"]).Trim() + "\",";            
 
-            if (Convert.IsDBNull(dr["TodayUnitCost"]))
-            {
-                line = line + ",";
-            }
-            else
-            {
-                line = line + "\"" + Convert.ToString(dr["TodayUnitCost"]).Trim() + "\",";
-            }
+            if (Convert.IsDBNull(dr["TodayUnitRetail"]))            
+                line += ",";            
+            else            
+                line += "\"" + Convert.ToString(dr["TodayUnitRetail"]).Trim() + "\",";            
 
-            if (Convert.IsDBNull(dr["TodayUnitRetail"]))
-            {
-                line = line + ",";
-            }
-            else
-            {
-                line = line + "\"" + Convert.ToString(dr["TodayUnitRetail"]).Trim() + "\",";
-            }
+            line += ",,,,";
 
-            line = line + ",,,,";
-
-            string initDemand = "";
-            if (Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings[instance + "_DEFAULT_DEMAND"]) > 0)
+            string initDemand;
+            if (configDefaultDemand > 0)
             {
                 if (!Convert.IsDBNull(dr["InitialDemand"]) &&
                     Convert.ToString(dr["InitialDemand"]) != "0" && 
@@ -81,96 +71,63 @@ namespace Footlocker.Logistics.Allocation.Services
                 {
                     initDemand = Convert.ToString(dr["InitialDemand"]);
                 }
-                else
-                {
-                    initDemand = System.Configuration.ConfigurationManager.AppSettings[instance + "_DEFAULT_DEMAND"];                
-                }
+                else                
+                    initDemand = configDefaultDemand.ToString();                       
             }
-            else
-            {
-                initDemand = Convert.ToString(dr["InitialDemand"]);
-            }
+            else            
+                initDemand = Convert.ToString(dr["InitialDemand"]);            
 
-            if (initDemand == "0")
-            {
-                initDemand = "";
-            }
+            if (initDemand == "0")            
+                initDemand = "";            
 
-            line = line + initDemand + ",\"";
+            line += initDemand + ",\"";
 
             line += Convert.ToString(dr["Attribute1"]) + "\",\"";
             line += Convert.ToString(dr["Attribute2"]) + "\",";
 
             line += "\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",";
 
-            if (!(Convert.IsDBNull(dr["attribute_9"])))
-            {
-                line = line + Convert.ToString(dr["attribute_9"]) + ",";
-            }
-            else
-            {
-                line = line + ",";
-            }
+            if (!Convert.IsDBNull(dr["attribute_9"]))            
+                line += Convert.ToString(dr["attribute_9"]) + ",";            
+            else            
+                line += ",";            
 
-            if (Convert.IsDBNull(dr["Launch"]))
-            {
-                line = line + "\"REGULAR\",";
-            }
+            if (Convert.IsDBNull(dr["Launch"]))            
+                line += "\"REGULAR\",";            
             else
             {
-                if (Convert.ToInt16(dr["Launch"]) == 1)
-                {
-                    line = line + "\"LAUNCH\",";
-                }
-                else
-                {
-                    line = line + "\"REGULAR\",";
-                }
+                if (Convert.ToInt16(dr["Launch"]) == 1)                
+                    line += "\"LAUNCH\",";                
+                else                
+                    line += "\"REGULAR\",";                
             }
   
-            line = line + ",,,,";
+            line += ",,,,";
 
-            if (Convert.IsDBNull(dr["Attribute_15"]))
-            {
-                line = line + ",";
-            }
-            else
-            {
+            if (Convert.IsDBNull(dr["Attribute_15"]))            
+                line += ",";            
+            else            
                 line = line + "\"" + dr["Attribute_15"] + "\",";
-            }
-            if (!Convert.IsDBNull(dr["MLD"]))
-            {
-                MLD = Convert.ToString(dr["MLD"]);
-            }
+            
+            if (!Convert.IsDBNull(dr["MLD"]))            
+                MLD = Convert.ToString(dr["MLD"]);            
 
             line = line + ",,,," + MLD + ",";
 
-            if (Convert.IsDBNull(dr["FirstReceivableDt"]))
-            {
-                line = line + ",";
-            }
-            else
-            {
-                line = line + "\"" + Convert.ToString(dr["FirstReceivableDt"]).Trim() + "\",";
-            }
+            if (Convert.IsDBNull(dr["FirstReceivableDt"]))            
+                line += ",";            
+            else            
+                line += "\"" + Convert.ToString(dr["FirstReceivableDt"]).Trim() + "\",";            
 
-            if (Convert.IsDBNull(dr["LearningTransitionCode"]))
-            {
-                line = line + ",";
-            }
-            else
-            {
-                line = line + "\"" + Convert.ToString(dr["LearningTransitionCode"]).Trim() + "\",";
-            }
+            if (Convert.IsDBNull(dr["LearningTransitionCode"]))            
+                line += ",";            
+            else            
+                line += "\"" + Convert.ToString(dr["LearningTransitionCode"]).Trim() + "\",";            
 
-            if (Convert.IsDBNull(dr["MinEndDate"]))
-            {
-                line = line + ",";
-            }
-            else
-            {
-                line = line + "\"" + Convert.ToString(dr["MinEndDate"]).Trim() + "\",";
-            }
+            if (Convert.IsDBNull(dr["MinEndDate"]))            
+                line += ",";            
+            else            
+                line += "\"" + Convert.ToString(dr["MinEndDate"]).Trim() + "\",";            
 
             return line;
         }

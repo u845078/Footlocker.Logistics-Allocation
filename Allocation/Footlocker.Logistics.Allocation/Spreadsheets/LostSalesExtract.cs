@@ -3,11 +3,11 @@ using System.Linq;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.Services;
-using Aspose.Excel;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class LostSalesExtract : ExportExcelSpreadsheet
+    public class LostSalesExtract : ExportSpreadsheet
     {
         readonly QuantumDAO quantumDAO;
 
@@ -29,11 +29,13 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                 foreach (LostSalesInstance ls in request.LostSales)
                 {
+                    currentSheet = excelDocument.Worksheets[worksheetNum];
+
                     //eliminate 'S' and 'division' from location id, then put in store location column
-                    excelDocument.Worksheets[worksheetNum].Cells[currentRow, 0].PutValue(ls.LocationId.Substring(3));
+                    currentSheet.Cells[currentRow, 0].PutValue(ls.LocationId.Substring(3));
 
                     //add shoe size from product id to end of sku, then put in sku column
-                    excelDocument.Worksheets[worksheetNum].Cells[currentRow, 1].PutValue(sku + ls.ProductId.Substring(7));
+                    currentSheet.Cells[currentRow, 1].PutValue(sku + ls.ProductId.Substring(7));
 
                     //sum weekly lost sales from daily lost sales array, then put in appropriate column
                     for (int i = 0; i < 7; i++)
@@ -41,15 +43,15 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                         weeklySales += ls.DailySales[request.WeeklySalesEndIndex - i];
                     }
 
-                    excelDocument.Worksheets[worksheetNum].Cells[currentRow, 2].PutValue(weeklySales);
+                    currentSheet.Cells[currentRow, 2].PutValue(weeklySales);
                     
                     //reset for the next lostsalesinstance
                     weeklySales = 0;
 
                     //put daily lost sales in the appropriate day column
-                    for (int i = 3; i < maxColumns; i++)
+                    for (int i = 0; i < 14; i++)
                     {
-                        excelDocument.Worksheets[worksheetNum].Cells[currentRow, i].PutValue(ls.DailySales[i]);
+                        currentSheet.Cells[currentRow, i + 3].PutValue(ls.DailySales[i]);
                     }
 
                     currentRow++;
@@ -77,16 +79,13 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             for (int i = 0; i < 3; i++)
             {
                 excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].PutValue(columns[i]);
-                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].Style.Font.IsBold = true;
-                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].Style.Font.Underline = FontUnderlineType.Single;
+                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].SetStyle(headerStyle);
             }
 
             for (int i = 3; i < maxColumns; i++)
             {                
                 excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].PutValue(start.AddDays(i - 3));
-                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].Style.Number = 14;
-                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].Style.Font.IsBold = true;
-                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].Style.Font.Underline = FontUnderlineType.Single;
+                excelDocument.Worksheets[worksheetNum].Cells[headerRowNumber, i].SetStyle(headerDateStyle);
             }
 
             currentRow++;

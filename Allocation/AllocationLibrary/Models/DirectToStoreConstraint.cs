@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
@@ -27,7 +24,8 @@ namespace Footlocker.Logistics.Allocation.Models
         {
             get
             {
-                if (_maxQtyCase < 0) { _maxQtyCase = Math.Max(0, MaxQty)/Math.Max(1, VendorPackQty); }
+                if (_maxQtyCase < 0)                 
+                    _maxQtyCase = Math.Max(0, MaxQty)/Math.Max(1, VendorPackQty);                 
 
                 return _maxQtyCase;
             }

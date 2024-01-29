@@ -1,27 +1,27 @@
-﻿using Aspose.Excel;
-using Footlocker.Logistics.Allocation.Models;
+﻿using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Common;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Web;
+using System.Data;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class VendorGroupSpreadsheet : UploadExcelSpreadsheet
+    public class VendorGroupSpreadsheet : UploadSpreadsheet
     {
         readonly VendorGroupDetailDAO vendorGroupDAO; 
         public List<VendorGroupDetail> errorList = new List<VendorGroupDetail>();
         public List<VendorGroupDetail> validList = new List<VendorGroupDetail>();
 
-        private VendorGroupDetail ParseRow(int rowNum, int groupID)
+        private VendorGroupDetail ParseRow(DataRow row, int groupID)
         {
             VendorGroupDetail returnValue = new VendorGroupDetail()
             {
                 GroupID = groupID,
-                VendorNumber = Convert.ToString(worksheet.Cells[rowNum, 0].Value).PadLeft(5, '0'), 
+                VendorNumber = Convert.ToString(row[0]).PadLeft(5, '0'), 
                 CreateDate = DateTime.Now,
                 CreatedBy = config.currentUser.NetworkID
             };
@@ -52,7 +52,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         {
             VendorGroupDetail uploadRec;
 
-            LoadAttachment(attachment);
+            LoadAttachment(attachment.InputStream);
             if (!HasValidHeaderRow())
                 message = "Incorrectly formatted or missing header row. Please correct and re-process.";
             else
@@ -61,9 +61,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                 try
                 {
-                    while (HasDataOnRow(row))
+                    foreach (DataRow dataRow in excelData.Rows)
                     {
-                        uploadRec = ParseRow(row, ID);
+                        uploadRec = ParseRow(dataRow, ID);
 
                         errorMessage = ValidateUploadValues(uploadRec);
                         if (!string.IsNullOrEmpty(errorMessage))
@@ -101,19 +101,19 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             }
         }
 
-        public Excel GetErrors(List<VendorGroupDetail> errorList)
+        public Workbook GetErrors(List<VendorGroupDetail> errorList)
         {
             if (errorList != null)
             {
-                Excel excelDocument = GetTemplate();
+                excelDocument = GetTemplate();
                 Worksheet mySheet = excelDocument.Worksheets[0];
 
                 int row = 1;
                 foreach (VendorGroupDetail p in errorList)
                 {
                     mySheet.Cells[row, 0].PutValue(p.VendorNumber);
-                    mySheet.Cells[row, 1].PutValue(p.ErrorMessage);
-                    mySheet.Cells[row, 1].Style.Font.Color = Color.Red;
+                    mySheet.Cells[row, maxColumns].PutValue(p.ErrorMessage);
+                    mySheet.Cells[row, maxColumns].SetStyle(errorStyle);
                     row++;
                 }
 

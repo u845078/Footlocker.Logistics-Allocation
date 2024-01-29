@@ -72,41 +72,40 @@
     <br />
     <div id="message"></div>
 </fieldset>
-     <script type="text/javascript">
 
-         function onSelect(e) {
-             var files = e.files;
-             if (files[0].extension != ".xls") {
-                 alert("Document must be a spreadsheet with a xls extension. ");
-                 e.preventDefault();
-             }
-             else {
-                 document.getElementById('spreadsheet').style.visibility = 'visible';
-             }
-             $('#message').empty();
-         }
+<script type="text/javascript">
+    function onSelect(e) {
+        var files = e.files;
+        if (files[0].extension != ".xlsx") {
+            alert("Document must be a spreadsheet with a xlsx extension. ");
+            e.preventDefault();
+        }
+        else {
+            document.getElementById('spreadsheet').style.visibility = 'visible';
+        }
+        $('#message').empty();
+    }
 
-         function onError(e) {
-             var message = e.XMLHttpRequest.responseText;
-             $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='../SeasonalityErrors'>Download Errors</a>");
+    function onError(e) {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>" + message + "</font><br><a class='t-button' href='../SeasonalityErrors'>Download Errors</a>");
 
-             e.preventDefault();
+        e.preventDefault();
 
-             var grid = $("#VendorGroupDetails").data("tGrid");
-             grid.ajaxRequest();
-         }
+        var grid = $("#VendorGroupDetails").data("tGrid");
+        grid.ajaxRequest();
+    }
 
-         function onSuccess(e) {
-             var message = e.XMLHttpRequest.responseText;
-             $('#message').empty().append("<font color='red'>Success</font>");
+    function onSuccess(e) {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>Success</font>");
 
-             e.preventDefault();
+        e.preventDefault();
 
-             var grid = $("#VendorGroupDetails").data("tGrid");
-             grid.ajaxRequest();
-         }
-
-    </script>
+        var grid = $("#VendorGroupDetails").data("tGrid");
+        grid.ajaxRequest();
+    }
+</script>
 <br />
 <div>
     @Html.ActionLink("Back to List", "Index", null, new { @class="t-button"})

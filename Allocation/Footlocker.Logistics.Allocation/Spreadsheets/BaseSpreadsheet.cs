@@ -16,6 +16,10 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         public Style headerStyle;
         public Style dateStyle;
         public Style errorStyle;
+        public Style headerDateStyle;
+        public Style boxStyle;
+        public int maxColumns;
+        public int worksheetNum;
 
         public Workbook GetTemplate()
         {            
@@ -40,8 +44,23 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             dateStyle = excelDocument.CreateStyle();
             dateStyle.Number = 14;
 
+            headerDateStyle = excelDocument.CreateStyle();
+            headerDateStyle.Font.IsBold = true;
+            headerDateStyle.Font.Underline = FontUnderlineType.Single;
+            headerDateStyle.Number = 14;
+
             errorStyle = excelDocument.CreateStyle();
             errorStyle.Font.Color = Color.Red;
+
+            boxStyle = excelDocument.CreateStyle();
+            boxStyle.Borders[BorderType.BottomBorder].LineStyle = CellBorderType.Thin;
+            boxStyle.Borders[BorderType.BottomBorder].Color = Color.Black;
+            boxStyle.Borders[BorderType.TopBorder].LineStyle = CellBorderType.Thin;
+            boxStyle.Borders[BorderType.TopBorder].Color = Color.Black;
+            boxStyle.Borders[BorderType.LeftBorder].LineStyle = CellBorderType.Thin;
+            boxStyle.Borders[BorderType.LeftBorder].Color = Color.Black;            
+            boxStyle.Borders[BorderType.RightBorder].LineStyle = CellBorderType.Thin;
+            boxStyle.Borders[BorderType.RightBorder].Color = Color.Black;
         }
 
         public void VerifyWritableDirectory(string directory)
@@ -53,6 +72,14 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         public string GetDirectory(string fullFileName)
         {
             return fullFileName.Substring(0, fullFileName.LastIndexOf("\\") + 1);
+        }
+
+        public void AutofitColumns()
+        {
+            for (int i = 0; i < maxColumns; i++)
+            {
+                excelDocument.Worksheets[worksheetNum].AutoFitColumn(i);
+            }
         }
     }
 }

@@ -12,7 +12,6 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         public string message = string.Empty;
         public Worksheet worksheet;
         public Dictionary<int, string> columns = new Dictionary<int, string>();
-        public int maxColumns;
         public int maxRows;
         public ConfigService configService;
         public string errorMessage;
@@ -31,19 +30,6 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
             return isValid;
         }
-
-        //public bool HasDataOnRow(int row)
-        //{
-        //    bool hasData = false;
-
-        //    for (int i = 0; i < maxColumns; i++)
-        //    {
-        //        if (excelData.Columns[i].Value != null)
-        //            hasData = true;
-        //    }
-
-        //    return hasData;
-        //}
 
         public void LoadAttachment(Stream file)
         {

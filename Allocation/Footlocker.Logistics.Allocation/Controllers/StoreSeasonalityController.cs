@@ -4,13 +4,10 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
-using System.IO;
-using Aspose.Excel;
+using Aspose.Cells;
 using Telerik.Web.Mvc;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Spreadsheets;
-using System.Web.Services.Description;
-using Footlocker.Logistics.Allocation.Models.Services;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -103,10 +100,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         public ActionResult Edit(StoreSeasonality model)
         {
-            model.CreateDate = DateTime.Now;
-            model.CreatedBy = currentUser.NetworkID;
+            StoreSeasonality group = db.StoreSeasonality.Where(ss => ss.ID == model.ID).FirstOrDefault();
 
-            db.Entry(model).State = System.Data.EntityState.Modified;
+            group.CreateDate = DateTime.Now;
+            group.CreatedBy = currentUser.NetworkID;
+            group.Name = model.Name; 
+            
             db.SaveChanges();
 
             return RedirectToAction("Index", new { message = "", div = model.Division});
@@ -284,11 +283,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult SeasonalityTemplate()
         {
             SeasonalitySpreadsheet seasonalitySpreadsheet = new SeasonalitySpreadsheet(appConfig, configService);
-            Excel excelDocument;
+            Workbook excelDocument;
 
             excelDocument = seasonalitySpreadsheet.GetTemplate();
 
-            excelDocument.Save("SeasonalityTemplate.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "SeasonalityTemplate.xlsx", ContentDisposition.Attachment, seasonalitySpreadsheet.SaveOptions);
             return View();
         }
 
@@ -332,13 +331,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult SeasonalityErrors()
         {
             List<StoreSeasonalityDetail> errors = (List<StoreSeasonalityDetail>)Session["errorList"];
-            Excel excelDocument;
+            Workbook excelDocument;
             SeasonalitySpreadsheet seasonalitySpreadsheet = new SeasonalitySpreadsheet(appConfig, configService);
 
             if (errors != null)
             {
                 excelDocument = seasonalitySpreadsheet.GetErrors(errors);
-                excelDocument.Save("SeasonalityUploadErrors.xls", SaveType.OpenInExcel, FileFormatType.Default, System.Web.HttpContext.Current.Response);
+                excelDocument.Save(System.Web.HttpContext.Current.Response, "SeasonalityUploadErrors.xlsx", ContentDisposition.Attachment, seasonalitySpreadsheet.SaveOptions);
             }
             return View();
         }
@@ -359,6 +358,34 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 .Include("Details.ValidStore")
                 .Where(ss => userInstanceDivCodes.Contains(ss.Division));
             var ssGroupsOfDiv = userInstanceSSGroups.Where(g => g.Division == div);
+
+            Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+            var uniqueNames = (from a in ssGroupsOfDiv
+                               where !string.IsNullOrEmpty(a.CreatedBy)
+                               select a.CreatedBy).Distinct();
+
+            List<ApplicationUser> allUserNames = GetAllUserNamesFromDatabase();
+
+            foreach (var item in uniqueNames)
+            {
+                if (!item.Contains(" ") && !string.IsNullOrEmpty(item))
+                {
+                    string userLookup = item.Replace('\\', '/');
+                    userLookup = userLookup.Replace("CORP/", "");
+
+                    if (userLookup.Substring(0, 1) == "u")
+                        fullNamePairs.Add(item, allUserNames.Where(aun => aun.UserName == userLookup).Select(aun => aun.FullName).FirstOrDefault());
+                    else
+                        fullNamePairs.Add(item, item);
+                }
+                else
+                    fullNamePairs.Add(item, item);
+            }
+
+            foreach (var item in fullNamePairs.Where(fnp => !string.IsNullOrEmpty(fnp.Value)))
+            {
+                ssGroupsOfDiv.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+            }
 
             return View(new GridModel(ssGroupsOfDiv));
         }

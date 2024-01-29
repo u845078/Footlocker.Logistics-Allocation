@@ -7,7 +7,7 @@ using Telerik.Web.Mvc.Extensions;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
-    public class StoreNSSExport : ExportExcelSpreadsheet
+    public class StoreNSSExport : ExportSpreadsheet
     {
         readonly private NetworkZoneStoreDAO networkZoneStoreDAO;
         private int instanceID;
@@ -60,7 +60,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                         currentRow++;
                         recordCount++;
 
-                        if (currentRow >= 65535)
+                        if (currentRow >= maxSpreadsheetRows)
                         {
                             AutofitColumns();
                             worksheetNum++;
