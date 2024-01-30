@@ -12,7 +12,6 @@
 
 @using (Html.BeginForm("Edit", "EcomCustXref"))
 {
-    @Html.AntiForgeryToken()
     @Html.Partial(@Url.Content("~/Views/EcomCustXref/FormLayout.cshtml"), Model, ViewData)
 
     <div style="text-align: center;">
