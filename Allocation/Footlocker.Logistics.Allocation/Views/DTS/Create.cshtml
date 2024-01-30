@@ -7,13 +7,14 @@
 <h2>Create</h2>
 @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
 @if ((ViewData["message"] != null) && (ViewData["message"].ToString().Contains("Vendor Group")))
-{ 
+{
     @Html.Raw("<br>")
-    @Html.ActionLink("Vendor Groups","Index","DTSVendorGroup",null, new {@class="t-button"})
+    @Html.ActionLink("Vendor Groups", "Index", "DTSVendorGroup", null, new { @class = "t-button" })
     @Html.Raw("<br>")
 }
 @using (Html.BeginForm())
 {
+    @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
 
     <fieldset>
@@ -52,40 +53,52 @@
         </div>
 
         Order Days:<br />
-        <table><tr>
-            <td>
-            @Html.LabelFor(model => model.OrderSun)
-            </td><td>
-            @Html.LabelFor(model => model.OrderMon)
-            </td><td>
-            @Html.LabelFor(model => model.OrderTue)
-            </td><td>
-            @Html.LabelFor(model => model.OrderWed)
-            </td><td>
-            @Html.LabelFor(model => model.OrderThur)
-@*            </td><td>
-            @Html.LabelFor(model => model.OrderFri)
-            </td><td>
-            @Html.LabelFor(model => model.OrderSat)
-*@            </td>
-        </tr>
-        <tr>
-            <td>
-            @Html.EditorFor(model => model.OrderSun)
-            </td><td>
-            @Html.EditorFor(model => model.OrderMon)
-            </td><td>
-            @Html.EditorFor(model => model.OrderTue)
-            </td><td>
-            @Html.EditorFor(model => model.OrderWed)
-            </td><td>
-            @Html.EditorFor(model => model.OrderThur)
-@*            </td><td>
-            @Html.EditorFor(model => model.OrderFri)
-            </td><td>
-            @Html.EditorFor(model => model.OrderSat)
-*@            </td>
-        </tr></table>
+        <table>
+            <tr>
+                <td>
+                    @Html.LabelFor(model => model.OrderSun)
+                </td>
+                <td>
+                    @Html.LabelFor(model => model.OrderMon)
+                </td>
+                <td>
+                    @Html.LabelFor(model => model.OrderTue)
+                </td>
+                <td>
+                    @Html.LabelFor(model => model.OrderWed)
+                </td>
+                <td>
+                    @Html.LabelFor(model => model.OrderThur)
+                    @*            </td><td>
+                        @Html.LabelFor(model => model.OrderFri)
+                        </td><td>
+                        @Html.LabelFor(model => model.OrderSat)
+                    *@
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.EditorFor(model => model.OrderSun)
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.OrderMon)
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.OrderTue)
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.OrderWed)
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.OrderThur)
+                    @*            </td><td>
+                        @Html.EditorFor(model => model.OrderFri)
+                        </td><td>
+                        @Html.EditorFor(model => model.OrderSat)
+                    *@
+                </td>
+            </tr>
+        </table>
 
         <p>
             <input type="submit" value="Create" />

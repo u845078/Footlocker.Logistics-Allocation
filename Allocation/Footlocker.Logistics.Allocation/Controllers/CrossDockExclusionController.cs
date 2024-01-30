@@ -52,6 +52,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(CrossDockExclusionModel model)
         {
             try
@@ -91,18 +92,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return RedirectToAction("Index");
         }
-
     }
 
     public class CrossDockExclusionViewModel
     {
-        #region Initializations
-
         public CrossDockExclusionViewModel() { }
-
-        #endregion
-
-        #region Public Properties
 
         public string Division { get; set; }
         public string Store { get; set; }
@@ -110,7 +104,5 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public string State { get; set; }
         public string CreatedBy { get; set; }
         public DateTime CreateDate { get; set; }
-
-        #endregion
     }
 }

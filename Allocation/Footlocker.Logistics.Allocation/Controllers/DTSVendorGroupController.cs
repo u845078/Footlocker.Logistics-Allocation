@@ -171,7 +171,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         db.VendorGroupDetails.Add(det);
 
                         VendorGroup group = db.VendorGroups.Where(vg => vg.ID == ID).First();
-                        group.Count += 1;
+                        group.Count++;
                         db.SaveChanges();
                     }
                     else                    
@@ -223,6 +223,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(VendorGroup model)
         {
             model.CreateDate = DateTime.Now;
@@ -233,6 +234,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("Index");
         }
 
+        #region Vendor Group Spreadsheet
         public ActionResult ExcelTemplate(int ID)
         {
             VendorGroupSpreadsheet vendorGroupSpreadsheet = new VendorGroupSpreadsheet(appConfig, new ConfigService(), vendorGroupDetailDAO);
@@ -286,5 +288,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return View();
         }
+        #endregion
     }
 }

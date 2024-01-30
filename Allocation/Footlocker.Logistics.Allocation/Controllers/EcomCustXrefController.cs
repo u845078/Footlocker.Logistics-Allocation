@@ -62,6 +62,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(EcomCustomerFulfillmentXrefModel model)
         {
             model.DataRec.doesThisOverlapOtherRequest = CheckOverlappingRequests(model);
@@ -116,6 +117,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(EcomCustomerFulfillmentXrefModel model)
         {
             model.DataRec.doesThisOverlapOtherRequest = CheckOverlappingRequests(model);

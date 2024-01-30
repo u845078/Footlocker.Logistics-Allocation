@@ -1,15 +1,17 @@
-﻿@model Footlocker.Logistics.Allocation.Models.DirectToStoreSku
+﻿@model DirectToStoreSku
 
 @{
     ViewBag.Title = "Edit AR Sku";
 }
 
 <h2>Edit AR Sku @Html.DisplayFor(model => model.Sku)</h2>
-@if ((ViewData["message"] != null) && (ViewData["message"]!=""))
+@if ((ViewData["message"] != null) && (ViewData["message"] != ""))
 {
     <font color="red">@ViewData["message"]</font>
 }
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
 
     <fieldset>
@@ -48,43 +50,53 @@
             @Html.ValidationMessageFor(model => model.VendorPackQty)
         </div>
         <br />
-        <p>Note: Order Days are selected for the day before you want the order to go out. For example, if you select Thursday, the order will happen on a Friday.</p> 
+        <p>Note: Order Days are selected for the day before you want the order to go out. For example, if you select Thursday, the order will happen on a Friday.</p>
 
         Order Days:<br />
-        <table><tr>
-            <td>
-            @Html.LabelFor(model => model.OrderSun)
-            </td><td>
-            @Html.LabelFor(model => model.OrderMon)
-            </td><td>
-            @Html.LabelFor(model => model.OrderTue)
-            </td><td>
-            @Html.LabelFor(model => model.OrderWed)
-            </td><td>
-            @Html.LabelFor(model => model.OrderThur)
-            @*</td><td>
-            @Html.LabelFor(model => model.OrderFri)
-            </td><td>
-            @Html.LabelFor(model => model.OrderSat)*@
-            </td>
-        </tr>
-        <tr>
-            <td>
-            @Html.EditorFor(model => model.OrderSun)
-            </td><td>
-            @Html.EditorFor(model => model.OrderMon)
-            </td><td>
-            @Html.EditorFor(model => model.OrderTue)
-            </td><td>
-            @Html.EditorFor(model => model.OrderWed)
-            </td><td>
-            @Html.EditorFor(model => model.OrderThur)
-            @*</td><td>
-            @Html.EditorFor(model => model.OrderFri)
-            </td><td>
-            @Html.EditorFor(model => model.OrderSat)*@
-            </td>
-        </tr></table>
+        <table>
+            <tr>
+                <td>
+                    @Html.LabelFor(model => model.OrderSun)
+                </td>
+                <td>
+                    @Html.LabelFor(model => model.OrderMon)
+                </td>
+                <td>
+                    @Html.LabelFor(model => model.OrderTue)
+                </td>
+                <td>
+                    @Html.LabelFor(model => model.OrderWed)
+                </td>
+                <td>
+                    @Html.LabelFor(model => model.OrderThur)
+                    @*</td><td>
+                        @Html.LabelFor(model => model.OrderFri)
+                        </td><td>
+                        @Html.LabelFor(model => model.OrderSat)*@
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.EditorFor(model => model.OrderSun)
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.OrderMon)
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.OrderTue)
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.OrderWed)
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.OrderThur)
+                    @*</td><td>
+                        @Html.EditorFor(model => model.OrderFri)
+                        </td><td>
+                        @Html.EditorFor(model => model.OrderSat)*@
+                </td>
+            </tr>
+        </table>
 
         <p>
             <input type="submit" value="Save" />

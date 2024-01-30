@@ -61,13 +61,12 @@
         .Async(async => async
             .Save("Save", "DTSVendorGroup", new { ID = ViewData["GroupID"] })
             .AutoUpload(false))
-            .ShowFileList(true)
+        .ShowFileList(true)
         .ClientEvents(events => events
             .OnError("onError")
             .OnSelect("onSelect")
-                    .OnSuccess("onSuccess")
-            )
-        )
+            .OnSuccess("onSuccess"))
+    )
     <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;" />
     <br />
     <div id="message"></div>

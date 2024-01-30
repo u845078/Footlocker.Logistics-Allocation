@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.VendorGroupDetail
+﻿@model VendorGroupDetail
 
 @{
     ViewBag.Title = "AddDetail";
@@ -6,27 +6,27 @@
 
 <h2></h2>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
 
     <fieldset>
         This was originally in the group [@Html.Raw(ViewData["OriginalGroup"])]
         <br />
-        Are you sure you want to move Vendor @Html.Raw(ViewData["vendorNumber"]) to the group [@Html.Raw(ViewData["NewGroup"])]?
-        <br />
-        <br />
-        
-        @Html.Hidden("GroupID",ViewData["GroupID"])
+        <p>Are you sure you want to move Vendor @Html.Raw(ViewData["vendorNumber"]) to the group [@Html.Raw(ViewData["NewGroup"])]?</p>
+
+        @Html.Hidden("GroupID", ViewData["GroupID"])
 
         <p>
-        @Html.ActionLink("Yes", "ConfirmMove", new { ID = ViewData["GroupID"], vendorNumber = ViewData["vendorNumber"] }, new { @class = "t-button" })
-        @Html.ActionLink("No", "Details", new { ID = ViewData["GroupID"] }, new { @class = "t-button" })
+            @Html.ActionLink("Yes", "ConfirmMove", new { ID = ViewData["GroupID"], vendorNumber = ViewData["vendorNumber"] }, new { @class = "t-button" })
+            @Html.ActionLink("No", "Details", new { ID = ViewData["GroupID"] }, new { @class = "t-button" })
         </p>
     </fieldset>
 }
 
 <div>
-    @Html.ActionLink("Back to List", "Index", null, new { @class="t-button" })
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
 </div>
 
 @section Scripts {
