@@ -545,6 +545,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult ReleaseAll(BulkRDQModel model)
         {
             RDQDAO rdqDAO = new RDQDAO();
@@ -568,6 +569,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult ReleaseAllToWarehouse(BulkRDQModel model)
         {
             RDQDAO rdqDAO = new RDQDAO();

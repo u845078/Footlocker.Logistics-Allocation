@@ -14,6 +14,7 @@
 @using (Html.BeginForm())
 {
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
     if ((Convert.ToString(ViewData["message"]) != "") && (ViewData["message"] != null))
     {
         <font color="red">@Html.Raw(ViewData["message"])</font>

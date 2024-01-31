@@ -6,8 +6,10 @@
 
 <h2>Troubleshoot Inventory</h2>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
 
     <fieldset>
         <legend>Troubleshoot Inventory</legend>
@@ -18,14 +20,6 @@
             @Html.EditorFor(model => model.Sku)
             @Html.ValidationMessageFor(model => model.Sku)
         </div>
-@*        <div class="editor-label">
-            @Html.LabelFor(model => model.Warehouse) (Mainframe code)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Warehouse)
-            @Html.ValidationMessageFor(model => model.Warehouse)
-        </div>
-*@
         <p>
             <input type="submit" value="Submit" />
         </p>
@@ -34,11 +28,11 @@
 
 @if (Model.Sku != null)
 {
-<fieldset>
-    <legend>Inventory Feed from Host</legend>
+    <fieldset>
+        <legend>Inventory Feed from Host</legend>
 
 
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.LegacyInventory>()
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.LegacyInventory>()
         .Name("LegacyInventory")
         .Columns(columns =>
         {
@@ -64,13 +58,12 @@
             .Footer(true)
 )
 
-</fieldset>
+    </fieldset>
 
-<fieldset>
-    <legend>Final Inventory Feed to Q</legend>
+    <fieldset>
+        <legend>Final Inventory Feed to Q</legend>
 
-
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.LegacyInventory>()
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.LegacyInventory>()
         .Name("LegacyInventoryFinal")
         .Columns(columns =>
         {
@@ -96,13 +89,13 @@
             .Footer(true)
 )
 
-</fieldset>
-    
-<fieldset>
-    <legend>Future Inventory Feed from Host</legend>
+    </fieldset>
+
+    <fieldset>
+        <legend>Future Inventory Feed from Host</legend>
 
 
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.LegacyFutureInventory>()
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.LegacyFutureInventory>()
         .Name("LegacyFutureInventory")
         .Columns(columns =>
         {
@@ -126,13 +119,13 @@
             .Footer(true)
 )
 
-</fieldset>
+    </fieldset>
 
     <fieldset>
-    <legend>Final Future Inventory Feed to Q</legend>
+        <legend>Final Future Inventory Feed to Q</legend>
 
 
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.LegacyFutureInventory>()
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.LegacyFutureInventory>()
         .Name("LegacyFutureInventoryFinal")
         .Columns(columns =>
         {
@@ -156,14 +149,14 @@
             .Footer(true)
 )
 
-</fieldset>
-
-    
-<fieldset>
-    <legend>Mainframe Crossdock Links</legend>
+    </fieldset>
 
 
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.MainframeLink>()
+    <fieldset>
+        <legend>Mainframe Crossdock Links</legend>
+
+
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.MainframeLink>()
         .Name("MainframeLinks")
         .Columns(columns =>
         {
@@ -187,8 +180,8 @@
             .Footer(true)
 )
 
-</fieldset>
-    
+    </fieldset>
+
 }
 
 

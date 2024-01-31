@@ -122,6 +122,7 @@
 @*Header Info*@
 @Html.HiddenFor(m => m.ID, new { @class = "editor-input" })
 @Html.ValidationSummary(false)
+@Html.AntiForgeryToken()
 <fieldset class="form-fieldset form-fieldset-concept">
     <div class="form-input-area-container-first">
         @*Labels - Left*@

@@ -19,6 +19,7 @@
 
     @using (Html.BeginForm("RefreshDivisions", "RingFence"))
     {
+        @Html.AntiForgeryToken()
         <div class="editor-label">
             @Html.LabelFor(model => model.Instance)
         </div>
@@ -30,6 +31,7 @@
 
     @using (Html.BeginForm("RefreshDepartments", "RingFence"))
     {
+        @Html.AntiForgeryToken()
         @Html.HiddenFor(model => model.Instance)
 
         <div class="editor-label">
@@ -45,6 +47,7 @@
     {
         @Html.HiddenFor(model => model.Instance)
         @Html.HiddenFor(model => model.Division)
+        @Html.AntiForgeryToken()
 
         <div class="editor-label">
             @Html.LabelFor(model => model.Department)
@@ -123,6 +126,7 @@
         @Html.Raw("<table><tr><td colspan=2>Release All To:</td></tr><tr><td>")
         using (Html.BeginForm("ReleaseAll", "RingFence"))
         {
+            @Html.AntiForgeryToken()
             @Html.HiddenFor(model => model.Instance)
             @Html.HiddenFor(model => model.Division)
             @Html.HiddenFor(model => model.Department)
@@ -140,6 +144,7 @@
         @Html.Raw("</td><td>")
         using (Html.BeginForm("ReleaseAllToWarehouse", "RingFence"))
         {
+            @Html.AntiForgeryToken()
             @Html.HiddenFor(model => model.Instance)
             @Html.HiddenFor(model => model.Division)
             @Html.HiddenFor(model => model.Department)

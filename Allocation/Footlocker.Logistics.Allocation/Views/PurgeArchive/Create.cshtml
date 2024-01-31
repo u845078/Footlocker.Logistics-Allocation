@@ -15,6 +15,7 @@
 
 @using (Html.BeginForm())
 {
+    @Html.AntiForgeryToken()
     <fieldset>
         <legend>Purge Type</legend>
 
@@ -42,9 +43,9 @@
             @Html.ValidationSummary(true)
             @if ((ViewData["instanceError"] != "") && (ViewData["instanceError"] != null))
             {
-            <font color="Red">
-                @Html.Raw(Convert.ToString(ViewData["instanceError"]))
-            </font>
+                <font color="Red">
+                    @Html.Raw(Convert.ToString(ViewData["instanceError"]))
+                </font>
             }
         </div>
 
@@ -57,7 +58,7 @@
             @Html.LabelFor(model => model.Instances[i].Instance.Name, instance.Instance.Name)
             <br />
         }
-        
+
         <div class="editor-label">
             @Html.LabelFor(model => model.purgeArchiveType.DaysUntilPurge)
         </div>
@@ -74,7 +75,7 @@
 
         <br />
         <p>
-            <input type="submit" value="Create" class="t-button" id = "Create" />
+            <input type="submit" value="Create" class="t-button" id="Create" />
         </p>
     </fieldset>
 }

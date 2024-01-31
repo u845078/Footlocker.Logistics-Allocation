@@ -4,10 +4,12 @@
     ViewBag.Title = "TroubleshootRDQ";
 }
 
-<h2>TroubleshootRDQ</h2>
+<h2>Troubleshoot RDQ</h2>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
 
     <fieldset>
 
@@ -20,34 +22,32 @@
         </div>
         @if (Model.ControlDate != null)
         {
-        <div class="editor-label">
-            @Html.LabelFor(model => model.ControlDate)
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.ControlDate)
-            @Html.ValidationMessageFor(model => model.ControlDate)
-        </div>
+            <div class="editor-label">
+                @Html.LabelFor(model => model.ControlDate)
+            </div>
+            <div class="editor-field">
+                @Html.EditorFor(model => model.ControlDate)
+                @Html.ValidationMessageFor(model => model.ControlDate)
+            </div>
         }
-        
+
         <p>
             <input type="submit" value="Submit" />
         </p>
     </fieldset>
 }
 
-
-
 <fieldset>
     <legend>RDQs to MF</legend>
 
-	@if (!string.IsNullOrEmpty(Model.Sku))
-	{
-	<div>
-		@Html.ActionLink("Export", "ExportTroubleshootRDQ", new { sku = Model.Sku, controlDate = Model.ControlDate }, new { @class = "t-button" })
-	</div>
-	}
+    @if (!string.IsNullOrEmpty(Model.Sku))
+    {
+        <div>
+            @Html.ActionLink("Export", "ExportTroubleshootRDQ", new { sku = Model.Sku, controlDate = Model.ControlDate }, new { @class = "t-button" })
+        </div>
+    }
 
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQ>()
+    @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQ>()
             .Name("TroubleshootRDQForSkuToMF")
         .Columns(columns =>
         {

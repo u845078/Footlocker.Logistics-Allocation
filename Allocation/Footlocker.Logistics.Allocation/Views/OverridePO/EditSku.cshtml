@@ -6,8 +6,10 @@
 
 <h2>Edit Overrides for Sku</h2>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
 
     <fieldset>
         <legend>Overrides</legend>
@@ -37,13 +39,13 @@
 
         <br />
         <p>
-            <input type="submit" value="Save" class="t-button"/>
+            <input type="submit" value="Save" class="t-button" />
         </p>
     </fieldset>
 }
 
 <div>
-    @Html.ActionLink("Back to List", "Index", new { div = Model.Division }, new {@class="t-button"})
+    @Html.ActionLink("Back to List", "Index", new { div = Model.Division }, new { @class = "t-button" })
 </div>
 
 @section Scripts {

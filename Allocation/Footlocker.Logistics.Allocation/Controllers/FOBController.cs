@@ -25,6 +25,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #region HTTP POST AJAX Actions
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Save(FOBSaveOptionsModel viewModel)
         {
             FOB fob = null;

@@ -115,6 +115,7 @@
         @Html.Raw("<table><tr><td colspan=2>Release All To:</td></tr><tr><td>")
         using (Html.BeginForm("ReleaseAll", "WebPick"))
         {
+            @Html.AntiForgeryToken()
             @Html.HiddenFor(model => model.Instance)
             @Html.HiddenFor(model => model.Division)
             @Html.HiddenFor(model => model.Department)
@@ -131,6 +132,7 @@
         @Html.Raw("</td><td>")
         using (Html.BeginForm("ReleaseAllToWarehouse", "WebPick"))
         {
+            @Html.AntiForgeryToken()
             @Html.HiddenFor(model => model.Instance)
             @Html.HiddenFor(model => model.Division)
             @Html.HiddenFor(model => model.Department)

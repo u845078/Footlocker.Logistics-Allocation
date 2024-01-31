@@ -114,6 +114,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(RDQRestrictionModel model)
         {
             string message;
@@ -168,6 +169,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(RDQRestrictionModel model, int id)
         {
             string message;

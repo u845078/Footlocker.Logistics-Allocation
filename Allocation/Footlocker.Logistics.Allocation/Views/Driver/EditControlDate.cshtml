@@ -4,27 +4,33 @@
     ViewBag.Title = "EditControlDate";
 }
 
-<h2>EditControlDate</h2>
+<h2>Edit Control Date</h2>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
 
     <fieldset>
-        <legend>ControlDate</legend>
+        <legend>Control Date</legend>
 
         @Html.HiddenFor(model => model.InstanceID)
         <div class="editor-label">
             @switch (Model.InstanceID)
-            { 
+            {
                 case 1:
                     @Html.Raw("North America");
                     break;
                 case 2:
-                    @Html.Raw("Asia Pacific");
+                    @Html.Raw("Champs");
                     break;
                 case 3:
                     @Html.Raw("Europe");
                     break;
+                case 4:
+                    @Html.Raw("Australia/NZ");
+                    break;
+
             }
         </div>
 

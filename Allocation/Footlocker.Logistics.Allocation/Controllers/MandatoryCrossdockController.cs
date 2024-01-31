@@ -18,7 +18,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private List<MandatoryCrossdock> GetMandatoryCrossdocksForUser()
         {
             List<string> divs = (from a in currentUser.GetUserDivisions(AppName) select a.DivCode).ToList();
-            List<string> temp = new List<String>();
+            List<string> temp = new List<string>();
 
             foreach (string div in divs)
             {
@@ -106,7 +106,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-
         /// <summary>
         /// Add a store to the range plan (planID)
         /// </summary>
@@ -114,11 +113,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             try
             {
-                if ((from a in db.MandatoryCrossdockDefaults where ((a.InstanceID == instanceid) && (a.ItemID == itemid)) select a.Percent).Sum() != Convert.ToDecimal(1))
+                if ((from a in db.MandatoryCrossdockDefaults 
+                     where a.InstanceID == instanceid && a.ItemID == itemid
+                     select a.Percent).Sum() != Convert.ToDecimal(1))
                 {
                     return Json("The percent must add up to 100 for everything to crossdock correctly");
                 }
-
 
                 return Json("Success");
             }
@@ -130,14 +130,16 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Edit(int instanceID, long itemID)
         {
-
             EditMandatoryCrossdock model = new EditMandatoryCrossdock();
             try
             {
-                model.MandatoryCrossdock = (from a in db.MandatoryCrossdocks where ((a.InstanceID == instanceID) && (a.ItemID == itemID)) select a).First();
+                model.MandatoryCrossdock = db.MandatoryCrossdocks.Where(mc => mc.InstanceID == instanceID && mc.ItemID == itemID).First();
+
                 try
                 {
-                    if ((from a in db.MandatoryCrossdockDefaults where ((a.InstanceID == instanceID) && (a.ItemID == itemID)) select a.Percent).Sum() != Convert.ToDecimal(1))
+                    if ((from a in db.MandatoryCrossdockDefaults 
+                         where a.InstanceID == instanceID && a.ItemID == itemID 
+                         select a.Percent).Sum() != Convert.ToDecimal(1))
                     {
                         model.Message = "The percent must add up to 100 for everything to crossdock correctly";
                     }
@@ -163,6 +165,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(EditMandatoryCrossdock model)
         {
             ItemMaster i = (from a in db.ItemMasters where a.MerchantSku == model.Sku select a).FirstOrDefault();
@@ -182,11 +185,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     model.MandatoryCrossdock = new MandatoryCrossdock();
                     model.MandatoryCrossdock.InstanceID = inst.InstanceID;
                     model.MandatoryCrossdock.ItemID = i.ID;
-                    model.MandatoryCrossdock.CreatedBy = UserName;
+                    model.MandatoryCrossdock.CreatedBy = currentUser.NetworkID;
                     model.MandatoryCrossdock.CreateDate = DateTime.Now;
 
                     db.MandatoryCrossdocks.Add(model.MandatoryCrossdock);
-                    db.SaveChanges(UserName);
+                    db.SaveChanges(currentUser.NetworkID);
                 }
             }
             catch (Exception ex)

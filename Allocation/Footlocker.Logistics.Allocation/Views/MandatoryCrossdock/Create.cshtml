@@ -6,8 +6,10 @@
 
 <h2>Create Mandatory Crossdock Item</h2>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
 
     <fieldset>
         <div class="editor-label">

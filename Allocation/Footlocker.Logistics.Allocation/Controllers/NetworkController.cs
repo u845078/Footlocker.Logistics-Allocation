@@ -64,22 +64,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View();
         }
 
-        [HttpPost]
-        public ActionResult CreateZone(NetworkZoneModel model)
-        {
-            NetworkZone nz = new NetworkZone()
-            {
-                LeadTimeID = model.LeadTimeID,
-                Name = model.NewZone,
-                CreateDate = DateTime.Now,
-                CreatedBy = currentUser.NetworkID
-            };
+        //[HttpPost]
+        //public ActionResult CreateZone(NetworkZoneModel model)
+        //{
+        //    NetworkZone nz = new NetworkZone()
+        //    {
+        //        LeadTimeID = model.LeadTimeID,
+        //        Name = model.NewZone,
+        //        CreateDate = DateTime.Now,
+        //        CreatedBy = currentUser.NetworkID
+        //    };
 
-            db.NetworkZones.Add(nz);
-            db.SaveChanges();
+        //    db.NetworkZones.Add(nz);
+        //    db.SaveChanges();
 
-            return RedirectToAction("ViewZones", new { id = model.LeadTimeID });
-        }
+        //    return RedirectToAction("ViewZones", new { id = model.LeadTimeID });
+        //}
 
         public ActionResult MoveZone(int ID, int leadTimeID)
         {
@@ -138,30 +138,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        [HttpPost]
-        public ActionResult AddStore(NetworkZoneStoreModel model)
-        {
-            var existing = db.NetworkZoneStores.Where(nzs => nzs.Division == model.NewDivision && nzs.Store == model.NewStore);
-            if (existing.Count() > 0)
-            {
-                int zone = existing.First().ZoneID;
-                return RedirectToAction("ViewStores", new { id = model.ZoneID, addDivision= model.NewDivision, addStore=model.NewStore, oldZone = zone });
-            }
-            else
-            {
-                NetworkZoneStore nz = new NetworkZoneStore() 
-                {
-                    Division = model.NewDivision,
-                    Store = model.NewStore,
-                    ZoneID = model.ZoneID
-                };
+        //[HttpPost]
+        //public ActionResult AddStore(NetworkZoneStoreModel model)
+        //{
+        //    var existing = db.NetworkZoneStores.Where(nzs => nzs.Division == model.NewDivision && nzs.Store == model.NewStore);
+        //    if (existing.Count() > 0)
+        //    {
+        //        int zone = existing.First().ZoneID;
+        //        return RedirectToAction("ViewStores", new { id = model.ZoneID, addDivision= model.NewDivision, addStore=model.NewStore, oldZone = zone });
+        //    }
+        //    else
+        //    {
+        //        NetworkZoneStore nz = new NetworkZoneStore() 
+        //        {
+        //            Division = model.NewDivision,
+        //            Store = model.NewStore,
+        //            ZoneID = model.ZoneID
+        //        };
 
-                db.NetworkZoneStores.Add(nz);
-                db.SaveChanges();
+        //        db.NetworkZoneStores.Add(nz);
+        //        db.SaveChanges();
 
-                return RedirectToAction("ViewStores", new { id = model.ZoneID });
-            }
-        }
+        //        return RedirectToAction("ViewStores", new { id = model.ZoneID });
+        //    }
+        //}
 
         public ActionResult MoveStore(string div, string store, int zoneID)
         {

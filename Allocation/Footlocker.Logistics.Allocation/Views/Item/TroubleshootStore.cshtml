@@ -9,6 +9,7 @@
 @using (Html.BeginForm())
 {
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
 
     <fieldset>
         <legend>Troubleshoot Store</legend>
@@ -34,106 +35,104 @@
     </fieldset>
 }
 <font color="red">@Model.Message</font>
-@if ((Model.StoreLookup != null)&&(Model.StoreLookup.Store != null))
+@if ((Model.StoreLookup != null) && (Model.StoreLookup.Store != null))
 {
-  
-    
-<fieldset>
-    <legend>Store Info</legend>
-    <table width="80%">
-        <tr>
-            <td colspan="4">
-                @Html.DisplayFor(m => Model.StoreLookup.Mall), 
-                @Html.DisplayFor(m => Model.StoreLookup.City)
-                @Html.DisplayFor(m => Model.StoreLookup.State) 
-            </td>    
-        </tr>
-        <tr>
-            <td>
-                @Html.LabelFor(m => Model.StoreLookup.League)
-            </td>    
-            <td>
-                @Html.DisplayFor(m => Model.StoreLookup.League)
-            </td>    
-            <td>
-                @Html.LabelFor(m => Model.StoreLookup.Region)
-            </td>    
-            <td>
-                @Html.DisplayFor(m => Model.StoreLookup.Region)
-            </td>    
-        </tr>
-        <tr>
-            <td>
-                @Html.LabelFor(m => Model.StoreExtension.FirstReceipt)
-            </td>    
-            <td>
-                @Html.DisplayFor(m => Model.StoreExtension.FirstReceipt)
-            </td>    
-            <td>
-                @Html.LabelFor(m => Model.StoreExtension.ExcludeStore)
-            </td>    
-            <td>
-                @Html.DisplayFor(m => Model.StoreExtension.ExcludeStore)
-            </td>    
-        </tr>
-        <tr>
-            <td>
-                @Html.LabelFor(m => Model.StoreExtension.CustomerType)
-            </td>    
-            <td>
-                @Html.DisplayFor(m => Model.StoreExtension.CustomerType.Name)
-            </td>    
-            <td>
-                @Html.LabelFor(m => Model.StoreExtension.StrategyType)
-            </td>    
-            <td>
-                @Html.DisplayFor(m => Model.StoreExtension.StrategyType.Name)
-            </td>    
-        </tr>
-        <tr>
-            <td>
-                @Html.LabelFor(m => Model.StoreExtension.ConceptType)
-            </td>    
-            <td>
-                @Html.DisplayFor(m => Model.StoreExtension.ConceptType.Name)
-            </td>    
-            <td>
-                @Html.LabelFor(m => Model.StoreSeasonality)
-            </td>    
-            <td>
-                @Html.DisplayFor(m => Model.StoreSeasonality.Name)
-            </td>    
-        </tr>
-        <tr>
-            <td>
-                @Html.LabelFor(m => Model.Zone)
-            </td>    
-            <td>
-                @Html.DisplayFor(m => Model.Zone.Name)
-            </td>    
-            <td>
-                @Html.LabelFor(m => Model.StoreLookup.status)
-            </td>
-            <td>
-                @Html.DisplayFor(m => Model.StoreLookup.status)
-            </td>
-        </tr>
-        @if (!(Model.isValid))
-        { 
-        <tr>
-            <td colspan="4">
-                    <font color="red">Store is in invalid status.</font>
-            </td>    
-        </tr>
-        }
+    <fieldset>
+        <legend>Store Info</legend>
+        <table width="80%">
+            <tr>
+                <td colspan="4">
+                    @Html.DisplayFor(m => Model.StoreLookup.Mall),
+                    @Html.DisplayFor(m => Model.StoreLookup.City)
+                    @Html.DisplayFor(m => Model.StoreLookup.State)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => Model.StoreLookup.League)
+                </td>
+                <td>
+                    @Html.DisplayFor(m => Model.StoreLookup.League)
+                </td>
+                <td>
+                    @Html.LabelFor(m => Model.StoreLookup.Region)
+                </td>
+                <td>
+                    @Html.DisplayFor(m => Model.StoreLookup.Region)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => Model.StoreExtension.FirstReceipt)
+                </td>
+                <td>
+                    @Html.DisplayFor(m => Model.StoreExtension.FirstReceipt)
+                </td>
+                <td>
+                    @Html.LabelFor(m => Model.StoreExtension.ExcludeStore)
+                </td>
+                <td>
+                    @Html.DisplayFor(m => Model.StoreExtension.ExcludeStore)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => Model.StoreExtension.CustomerType)
+                </td>
+                <td>
+                    @Html.DisplayFor(m => Model.StoreExtension.CustomerType.Name)
+                </td>
+                <td>
+                    @Html.LabelFor(m => Model.StoreExtension.StrategyType)
+                </td>
+                <td>
+                    @Html.DisplayFor(m => Model.StoreExtension.StrategyType.Name)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => Model.StoreExtension.ConceptType)
+                </td>
+                <td>
+                    @Html.DisplayFor(m => Model.StoreExtension.ConceptType.Name)
+                </td>
+                <td>
+                    @Html.LabelFor(m => Model.StoreSeasonality)
+                </td>
+                <td>
+                    @Html.DisplayFor(m => Model.StoreSeasonality.Name)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => Model.Zone)
+                </td>
+                <td>
+                    @Html.DisplayFor(m => Model.Zone.Name)
+                </td>
+                <td>
+                    @Html.LabelFor(m => Model.StoreLookup.status)
+                </td>
+                <td>
+                    @Html.DisplayFor(m => Model.StoreLookup.status)
+                </td>
+            </tr>
+            @if (!(Model.isValid))
+            {
+                <tr>
+                    <td colspan="4">
+                        <font color="red">Store is in invalid status.</font>
+                    </td>
+                </tr>
+            }
 
-    </table>
+        </table>
 
-</fieldset>
+    </fieldset>
 
-<fieldset>
-    <legend>BTS Groups</legend>
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreBTS>()
+    <fieldset>
+        <legend>BTS Groups</legend>
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreBTS>()
         .Name("BTS")
         .Columns(columns =>
         {
@@ -153,13 +152,13 @@
         .Groupable(grouping => grouping.Enabled(false))
             .Footer(true)
 )
-    
-</fieldset>
 
-<fieldset>
-    <legend>Like Stores</legend>
+    </fieldset>
 
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreAttribute>()
+    <fieldset>
+        <legend>Like Stores</legend>
+
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreAttribute>()
         .Name("LikeStores")
         .Columns(columns =>
         {
@@ -184,18 +183,18 @@
             .Footer(true)
 )
 
-</fieldset>
+    </fieldset>
 
-<fieldset>
-    <legend>Store Lead Times</legend>
+    <fieldset>
+        <legend>Store Lead Times</legend>
 
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreLeadTime>()
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.StoreLeadTime>()
                 .Name("StoreLeadTimes")
         .Columns(columns =>
         {
             columns.Bound(o => o.Warehouse);
             columns.Bound(o => o.LeadTime);
-            columns.Bound(o => o.Rank);            
+            columns.Bound(o => o.Rank);
             columns.Bound(o => o.CreatedBy);
             columns.Bound(o => o.CreateDate);
         })
@@ -210,13 +209,13 @@
             .Footer(true)
 )
 
-</fieldset>
+    </fieldset>
 
 
-<fieldset>
-    <legend>Ring Fences</legend>
+    <fieldset>
+        <legend>Ring Fences</legend>
 
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFence>()
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFence>()
         .Name("RingFenceGrid")
         .Columns(columns =>
         {
@@ -251,11 +250,11 @@
 )
 
 
-</fieldset>
-<fieldset>
-    <legend>Holds</legend>
+    </fieldset>
+    <fieldset>
+        <legend>Holds</legend>
 
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.Hold>()
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.Hold>()
         .Name("HoldGrid")
         .Columns(columns =>
         {
@@ -280,13 +279,13 @@
         .Groupable(grouping => grouping.Enabled(false))
             .Footer(true)
 )
-</fieldset>
+    </fieldset>
 
     <fieldset>
-    <legend>RDQs</legend>
+        <legend>RDQs</legend>
 
 
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQ>()
+        @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQ>()
 		.Name("RDQs")
 		.Columns(columns =>
 		{
@@ -314,7 +313,7 @@
 			.Footer(true)
 )
 
-</fieldset>
+    </fieldset>
 
 }
 

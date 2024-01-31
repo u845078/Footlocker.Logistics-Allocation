@@ -61,6 +61,7 @@
     @*Header Info*@
     @Html.HiddenFor(m => m.FOBID, new { @class = "editor-input" })
     @Html.HiddenFor(m => m.NewCost, new { @class = "editor-input" })
+    @Html.AntiForgeryToken()
 
     @Html.ValidationSummary(false)
     

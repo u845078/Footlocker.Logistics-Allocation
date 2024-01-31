@@ -7,14 +7,18 @@
 
 <h2>Verify</h2>
 
-@using (Html.BeginForm("CreateAfterVerify", "OverridePO")) {
+@using (Html.BeginForm("CreateAfterVerify", "OverridePO"))
+{
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
 
     <fieldset>
         <legend>Expedite PO</legend>
 
-        <div class="editor-label"><b>
-            @Html.LabelFor(model => model.NewPO.Division)</b>
+        <div class="editor-label">
+            <b>
+                @Html.LabelFor(model => model.NewPO.Division)
+            </b>
         </div>
         <div class="editor-field">
             @Html.DisplayFor(model => model.NewPO.Division)
@@ -66,22 +70,22 @@
             <b>@Html.Raw("SKU(s):")</b>
         </div>
         @foreach (Footlocker.Logistics.Allocation.Models.ExistingPO p in Model.ExistingPOs)
-        { 
-        <div class="editor-field">
-            @Html.DisplayFor(model => p.Sku) @Html.DisplayFor(model => p.Description)
-        </div>
+        {
+            <div class="editor-field">
+                @Html.DisplayFor(model => p.Sku) @Html.DisplayFor(model => p.Description)
+            </div>
         }
         @Html.HiddenFor(model => model.NewPO.Departments)
 
         <p>
-        @if ((Model.Message != null)&&(Model.Message != ""))
-        {
-            <b>@Html.Raw("<font color=\"red\">" + Model.Message + "</font>")</b>            
-        }
-        else
-        {
-            <input type="submit" value="Create" />
-        }
+            @if ((Model.Message != null) && (Model.Message != ""))
+            {
+                <b>@Html.Raw("<font color=\"red\">" + Model.Message + "</font>")</b>
+            }
+            else
+            {
+                <input type="submit" value="Create" />
+            }
         </p>
     </fieldset>
 }

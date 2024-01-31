@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
-
 using Telerik.Web.Mvc;
-
 using Footlocker.Logistics.Allocation.Common;
 using Footlocker.Logistics.Allocation.Models;
 

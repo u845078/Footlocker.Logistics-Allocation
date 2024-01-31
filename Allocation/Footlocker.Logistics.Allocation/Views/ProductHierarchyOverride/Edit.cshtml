@@ -11,13 +11,14 @@
 
 @using (Html.BeginForm("Edit", "ProductHierarchyOverride"))
 {
+    @Html.AntiForgeryToken()
     <script type="text/javascript">
         $(function () {
             $('#overrideLevelList').prop("disabled", true);
             $('#instanceList').prop("disabled", true);
-        }).trigger('change')        
-      </script>
-      @Html.HiddenFor(m => m.prodHierarchyOverride.productOverrideTypeCode)
+        }).trigger('change')
+    </script>
+    @Html.HiddenFor(m => m.prodHierarchyOverride.productOverrideTypeCode)
 
     @Html.Partial(@Url.Content("~/Views/ProductHierarchyOverride/FormLayout.cshtml"), Model, ViewData)
 

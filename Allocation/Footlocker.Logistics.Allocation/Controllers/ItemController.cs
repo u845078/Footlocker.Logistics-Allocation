@@ -23,6 +23,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [CheckPermission(Roles = "Support,IT")]
         public ActionResult Lookup(ItemLookupModel model)
         {
@@ -50,7 +51,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return currentUser.HasUserRole(AppName, roles);
         }
         
-        [CheckPermission(Roles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning,TroubleShootingReadOnly")]
+        [CheckPermission(Roles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning,TroubleShootingReadOnly")]        
         public ActionResult Troubleshoot(string sku)
         {
             TroubleshootModel model = new TroubleshootModel()
@@ -72,6 +73,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
         
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Troubleshoot(TroubleshootModel model)
         {
             ViewBag.HasEditRole = HasEditRole();
@@ -193,6 +195,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult TroubleshootStore(TroubleshootStoreModel model)
         {
             UpdateTroubleShootStoreModel(model);
@@ -669,6 +672,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult TroubleshootInventory(TroubleshootInventory model)
         {
             return View(model);
@@ -756,6 +760,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult TroubleshootRDQ(TroubleshootRDQModel model)
         {
             model.AvailableInstances = db.Instances.ToList();
@@ -824,6 +829,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult TroubleshootRDQForSku(TroubleshootRDQForSkuModel model)
         {
             if (model.ControlDate == null)
@@ -876,6 +882,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult QuantumDataDownload(QuantumDataDownloadModel model, string submitAction)
         {
             QuantumDAO dao = new QuantumDAO();

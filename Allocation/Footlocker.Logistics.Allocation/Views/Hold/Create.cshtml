@@ -103,9 +103,10 @@
 
 @using (Html.BeginForm("Create", "Hold", FormMethod.Post, new { id = "CreateForm" }))
 {
+    @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
     if (Convert.ToString(ViewData["message"]) != "" && ViewData["message"] != null)
-    {        
+    {
         <font color="Red">
             @Html.Raw(Convert.ToString(ViewData["message"]))
         </font>

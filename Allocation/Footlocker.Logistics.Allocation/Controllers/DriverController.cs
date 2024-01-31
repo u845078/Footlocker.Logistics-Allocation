@@ -132,6 +132,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         [HttpPost]
         [CheckPermission(Roles = "IT")]
+        [ValidateAntiForgeryToken]
         public ActionResult EditControlDate(ControlDate model)
         {
             db.Entry(model).State = System.Data.EntityState.Modified;

@@ -362,6 +362,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(RingFenceModel model)
         {
             model.Divisions = currentUser.GetUserDivisions(AppName);            
@@ -637,6 +638,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(RingFenceModel model)
         {
             string errorMessage;
@@ -736,18 +738,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         public ActionResult Release(string message)
-        { 
+        {
             RingFenceReleaseModel model = new RingFenceReleaseModel();
 
             InitializeDivisions(model);
-            
+
             InitializeDepartments(model, false);
             ViewData["message"] = message;
             //model.SearchResult = false;
-            return View(model); 
+            return View(model);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Release(RingFenceReleaseModel model)
         {
             ViewData["ruleSetID"] = model.RuleSetID;
@@ -782,6 +785,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult ReleaseAll(RingFenceReleaseModel model)
         {
             string outputMessage;
@@ -800,6 +804,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult ReleaseAllToWarehouse(RingFenceReleaseModel model)
         {
             string outputMessage;
@@ -818,6 +823,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult RefreshDivisions(RingFenceReleaseModel model)
         {
             InitializeDivisions(model);
@@ -826,6 +832,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult RefreshDepartments(RingFenceReleaseModel model)
         {
             InitializeDivisions(model);
@@ -899,54 +906,54 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-        public ActionResult BulkAdmin(string message)
-        {
-            RingFenceReleaseModel model = new RingFenceReleaseModel();
+        //public ActionResult BulkAdmin(string message)
+        //{
+        //    RingFenceReleaseModel model = new RingFenceReleaseModel();
 
-            InitializeDivisions(model);
-            InitializeDepartments(model, false);
-            ViewData["message"] = message;
-            ViewData["ruleSetID"] = model.RuleSetID;
-            ViewData["ruleType"] = "ringFence";
-            //model.SearchResult = false;
+        //    InitializeDivisions(model);
+        //    InitializeDepartments(model, false);
+        //    ViewData["message"] = message;
+        //    ViewData["ruleSetID"] = model.RuleSetID;
+        //    ViewData["ruleType"] = "ringFence";
+        //    //model.SearchResult = false;
 
-            return View(model);
-        }
+        //    return View(model);
+        //}
 
-        [HttpPost]
-        public ActionResult BulkAdmin(RingFenceReleaseModel model)
-        {
-            ViewData["ruleSetID"] = model.RuleSetID;
-            ViewData["ruleType"] = "ringFence";
-            InitializeDivisions(model);
-            InitializeDepartments(model, false);
-            model.HaveResults = true;
+        //[HttpPost]
+        //public ActionResult BulkAdmin(RingFenceReleaseModel model)
+        //{
+        //    ViewData["ruleSetID"] = model.RuleSetID;
+        //    ViewData["ruleType"] = "ringFence";
+        //    InitializeDivisions(model);
+        //    InitializeDepartments(model, false);
+        //    model.HaveResults = true;
 
-            if (model.ShowStoreSelector == "yes")
-            {
-                if (model.RuleSetID < 1)
-                {
-                    //get a new ruleset
-                    RuleSet rs = new RuleSet
-                    {
-                        Type = "ringFence",
-                        CreateDate = DateTime.Now,
-                        CreatedBy = currentUser.NetworkID
-                    };
+        //    if (model.ShowStoreSelector == "yes")
+        //    {
+        //        if (model.RuleSetID < 1)
+        //        {
+        //            //get a new ruleset
+        //            RuleSet rs = new RuleSet
+        //            {
+        //                Type = "ringFence",
+        //                CreateDate = DateTime.Now,
+        //                CreatedBy = currentUser.NetworkID
+        //            };
 
-                    db.RuleSets.Add(rs);
-                    db.SaveChanges();
+        //            db.RuleSets.Add(rs);
+        //            db.SaveChanges();
 
-                    model.RuleSetID = rs.RuleSetID;
-                }
+        //            model.RuleSetID = rs.RuleSetID;
+        //        }
 
-                ViewData["ruleSetID"] = model.RuleSetID;
-                return View(model);
-            }
-            //model.SearchResult = false;
+        //        ViewData["ruleSetID"] = model.RuleSetID;
+        //        return View(model);
+        //    }
+        //    //model.SearchResult = false;
 
-            return View(model);
-        }
+        //    return View(model);
+        //}
 
         [HttpPost]
         public ActionResult ReleasePOGroupRF(GroupedPORingFence rfGroup)

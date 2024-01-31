@@ -281,6 +281,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(HoldModel model)
         {
             ViewData["ruleSetID"] = model.RuleSetID;
@@ -442,6 +443,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(HoldModel model)
         {
             holdService = new HoldService(currentUser, configService)
@@ -512,6 +514,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult MassEdit(HoldModel model)
         {
             List<Hold> holds;
@@ -577,6 +580,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult MassEditStore(HoldModel model)
         {
             List<Hold> holds;
@@ -843,8 +847,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 // Get all rdqs for specified hold
                 // TODO: Should probably relate RDQs to the Hold in EF mapping, and load all via context, rather than sproc....
-                var dao = new RDQDAO();
-
                 var rdqs = GetRDQsInSession();
 
                 foreach (RDQ rdq in rdqs)
@@ -857,7 +859,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 // Persist changes
-                db.SaveChanges(User.Identity.Name);
+                db.SaveChanges(currentUser.NetworkID);
             }
 
             Session["rdqgrouplist"] = null;
@@ -885,7 +887,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 // Persist changes
-                db.SaveChanges(User.Identity.Name);
+                db.SaveChanges(currentUser.NetworkID);
             }
 
             Session["holdrdq"] = -1;
@@ -909,14 +911,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     var contextRDQ = db.RDQs.Find(rdq.ID);
                     contextRDQ.Status = "HOLD-REL";
 
-                    if (rdq.PO != null && rdq.PO != "" && rdq.Size.Length == 5)
-                    {
-                        rdq.DestinationType = "CROSSDOCK";
-                    }
-                    else
-                    {
+                    if (!string.IsNullOrEmpty(rdq.PO) && rdq.Size.Length == 5)                    
+                        rdq.DestinationType = "CROSSDOCK";                    
+                    else                    
                         rdq.DestinationType = "WAREHOUSE";
-                    }
+                    
                     db.Entry(contextRDQ).State = System.Data.EntityState.Modified;
                 }
 
@@ -936,8 +935,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 // Get all rdqs for specified hold
                 // TODO: Should probably relate RDQs to the Hold in EF mapping, and load all via context, rather than sproc....
-                var dao = new RDQDAO();
-
                 var rdqs = GetRDQsInSession();
 
                 foreach (RDQ rdq in rdqs)
@@ -947,14 +944,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     contextRDQ.Status = "HOLD-REL";
 
-                    if (rdq.PO != null && rdq.PO != "" && rdq.Size.Length == 5)
-                    {
-                        rdq.DestinationType = "CROSSDOCK";
-                    }
-                    else
-                    {
+                    if (!string.IsNullOrEmpty(rdq.PO) && rdq.Size.Length == 5)                    
+                        rdq.DestinationType = "CROSSDOCK";                    
+                    else                    
                         rdq.DestinationType = "WAREHOUSE";
-                    }
+                    
                     db.Entry(contextRDQ).State = System.Data.EntityState.Modified;
                 }
 
@@ -1123,7 +1117,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     try
                     {
-                        r.UnitQty = (from a in qtyPerCase where a.Name == r.Size select a.TotalQty).First() * r.Qty;
+                        r.UnitQty = (from a in qtyPerCase 
+                                     where a.Name == r.Size 
+                                     select a.TotalQty).First() * r.Qty;
                     }
                     catch
                     {
@@ -1158,10 +1154,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         updateList.Add(r);
                         caselots.Add(r.Size);
                     }
-                    else
-                    {
-                        r.UnitQty = r.Qty;
-                    }
+                    else                    
+                        r.UnitQty = r.Qty;                    
                 }
 
                 List<ItemPack> qtyPerCase = db.ItemPacks.Where(p => caselots.Contains(p.Name)).ToList();

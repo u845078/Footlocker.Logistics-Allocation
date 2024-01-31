@@ -72,12 +72,14 @@
 
 <h2>Edit Hold</h2>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
     if ((ViewData["message"] != "") && (ViewData["message"] != null))
-    { 
+    {
         <font color="Red">
-        @Html.Raw(Convert.ToString(ViewData["message"]))
+            @Html.Raw(Convert.ToString(ViewData["message"]))
         </font>
     }
     <fieldset>
@@ -88,7 +90,7 @@
         <div class="editor-label">
             @Html.LabelFor(model => model.Hold.Division)
         </div>
-        <div class="editor-field">       
+        <div class="editor-field">
             @Html.DropDownListFor(model => model.Hold.Division, new SelectList(Model.Divisions, "DivCode", "DisplayName"))
             @Html.ValidationMessageFor(model => model.Hold.Division)
         </div>
@@ -113,16 +115,16 @@
             @Html.LabelFor(model => model.Hold.Level)
         </div>
         <div class="editor-field">
-            @(Html.DropDownListFor(model => model.Hold.Level, 
-            new List<SelectListItem> { 
-                new SelectListItem { Text = "Store", Value = "All" }, 
-                new SelectListItem { Text = "Dept (##)", Value = "Dept" }, 
-                new SelectListItem { Text = "Dept-Brand (##-###)", Value = "DeptBrand" }, 
-                new SelectListItem { Text = "Dept-Team (##-###)", Value = "DeptTeam" }, 
-                new SelectListItem { Text = "Dept-Category (##-###)", Value = "Category" },  
-                new SelectListItem { Text = "Dept-Cat-Brand (##-###-###)", Value = "DeptCatBrand" }, 
-                new SelectListItem { Text = "Dept-Cat-Team (##-###-###)", Value = "DeptCatTeam" }, 
-                new SelectListItem { Text = "Vendor-Dept (#####-##)", Value = "VendorDept" }, 
+            @(Html.DropDownListFor(model => model.Hold.Level,
+            new List<SelectListItem> {
+                new SelectListItem { Text = "Store", Value = "All" },
+                new SelectListItem { Text = "Dept (##)", Value = "Dept" },
+                new SelectListItem { Text = "Dept-Brand (##-###)", Value = "DeptBrand" },
+                new SelectListItem { Text = "Dept-Team (##-###)", Value = "DeptTeam" },
+                new SelectListItem { Text = "Dept-Category (##-###)", Value = "Category" },
+                new SelectListItem { Text = "Dept-Cat-Brand (##-###-###)", Value = "DeptCatBrand" },
+                new SelectListItem { Text = "Dept-Cat-Team (##-###-###)", Value = "DeptCatTeam" },
+                new SelectListItem { Text = "Vendor-Dept (#####-##)", Value = "VendorDept" },
                 new SelectListItem { Text = "Vendor-Dept-Category (#####-##-###)", Value = "VendorDeptCategory" },
                 new SelectListItem { Text = "Sku (##-##-#####-##)", Value = "Sku" } })
                 )
@@ -146,13 +148,13 @@
         </div>
 
         <div id="enddate">
-        <div class="editor-label">
-            @Html.LabelFor(model => model.Hold.EndDate, new { title = "Hold is effective until the night of the end date.  RDQs will be generated this night." })
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Hold.EndDate)
-            @Html.ValidationMessageFor(model => model.Hold.EndDate)
-        </div>
+            <div class="editor-label">
+                @Html.LabelFor(model => model.Hold.EndDate, new { title = "Hold is effective until the night of the end date.  RDQs will be generated this night." })
+            </div>
+            <div class="editor-field">
+                @Html.EditorFor(model => model.Hold.EndDate)
+                @Html.ValidationMessageFor(model => model.Hold.EndDate)
+            </div>
         </div>
 
         <div class="editor-label">
@@ -179,7 +181,7 @@
 }
 
 <div>
-    @Html.ActionLink("Back to List", "Index", null, new { @class="t-button"})
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
 </div>
 
 @section Scripts {

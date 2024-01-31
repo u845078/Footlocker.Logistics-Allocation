@@ -72,12 +72,14 @@
 
 <h2>Mass Edit Holds</h2>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
     if ((ViewData["message"] != "") && (ViewData["message"] != null))
-    { 
+    {
         <font color="Red">
-        @Html.Raw(Convert.ToString(ViewData["message"]))
+            @Html.Raw(Convert.ToString(ViewData["message"]))
         </font>
     }
     <fieldset>
@@ -88,7 +90,7 @@
         <div class="editor-label">
             @Html.LabelFor(model => model.Hold.Division)
         </div>
-        <div class="editor-field">       
+        <div class="editor-field">
             @Html.DropDownListFor(model => model.Hold.Division, new SelectList(Model.Divisions, "DivCode", "DisplayName"), new { disabled = "true" })
             @Html.HiddenFor(model => model.Hold.Division)
         </div>
@@ -127,13 +129,13 @@
         </div>
 
         <div id="enddate">
-        <div class="editor-label">
-            @Html.LabelFor(model => model.Hold.EndDate, new { title = "Hold is effective until the night of the end date.  RDQs will be generated this night." })
-        </div>
-        <div class="editor-field">
-            @Html.EditorFor(model => model.Hold.EndDate)
-            @Html.ValidationMessageFor(model => model.Hold.EndDate)
-        </div>
+            <div class="editor-label">
+                @Html.LabelFor(model => model.Hold.EndDate, new { title = "Hold is effective until the night of the end date.  RDQs will be generated this night." })
+            </div>
+            <div class="editor-field">
+                @Html.EditorFor(model => model.Hold.EndDate)
+                @Html.ValidationMessageFor(model => model.Hold.EndDate)
+            </div>
         </div>
 
 
@@ -152,7 +154,7 @@
 }
 
 <div>
-    @Html.ActionLink("Back to List", "IndexByProduct", null, new { @class="t-button"})
+    @Html.ActionLink("Back to List", "IndexByProduct", null, new { @class = "t-button" })
 </div>
 
 @section Scripts {

@@ -11,6 +11,7 @@
 
 @using (Html.BeginForm("Create", "ProductHierarchyOverride"))
 {
+    @Html.AntiForgeryToken()
     @Html.Partial(@Url.Content("~/Views/ProductHierarchyOverride/FormLayout.cshtml"), Model, ViewData)
 
     <div style="text-align: center;">

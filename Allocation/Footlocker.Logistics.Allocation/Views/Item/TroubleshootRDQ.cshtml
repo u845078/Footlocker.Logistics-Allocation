@@ -6,8 +6,10 @@
 
 <h2>TroubleshootRDQ</h2>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
 
     <fieldset>
 
@@ -33,13 +35,10 @@
     </fieldset>
 }
 
-
-
 <fieldset>
     <legend>RDQs to MF</legend>
 
-
-@(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQ>()
+    @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RDQ>()
             .Name("TroubleshootRDQToMF")
         .Columns(columns =>
         {

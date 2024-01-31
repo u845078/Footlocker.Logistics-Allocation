@@ -15,6 +15,7 @@
 
 @using (Html.BeginForm("Create", "RDQRestriction"))
 {
+    @Html.AntiForgeryToken()
     @Html.Partial(@Url.Content("~/Views/RDQRestriction/FormLayout.cshtml"), Model, ViewData)
     <div>
         <input class="t-button" type="submit" value="Create" />

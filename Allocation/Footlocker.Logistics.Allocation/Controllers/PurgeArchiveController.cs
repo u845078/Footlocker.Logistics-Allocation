@@ -7,14 +7,12 @@ using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
 using Telerik.Web.Mvc;
 using Footlocker.Logistics.Allocation.Services;
-using Footlocker.Common;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
     [CheckPermission(Roles = "Admin,IT,Support")]
     public class PurgeArchiveController : AppController
     {
-
         #region private members
 
         private PurgeArchiveDAO patDAO;
@@ -107,6 +105,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <param name="model">PurgeArchiveTypeModel populated from view</param>
         /// <returns>Index View</returns>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(PurgeArchiveTypeModel model)
         {
             List<PurgeArchiveType> modelsToCreate = new List<PurgeArchiveType>();

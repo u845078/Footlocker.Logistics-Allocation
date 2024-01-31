@@ -74,6 +74,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(ProductHierarchyOverrideModel model, string submitAction)
         {
             string errorMessage = "";
@@ -160,6 +161,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         //
         // POST: /ProductHierarchyOverride/Edit/5
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(ProductHierarchyOverrideModel model, int id, string submitAction)
         {
             string errorMessage = "";

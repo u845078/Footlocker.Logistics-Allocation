@@ -9,6 +9,7 @@
 @using (Html.BeginForm())
 {
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
     if (!string.IsNullOrEmpty(ViewBag.message))
     {
         <font color="Red">

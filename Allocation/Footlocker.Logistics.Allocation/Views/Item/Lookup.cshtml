@@ -8,6 +8,7 @@
 
 @using (Html.BeginForm())
 {
+    @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
 
     <fieldset>
@@ -30,6 +31,7 @@
 @using (Html.BeginForm())
 {
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
 
     <fieldset>
         <legend>Lookup Merchant Sku</legend>
@@ -56,22 +58,22 @@
         @Html.Raw("<b>Items:</b>")
         @Html.Raw("<table>")
         foreach (ItemMaster item in Model.noSizeItems)
-        { 
+        {
             @Html.Raw("<tr><td>")
-                @Html.LabelFor(i => item.ID)
+            @Html.LabelFor(i => item.ID)
             @Html.Raw("</td><td>")
-                @Html.DisplayFor(i => item.ID)
+            @Html.DisplayFor(i => item.ID)
             @Html.Raw("</td></tr><tr><td>")
-                @Html.LabelFor(i => item.MerchantSku)
+            @Html.LabelFor(i => item.MerchantSku)
             @Html.Raw("</td><td>")
-                @Html.DisplayFor(i => item.MerchantSku)
+            @Html.DisplayFor(i => item.MerchantSku)
             @Html.Raw("</td></tr><tr><td>")
-                @Html.LabelFor(i => item.CurrentSku)
+            @Html.LabelFor(i => item.CurrentSku)
             @Html.Raw("</td><td>")
-                @Html.DisplayFor(i => item.CurrentSku)
+            @Html.DisplayFor(i => item.CurrentSku)
             @Html.Raw("</td></tr><tr><td>")
             @Html.Raw("</td><td>")
-                @Html.ActionLink("Troubleshoot", "Troubleshoot", new { sku = item.MerchantSku }, new { @class = "t-button" })
+            @Html.ActionLink("Troubleshoot", "Troubleshoot", new { sku = item.MerchantSku }, new { @class = "t-button" })
             @Html.Raw("</td></tr>")
         }
         @Html.Raw("</table>")

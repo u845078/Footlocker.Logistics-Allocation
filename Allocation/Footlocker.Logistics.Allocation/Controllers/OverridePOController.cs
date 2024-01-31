@@ -204,6 +204,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(ExpeditePOModel model)
         {
             ExistingPODAO dao = new ExistingPODAO(appConfig.EuropeDivisions);
@@ -227,6 +228,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         
                         model.NewPO.Departments += dept;
                     }
+
                     model.NewPO.Sku = po.Sku;
                     skucount++;
                     if (skucount > 1)                    
@@ -235,6 +237,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     model.TotalRetail += po.Retail;
                     model.TotalUnits += po.Units;
                 }
+
                 if (model.NewPO.Sku.Length > 50)                
                     model.NewPO.Sku = model.NewPO.Sku.Substring(0, 50);
                 
@@ -266,6 +269,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult CreateAllPOsForSku(ExpeditePOModel model)
         {
             ExistingPODAO dao = new ExistingPODAO(appConfig.EuropeDivisions);
@@ -552,6 +556,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult EditSku(ExpeditePO model)
         {
             //note that we're matching DeliveryDate because we used that field to store the old override date
@@ -573,6 +578,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult CreateAfterVerify(ExpeditePOModel model)
         {
             model.NewPO.CreateDate = DateTime.Now;
@@ -610,6 +616,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(ExpeditePO model)
         {
 
