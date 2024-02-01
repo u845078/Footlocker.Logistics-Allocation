@@ -467,6 +467,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("Details", new { ID });
         }
 
+        #region Upload spreadsheet
         public ActionResult ExcelTemplate()
         {
             BTSSpreadsheet btsSpreadsheet = new BTSSpreadsheet(appConfig, new ConfigService());
@@ -528,5 +529,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             return View();
         }
+        #endregion
     }
 }

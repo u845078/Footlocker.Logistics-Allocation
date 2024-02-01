@@ -6,7 +6,9 @@
 
 <h2>Edit Delivery Group</h2>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
 
     <fieldset>
@@ -71,24 +73,24 @@
 <br />
 <font color="red">*** NOTE:  Stores highlighted in red are in another delivery group.</font>
 @if (ViewData["LifeCycle"] != null)
-{ 
+{
     <script type="text/javascript">
     var dg_days = @ViewData["LifeCycle"];
     </script>
 }
 else
-{ 
+{
     <script type="text/javascript">
         var dg_days = 365;
     </script>
 }
 
 <script type="text/javascript">
-        Date.prototype.addDays = function (days) {
-            var dat = new Date(this.valueOf());
-            dat.setDate(dat.getDate() + days);
-            return dat;
-        }
+    Date.prototype.addDays = function (days) {
+        var dat = new Date(this.valueOf());
+        dat.setDate(dat.getDate() + days);
+        return dat;
+    }
 
     function setEndDate(e) {
         //alert(e.target.id.replace('Start', 'End'));
@@ -101,8 +103,7 @@ else
         if ((date != 'NaN') && (date != 'Invalid Date')) {
             if (dg_days == 365) {
                 date = new Date("2099-12-31");
-            } else
-            {
+            } else {
                 date = date.addDays(dg_days);
             }
             $('[name="' + end + '"]').val((date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear());
@@ -115,8 +116,8 @@ else
 
 
 @*<div>
-    @Html.ActionLink("Back to List", "PresentationQuantities", new { planID = Model.DeliveryGroup.PlanID }, new { @class = "t-button" })
-</div>
+        @Html.ActionLink("Back to List", "PresentationQuantities", new { planID = Model.DeliveryGroup.PlanID }, new { @class = "t-button" })
+    </div>
 *@
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")

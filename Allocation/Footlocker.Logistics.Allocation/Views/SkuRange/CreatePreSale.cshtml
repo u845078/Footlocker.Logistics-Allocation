@@ -10,34 +10,36 @@
 @using (Html.BeginForm())
 {
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
+
     if ((ViewData["message"] != "") && (ViewData["message"] != null))
     {
         <font color="red">@Html.Raw(ViewData["message"])</font>
     }
 
-        <fieldset>
-            <legend>Pre Sale</legend>
+    <fieldset>
+        <legend>Pre Sale</legend>
 
-            <div class="editor-label">
-                @Html.LabelFor(model => model.SKU, "SKU") (##-##-#####-##)
-            </div>
-            <div class="editor-field">
-                @Html.EditorFor(model => model.SKU)
-                @Html.ValidationMessageFor(model => model.SKU)
-            </div>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.SKU, "SKU") (##-##-#####-##)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.SKU)
+            @Html.ValidationMessageFor(model => model.SKU)
+        </div>
 
-            <div class="editor-label">
-                @Html.LabelFor(model => model.preSaleSKU.InventoryArrivalDate, "Inventory Arrival Date")
-            </div>
-            <div class="editor-field">
-                @Html.EditorFor(model => model.preSaleSKU.InventoryArrivalDate)
-                @Html.ValidationMessageFor(model => model.preSaleSKU.InventoryArrivalDate)
-            </div>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.preSaleSKU.InventoryArrivalDate, "Inventory Arrival Date")
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.preSaleSKU.InventoryArrivalDate)
+            @Html.ValidationMessageFor(model => model.preSaleSKU.InventoryArrivalDate)
+        </div>
 
-            <p>
-                <input type="submit" value="Create" class="t-button" />
-            </p>
-        </fieldset>
+        <p>
+            <input type="submit" value="Create" class="t-button" />
+        </p>
+    </fieldset>
 }
 
 <div>

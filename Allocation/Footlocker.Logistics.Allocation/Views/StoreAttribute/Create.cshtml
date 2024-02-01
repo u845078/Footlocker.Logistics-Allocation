@@ -16,7 +16,7 @@
             if (lvl.selected) {
                 $('label[for="StoreAttribute_Value"]').text(lvl.text);
                 if (lvl.text == 'All') {
-                     $("#StoreAttribute_Value").hide();
+                    $("#StoreAttribute_Value").hide();
                     $('label[for="StoreAttribute_Value"]').hide();
                 }
                 else if (lvl.text == 'FOB') {
@@ -52,7 +52,7 @@
 
         // Wire up a change handler for the Level Selection (to change Value label text)
         $("#StoreAttribute_Level").change(setValueLabelToLevelSelection);
-        $('*[id*=fob_dropdown]').each(function () {            
+        $('*[id*=fob_dropdown]').each(function () {
             $(this).change(setValueToFOBSelection);
         });
         $("#StoreAttribute_Division").change(setValueLabelToLevelSelection);
@@ -65,11 +65,13 @@
 <h2>Create</h2>
 
 @if (ViewData["message"] != null)
-{ 
+{
     @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
 }
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
 
     <fieldset>
         <legend>StoreAttribute</legend>
@@ -108,7 +110,7 @@
                 <td>
                     @Html.LabelFor(model => model.StoreAttribute.Level)
                 </td>
-                <td>            
+                <td>
                     @Html.DropDownListFor(model => model.StoreAttribute.Level, new List<SelectListItem> { new SelectListItem { Text = "All", Value = "All" }, new SelectListItem { Text = "FOB", Value = "FOB" }, new SelectListItem { Text = "Department (##)", Value = "Dept" } })
                 </td>
                 <td>
@@ -118,14 +120,14 @@
                     @Html.EditorFor(model => model.StoreAttribute.Value)
                     @foreach (Footlocker.Common.Division div in Model.Divisions)
                     {
-                        @Html.DropDownListFor(model => model.StoreAttribute.Value, new SelectList((from a in Model.FOBs where a.Division==div.DivCode select a), "Code", "Description"), new { id = div.DivCode + "fob_dropdown" })
+                        @Html.DropDownListFor(model => model.StoreAttribute.Value, new SelectList((from a in Model.FOBs where a.Division == div.DivCode select a), "Code", "Description"), new { id = div.DivCode + "fob_dropdown" })
                     }
                     @Html.ValidationMessageFor(model => model.StoreAttribute.Value)
                 </td>
             </tr>
             <tr>
                 <td>
-                @Html.LabelFor(model => model.StoreAttribute.Weight)
+                    @Html.LabelFor(model => model.StoreAttribute.Weight)
                 </td>
                 <td>
                     @Html.EditorFor(model => model.StoreAttribute.Weight)

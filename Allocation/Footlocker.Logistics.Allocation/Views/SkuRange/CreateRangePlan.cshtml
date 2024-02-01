@@ -23,6 +23,7 @@
 @using (Html.BeginForm())
 {
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
 
     <font color="red">@Html.Raw(ViewData["message"])</font>
 
@@ -56,14 +57,14 @@
             @Html.EditorFor(model => model.Range.Description)
             @Html.ValidationMessageFor(model => model.Range.Description)
         </div>
-@*
-        <div class="editor-label">
-            @Html.LabelFor(model => model.PlanType, "Plan Type")
-        </div>
-        <div class="editor-field">
-            @Html.DropDownListFor(model => model.PlanType, new List<SelectListItem> { new SelectListItem{Text="ALR",Value="ALR"},
-                                                                                    new SelectListItem{Text="FOP",Value="FOP"}})
-        </div>*@
+        @*
+            <div class="editor-label">
+                @Html.LabelFor(model => model.PlanType, "Plan Type")
+            </div>
+            <div class="editor-field">
+                @Html.DropDownListFor(model => model.PlanType, new List<SelectListItem> { new SelectListItem{Text="ALR",Value="ALR"},
+                                                                                        new SelectListItem{Text="FOP",Value="FOP"}})
+            </div>*@
 
         <div class="editor-label">
             @Html.LabelFor(model => model.Range.Sku, "SKU") (##-##-#####-##)
@@ -102,13 +103,13 @@
 
         </fieldset>
         <p>
-            <input type="submit" value="Create" class="t-button"/>
+            <input type="submit" value="Create" class="t-button" />
         </p>
     </fieldset>
 }
 
 <div>
-    @Html.ActionLink("Back to List", "Index", null, new { @class="t-button"})
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
 </div>
 
 @section Scripts {

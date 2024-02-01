@@ -11,43 +11,45 @@
     <legend>Rule</legend>
 
     <div class="display-label">
-         @Html.DisplayNameFor(model => model.Field)
+        @Html.DisplayNameFor(model => model.Field)
     </div>
     <div class="display-field">
         @Html.DisplayFor(model => model.Field)
     </div>
 
     <div class="display-label">
-         @Html.DisplayNameFor(model => model.Compare)
+        @Html.DisplayNameFor(model => model.Compare)
     </div>
     <div class="display-field">
         @Html.DisplayFor(model => model.Compare)
     </div>
 
     <div class="display-label">
-         @Html.DisplayNameFor(model => model.Value)
+        @Html.DisplayNameFor(model => model.Value)
     </div>
     <div class="display-field">
         @Html.DisplayFor(model => model.Value)
     </div>
 
     <div class="display-label">
-         @Html.DisplayNameFor(model => model.PlanID)
+        @Html.DisplayNameFor(model => model.PlanID)
     </div>
     <div class="display-field">
         @Html.DisplayFor(model => model.PlanID)
     </div>
 
     <div class="display-label">
-         @Html.DisplayNameFor(model => model.Sort)
+        @Html.DisplayNameFor(model => model.Sort)
     </div>
     <div class="display-field">
         @Html.DisplayFor(model => model.Sort)
     </div>
 </fieldset>
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
     <p>
-        <input type="submit" value="Delete" class="t-button"/> |
-        @Html.ActionLink("Back", "AddStoresByRule", "SkuRange", new { planID = Model.PlanID }, new { @class="t-button" })
+        <input type="submit" value="Delete" class="t-button" /> |
+        @Html.ActionLink("Back", "AddStoresByRule", "SkuRange", new { planID = Model.PlanID }, new { @class = "t-button" })
     </p>
 }

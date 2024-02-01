@@ -19,7 +19,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          select a.CreatedBy).Distinct();
             foreach (string userID in users)
             {
-                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+                names.Add(userID, GetFullUserNameFromDatabase(userID.Replace('\\', '/')));
             }
 
             foreach (var item in db.WarehouseBlackouts)
@@ -41,6 +41,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(WarehouseBlackoutModel model)
         {
             model.WarehouseBlackout.CreateDate = DateTime.Now;
@@ -62,6 +63,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(WarehouseBlackoutModel model)
         {
             model.WarehouseBlackout.CreateDate = DateTime.Now;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
 using System.DirectoryServices;
 using System.Web.Routing;
@@ -22,7 +23,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public WebUser currentUser;
         public const string AppName = "Allocation";
 
-        public string getFullUserNameFromDatabase(string fullUserID)
+        public string GetFullUserNameFromDatabase(string fullUserID)
         {
             string fullName = string.Empty;
 
@@ -41,13 +42,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 if (string.IsNullOrEmpty(fullName))
-                    return fullUserID;
+                    return HttpUtility.HtmlEncode(fullUserID);
                 else
                     return fullName;
             }
             catch
             {
-                return fullUserID;
+                return HttpUtility.HtmlEncode(fullUserID);
             }
         }
 

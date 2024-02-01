@@ -32,7 +32,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 foreach (var item in uniqueNames)
                 {
-                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                    fullNamePairs.Add(item, GetFullUserNameFromDatabase(item.Replace('\\', '/')));
                 }
 
                 foreach (var item in fullNamePairs)

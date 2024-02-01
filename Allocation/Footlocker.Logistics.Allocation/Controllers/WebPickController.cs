@@ -44,7 +44,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 foreach (var item in uniqueNames)
                 {
-                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                    fullNamePairs.Add(item, GetFullUserNameFromDatabase(item.Replace('\\', '/')));
                 }
 
                 foreach (var item in fullNamePairs)
@@ -94,6 +94,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(WebPickModel model)
         {
             string message = "";
@@ -640,7 +641,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             foreach (var item in uniqueNames)
             {
-                fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                fullNamePairs.Add(item, GetFullUserNameFromDatabase(item.Replace('\\', '/')));
             }
 
             foreach (var item in fullNamePairs)

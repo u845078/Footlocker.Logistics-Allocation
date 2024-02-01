@@ -112,7 +112,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     model.RangePlans.ForEach(rp =>
                     {
                         if (rp.UpdatedBy.Contains("CORP"))
-                            rp.UpdatedBy = getFullUserNameFromDatabase(rp.UpdatedBy.Replace('\\', '/'));
+                            rp.UpdatedBy = GetFullUserNameFromDatabase(rp.UpdatedBy.Replace('\\', '/'));
 
                         var reInitStatus = (from a in db.ReInitializeSKUs
                                             where a.ItemID == rp.ItemID
@@ -473,9 +473,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 string fullName = "";
                 if (rec.RingFence.CreatedBy.Contains("CORP"))
-                    fullName = getFullUserNameFromDatabase(rec.RingFence.CreatedBy.Replace('\\', '/'));
+                    fullName = GetFullUserNameFromDatabase(rec.RingFence.CreatedBy.Replace('\\', '/'));
                 else
-                    fullName = getFullUserNameFromDatabase(rec.RingFence.CreatedBy);
+                    fullName = GetFullUserNameFromDatabase(rec.RingFence.CreatedBy);
 
                 newRingFences.Where(r => r.RingFence.CreatedBy == rec.RingFence.CreatedBy).ToList().ForEach(x => x.RingFence.CreatedBy = fullName);
             }
@@ -579,7 +579,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 string fullName = "";
                 if (rec.CreatedBy.Contains("CORP"))
-                    fullName = getFullUserNameFromDatabase(rec.CreatedBy.Replace('\\', '/'));
+                    fullName = GetFullUserNameFromDatabase(rec.CreatedBy.Replace('\\', '/'));
                 else
                     fullName = rec.CreatedBy;
 
@@ -641,7 +641,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 string fullName = "";
                 if (hold.CreatedBy.Contains("CORP"))
-                    fullName = getFullUserNameFromDatabase(hold.CreatedBy.Replace('\\', '/'));
+                    fullName = GetFullUserNameFromDatabase(hold.CreatedBy.Replace('\\', '/'));
                 else
                     fullName = hold.CreatedBy;
 

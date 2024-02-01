@@ -51,7 +51,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          select a.CreatedBy).Distinct();
             foreach (string userID in users)
             {
-                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+                names.Add(userID, GetFullUserNameFromDatabase(userID.Replace('\\', '/')));
             }
             foreach (var item in headers)
             {
@@ -62,6 +62,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult DivisionSelected(SkuAttributeModel model)
         {
             InitializeDivisions(model);
@@ -74,6 +75,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult DepartmentSelected(SkuAttributeModel model)
         {
             InitializeDivisions(model);
@@ -185,6 +187,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(SkuAttributeModel model, string submitButton)
         {
             if (submitButton == "Reinitialize")
@@ -367,6 +370,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(SkuAttributeModel model, string submitButton)
         {
             ViewBag.hasEditRole = true;

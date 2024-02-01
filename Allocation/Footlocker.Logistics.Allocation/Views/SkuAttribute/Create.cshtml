@@ -114,6 +114,7 @@
 
     @using (Html.BeginForm("DivisionSelected", "SkuAttribute"))
     {
+        @Html.AntiForgeryToken()
         <div class="editor-field">
             @Html.LabelFor(model => model.Division)
             <br />
@@ -124,6 +125,7 @@
 
     @using (Html.BeginForm("DepartmentSelected", "SkuAttribute"))
     {
+        @Html.AntiForgeryToken()
         @Html.HiddenFor(model => model.Division)
         <div class="editor-field">
             @Html.LabelFor(model => model.Department)
@@ -137,6 +139,7 @@
     {
         @Html.HiddenFor(model => model.Division)
         @Html.HiddenFor(model => model.Department)
+        @Html.AntiForgeryToken()
 
         <div class="editor-field">
             @Html.LabelFor(model => model.Category) [*** Optional ***] <br />

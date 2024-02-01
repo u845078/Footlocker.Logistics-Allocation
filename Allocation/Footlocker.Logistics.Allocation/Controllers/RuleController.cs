@@ -575,6 +575,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         //
         // POST: /Account/Delete/5
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Delete(long id, FormCollection form)
         {
             RuleDAO dao = new RuleDAO();
@@ -606,6 +607,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         //
         // POST: /Account/Edit/5
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(long id, FormCollection form)
         {
             RuleDAO dao = new RuleDAO();

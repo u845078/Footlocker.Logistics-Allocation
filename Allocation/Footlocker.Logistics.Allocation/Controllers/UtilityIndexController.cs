@@ -37,7 +37,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             using (var context = new DAO.AllocationContext())
             {
                 // Get all fobs by division
-                fobs = context.FOBs.Where(fob => String.Equals(fob.Division, division)).OrderBy(f => f.Description).ToList();
+                fobs = context.FOBs.Where(fob => string.Equals(fob.Division, division)).OrderBy(f => f.Description).ToList();
             }
 
             return new JsonResult() { Data = new SelectList(fobs, "ID", "Description") };

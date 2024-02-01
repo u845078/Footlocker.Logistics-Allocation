@@ -1,56 +1,63 @@
 ﻿@model Footlocker.Logistics.Allocation.Models.RangePlan
 
-@using (Html.BeginForm("SaveSkuRange","SkuRange",FormMethod.Post)) {
+@using (Html.BeginForm("SaveSkuRange", "SkuRange", FormMethod.Post))
+{
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
     <fieldset>
-    <table><tr><td>
-        <img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.Sku)"/>
-    </td><td>
-        @Html.HiddenFor(model => model.Id)
-        <span class="editor-label">
-            <b>@Html.LabelFor(model => model.Sku):</b>
-        </span>
-        <span class="editor-field">
-            @Html.Raw(Model.Sku)
-            @Html.HiddenFor(model => model.Sku)
-        </span>
-        &nbsp;&nbsp;
-        <span class="editor-label">
-            <b>@Html.LabelFor(model => model.Description):</b>
-        </span>
-        <span class="editor-field">
-            @Html.Raw(Model.Description)
-            @Html.HiddenFor(model => model.Description)
-        </span>
-        &nbsp;&nbsp;
-        <span class="editor-field">
-            @Html.Raw("<b># Stores:</b>  " + Model.StoreCount)
-        </span>
-        <br />
-        <br />
-            @Html.HiddenFor(model => model.PlanType)
+        <table>
+            <tr>
+                <td>
+                    <img src="@Url.Content("~/Image/ShowImage/?sku=" + Model.Sku)" />
+                </td>
+                <td>
+                    @Html.HiddenFor(model => model.Id)
+                    <span class="editor-label">
+                        <b>@Html.LabelFor(model => model.Sku):</b>
+                    </span>
+                    <span class="editor-field">
+                        @Html.Raw(Model.Sku)
+                        @Html.HiddenFor(model => model.Sku)
+                    </span>
+                    &nbsp;&nbsp;
+                    <span class="editor-label">
+                        <b>@Html.LabelFor(model => model.Description):</b>
+                    </span>
+                    <span class="editor-field">
+                        @Html.Raw(Model.Description)
+                        @Html.HiddenFor(model => model.Description)
+                    </span>
+                    &nbsp;&nbsp;
+                    <span class="editor-field">
+                        @Html.Raw("<b># Stores:</b>  " + Model.StoreCount)
+                    </span>
+                    <br />
+                    <br />
+                    @Html.HiddenFor(model => model.PlanType)
 
-        <span class="editor-label">
-            <b>@Html.LabelFor(model => model.StartDate)</b>
-        </span>
-        :&nbsp;
-        <span class="editor-field">
-            @Html.Telerik().DatePickerFor(model => model.StartDate)
-            @Html.ValidationMessageFor(model => model.StartDate)
-        </span>
-        &nbsp;&nbsp;
+                    <span class="editor-label">
+                        <b>@Html.LabelFor(model => model.StartDate)</b>
+                    </span>
+                    :&nbsp;
+                    <span class="editor-field">
+                        @Html.Telerik().DatePickerFor(model => model.StartDate)
+                        @Html.ValidationMessageFor(model => model.StartDate)
+                    </span>
+                    &nbsp;&nbsp;
 
-        <span class="editor-label">
-            <b>@Html.LabelFor(model => model.EndDate)</b>
-        </span>
-        :&nbsp;
-        <span class="editor-field">
-            @Html.Telerik().DatePickerFor(model => model.EndDate)
-            @Html.ValidationMessageFor(model => model.EndDate)
-        </span>
-        &nbsp;&nbsp;&nbsp;&nbsp;
-        &nbsp;&nbsp;
-            <input type="submit" value="Update Dates" class="t-button" />
-    </td></tr></table>
+                    <span class="editor-label">
+                        <b>@Html.LabelFor(model => model.EndDate)</b>
+                    </span>
+                    :&nbsp;
+                    <span class="editor-field">
+                        @Html.Telerik().DatePickerFor(model => model.EndDate)
+                        @Html.ValidationMessageFor(model => model.EndDate)
+                    </span>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    &nbsp;&nbsp;
+                    <input type="submit" value="Update Dates" class="t-button" />
+                </td>
+            </tr>
+        </table>
     </fieldset>
 }

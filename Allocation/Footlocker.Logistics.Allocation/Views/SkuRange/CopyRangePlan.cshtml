@@ -22,6 +22,7 @@
 @using (Html.BeginForm())
 {
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
 
     <fieldset>
         <legend>Copy Range Plan Details</legend>
@@ -124,7 +125,8 @@
     if (!Model.HaveSizes)
     {
         <input type="submit" value="Load Sizes" />
-        <br /><br />
+        <br />
+        <br />
     }
 }
 
@@ -132,6 +134,7 @@
 {
     using (Html.BeginForm("CopyRangeSizes", "SkuRange"))
     {
+        @Html.AntiForgeryToken()
         <table>
             <tr>
                 <th>From Sizes</th>

@@ -6,77 +6,79 @@
 
 <h2>Create Web or Emergency Pick</h2>
 <font color="red">@Html.Raw(Model.Message)</font>
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
 
-<fieldset>
-    <div class="editor-label">
-        @Html.LabelFor(model => model.RDQ.Division)
-    </div>
-    <div class="editor-field">
-        @Html.DropDownListFor(model => model.RDQ.Division, new SelectList(Model.Divisions, "DivCode", "DivisionName"))
-    </div>
+    <fieldset>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RDQ.Division)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.RDQ.Division, new SelectList(Model.Divisions, "DivCode", "DivisionName"))
+        </div>
 
-    <div class="editor-label">
-        @Html.LabelFor(model => model.RDQ.Store)
-    </div>
-    <div class="editor-field">
-        @Html.TextBoxFor(model => model.RDQ.Store, new { maxlength = "5" })
-        @Html.ValidationMessageFor(model => model.RDQ.Store)
-    </div>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RDQ.Store)
+        </div>
+        <div class="editor-field">
+            @Html.TextBoxFor(model => model.RDQ.Store, new { maxlength = "5" })
+            @Html.ValidationMessageFor(model => model.RDQ.Store)
+        </div>
 
-    <div class="editor-label">
-        Distribution Center
-    </div>
-    <div class="editor-field">
-        @Html.DropDownListFor(model => model.RDQ.DCID, new SelectList(Model.DCs, "ID", "Name"))
-        @Html.ValidationMessageFor(model => model.RDQ.DCID)
-    </div>
+        <div class="editor-label">
+            Distribution Center
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.RDQ.DCID, new SelectList(Model.DCs, "ID", "Name"))
+            @Html.ValidationMessageFor(model => model.RDQ.DCID)
+        </div>
 
-    <div class="editor-label">
-        @Html.LabelFor(model => model.RDQ.Sku)
-    </div>
-    <div class="editor-field">
-        @Html.TextBoxFor(model => model.RDQ.Sku, new { maxlength = "14" })
-        @Html.ValidationMessageFor(model => model.RDQ.Sku)
-    </div>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RDQ.Sku)
+        </div>
+        <div class="editor-field">
+            @Html.TextBoxFor(model => model.RDQ.Sku, new { maxlength = "14" })
+            @Html.ValidationMessageFor(model => model.RDQ.Sku)
+        </div>
 
-    <div class="editor-label">
-        @Html.LabelFor(model => model.RDQ.Size)
-    </div>
-    <div class="editor-field">
-        @Html.TextBoxFor(model => model.RDQ.Size, new { maxlength = "5" })
-        @Html.ValidationMessageFor(model => model.RDQ.Size)
-    </div>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RDQ.Size)
+        </div>
+        <div class="editor-field">
+            @Html.TextBoxFor(model => model.RDQ.Size, new { maxlength = "5" })
+            @Html.ValidationMessageFor(model => model.RDQ.Size)
+        </div>
 
-    <div class="editor-label">
-        @Html.LabelFor(model => model.RDQ.PO)
-    </div>
-    <div class="editor-field">
-        @Html.TextBoxFor(model => model.RDQ.PO)
-        @Html.ValidationMessageFor(model => model.RDQ.PO)
-    </div>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RDQ.PO)
+        </div>
+        <div class="editor-field">
+            @Html.TextBoxFor(model => model.RDQ.PO)
+            @Html.ValidationMessageFor(model => model.RDQ.PO)
+        </div>
 
-    <div class="editor-label">
-        @Html.LabelFor(model => model.RDQ.Qty)
-    </div>
-    <div class="editor-field">
-        @Html.EditorFor(model => model.RDQ.Qty)
-        @Html.ValidationMessageFor(model => model.RDQ.Qty)
-    </div>
+        <div class="editor-label">
+            @Html.LabelFor(model => model.RDQ.Qty)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.RDQ.Qty)
+            @Html.ValidationMessageFor(model => model.RDQ.Qty)
+        </div>
 
-    <div class="editor-label">
-        Pick
-    </div>
-    <div class="editor-field">
-        @Html.DropDownListFor(model => model.RDQ.Status, Model.PickOptions)
-        @Html.ValidationMessageFor(model => model.RDQ.Status)
-    </div>
+        <div class="editor-label">
+            Pick
+        </div>
+        <div class="editor-field">
+            @Html.DropDownListFor(model => model.RDQ.Status, Model.PickOptions)
+            @Html.ValidationMessageFor(model => model.RDQ.Status)
+        </div>
 
-    <p>
-        <input type="submit" value="Create" />
-    </p>
-</fieldset>
+        <p>
+            <input type="submit" value="Create" />
+        </p>
+    </fieldset>
 }
 
 <div>

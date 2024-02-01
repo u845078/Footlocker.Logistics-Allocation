@@ -12,8 +12,10 @@
     @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
 }
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
 
     <script type="text/javascript">
         $('form').submit(function () {
@@ -60,7 +62,7 @@
 }
 
 <div>
-    @Html.ActionLink("Back", "PresentationQuantities", new { planID = Model.PlanID }, new {@class="t-button"})
+    @Html.ActionLink("Back", "PresentationQuantities", new { planID = Model.PlanID }, new { @class = "t-button" })
 </div>
 
 @section Scripts {

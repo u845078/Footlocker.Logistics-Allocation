@@ -45,7 +45,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 foreach (var item in uniqueNames)
                 {
-                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                    fullNamePairs.Add(item, GetFullUserNameFromDatabase(item.Replace('\\', '/')));
                 }
 
                 foreach (var item in fullNamePairs)
@@ -98,7 +98,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 foreach (var item in uniqueNames)
                 {
-                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                    fullNamePairs.Add(item, GetFullUserNameFromDatabase(item.Replace('\\', '/')));
                 }
 
                 foreach (var item in fullNamePairs)
@@ -132,7 +132,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 foreach (var item in uniqueNames)
                 {
-                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                    fullNamePairs.Add(item, GetFullUserNameFromDatabase(item.Replace('\\', '/')));
                 }
 
                 foreach (var item in fullNamePairs)
@@ -199,7 +199,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 foreach (var item in uniqueNames)
                 {
-                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                    fullNamePairs.Add(item, GetFullUserNameFromDatabase(item.Replace('\\', '/')));
                 }
 
                 foreach (var item in fullNamePairs)
@@ -241,7 +241,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 foreach (var item in uniqueNames)
                 {
-                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                    fullNamePairs.Add(item, GetFullUserNameFromDatabase(item.Replace('\\', '/')));
                 }
 
                 foreach (var item in fullNamePairs)
@@ -1303,15 +1303,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     .ThenBy(g => g.Sku)));
         }
 
-        [HttpPost]
-        public ActionResult DeleteReleaseTo(DeleteHoldModel model)
-        {
-            //TODO:  Create E-Pick to each store
+        //[HttpPost]
+        //public ActionResult DeleteReleaseTo(DeleteHoldModel model)
+        //{
+        //    //TODO:  Create E-Pick to each store
 
-            db.Holds.Remove(model.Hold);
-            db.SaveChanges();
-            return RedirectToAction("Index");
-        }
+        //    db.Holds.Remove(model.Hold);
+        //    db.SaveChanges();
+        //    return RedirectToAction("Index");
+        //}
 
         #region Holds Upload
         public ActionResult Upload()

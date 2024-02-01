@@ -6,8 +6,10 @@
 
 <h2>Create Warehouse Blackout</h2>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
 
     <fieldset>
         <legend>Warehouse Blackout</legend>
@@ -43,7 +45,7 @@
 }
 
 <div>
-    @Html.ActionLink("Back to List", "Index", null, new {@class="t-button"})
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "t-button" })
 </div>
 
 @section Scripts {

@@ -96,7 +96,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             foreach (string userID in users)
             {
-                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+                names.Add(userID, GetFullUserNameFromDatabase(userID.Replace('\\', '/')));
             }
 
             foreach (var item in list)

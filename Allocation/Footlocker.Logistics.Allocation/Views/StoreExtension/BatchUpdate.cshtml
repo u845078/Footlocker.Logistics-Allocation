@@ -7,13 +7,13 @@
 
 <script type="text/javascript">
 
-    function chooseStores() { 
+    function chooseStores() {
         var url = '/StoreExtension/Filter?ruleSetID=' + @(Model.RuleSetID) + '&isRestrictingToUnassignedCustomer=' + ($('#IsRestrictingToUnassignedCustomer').attr('checked') ? true : false);
-        window.location.href = url; 
+        window.location.href = url;
     }
 
-    function unassignData() { 
-        $('#StoreExtensionsGrid').data('tGrid').ajaxRequest({ ruleSetID: @(Model.RuleSetID), isRestrictingToUnassignedCustomer: ($('#IsRestrictingToUnassignedCustomer').attr('checked') ? true : false) }); 
+    function unassignData() {
+        $('#StoreExtensionsGrid').data('tGrid').ajaxRequest({ ruleSetID: @(Model.RuleSetID), isRestrictingToUnassignedCustomer: ($('#IsRestrictingToUnassignedCustomer').attr('checked') ? true : false) });
     }
 
     function storeExtensionsGrid_Complete(e) {
@@ -46,7 +46,7 @@
             $('div.update-control, fieldset.update-control').addClass('hidden-control');
         }
     }
-        
+
     // On Document Ready...
     $(function() {
         // Wire-up anonymous button handlers
@@ -63,7 +63,7 @@
             }
         });
         $('#IsRestrictingToUnassignedCustomer').change(function() {
-            $('#StoreExtensionsGrid').data('tGrid').ajaxRequest({ ruleSetID: @(Model.RuleSetID), isRestrictingToUnassignedCustomer: ($('#IsRestrictingToUnassignedCustomer').attr('checked') ? true : false) }); 
+            $('#StoreExtensionsGrid').data('tGrid').ajaxRequest({ ruleSetID: @(Model.RuleSetID), isRestrictingToUnassignedCustomer: ($('#IsRestrictingToUnassignedCustomer').attr('checked') ? true : false) });
         });
     });
 
@@ -74,13 +74,15 @@
 
 @using (Html.BeginForm("Save", "StoreExtension", FormMethod.Post, new { id = "batchUpdateForm" }))
 {
+    @Html.AntiForgeryToken()
+
     <fieldset style="margin-top: 10px;">
         <div style="margin-top: 10px; margin-bottom: 10px;">
             <button id="chooseStoresButton" class="t-button">
                 Choose Stores
             </button>
 
-            @Html.CheckBoxFor(m => m.IsRestrictingToUnassignedCustomer, new { @class = Model.IsRestrictingToUnassignedCustomer ? "update-control" : "update-control hidden-control", style = "float: right; margin-top: 8px;" }) 
+            @Html.CheckBoxFor(m => m.IsRestrictingToUnassignedCustomer, new { @class = Model.IsRestrictingToUnassignedCustomer ? "update-control" : "update-control hidden-control", style = "float: right; margin-top: 8px;" })
             <label for="IsRestrictingToUnassignedCustomer" class="update-control hidden-control" style="float: right; margin-right: 3px; margin-top: 10px;">Without Customer?</label>
         </div>
 
@@ -111,9 +113,9 @@
             .Footer(true)
         )
     </fieldset>
-    
+
     <label style="color: red;">@Html.DisplayTextFor(m => m.NotificationMessage)</label>
-    
+
     <fieldset class="update-control hidden-control" style="margin-top: 30px;">
         <legend> Update Stores <span id="storeCountSpan">(0)</span> </legend>
 
@@ -130,7 +132,7 @@
                     @Html.LabelFor(m => m.SelectedMinihubStrategyInd, "Use Minihub Strategy: ")
                 </div>
             </div>
-    
+
             @*Input Controls - Left*@
             <div class="form-input-value-area">
                 <div class="form-input">
@@ -140,7 +142,7 @@
                     @Html.DropDownListFor(m => m.SelectedStrategyTypeID, new SelectList(Model.StrategyTypes, "ID", "Name"), new { @class = "batch-dropdown", style = "width: 130px;" })
                 </div>
                 <div class="form-input">
-                    @Html.DropDownListFor(m => m.SelectedMinihubStrategyInd, new SelectList(Model.MiniHubValues, "Key", "Value"), new { @class = "batch-dropdown", style = "width: 210px;"})                    
+                    @Html.DropDownListFor(m => m.SelectedMinihubStrategyInd, new SelectList(Model.MiniHubValues, "Key", "Value"), new { @class = "batch-dropdown", style = "width: 210px;" })
                 </div>
             </div>
         </div>
@@ -180,6 +182,6 @@
             Update
         </button>
     </div>
-    
+
     @Html.HiddenFor(m => m.RuleSetID)
 }

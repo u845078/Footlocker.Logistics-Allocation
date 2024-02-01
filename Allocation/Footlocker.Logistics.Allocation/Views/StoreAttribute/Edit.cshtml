@@ -58,11 +58,12 @@
 <h2>Store @Html.Raw(Model.newStoreAttribute.Store)</h2>
 <label>*** NOTE: Having a value of 1.00 for the Like Store Demand Scaling Factor will keep the original demand for the defined like store.</label>
 @if (ViewData["message"] != null)
-{ 
+{
     @Html.Raw("<font color='red'>" + ViewData["message"] + "</font>")
 }
 @using (Html.BeginForm("Edit", "StoreAttribute", FormMethod.Post))
 {
+    @Html.AntiForgeryToken()
 
     <fieldset>
         <legend>Add Additional Like Store</legend>
@@ -146,7 +147,7 @@
                 </td>
             </tr>
         </table>
-    </fieldset>    
+    </fieldset>
 }
 
 @(Html.Telerik().Grid(Model.StoreAttributes)

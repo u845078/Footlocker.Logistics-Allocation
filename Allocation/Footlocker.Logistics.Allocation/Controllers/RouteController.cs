@@ -36,7 +36,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 foreach (var item in uniqueNames)
                 {
-                    fullNamePairs.Add(item, getFullUserNameFromDatabase(item.Replace('\\', '/')));
+                    fullNamePairs.Add(item, GetFullUserNameFromDatabase(item.Replace('\\', '/')));
                 }
 
                 foreach (var item in fullNamePairs)
@@ -67,6 +67,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(Route model)
         {
             model.CreatedBy = currentUser.NetworkID;
@@ -206,7 +207,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          select a.LastModifiedUser).Distinct();
             foreach (string userID in users)
             {
-                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+                names.Add(userID, GetFullUserNameFromDatabase(userID.Replace('\\', '/')));
             }
             foreach (var item in model.DCs)
             {
@@ -242,6 +243,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult EditDC(DistributionCenterModel model)
         {
             model.DC.LastModifiedDate = DateTime.Now;
@@ -297,6 +299,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult CreateDC(DistributionCenterModel model)
         {
             model.DC.CreateDate = DateTime.Now;
@@ -537,6 +540,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult EditStoreLeadTime(EditStoreLeadTimeModel model)
         {
             string div = UpdateStoreLeadTimesForModel(model);

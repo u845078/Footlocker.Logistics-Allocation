@@ -27,8 +27,10 @@
     });
 </script>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
 
     <fieldset>
         <legend>Edit Sku Setup</legend>
@@ -55,7 +57,7 @@
             @Html.EditorFor(model => model.Description)
             @Html.ValidationMessageFor(model => model.Description)
         </div>
-        
+
         <div class="editor-field">
             @Html.CheckBoxFor(model => model.Launch, new { id = "launchChk" })
             @Html.LabelFor(model => model.Launch)

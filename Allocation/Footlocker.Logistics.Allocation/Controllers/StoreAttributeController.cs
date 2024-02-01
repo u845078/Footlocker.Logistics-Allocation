@@ -19,65 +19,75 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<StoreLookup> model = new List<StoreLookup>();
 
-            model = (from a in db.StoreAttributes join b in db.StoreLookups on new { a.Division, a.Store } equals new { b.Division, b.Store } select b).Distinct().ToList();
-            model = (from a in model join b in currentUser.GetUserDivisions(AppName) on a.Division equals b.DivCode select a).ToList();
+            model = (from a in db.StoreAttributes 
+                     join b in db.StoreLookups 
+                     on new { a.Division, a.Store } equals new { b.Division, b.Store } 
+                     select b).Distinct().ToList();
+
+            model = (from a in model 
+                     join b in currentUser.GetUserDivisions(AppName) 
+                     on a.Division equals b.DivCode 
+                     select a).ToList();
                      
             return View(model);
         }
 
         public ActionResult Edit(string div, string store, string message)
         {
-            EditStoreAttributeModel model = new EditStoreAttributeModel();
-            model.StoreAttributes = (from a in db.StoreAttributes where ((a.Division == div) && (a.Store == store)) select a).ToList();
+            EditStoreAttributeModel model = new EditStoreAttributeModel()
+            {
+                StoreAttributes = db.StoreAttributes.Where(sa => sa.Division == div && sa.Store == store).ToList(),
+                Divisions = currentUser.GetUserDivisions(AppName),
+                newStoreAttribute = new StoreAttribute()
+                {
+                    Division = div,
+                    Store = store,
+                    LikeDivision = div,
+                    Weight = 100,
+                    LikeStoreDemandScalingFactor = 1,
+                    StartDate = DateTime.Now
+                }
+            };
 
-            model.newStoreAttribute = new StoreAttribute();
-            model.newStoreAttribute.Division = div;
-            model.newStoreAttribute.Store = store;
-            model.newStoreAttribute.LikeDivision = div;
-            model.newStoreAttribute.Weight = 100;
-            model.newStoreAttribute.LikeStoreDemandScalingFactor = 1;
-            model.newStoreAttribute.StartDate = DateTime.Now;
-            model.Divisions = currentUser.GetUserDivisions(AppName);
             ViewData["message"] = message;
 
             FamilyOfBusinessDAO dao = new FamilyOfBusinessDAO();
             model.FOBs = dao.GetFOBs(div);
             foreach (StoreAttribute sa in model.StoreAttributes)
             {
-                if (sa.Level == "FOB")
-                {
-                    sa.ValueDescription = (from a in model.FOBs where a.Code == sa.Value select a.Description).First();
-                }
+                if (sa.Level == "FOB")                
+                    sa.ValueDescription = (from a in model.FOBs where a.Code == sa.Value select a.Description).First();                
             }
 
             return View(model);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(EditStoreAttributeModel model)
         {
             FamilyOfBusinessDAO dao = new FamilyOfBusinessDAO();
             model.newStoreAttribute.Store = model.newStoreAttribute.Store.PadLeft(5, '0');
             model.FOBs = dao.GetFOBs(model.newStoreAttribute.Division);
             string message = ValidateStoreAttribute(model.newStoreAttribute);
+
             if (message != "")
             {
                 ViewData["message"] = message;
                 model.Divisions = currentUser.GetUserDivisions(AppName);
                 model.FOBs = dao.GetFOBs(model.newStoreAttribute.Division);
-                model.StoreAttributes = (from a in db.StoreAttributes where ((a.Division == model.newStoreAttribute.Division) && (a.Store == model.newStoreAttribute.Store)) select a).ToList();
-                return View(model);
-                //return RedirectToAction("Edit", new { div = model.newStoreAttribute.Division, store = model.newStoreAttribute.Store, message = message });
+                model.StoreAttributes = db.StoreAttributes.Where(sa => sa.Division == model.newStoreAttribute.Division && sa.Store == model.newStoreAttribute.Store).ToList();
+                return View(model);                
             }
             else
             {
                 model.newStoreAttribute.CreateDate = DateTime.Now;
-                model.newStoreAttribute.CreatedBy = User.Identity.Name;
+                model.newStoreAttribute.CreatedBy = currentUser.NetworkID;
                 db.StoreAttributes.Add(model.newStoreAttribute);
                 db.SaveChanges();
                 string div = model.newStoreAttribute.Division;
                 string store = model.newStoreAttribute.Store;
-                model.StoreAttributes = (from a in db.StoreAttributes where ((a.Division == div) && (a.Store == store)) select a).ToList();
+                model.StoreAttributes = db.StoreAttributes.Where(sa => sa.Division == div && sa.Store == store).ToList();
 
                 foreach (StoreAttribute sa in model.StoreAttributes)
                 {
@@ -87,32 +97,38 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                 }
 
-                model.newStoreAttribute = new StoreAttribute();
-                model.newStoreAttribute.Division = div;
-                model.newStoreAttribute.Store = store;
-                model.newStoreAttribute.StartDate = DateTime.Now;
-                model.newStoreAttribute.Weight = 100;
+                model.newStoreAttribute = new StoreAttribute()
+                {
+                    Division = div,
+                    Store = store,
+                    StartDate = DateTime.Now,
+                    Weight = 100
+                };
+
                 model.Divisions = currentUser.GetUserDivisions(AppName);
 
                 return View(model);
             }
         }
 
-        private void ResetStoreAttributeModel(EditStoreAttributeModel model, FamilyOfBusinessDAO dao)
-        {
-            model.Divisions = currentUser.GetUserDivisions(AppName);
-            model.FOBs = dao.GetFOBs(model.newStoreAttribute.Division);
-            model.StoreAttributes = (from a in db.StoreAttributes where ((a.Division == model.newStoreAttribute.Division) && (a.Store == model.newStoreAttribute.Store)) select a).ToList();
-        }
+        //private void ResetStoreAttributeModel(EditStoreAttributeModel model, FamilyOfBusinessDAO dao)
+        //{
+        //    model.Divisions = currentUser.GetUserDivisions(AppName);
+        //    model.FOBs = dao.GetFOBs(model.newStoreAttribute.Division);
+        //    model.StoreAttributes = (from a in db.StoreAttributes where ((a.Division == model.newStoreAttribute.Division) && (a.Store == model.newStoreAttribute.Store)) select a).ToList();
+        //}
 
         public ActionResult Create()
         {
             CreateStoreAttributeModel model = new CreateStoreAttributeModel();
             model.Divisions = currentUser.GetUserDivisions(AppName);
-            model.StoreAttribute = new StoreAttribute();
-            model.StoreAttribute.StartDate = DateTime.Now;
-            model.StoreAttribute.Weight = 100;
-            model.StoreAttribute.LikeStoreDemandScalingFactor = 1;
+            model.StoreAttribute = new StoreAttribute()
+            {
+                StartDate = DateTime.Now,
+                Weight = 100,
+                LikeStoreDemandScalingFactor = 1
+            };
+
             FamilyOfBusinessDAO dao = new FamilyOfBusinessDAO();
             model.FOBs = dao.GetFOBs("");
 
@@ -120,6 +136,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(CreateStoreAttributeModel model)
         {
             try
@@ -131,8 +148,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     ViewData["message"] = message;
                     model.Divisions = currentUser.GetUserDivisions(AppName);
                     model.FOBs = fobDAO.GetFOBs("");
-                    return View(model);
-                    //return RedirectToAction("Edit", new { div = model.StoreAttribute.Division, store = model.StoreAttribute.Store, message = message });
+                    return View(model);                    
                 }
                 else
                 {
@@ -140,7 +156,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     model.StoreAttribute.LikeStore = model.StoreAttribute.LikeStore.PadLeft(5, '0');
                     model.StoreAttribute.LikeDivision = model.StoreAttribute.Division;
                     model.StoreAttribute.CreateDate = DateTime.Now;
-                    model.StoreAttribute.CreatedBy = User.Identity.Name;
+                    model.StoreAttribute.CreatedBy = currentUser.NetworkID;
                     db.StoreAttributes.Add(model.StoreAttribute);
                     db.SaveChanges();
                     return RedirectToAction("Edit", new { div = model.StoreAttribute.Division, store = model.StoreAttribute.Store });
@@ -155,9 +171,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 return View(model);
             }
         }
-        public ActionResult Delete(Int32 ID)
+
+        public ActionResult Delete(int ID)
         {
-            StoreAttribute sa = (from a in db.StoreAttributes where a.ID == ID select a).First();
+            StoreAttribute sa = db.StoreAttributes.Where(s => s.ID == ID).First();
             string div = sa.Division;
             string store = sa.Store;
 
@@ -174,29 +191,34 @@ namespace Footlocker.Logistics.Allocation.Controllers
             EditStoreAttributeModel model = new EditStoreAttributeModel();
             FamilyOfBusinessDAO dao = new FamilyOfBusinessDAO();
             model.FOBs = dao.GetFOBs(div);
-            model.StoreAttributes = (from a in db.StoreAttributes where ((a.Division == div) && (a.Store == store)) select a).ToList();
+            model.StoreAttributes = db.StoreAttributes.Where(s => s.Division == div && s.Store == store).ToList();
+
             foreach (StoreAttribute s in model.StoreAttributes)
             {
-                if (s.Level == "FOB")
-                {
-                    s.ValueDescription = (from a in model.FOBs where a.Code == s.Value select a.Description).First();
-                }
+                if (s.Level == "FOB")                
+                    s.ValueDescription = (from a in model.FOBs where a.Code == s.Value select a.Description).First();                
             }
-            model.newStoreAttribute = new StoreAttribute();
-            model.newStoreAttribute.Division = div;
-            model.newStoreAttribute.Store = store;
-            model.newStoreAttribute.LikeDivision = div;
-            model.newStoreAttribute.Weight = 100;
-            model.newStoreAttribute.StartDate = DateTime.Now;
+
+            model.newStoreAttribute = new StoreAttribute()
+            {
+                Division = div,
+                Store = store,
+                LikeDivision = div,
+                Weight = 100,
+                StartDate = DateTime.Now
+            };
 
             return View("Edit", model);
         }
 
-        public ActionResult EditStoreAttribute(Int32 ID)
+        public ActionResult EditStoreAttribute(int ID)
         {
-            CreateStoreAttributeModel model = new CreateStoreAttributeModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
-            model.StoreAttribute = (from a in db.StoreAttributes where a.ID == ID select a).First();
+            CreateStoreAttributeModel model = new CreateStoreAttributeModel()
+            {
+                Divisions = currentUser.GetUserDivisions(AppName),
+                StoreAttribute = db.StoreAttributes.Where(sa => sa.ID == ID).First()
+            };
+
             FamilyOfBusinessDAO dao = new FamilyOfBusinessDAO();
             model.FOBs = dao.GetFOBs(model.StoreAttribute.Division);
 
@@ -204,6 +226,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult EditStoreAttribute(CreateStoreAttributeModel model)
         {
             FamilyOfBusinessDAO fobDAO = new FamilyOfBusinessDAO();
@@ -217,11 +240,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             }
             model.StoreAttribute.CreateDate = DateTime.Now;
-            model.StoreAttribute.CreatedBy = User.Identity.Name;
+            model.StoreAttribute.CreatedBy = currentUser.NetworkID;
             db.Entry(model.StoreAttribute).State = System.Data.EntityState.Modified;
             db.SaveChanges();
-
-            EditStoreAttributeModel nextModel = new EditStoreAttributeModel();
+          
             string div = model.StoreAttribute.Division;
             string store = model.StoreAttribute.Store;
 
@@ -252,10 +274,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (onCreation)
             {
                 // verify the store was provided
-                if (string.IsNullOrEmpty(sa.Store))
-                {
-                    errorMessage = SetErrorMessage(errorMessage, "The \"Store\" field must be provided.");
-                }
+                if (string.IsNullOrEmpty(sa.Store))                
+                    errorMessage = SetErrorMessage(errorMessage, "The \"Store\" field must be provided.");                
                 else
                 {
                     // verify the division and store combination is valid
@@ -286,10 +306,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             // ensure the like store was populated
-            if (string.IsNullOrEmpty(sa.LikeStore))
-            {
-                errorMessage = SetErrorMessage(errorMessage, "The \"Like Store\" field must be provided.");
-            }
+            if (string.IsNullOrEmpty(sa.LikeStore))            
+                errorMessage = SetErrorMessage(errorMessage, "The \"Like Store\" field must be provided.");            
             else
             {
                 // verify the like store/division combination is valid
@@ -304,39 +322,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             // ensure the new attributes startdate is less than or equal to the enddate
-            if (sa.StartDate > sa.EndDate)
-            {
-                errorMessage = SetErrorMessage(errorMessage, "The Start Date must be less than or equal to the End Date.");
-            }
+            if (sa.StartDate > sa.EndDate)            
+                errorMessage = SetErrorMessage(errorMessage, "The Start Date must be less than or equal to the End Date.");            
 
             // ensure the store is not equal to the like store
-            if (!string.IsNullOrEmpty(sa.Store) && sa.Store.Equals(sa.LikeStore))
-            {
-                errorMessage = SetErrorMessage(errorMessage, "The like store number must be a different store.");
-            }
+            if (!string.IsNullOrEmpty(sa.Store) && sa.Store.Equals(sa.LikeStore))            
+                errorMessage = SetErrorMessage(errorMessage, "The like store number must be a different store.");            
 
             // ensure the level's value is of the right length and has the correct characters.
             if (sa.Level.Equals("FOB"))
             {
                 System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^\d{3}$");
-                if (!(regex.IsMatch(sa.Value)))
-                {
-                    errorMessage = SetErrorMessage(errorMessage, "Invalid format for \"FOB\" level, expected ###.");
-                }
+                if (!regex.IsMatch(sa.Value))                
+                    errorMessage = SetErrorMessage(errorMessage, "Invalid format for \"FOB\" level, expected ###.");                
             }
             else if (sa.Level.Equals("Dept"))
             {
                 System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^\d{2}$");
-                if (!(regex.IsMatch(sa.Value)))
-                {
-                    errorMessage = SetErrorMessage(errorMessage, "Invalid format for \"Dept\" level, expected ##.");
-                }
+                if (!regex.IsMatch(sa.Value))                
+                    errorMessage = SetErrorMessage(errorMessage, "Invalid format for \"Dept\" level, expected ##.");                
                 else
                 {
-                    if (!currentUser.GetUserDivDept(AppName).Contains(string.Format("{0}-{1}", sa.Division, sa.Value)))
-                    {
-                        errorMessage = SetErrorMessage(errorMessage, "The provided department does not exist or you do not have permission for this department.");
-                    }
+                    if (!currentUser.GetUserDivDept(AppName).Contains(string.Format("{0}-{1}", sa.Division, sa.Value)))                    
+                        errorMessage = SetErrorMessage(errorMessage, "The provided department does not exist or you do not have permission for this department.");                    
                 }
             }
 
@@ -379,10 +387,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         , sa.Level);
                 }
 
-                if (existingErrorMessage != "")
-                {
-                    errorMessage = SetErrorMessage(errorMessage, existingErrorMessage);
-                }
+                if (existingErrorMessage != "")                
+                    errorMessage = SetErrorMessage(errorMessage, existingErrorMessage);                
             }
 
             return errorMessage;
@@ -400,40 +406,28 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private bool IntersectsExistingDateRange(StoreAttribute existingAttr, StoreAttribute newAttr)
         {
             // b[ a[  b] a] => such that a is existing and b is new
-            if (existingAttr.StartDate >= newAttr.StartDate && existingAttr.EndDate >= newAttr.EndDate && existingAttr.StartDate <= newAttr.EndDate)
-            {
-                return true;
-            }
+            if (existingAttr.StartDate >= newAttr.StartDate && existingAttr.EndDate >= newAttr.EndDate && existingAttr.StartDate <= newAttr.EndDate)            
+                return true;            
 
             // a[ b[  a] b]
-            if (existingAttr.StartDate <= newAttr.StartDate && existingAttr.EndDate <= newAttr.EndDate && existingAttr.EndDate >= newAttr.StartDate)
-            {
-                return true;
-            }
+            if (existingAttr.StartDate <= newAttr.StartDate && existingAttr.EndDate <= newAttr.EndDate && existingAttr.EndDate >= newAttr.StartDate)            
+                return true;            
 
             // a[ b[  b] a]
-            if (existingAttr.StartDate <= newAttr.StartDate && existingAttr.EndDate >= newAttr.EndDate)
-            {
-                return true;
-            }
+            if (existingAttr.StartDate <= newAttr.StartDate && existingAttr.EndDate >= newAttr.EndDate)            
+                return true;            
 
             // b[ a[  a] b]
-            if (existingAttr.StartDate >= newAttr.StartDate && existingAttr.EndDate <= newAttr.EndDate)
-            {
-                return true;
-            }
+            if (existingAttr.StartDate >= newAttr.StartDate && existingAttr.EndDate <= newAttr.EndDate)            
+                return true;            
 
             // b[ a[  a] --->b] (b's enddate is null) OR
             // a[ b[  a] --->b] (b's enddate is null)
-            if (existingAttr.EndDate >= newAttr.StartDate && newAttr.EndDate == null)
-            {
-                return true;
-            }
+            if (existingAttr.EndDate >= newAttr.StartDate && newAttr.EndDate == null)            
+                return true;            
 
-            if (existingAttr.EndDate == null && newAttr.EndDate == null)
-            {
-                return true;
-            }
+            if (existingAttr.EndDate == null && newAttr.EndDate == null)            
+                return true;            
 
             return false;
         }

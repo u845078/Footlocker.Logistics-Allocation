@@ -98,6 +98,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(StoreSeasonality model)
         {
             StoreSeasonality group = db.StoreSeasonality.Where(ss => ss.ID == model.ID).FirstOrDefault();
@@ -280,6 +281,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return RedirectToAction("Details", new { ID });
         }
 
+        #region Upload spreadsheet
         public ActionResult SeasonalityTemplate()
         {
             SeasonalitySpreadsheet seasonalitySpreadsheet = new SeasonalitySpreadsheet(appConfig, configService);
@@ -341,6 +343,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             return View();
         }
+        #endregion
 
         [GridAction]
         public ActionResult Grid_GetGroups(string div)

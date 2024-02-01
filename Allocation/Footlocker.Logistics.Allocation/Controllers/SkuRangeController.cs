@@ -100,8 +100,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (range == null)
                 return RedirectToAction("Index", new { message = "Range no longer exists." });
 
-            range.CreatedBy = getFullUserNameFromDatabase(range.CreatedBy.Replace('\\', '/'));
-            range.UpdatedBy = getFullUserNameFromDatabase(range.UpdatedBy.Replace('\\', '/'));
+            range.CreatedBy = GetFullUserNameFromDatabase(range.CreatedBy.Replace('\\', '/'));
+            range.UpdatedBy = GetFullUserNameFromDatabase(range.UpdatedBy.Replace('\\', '/'));
 
             return View(range);
         }
@@ -118,6 +118,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult CreateRangePlan(RangePlanModel p)
         {
             p.Range.CreatedBy = currentUser.NetworkID;
@@ -254,6 +255,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult CopyRangePlan(CopyRangePlanModel model)
         {
             Dictionary<string, string> errors;
@@ -333,6 +335,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult CopyRangeSizes(CopyRangePlanModel model)
         {
             long itemID;
@@ -376,6 +379,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         #region "Presentation Qtys"
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult SaveSkuRange(SizeAllocationModel model)
         {
             RangePlan p = db.RangePlans.Where(rp => rp.Id == model.Plan.Id).First();
@@ -1299,8 +1303,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (model.RangePlan != null)
             {
-                model.RangePlan.CreatedBy = getFullUserNameFromDatabase(model.RangePlan.CreatedBy.Replace('\\', '/'));
-                model.RangePlan.UpdatedBy = getFullUserNameFromDatabase(model.RangePlan.UpdatedBy.Replace('\\', '/'));
+                model.RangePlan.CreatedBy = GetFullUserNameFromDatabase(model.RangePlan.CreatedBy.Replace('\\', '/'));
+                model.RangePlan.UpdatedBy = GetFullUserNameFromDatabase(model.RangePlan.UpdatedBy.Replace('\\', '/'));
             }
 
             //update the store count
@@ -1610,6 +1614,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult EditDeliveryGroup(DeliveryGroupModel model)
         {
             db.Entry(model.DeliveryGroup).State = System.Data.EntityState.Modified;
@@ -1779,6 +1784,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(RangePlan model)
         {
             db.Entry(model).State = System.Data.EntityState.Modified;
@@ -2642,6 +2648,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult CreateOrderPlanningRequest(OrderPlanningRequest model)
         {
             string message = ValidateOrderPlanningRequest(model, false);
@@ -2691,6 +2698,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult EditOrderPlanningRequest(OrderPlanningRequest model)
         {
             string message = ValidateOrderPlanningRequest(model, true);
@@ -2827,6 +2835,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult CreatePreSale(PreSaleModel model)
         {
             if (!WebSecurityService.UserHasDivisionRole(UserName, "allocation", model.SKU.Substring(0, 2), "Ecomm Presale"))
@@ -2895,6 +2904,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult EditPreSale(PreSaleModel model)
         {
             var record = (from a in db.PreSaleSKUs where a.PreSaleSkuID == model.preSaleSKU.PreSaleSkuID select a).FirstOrDefault();
@@ -2966,7 +2976,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             foreach (ReInitializeSKUModel m in reInitializeSKU)
             {
                 if (m.reInitializeSKU.CreateUser.Contains("CORP"))
-                    m.reInitializeSKU.CreateUser = getFullUserNameFromDatabase(m.reInitializeSKU.CreateUser.Replace('\\', '/'));                
+                    m.reInitializeSKU.CreateUser = GetFullUserNameFromDatabase(m.reInitializeSKU.CreateUser.Replace('\\', '/'));                
             }
 
             return View(new GridModel(reInitializeSKU));
@@ -2994,6 +3004,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult CreateReInitializeSKU(ReInitializeSKUModel model)
         {
             string errorMessage = AddReinitializedSKU(model.SKU, currentUser);

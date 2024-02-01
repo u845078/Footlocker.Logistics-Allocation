@@ -223,7 +223,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          select a.LastModifiedUser).Distinct();
             foreach (string userID in users)
             {
-                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+                names.Add(userID, GetFullUserNameFromDatabase(userID.Replace('\\', '/')));
             }
 
             foreach (var item in list)
@@ -268,7 +268,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          select a.LastModifiedUser).Distinct();
             foreach (string userID in users)
             {
-                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+                names.Add(userID, GetFullUserNameFromDatabase(userID.Replace('\\', '/')));
             }
             foreach (var item in list)
             {
@@ -434,7 +434,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          select a.CreatedBy).Distinct();
             foreach (string userID in users)
             {
-                names.Add(userID, getFullUserNameFromDatabase(userID.Replace('\\', '/')));
+                names.Add(userID, GetFullUserNameFromDatabase(userID.Replace('\\', '/')));
             }
             foreach (var item in model)
             {
@@ -1875,6 +1875,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult MassEditRingFence(MassEditRingFenceModel model)
         {
             List<RingFence> rfList = db.RingFences.Where(rf => rf.Sku == model.Sku).ToList();
@@ -1956,6 +1957,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult MassEditRingFenceStore(MassEditRingFenceModel model)
         {
             List<RingFence> rfList;
