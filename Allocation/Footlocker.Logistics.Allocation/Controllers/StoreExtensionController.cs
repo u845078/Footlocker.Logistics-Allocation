@@ -21,10 +21,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private RuleSet CreateRuleSet()
         {
-            RuleSet rs = new RuleSet();
-            rs.Type = "hold";
-            rs.CreateDate = DateTime.Now;
-            rs.CreatedBy = User.Identity.Name;
+            RuleSet rs = new RuleSet()
+            {
+                Type = "hold",
+                CreateDate = DateTime.Now,
+                CreatedBy = currentUser.NetworkID
+            };
+
             db.RuleSets.Add(rs);
             db.SaveChanges();
 
@@ -122,19 +125,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 var query = (from a in db.StoreExtensions where ((a.Store == s.Store) && (a.Division == s.Division)) select a);
 
-                if (query.Count() > 0)
-                {
-                    se = query.First();
-                }
+                if (query.Count() > 0)                
+                    se = query.First();                
                 else
                 {
-                    se = new StoreExtension();
-                    se.Division = s.Division;
-                    se.Store = s.Store;
+                    se = new StoreExtension() 
+                    {
+                        Division = s.Division,
+                        Store = s.Store
+                    };                    
+                    
                     db.StoreExtensions.Add(se);
-
                 }
-                se.LastModifiedBy = User.Identity.Name;
+                se.LastModifiedBy = currentUser.NetworkID;
                 se.LastModifiedDate = DateTime.Now;
                 if (s.StoreExtension != null)
                 {
@@ -199,7 +202,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 {
                                     Division = sl.Division,
                                     Store = sl.Store,
-                                    LastModifiedBy = UserName,
+                                    LastModifiedBy = currentUser.NetworkID,
                                     LastModifiedDate = currentDate
                                 };
                         }

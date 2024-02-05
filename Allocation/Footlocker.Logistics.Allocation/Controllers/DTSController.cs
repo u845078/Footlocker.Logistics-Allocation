@@ -191,26 +191,25 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             foreach (RuleSelectedStore store in stores)
                             {
                                 detail = (from a in db.RangePlanDetails 
-                                          where ((a.ID == dg.PlanID) && 
-                                                 (a.Division == store.Division) && 
-                                                 (a.Store == store.Store)) 
+                                          where a.ID == dg.PlanID && 
+                                                a.Division == store.Division && 
+                                                a.Store == store.Store
                                           select a).FirstOrDefault();
                                 if (detail != null)
                                 {
                                     if (dg.StartDate != null)
                                     {
-                                        detail.StartDate = ((DateTime)dg.StartDate);
+                                        detail.StartDate = (DateTime)dg.StartDate;
                                         db.Entry(detail).State = System.Data.EntityState.Modified;
                                     }
-                                    if (dg.EndDate != null)
-                                    {
-                                        detail.EndDate = ((DateTime)dg.EndDate);
-                                    }
+
+                                    if (dg.EndDate != null)                                    
+                                        detail.EndDate = (DateTime)dg.EndDate;                                    
                                 }
                             }
                         }
 
-                        db.SaveChanges(UserName);
+                        db.SaveChanges(currentUser.NetworkID);
                         UpdateRangeActiveARStatus();
                         return RedirectToAction("Index");
                     }
@@ -394,7 +393,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                     // Set timestamp
                     update.CreateDate = DateTime.Now;
-                    update.CreatedBy = User.Identity.Name;
+                    update.CreatedBy = currentUser.NetworkID;
 
                 }
                 // Persist constraint changes

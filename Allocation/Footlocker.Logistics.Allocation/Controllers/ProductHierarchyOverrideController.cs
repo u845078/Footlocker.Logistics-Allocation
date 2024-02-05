@@ -591,7 +591,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             record.lastModifiedDate = DateTime.Now;
-            record.lastModifiedUser = User.Identity.Name;
+            record.lastModifiedUser = currentUser.NetworkID;
 
             return record;
         }

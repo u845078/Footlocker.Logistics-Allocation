@@ -57,14 +57,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return flCommon.ApplicationUsers.ToList();
         }
 
-        public string UserName
-        {
-            get
-            {
-                return currentUser.NetworkID;
-            }
-        }
-
         private void LoadCurrentUser()
         {
             DirectoryEntry de;

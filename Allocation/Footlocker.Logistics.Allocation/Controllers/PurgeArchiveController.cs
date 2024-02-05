@@ -76,7 +76,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 if (TryUpdateModel(pat))
                 {
                     //service call
-                    patDAO.Update(pat, User.Identity.Name);
+                    patDAO.Update(pat, currentUser.NetworkID);
                 }
             }
             List<PurgeArchiveType> result = patDAO.GetPurgeArchiveTypesByInstance(pat.InstanceID);
@@ -132,7 +132,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
 
                     //service call
-                    patDAO.Create(modelsToCreate, User.Identity.Name);
+                    patDAO.Create(modelsToCreate, currentUser.NetworkID);
                     return RedirectToAction("Index");
                 }
                 else

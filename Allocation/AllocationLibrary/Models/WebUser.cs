@@ -51,6 +51,14 @@ namespace Footlocker.Logistics.Allocation.Models
             return GetUserRoles(app).Contains(role);
         }
 
+        public bool HasDivisionRole(string app, string role, string division)
+        {
+            if (HasUserRole(app, role))            
+                return WebSecurityService.UserHasDivisionRole(NetworkID, app, division, role);            
+            else 
+                return false;
+        }
+
         /// <summary>
         /// Gets a list of roles that the current user is a part of
         /// </summary>

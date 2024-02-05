@@ -1471,7 +1471,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             UpdateStoreDates(div, store, ruleSetID, planID, string.Empty);
-            db.SaveChanges(UserName);
+            db.SaveChanges(currentUser.NetworkID);
             rangePlanDAO.UpdateRangeHeader(planID, currentUser);
 
             return RedirectToAction("ShowStoresWithoutDeliveryGroup", new { planID });
@@ -2720,9 +2720,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult StartALR(long planID)
         {
             RangePlan rp = (from a in db.RangePlans where a.Id == planID select a).First();
-            rp.ALRStartDate = (from a in db.ControlDates join b in db.InstanceDivisions on a.InstanceID equals b.InstanceID where b.Division == rp.Division select a.RunDate).First().AddDays(1);
+            rp.ALRStartDate = (from a in db.ControlDates 
+                               join b in db.InstanceDivisions 
+                               on a.InstanceID equals b.InstanceID 
+                               where b.Division == rp.Division 
+                               select a.RunDate).First().AddDays(1);
             rp.UpdateDate = DateTime.Now;
-            rp.UpdatedBy = UserName;
+            rp.UpdatedBy = currentUser.NetworkID;
             db.Entry(rp).State = System.Data.EntityState.Modified;
 
             List<DeliveryGroup> deliveryGroups = db.DeliveryGroups.Where(dg => dg.PlanID == planID).ToList();
@@ -2735,7 +2739,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             }
 
-            db.SaveChanges(UserName);
+            db.SaveChanges(currentUser.NetworkID);
             return RedirectToAction("PresentationQuantities", new { planID });
         }
 
@@ -2838,7 +2842,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult CreatePreSale(PreSaleModel model)
         {
-            if (!WebSecurityService.UserHasDivisionRole(UserName, "allocation", model.SKU.Substring(0, 2), "Ecomm Presale"))
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
+
+            if (currentUser.HasDivisionRole(AppName, "Ecomm Presale", model.SKU.Substring(0, 2)))            
             {
                 ViewData["message"] = "You do not have security to create PreSale records for this division.";
                 return View(model);
@@ -2847,12 +2853,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             PreSaleSKU preSale = new PreSaleSKU()
             {
                 LastModifiedDate = DateTime.Now,
-                LastModifiedUser = currentUser.NetworkID
+                LastModifiedUser = currentUser.NetworkID,
+                InventoryArrivalDate = model.preSaleSKU.InventoryArrivalDate,
+                Active = true,
+                ItemID = itemDAO.GetItemID(model.SKU)
             };
-
-            preSale.ItemID = ValidatePreSaleSKU(model.SKU);
-            preSale.InventoryArrivalDate = model.preSaleSKU.InventoryArrivalDate;
-            preSale.Active = true;
 
             if (preSale.ItemID == 0)
             {
@@ -2879,13 +2884,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.SaveChanges();
 
             return RedirectToAction("PreSale");
-        }
-
-        private long ValidatePreSaleSKU(string SKU)
-        {
-            return (from a in db.ItemMasters
-                    where a.MerchantSku == SKU
-                    select a.ID).FirstOrDefault();
         }
 
         public ActionResult EditPreSale(int PreSaleSkuID)
@@ -3138,17 +3136,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
         #endregion
 
+        #region Delivery Group Upload
+        [CheckPermission(Roles = "Merchandiser, Head Merchandiser, Buyer Planner, Director of Allocation, Admin, Support")]
+        public ActionResult SkuRPDGUpload()
+        {
+            return View();
+        }
+
         public ActionResult ExcelRange(string sku)
         {
             SKURangeExport exportRange = new SKURangeExport(appConfig, new RangePlanDetailDAO());
             exportRange.WriteData(sku);
             exportRange.excelDocument.Save(System.Web.HttpContext.Current.Response, "RangeUpload.xlsx", ContentDisposition.Attachment, exportRange.SaveOptions);
-            return View();
-        }
-
-        [CheckPermission(Roles = "Merchandiser, Head Merchandiser, Buyer Planner, Director of Allocation, Admin, Support")]
-        public ActionResult SkuRPDGUpload()
-        {
             return View();
         }
 
@@ -3160,6 +3159,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return View();
         }
+        #endregion
 
         #region SKU Range Plan Delivery Group upload
         [CheckPermission(Roles = "Merchandiser, Head Merchandiser, Buyer Planner, Director of Allocation, Admin, Support")]

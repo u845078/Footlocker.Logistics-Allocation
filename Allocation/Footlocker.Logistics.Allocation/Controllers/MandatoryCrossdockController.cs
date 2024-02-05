@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Models;
+using Footlocker.Logistics.Allocation.Services;
 using Telerik.Web.Mvc;
 
 namespace Footlocker.Logistics.Allocation.Controllers
@@ -64,7 +65,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 ItemMaster i = (from a in db.ItemMasters where a.ID == itemid select a).First();
 
-                if ((from a in db.vValidStores where ((a.Division == i.Div) && (a.Store == store)) select a).Count() == 0)
+                if ((from a in db.vValidStores where a.Division == i.Div && a.Store == store select a).Count() == 0)
                 {
                     return Json("Invalid Store");
                 }
@@ -77,7 +78,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.PercentAsInt = percent;
 
                 db.MandatoryCrossdockDefaults.Add(model);
-                db.SaveChanges(UserName);
+                db.SaveChanges(currentUser.NetworkID);
 
                 return Json("Success");
             }
@@ -96,7 +97,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 MandatoryCrossdockDefault model = (from a in db.MandatoryCrossdockDefaults where ((a.InstanceID == instanceid) && (a.ItemID == itemid) && (a.Store == store)) select a).First();
                 db.MandatoryCrossdockDefaults.Remove(model);
-                db.SaveChanges(UserName);
+                db.SaveChanges(currentUser.NetworkID);
 
                 return Json("Success");
             }
@@ -168,6 +169,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(EditMandatoryCrossdock model)
         {
+            ConfigService configService = new ConfigService();
+
             ItemMaster i = (from a in db.ItemMasters where a.MerchantSku == model.Sku select a).FirstOrDefault();
 
             if (i == null)
@@ -178,15 +181,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             try
             {
-                InstanceDivision inst = (from a in db.InstanceDivisions where a.Division == i.Div select a).FirstOrDefault();
-                model.MandatoryCrossdock = (from a in db.MandatoryCrossdocks where ((a.InstanceID == inst.InstanceID) && (a.ItemID == i.ID)) select a).FirstOrDefault();
+                int instanceID = configService.GetInstance(i.Div);
+                
+                model.MandatoryCrossdock = db.MandatoryCrossdocks.Where(mc => mc.InstanceID == instanceID && mc.ItemID == i.ID).FirstOrDefault();
                 if (model.MandatoryCrossdock == null)
                 {
-                    model.MandatoryCrossdock = new MandatoryCrossdock();
-                    model.MandatoryCrossdock.InstanceID = inst.InstanceID;
-                    model.MandatoryCrossdock.ItemID = i.ID;
-                    model.MandatoryCrossdock.CreatedBy = currentUser.NetworkID;
-                    model.MandatoryCrossdock.CreateDate = DateTime.Now;
+                    model.MandatoryCrossdock = new MandatoryCrossdock()
+                    {
+                        InstanceID = instanceID,
+                        ItemID = i.ID,
+                        CreatedBy = currentUser.NetworkID,
+                        CreateDate = DateTime.Now
+                    };
 
                     db.MandatoryCrossdocks.Add(model.MandatoryCrossdock);
                     db.SaveChanges(currentUser.NetworkID);
@@ -214,9 +220,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 itemid = mcd.ItemID;
             }
 
-            db.SaveChanges(UserName);
+            db.SaveChanges(currentUser.NetworkID);
 
-            List<MandatoryCrossdockDefault> model = (from a in db.MandatoryCrossdockDefaults where ((a.InstanceID == instanceid) && (a.ItemID == itemid)) select a).ToList();
+            List<MandatoryCrossdockDefault> model = (from a in db.MandatoryCrossdockDefaults where a.InstanceID == instanceid && a.ItemID == itemid select a).ToList();
 
             return View(new GridModel(model));
         }
@@ -224,15 +230,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Delete(int instanceID, long itemID)
         {
             EditMandatoryCrossdock model = new EditMandatoryCrossdock();
-            model.MandatoryCrossdock = (from a in db.MandatoryCrossdocks where ((a.InstanceID == instanceID) && (a.ItemID == itemID)) select a).First();
-            foreach (MandatoryCrossdockDefault m in (from a in db.MandatoryCrossdockDefaults where ((a.InstanceID == instanceID) && (a.ItemID == itemID)) select a).ToList())
+            model.MandatoryCrossdock = (from a in db.MandatoryCrossdocks where a.InstanceID == instanceID && a.ItemID == itemID select a).First();
+            foreach (MandatoryCrossdockDefault m in (from a in db.MandatoryCrossdockDefaults where a.InstanceID == instanceID && a.ItemID == itemID select a).ToList())
             {
                 db.MandatoryCrossdockDefaults.Remove(m);
             }
             MandatoryCrossdock mc = (from a in db.MandatoryCrossdocks where ((a.InstanceID == instanceID) && (a.ItemID == itemID)) select a).First();
             db.MandatoryCrossdocks.Remove(mc);
 
-            db.SaveChanges(UserName);
+            db.SaveChanges(currentUser.NetworkID);
 
             return RedirectToAction("Index");
         }

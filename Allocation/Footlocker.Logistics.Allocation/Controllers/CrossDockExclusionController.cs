@@ -58,7 +58,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             try
             {
                 model.Exclusion.CreateDate = DateTime.Now;
-                model.Exclusion.CreatedBy = User.Identity.Name;
+                model.Exclusion.CreatedBy = currentUser.NetworkID;
                 db.CrossDockExclusions.Add(model.Exclusion);
                 db.SaveChanges();
                 return RedirectToAction("Index");

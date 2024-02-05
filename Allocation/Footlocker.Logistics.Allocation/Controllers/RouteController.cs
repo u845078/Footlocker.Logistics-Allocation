@@ -247,7 +247,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult EditDC(DistributionCenterModel model)
         {
             model.DC.LastModifiedDate = DateTime.Now;
-            model.DC.LastModifiedUser = User.Identity.Name;
+            model.DC.LastModifiedUser = currentUser.NetworkID;
             db.Entry(model.DC).State = EntityState.Modified;
 
             foreach (var selInst in model.SelectedInstances)
