@@ -76,7 +76,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
         public void AutofitColumns()
         {
-            for (int i = 0; i < maxColumns; i++)
+            for (int i = 0; i <= maxColumns; i++)
             {
                 excelDocument.Worksheets[worksheetNum].AutoFitColumn(i);
             }

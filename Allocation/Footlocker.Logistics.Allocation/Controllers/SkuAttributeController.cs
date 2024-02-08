@@ -470,7 +470,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
             SkuAttributeSpreadsheet skuAttributeSpreadsheet = new SkuAttributeSpreadsheet(appConfig, configService, itemDAO);
 
-            string message = string.Empty;
             int successCount = 0;
 
             foreach (HttpPostedFileBase file in attachments)
@@ -478,12 +477,37 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 skuAttributeSpreadsheet.Save(file);
 
                 if (!string.IsNullOrEmpty(skuAttributeSpreadsheet.message))
-                    return Content(message);
+                    return Content(skuAttributeSpreadsheet.message);
+                else
+                {
+                    if (skuAttributeSpreadsheet.errorList.Count > 0)
+                    {
+                        Session["errorList"] = skuAttributeSpreadsheet.errorList;
+                        return Content(string.Format("There were {0} errors", skuAttributeSpreadsheet.errorList.Count.ToString()));
+                    }
+                }
 
                 successCount += skuAttributeSpreadsheet.validSKUAttributes.Count();
             }
 
             return Json(new { message = string.Format("{0} Sku Attribute(s) Created/Modified", successCount) }, "application/json");
+        }
+
+        public ActionResult DownloadErrors()
+        {
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
+            SkuAttributeSpreadsheet skuAttributeSpreadsheet = new SkuAttributeSpreadsheet(appConfig, configService, itemDAO);
+            Workbook excelDocument;
+
+            List<SkuAttributeHeader> errorList = new List<SkuAttributeHeader>();
+
+            if (Session["errorList"] != null)
+                errorList = (List<SkuAttributeHeader>)Session["errorList"];
+
+            excelDocument = skuAttributeSpreadsheet.GetErrors(errorList);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "SkuAttributeErrors.xlsx", ContentDisposition.Attachment, skuAttributeSpreadsheet.SaveOptions);
+
+            return View();
         }
         #endregion
 

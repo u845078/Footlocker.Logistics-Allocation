@@ -6,7 +6,15 @@
 <fieldset>
     <legend> Life of Sku Upload </legend>
     Spreadsheet columns should be Div, Dept, Stock, ProductType and should only be for one division.<br />
-    @Html.ActionLink("Download Template", "ExcelProductTemplate",new {}, new {@class = "t-button"})
+    <b>This upload is only available for the following divisions: </b>
+    <br />
+    <ul>
+        @foreach (var division in ViewBag.ValidDivisions)
+        {
+            <li>@Html.Raw(division.DivisionCode + " - " + division.DivisionName)</li>
+        }
+    </ul>
+    @Html.ActionLink("Download Template", "ExcelProductTemplate", new { }, new { @class = "t-button" })
     <br />
     <br />
     <b>Please select spreadsheets: </b> <br /><br />
@@ -23,7 +31,7 @@
             .OnSuccess("onSuccess")
         )
     )
-    <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;"/>
+    <input type="submit" id="spreadsheet" name="create" value="Upload" class="t-button" style="width:150px; visibility: hidden;display:none;" />
     <br />
     <h4 id="message"></h4>
 </fieldset>

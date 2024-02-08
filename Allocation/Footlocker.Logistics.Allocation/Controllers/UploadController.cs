@@ -138,6 +138,38 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Buyer Planner,Director of Allocation,Admin,Support")]
         public ActionResult ProductTypeUpload()
         {
+            string authDivs;
+            try
+            {
+                authDivs = configService.GetValue(1, "SKUID_UPLOAD_AUTHORIZED_DIVS");
+            }
+            catch (Exception ex)
+            {
+                return Redirect("~/Error/GenericallyDenied?message=" + ex.Message);
+            }
+
+            string[] divisions = authDivs.Split(',');
+            bool canLoad = false;
+
+            foreach (string div in divisions)
+            {
+                if (currentUser.HasDivision(AppName, div))
+                {
+                    canLoad = true;
+                    break;
+                }
+            }
+
+            if (!canLoad)
+            {
+                string message = string.Format("You need access to one of the following divisions to access this page: {0}", authDivs);
+                return Redirect("~/Error/GenericallyDenied?message=" + message);
+            }
+
+            ViewBag.ValidDivisions = db.AllocationDivisions.Where(ad => divisions.Contains(ad.DivisionCode))
+                                                            .OrderBy(ad => ad.DivisionCode)
+                                                            .ToList();
+
             return View();
         }
 

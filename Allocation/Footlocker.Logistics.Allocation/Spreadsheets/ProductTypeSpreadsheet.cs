@@ -16,6 +16,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         public List<ProductType> validRows = new List<ProductType>();
         public List<ProductType> errorRows = new List<ProductType>();
         List<ProductType> validProductTypes;
+        string authDivs;
 
         private ProductType ParseRow(DataRow row)
         {
@@ -35,15 +36,20 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             string errorMessage = string.Empty;
             int count;
 
-            if (!config.currentUser.HasDivision(config.AppName, parsedRec.Division))            
-                errorMessage = string.Format("You are not authorized to update division {0}", parsedRec.Division);
+            if (!authDivs.Split(',').Contains(parsedRec.Division))
+                errorMessage = string.Format("Unauthorized division specified in spreadsheet, Division {0}. Please read instructions above for the authorized divisions.", parsedRec.Division);
             else
             {
-                count = validProductTypes.Where(vpt => vpt.Division == parsedRec.Division &&
-                                                       (vpt.Dept == parsedRec.Dept || vpt.Dept == "00") &&
-                                                       vpt.ProductTypeCode == parsedRec.ProductTypeCode).Count();
-                if (count == 0)
-                    errorMessage = string.Format("Product Type {0} for Div/Dept {1}/{2} doesn't exist", parsedRec.ProductTypeCode, parsedRec.Division, parsedRec.Dept);
+                if (!config.currentUser.HasDivision(config.AppName, parsedRec.Division))
+                    errorMessage = string.Format("You are not authorized to update division {0}", parsedRec.Division);
+                else
+                {
+                    count = validProductTypes.Where(vpt => vpt.Division == parsedRec.Division &&
+                                                           (vpt.Dept == parsedRec.Dept || vpt.Dept == "00") &&
+                                                           vpt.ProductTypeCode == parsedRec.ProductTypeCode).Count();
+                    if (count == 0)
+                        errorMessage = string.Format("Product Type {0} for Div/Dept {1}/{2} doesn't exist", parsedRec.ProductTypeCode, parsedRec.Division, parsedRec.Dept);
+                }
             }
 
             return errorMessage;
@@ -53,6 +59,15 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         {
             ProductType uploadRec;
             ProductType lookupRec;
+
+            try
+            {
+                authDivs = configService.GetValue(1, "SKUID_UPLOAD_AUTHORIZED_DIVS");
+            }
+            catch (Exception ex)
+            {
+                message = ex.Message;
+            }
 
             LoadAttachment(attachment.InputStream);
 

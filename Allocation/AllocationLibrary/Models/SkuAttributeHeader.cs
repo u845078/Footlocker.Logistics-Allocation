@@ -72,6 +72,9 @@ namespace Footlocker.Logistics.Allocation.Models
             } 
         }
 
+        [NotMapped]
+        public string ErrorMessage { get; set; }
+
         public List<SkuAttributeDetail> SkuAttributeDetails { get; set; }
     }
 }
