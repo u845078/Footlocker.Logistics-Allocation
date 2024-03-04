@@ -140,54 +140,29 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
 
-        [CheckPermission(Roles = "IT")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Execute(MaintenanceModel model)
-        {
-            DataChangeLog command = allocDB.DataChanges.Where(dc => !dc.ExecutedInd).FirstOrDefault();
-
-            switch (command.UsedDatabase)
-            {
-                case "Allocation":
-                    command.ChangedRows = allocDB.ExecuteCommand(command.CommandText);
-                    break;
-                case "Footlocker_Common":
-                    FootLockerCommonContext commDB = new FootLockerCommonContext();
-                    command.ChangedRows = commDB.ExecuteCommand(command.CommandText);
-                    break;
-            }
-
-            command.ExecutedInd = true;
-
-            allocDB.SaveChanges();
-
-            model.ReturnMessage = string.Format("There were {0} records affected", command.ChangedRows);
-
-            return View(model);
-        }
-
         //[CheckPermission(Roles = "IT")]
         //[HttpPost]
         //[ValidateAntiForgeryToken]
-        //public ActionResult Maintenance(MaintenanceModel model)
+        //public ActionResult Execute(MaintenanceModel model)
         //{
-        //    int recordsAffected = 0;
+        //    DataChangeLog command = allocDB.DataChanges.Where(dc => !dc.ExecutedInd).FirstOrDefault();
 
-        //    switch (model.SelectedDatabase)
+        //    switch (command.UsedDatabase)
         //    {
-        //        case MaintenanceDataBases.Allocation:
-        //            recordsAffected = db.Database.ExecuteSqlCommand(model.GeneratedSQLCommand);
+        //        case "Allocation":
+        //            command.ChangedRows = allocDB.ExecuteCommand(command.CommandText);
         //            break;
-        //        case MaintenanceDataBases.Footlocker_Common:
+        //        case "Footlocker_Common":
         //            FootLockerCommonContext commDB = new FootLockerCommonContext();
-        //            recordsAffected = commDB.Database.ExecuteSqlCommand(model.GeneratedSQLCommand);
+        //            command.ChangedRows = commDB.ExecuteCommand(command.CommandText);
         //            break;
         //    }
 
-        //    db.SaveChanges();
+        //    command.ExecutedInd = true;
 
-        //    model.ReturnMessage = string.Format("There were {0} records affected", recordsAffected);
+        //    allocDB.SaveChanges();
+
+        //    model.ReturnMessage = string.Format("There were {0} records affected", command.ChangedRows);
 
         //    return View(model);
         //}
