@@ -113,11 +113,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 switch (command.UsedDatabase)
                 {
                     case "Allocation":
-                        command.ChangedRows = db.Database.ExecuteSqlCommand(command.CommandText);
+                        command.ChangedRows = allocDB.ExecuteCommand(command.CommandText); 
                         break;
                     case "Footlocker_Common":
                         FootLockerCommonContext commDB = new FootLockerCommonContext();
-                        command.ChangedRows = commDB.Database.ExecuteSqlCommand(command.CommandText);
+                        command.ChangedRows = commDB.ExecuteCommand(command.CommandText);
                         break;
                 }
 
@@ -127,6 +127,42 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
                 model.ReturnMessage = string.Format("There were {0} records affected", command.ChangedRows);
             }
+
+            return View(model);
+        }
+
+        [CheckPermission(Roles = "IT")]
+        public ActionResult Execute()
+        {
+            MaintenanceModel model = new MaintenanceModel();
+
+            return View(model);
+        }
+
+
+        [CheckPermission(Roles = "IT")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Execute(MaintenanceModel model)
+        {
+            DataChangeLog command = allocDB.DataChanges.Where(dc => !dc.ExecutedInd).FirstOrDefault();
+
+            switch (command.UsedDatabase)
+            {
+                case "Allocation":
+                    command.ChangedRows = allocDB.ExecuteCommand(command.CommandText);
+                    break;
+                case "Footlocker_Common":
+                    FootLockerCommonContext commDB = new FootLockerCommonContext();
+                    command.ChangedRows = commDB.ExecuteCommand(command.CommandText);
+                    break;
+            }
+
+            command.ExecutedInd = true;
+
+            allocDB.SaveChanges();
+
+            model.ReturnMessage = string.Format("There were {0} records affected", command.ChangedRows);
 
             return View(model);
         }

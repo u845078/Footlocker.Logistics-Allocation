@@ -387,5 +387,13 @@ namespace Footlocker.Logistics.Allocation.Services
 
             return returnVal;
         }
+
+        public int ExecuteCommand(string commandText)
+        {
+            int changedRows;
+            changedRows = Database.ExecuteSqlCommand(commandText);
+
+            return changedRows;
+        }
     }
 }

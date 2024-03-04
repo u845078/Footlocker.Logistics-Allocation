@@ -23,5 +23,13 @@ namespace Footlocker.Logistics.Allocation.Services
             // Sets the command timeout for all the commands
             objectContext.CommandTimeout = 300;
         }
+
+        public int ExecuteCommand(string commandText)
+        {
+            int changedRows;
+            changedRows = Database.ExecuteSqlCommand(commandText);
+
+            return changedRows;
+        }
     }
 }
