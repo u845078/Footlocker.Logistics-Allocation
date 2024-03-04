@@ -119,6 +119,7 @@
     <Compile Include="Models\ControlDate.cs" />
     <Compile Include="Models\Country.cs" />
     <Compile Include="Models\CPSkuSizesXref.cs" />
+    <Compile Include="Models\DataChangeLog.cs" />
     <Compile Include="Models\Departments.cs" />
     <Compile Include="Models\DistributionCenterRestrictions.cs" />
     <Compile Include="Models\EcomCustomerFulfillmentXref.cs" />

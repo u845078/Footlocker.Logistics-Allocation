@@ -4,6 +4,7 @@ using System.Web.Mvc;
 using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Common;
+using System;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -11,6 +12,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     public class DriverController : AppController
     {
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        AllocationLibraryContext allocDB = new AllocationLibraryContext();
 
         public ActionResult Index(string div)
         {
@@ -88,25 +90,71 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Maintenance(MaintenanceModel model)
         {
-            int recordsAffected = 0;
-
-            switch (model.SelectedDatabase)
+            if (!string.IsNullOrEmpty(model.SQLCommand))
             {
-                case MaintenanceDataBases.Allocation:
-                    recordsAffected = db.Database.ExecuteSqlCommand(model.GeneratedSQLCommand);
-                    break;
-                case MaintenanceDataBases.Footlocker_Common:
-                    FootLockerCommonContext commDB = new FootLockerCommonContext();
-                    recordsAffected = commDB.Database.ExecuteSqlCommand(model.GeneratedSQLCommand);
-                    break;
+                DataChangeLog changeRec = new DataChangeLog()
+                {
+                    CommandText = model.SQLCommand,
+                    UsedDatabase = model.SelectedDatabase.ToString(),
+                    LastModifiedUser = currentUser.NetworkID,
+                    LastModifiedDate = DateTime.Now
+                };
+
+                allocDB.DataChanges.Add(changeRec);
+                allocDB.SaveChanges();
+
+                model.ReturnMessage = "SQL Command Stored";
+                model.SQLCommand = string.Empty;
             }
+            else
+            {
+                DataChangeLog command = allocDB.DataChanges.Where(dc => !dc.ExecutedInd).FirstOrDefault();                
 
-            db.SaveChanges();
+                switch (command.UsedDatabase)
+                {
+                    case "Allocation":
+                        command.ChangedRows = db.Database.ExecuteSqlCommand(command.CommandText);
+                        break;
+                    case "Footlocker_Common":
+                        FootLockerCommonContext commDB = new FootLockerCommonContext();
+                        command.ChangedRows = commDB.Database.ExecuteSqlCommand(command.CommandText);
+                        break;
+                }
 
-            model.ReturnMessage = string.Format("There were {0} records affected", recordsAffected);
+                command.ExecutedInd = true;
+
+                allocDB.SaveChanges();
+
+                model.ReturnMessage = string.Format("There were {0} records affected", command.ChangedRows);
+            }
 
             return View(model);
         }
+
+        //[CheckPermission(Roles = "IT")]
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public ActionResult Maintenance(MaintenanceModel model)
+        //{
+        //    int recordsAffected = 0;
+
+        //    switch (model.SelectedDatabase)
+        //    {
+        //        case MaintenanceDataBases.Allocation:
+        //            recordsAffected = db.Database.ExecuteSqlCommand(model.GeneratedSQLCommand);
+        //            break;
+        //        case MaintenanceDataBases.Footlocker_Common:
+        //            FootLockerCommonContext commDB = new FootLockerCommonContext();
+        //            recordsAffected = commDB.Database.ExecuteSqlCommand(model.GeneratedSQLCommand);
+        //            break;
+        //    }
+
+        //    db.SaveChanges();
+
+        //    model.ReturnMessage = string.Format("There were {0} records affected", recordsAffected);
+
+        //    return View(model);
+        //}
 
         public ActionResult Delete(string div, string dept)
         {
