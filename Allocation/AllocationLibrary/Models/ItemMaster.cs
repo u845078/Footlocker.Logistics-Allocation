@@ -7,9 +7,9 @@ namespace Footlocker.Logistics.Allocation.Models
     [Table("ItemMaster")]
     public class ItemMaster
     {
-        public int InstanceID { get; set; }
+        public Int32 InstanceID { get; set; }
         [Key]
-        public long ID { get; set; }
+        public Int64 ID { get; set; }
         public string CurrentSku { get; set; }
 
         [Display(Name = "SKU")]

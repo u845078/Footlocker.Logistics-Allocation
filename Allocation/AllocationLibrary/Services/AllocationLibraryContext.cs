@@ -90,7 +90,6 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<LegacyFutureInventory> LegacyFutureInventory { get; set; }
         public DbSet<FootLockerCountryCode> FLCountryCodes { get; set; }
         public DbSet<RDQRejectReasonCode> RDQRejectReasons { get; set; }
-
         public DbSet<DataChangeLog> DataChanges { get; set; }
 
         public AllocationLibraryContext()

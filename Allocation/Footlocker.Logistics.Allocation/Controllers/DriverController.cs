@@ -85,84 +85,48 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        [CheckPermission(Roles = "IT")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Maintenance(MaintenanceModel model)
-        {
-            if (!string.IsNullOrEmpty(model.SQLCommand))
-            {
-                DataChangeLog changeRec = new DataChangeLog()
-                {
-                    CommandText = model.SQLCommand,
-                    UsedDatabase = model.SelectedDatabase.ToString(),
-                    LastModifiedUser = currentUser.NetworkID,
-                    LastModifiedDate = DateTime.Now
-                };
-
-                allocDB.DataChanges.Add(changeRec);
-                allocDB.SaveChanges();
-
-                model.ReturnMessage = "SQL Command Stored";
-                model.SQLCommand = string.Empty;
-            }
-            else
-            {
-                DataChangeLog command = allocDB.DataChanges.Where(dc => !dc.ExecutedInd).FirstOrDefault();                
-
-                switch (command.UsedDatabase)
-                {
-                    case "Allocation":
-                        command.ChangedRows = allocDB.ExecuteCommand(command.CommandText); 
-                        break;
-                    case "Footlocker_Common":
-                        FootLockerCommonContext commDB = new FootLockerCommonContext();
-                        command.ChangedRows = commDB.ExecuteCommand(command.CommandText);
-                        break;
-                }
-
-                command.ExecutedInd = true;
-
-                allocDB.SaveChanges();
-
-                model.ReturnMessage = string.Format("There were {0} records affected", command.ChangedRows);
-            }
-
-            return View(model);
-        }
-
-        [CheckPermission(Roles = "IT")]
-        public ActionResult Execute()
-        {
-            MaintenanceModel model = new MaintenanceModel();
-
-            return View(model);
-        }
-
-
         //[CheckPermission(Roles = "IT")]
         //[HttpPost]
         //[ValidateAntiForgeryToken]
-        //public ActionResult Execute(MaintenanceModel model)
+        //public ActionResult Maintenance(MaintenanceModel model)
         //{
-        //    DataChangeLog command = allocDB.DataChanges.Where(dc => !dc.ExecutedInd).FirstOrDefault();
-
-        //    switch (command.UsedDatabase)
+        //    if (!string.IsNullOrEmpty(model.SQLCommand))
         //    {
-        //        case "Allocation":
-        //            command.ChangedRows = allocDB.ExecuteCommand(command.CommandText);
-        //            break;
-        //        case "Footlocker_Common":
-        //            FootLockerCommonContext commDB = new FootLockerCommonContext();
-        //            command.ChangedRows = commDB.ExecuteCommand(command.CommandText);
-        //            break;
+        //        DataChangeLog changeRec = new DataChangeLog()
+        //        {
+        //            CommandText = model.SQLCommand,
+        //            UsedDatabase = model.SelectedDatabase.ToString(),
+        //            LastModifiedUser = currentUser.NetworkID,
+        //            LastModifiedDate = DateTime.Now
+        //        };
+
+        //        allocDB.DataChanges.Add(changeRec);
+        //        allocDB.SaveChanges();
+
+        //        model.ReturnMessage = "SQL Command Stored";
+        //        model.SQLCommand = string.Empty;
         //    }
+        //    else
+        //    {
+        //        DataChangeLog command = allocDB.DataChanges.Where(dc => !dc.ExecutedInd).FirstOrDefault();
 
-        //    command.ExecutedInd = true;
+        //        switch (command.UsedDatabase)
+        //        {
+        //            case "Allocation":
+        //                command.ChangedRows = db.Database.ExecuteSqlCommand(command.CommandText);
+        //                break;
+        //            case "Footlocker_Common":
+        //                FootLockerCommonContext commDB = new FootLockerCommonContext();
+        //                command.ChangedRows = commDB.Database.ExecuteSqlCommand(command.CommandText);
+        //                break;
+        //        }
 
-        //    allocDB.SaveChanges();
+        //        command.ExecutedInd = true;
 
-        //    model.ReturnMessage = string.Format("There were {0} records affected", command.ChangedRows);
+        //        allocDB.SaveChanges();
+
+        //        model.ReturnMessage = string.Format("There were {0} records affected", command.ChangedRows);
+        //    }
 
         //    return View(model);
         //}

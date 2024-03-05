@@ -11,7 +11,7 @@ namespace Footlocker.Logistics.Allocation.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long ChangeID { get; set; }
         public string CommandText { get; set; }
-        public string UsedDatabase {  get; set; }
+        public string UsedDatabase { get; set; }
         public bool ExecutedInd { get; set; }
         public long ChangedRows { get; set; }
         public DateTime LastModifiedDate { get; set; }

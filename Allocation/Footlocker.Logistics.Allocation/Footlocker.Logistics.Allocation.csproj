@@ -721,7 +721,6 @@
     <Content Include="Views\EcomCustXref\FormLayout.cshtml" />
     <Content Include="Views\EcomCustXref\Edit.cshtml" />
     <Content Include="Views\RingFence\Release.cshtml" />
-    <Content Include="Views\Driver\Execute.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />
