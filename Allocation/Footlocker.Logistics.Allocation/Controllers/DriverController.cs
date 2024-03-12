@@ -106,27 +106,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.ReturnMessage = "SQL Command Stored";
                 model.SQLCommand = string.Empty;
             }
-            else
-            {
-                DataChangeLog command = allocDB.DataChanges.Where(dc => !dc.ExecutedInd).FirstOrDefault();
+            //else
+            //{
+            //    DataChangeLog command = allocDB.DataChanges.Where(dc => !dc.ExecutedInd).FirstOrDefault();
 
-                switch (command.UsedDatabase)
-                {
-                    case "Allocation":
-                        command.ChangedRows = db.Database.ExecuteSqlCommand(command.CommandText);
-                        break;
-                    case "Footlocker_Common":
-                        FootLockerCommonContext commDB = new FootLockerCommonContext();
-                        command.ChangedRows = commDB.Database.ExecuteSqlCommand(command.CommandText);
-                        break;
-                }
+            //    switch (command.UsedDatabase)
+            //    {
+            //        case "Allocation":
+            //            command.ChangedRows = db.Database.ExecuteSqlCommand(command.CommandText);
+            //            break;
+            //        case "Footlocker_Common":
+            //            FootLockerCommonContext commDB = new FootLockerCommonContext();
+            //            command.ChangedRows = commDB.Database.ExecuteSqlCommand(command.CommandText);
+            //            break;
+            //    }
 
-                command.ExecutedInd = true;
+            //    command.ExecutedInd = true;
 
-                allocDB.SaveChanges();
+            //    allocDB.SaveChanges();
 
-                model.ReturnMessage = string.Format("There were {0} records affected", command.ChangedRows);
-            }
+            //    model.ReturnMessage = string.Format("There were {0} records affected", command.ChangedRows);
+            //}
 
             return View(model);
         }
