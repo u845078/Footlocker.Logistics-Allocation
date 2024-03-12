@@ -85,51 +85,51 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(model);
         }
 
-        //[CheckPermission(Roles = "IT")]
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public ActionResult Maintenance(MaintenanceModel model)
-        //{
-        //    if (!string.IsNullOrEmpty(model.SQLCommand))
-        //    {
-        //        DataChangeLog changeRec = new DataChangeLog()
-        //        {
-        //            CommandText = model.SQLCommand,
-        //            UsedDatabase = model.SelectedDatabase.ToString(),
-        //            LastModifiedUser = currentUser.NetworkID,
-        //            LastModifiedDate = DateTime.Now
-        //        };
+        [CheckPermission(Roles = "IT")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Maintenance(MaintenanceModel model)
+        {
+            if (!string.IsNullOrEmpty(model.SQLCommand))
+            {
+                DataChangeLog changeRec = new DataChangeLog()
+                {
+                    CommandText = model.SQLCommand,
+                    UsedDatabase = model.SelectedDatabase.ToString(),
+                    LastModifiedUser = currentUser.NetworkID,
+                    LastModifiedDate = DateTime.Now
+                };
 
-        //        allocDB.DataChanges.Add(changeRec);
-        //        allocDB.SaveChanges();
+                allocDB.DataChanges.Add(changeRec);
+                allocDB.SaveChanges();
 
-        //        model.ReturnMessage = "SQL Command Stored";
-        //        model.SQLCommand = string.Empty;
-        //    }
-        //    else
-        //    {
-        //        DataChangeLog command = allocDB.DataChanges.Where(dc => !dc.ExecutedInd).FirstOrDefault();
+                model.ReturnMessage = "SQL Command Stored";
+                model.SQLCommand = string.Empty;
+            }
+            else
+            {
+                DataChangeLog command = allocDB.DataChanges.Where(dc => !dc.ExecutedInd).FirstOrDefault();
 
-        //        switch (command.UsedDatabase)
-        //        {
-        //            case "Allocation":
-        //                command.ChangedRows = db.Database.ExecuteSqlCommand(command.CommandText);
-        //                break;
-        //            case "Footlocker_Common":
-        //                FootLockerCommonContext commDB = new FootLockerCommonContext();
-        //                command.ChangedRows = commDB.Database.ExecuteSqlCommand(command.CommandText);
-        //                break;
-        //        }
+                switch (command.UsedDatabase)
+                {
+                    case "Allocation":
+                        command.ChangedRows = db.Database.ExecuteSqlCommand(command.CommandText);
+                        break;
+                    case "Footlocker_Common":
+                        FootLockerCommonContext commDB = new FootLockerCommonContext();
+                        command.ChangedRows = commDB.Database.ExecuteSqlCommand(command.CommandText);
+                        break;
+                }
 
-        //        command.ExecutedInd = true;
+                command.ExecutedInd = true;
 
-        //        allocDB.SaveChanges();
+                allocDB.SaveChanges();
 
-        //        model.ReturnMessage = string.Format("There were {0} records affected", command.ChangedRows);
-        //    }
+                model.ReturnMessage = string.Format("There were {0} records affected", command.ChangedRows);
+            }
 
-        //    return View(model);
-        //}
+            return View(model);
+        }
 
         public ActionResult Delete(string div, string dept)
         {
