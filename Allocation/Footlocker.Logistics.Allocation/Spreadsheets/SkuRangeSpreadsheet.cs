@@ -3,7 +3,6 @@ using Footlocker.Logistics.Allocation.Services;
 using Footlocker.Logistics.Allocation.Common;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Web;
 using System.Text.RegularExpressions;
@@ -71,39 +70,44 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             string[] validFormats = { "M/d/yyyy", "M/d/yyyy hh:mm:ss tt" };
             DateTime parsedDate;
 
-            Regex regexSku = new Regex(@"^\d{2}-\d{2}-\d{5}-\d{2}$");
-            if (!regexSku.IsMatch(range.Sku))
-                errorMessage = "Invalid Sku, format should be ##-##-#####-##";
+            if (range.Division == "00" || string.IsNullOrEmpty(range.Division))
+                errorMessage = "Division is a mandatory field";
+            else
+            {
+                Regex regexSku = new Regex(@"^\d{2}-\d{2}-\d{5}-\d{2}$");
+                if (!regexSku.IsMatch(range.Sku))
+                    errorMessage = "Invalid Sku, format should be ##-##-#####-##";
+                else
+                {
+                    if (!config.currentUser.HasDivision(config.AppName, range.Division))
+                        errorMessage = string.Format("You are not authorized to update division {0}", range.Division);
+                    else
+                    {
+                        //ensure the store is valid            
+                        if (!config.db.StoreLookups.Where(sl => sl.Division == range.Division && sl.Store == range.Store).Any())
+                            errorMessage = "The division and store combination does not exist within the system.";
+                        else
+                        {
+                            if (!string.IsNullOrEmpty(range.RangeStartDate))
+                                if (!DateTime.TryParseExact(range.RangeStartDate, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                                    errorMessage = "Delivery group start date is not in a mm/dd/yyyy format";
 
-            if (!config.currentUser.HasDivision(config.AppName, range.Division))
-                errorMessage = string.Format("You are not authorized to update division {0}", range.Division);
+                            if (range.EndDate != "-1")
+                                if (!DateTime.TryParseExact(range.EndDate, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                                    errorMessage = "Store End Date override is not in a mm/dd/yyyy format";
 
-            //ensure the store is valid            
-            if (!config.db.StoreLookups.Where(sl => sl.Division == range.Division && sl.Store == range.Store).Any())
-                errorMessage = "The division and store combination does not exist within the system.";
+                            if (!string.IsNullOrEmpty(range.OPStartSend))
+                                if (!DateTime.TryParseExact(range.OPStartSend, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                                    errorMessage = "OP Start Send Date is not in a mm/dd/yyyy format";
 
-            if (!string.IsNullOrEmpty(range.RangeStartDate))
-                if (!DateTime.TryParseExact(range.RangeStartDate, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
-                    errorMessage = "Delivery group start date is not in a mm/dd/yyyy format";
-
-            if (range.EndDate != "-1")
-                if (!DateTime.TryParseExact(range.EndDate, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
-                    errorMessage = "Store End Date override is not in a mm/dd/yyyy format";
-
-            if (!string.IsNullOrEmpty(range.OPStartSend))
-                if (!DateTime.TryParseExact(range.OPStartSend, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
-                    errorMessage = "OP Start Send Date is not in a mm/dd/yyyy format";
-
-            if (!string.IsNullOrEmpty(range.OPStopSend))
-                if (!DateTime.TryParseExact(range.OPStopSend, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
-                    errorMessage = "OP End Send Date is not in a mm/dd/yyyy format";
-
+                            if (!string.IsNullOrEmpty(range.OPStopSend))
+                                if (!DateTime.TryParseExact(range.OPStopSend, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                                    errorMessage = "OP End Send Date is not in a mm/dd/yyyy format";
+                        }
+                    }
+                }
+            }
             return string.IsNullOrEmpty(errorMessage);
-        }
-
-        private void ValidateList()
-        {
-
         }
 
         public void Save(HttpPostedFileBase attachment, bool purgeFirst)
@@ -135,8 +139,6 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                         
                         row++;
                     }
-
-                    ValidateList();
 
                     foreach (BulkRange bulkRange in parsedRanges)
                     {
@@ -176,11 +178,22 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     mySheet.Cells[row, 5].PutValue(p.Size);
                     mySheet.Cells[row, 6].PutValue(p.RangeStartDate);
                     mySheet.Cells[row, 7].PutValue(p.DeliveryGroupName);
-                    mySheet.Cells[row, 8].PutValue(p.Min);
-                    mySheet.Cells[row, 9].PutValue(p.Max);
-                    mySheet.Cells[row, 10].PutValue(p.BaseDemand);
-                    mySheet.Cells[row, 11].PutValue(p.MinEndDaysOverride);
-                    mySheet.Cells[row, 12].PutValue(p.EndDate);
+
+                    if (p.Min != "-1")
+                        mySheet.Cells[row, 8].PutValue(p.Min);
+                    
+                    if (p.Max != "-1")
+                        mySheet.Cells[row, 9].PutValue(p.Max);
+
+                    if (p.BaseDemand != "-1")
+                        mySheet.Cells[row, 10].PutValue(p.BaseDemand);
+
+                    if (p.MinEndDaysOverride != "-1")
+                        mySheet.Cells[row, 11].PutValue(p.MinEndDaysOverride);
+
+                    if (p.EndDate != "-1")
+                        mySheet.Cells[row, 12].PutValue(p.EndDate);
+
                     mySheet.Cells[row, 13].PutValue(p.OPStartSend);
                     mySheet.Cells[row, 14].PutValue(p.OPStopSend);
                     mySheet.Cells[row, 15].PutValue(p.OPRequestComments);
