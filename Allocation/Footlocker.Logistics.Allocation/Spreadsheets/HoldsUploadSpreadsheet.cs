@@ -17,7 +17,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         public List<Hold> errorList = new List<Hold>();
         readonly HoldService holdService;
 
-        private Hold ParseRow(DataRow row)
+        private Hold ParseRow(DataRow row, out string errorMessage)
         {
             bool deptExists;
             bool brandExists;
@@ -25,6 +25,12 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             bool categoryExists;
             bool vendorExists;
             bool skuExists;
+            string StartDateString;
+            string EndDateString;
+            string[] validFormats = { "M/d/yyyy", "M/d/yyyy hh:mm:ss tt" };
+            DateTime parsedDate;
+
+            errorMessage = null;
 
             Hold returnValue = new Hold()
             {
@@ -37,13 +43,27 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 Category = Convert.ToString(row[6]).Trim(),
                 Vendor = Convert.ToString(row[7]).Trim(),
                 SKU = Convert.ToString(row[8]).Trim(),
-                StartDate = Convert.ToDateTime(row[9]),
-                EndDate = Convert.ToDateTime(row[10]),
                 HoldType = Convert.ToString(row[11]).Trim().ToLower(),
                 Comments = string.Format("(Upload) - {0}", Convert.ToString(row[12]).Trim()),
                 CreateDate = DateTime.Now,
                 CreatedBy = config.currentUser.NetworkID                
             };
+
+            StartDateString = Convert.ToString(row[9]).Trim();
+            EndDateString = Convert.ToString(row[10]).Trim();
+
+            if (!DateTime.TryParseExact(StartDateString, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                errorMessage = "Start date is not in a mm/dd/yyyy format ";
+            else
+                returnValue.StartDate = parsedDate;
+
+            if (!string.IsNullOrEmpty(EndDateString))
+            {
+                if (!DateTime.TryParseExact(EndDateString, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                    errorMessage += "End date is not in a mm/dd/yyyy format ";
+                else
+                    returnValue.EndDate = parsedDate;
+            }
 
             deptExists = !string.IsNullOrEmpty(returnValue.Department);
             brandExists = !string.IsNullOrEmpty(returnValue.Brand);
@@ -163,15 +183,22 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 {
                     foreach (DataRow dataRow in excelData.Rows)
                     {
-                        item = ParseRow(dataRow);
-
-                        if (!ValidateRow(item, out rowErrorMessage))
+                        item = ParseRow(dataRow, out rowErrorMessage);
+                        if (!string.IsNullOrEmpty(rowErrorMessage))
                         {
                             item.ErrorMessage = rowErrorMessage;
                             errorList.Add(item);
                         }
                         else
-                            validHolds.Add(item);
+                        {
+                            if (!ValidateRow(item, out rowErrorMessage))
+                            {
+                                item.ErrorMessage = rowErrorMessage;
+                                errorList.Add(item);
+                            }
+                            else
+                                validHolds.Add(item);
+                        }
 
                         row++;
                     }    
