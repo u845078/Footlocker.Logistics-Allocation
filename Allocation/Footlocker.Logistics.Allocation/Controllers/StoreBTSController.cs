@@ -52,25 +52,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     List<string> uniqueNames = (from l in model.List
                                                 select l.CreatedBy).Distinct().ToList();
-                    Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
 
-                    List<ApplicationUser> allUserNames = GetAllUserNamesFromDatabase();
-
-                    foreach (var item in uniqueNames)
-                    {
-                        if (!item.Contains(" ") && !string.IsNullOrEmpty(item))
-                        {
-                            string userLookup = item.Replace('\\', '/');
-                            userLookup = userLookup.Replace("CORP/", "");
-
-                            if (userLookup.Substring(0, 1) == "u")
-                                fullNamePairs.Add(item, allUserNames.Where(aun => aun.UserName == userLookup).Select(aun => aun.FullName).FirstOrDefault());
-                            else
-                                fullNamePairs.Add(item, item);
-                        }
-                        else
-                            fullNamePairs.Add(item, item);
-                    }
+                    Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
 
                     foreach (var item in fullNamePairs)
                     {

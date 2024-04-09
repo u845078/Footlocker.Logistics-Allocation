@@ -28,12 +28,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 List<string> uniqueNames = (from l in model
                                             select l.CreatedBy).Distinct().ToList();
-                Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
-
-                foreach (var item in uniqueNames)
-                {
-                    fullNamePairs.Add(item, GetFullUserNameFromDatabase(item.Replace('\\', '/')));
-                }
+                Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
 
                 foreach (var item in fullNamePairs)
                 {
@@ -96,11 +91,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 foreach (DirectToStoreConstraint update in updated)
                 {
-                    var query = (from a in db.DirectToStoreConstraints where ((a.Sku == update.Sku) && (a.Size == update.Size)) select a);
-                    if (query.Count() > 0)
-                    {
-                        db.Entry(update).State = System.Data.EntityState.Modified;
-                    }
+                    var query = db.DirectToStoreConstraints.Where(dtsc => dtsc.Sku == update.Sku && dtsc.Size == update.Size);
+                    if (query.Count() > 0)                    
+                        db.Entry(update).State = System.Data.EntityState.Modified;                    
                     else
                     {
                         // Create constraint in context
@@ -118,7 +111,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return View(new GridModel(new List<DirectToStoreConstraint>()));
         }
-
 
         [GridAction]
         public ActionResult _Index()
@@ -356,7 +348,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             //var notSetList = (from a in sizes where 
             var notSetList = sizes.Where(p => !model.Any(p2 => p2.Size == p));
             DirectToStoreConstraint item;
-            DateTime controlDate = (from a in db.InstanceDivisions join b in db.ControlDates on a.InstanceID equals b.InstanceID where a.Division == Sku.Substring(0, 2) select b.RunDate).First();
+            DateTime controlDate = (from a in db.InstanceDivisions 
+                                    join b in db.ControlDates 
+                                    on a.InstanceID equals b.InstanceID 
+                                    where a.Division == Sku.Substring(0, 2) 
+                                    select b.RunDate).First();
 
             foreach (string size in notSetList)
             {
@@ -380,7 +376,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 foreach (DirectToStoreConstraint update in updated)
                 {
-                    var query = (from a in db.DirectToStoreConstraints where ((a.Sku == update.Sku) && (a.Size == update.Size)) select a);
+                    var query = (from a in db.DirectToStoreConstraints where a.Sku == update.Sku && a.Size == update.Size select a);
                     if (query.Count() > 0)
                     {
                         db.Entry(update).State = System.Data.EntityState.Modified;
@@ -403,76 +399,5 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<DirectToStoreConstraint> list = GetConstraintsForSku(Sku);
             return View(new GridModel(list));
         }
-
-
-        //[HttpPost]
-        //[CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,Admin,Support,")]
-        //public ActionResult SaveDetail(FormCollection fc)
-        //{
-        //    DirectToStoreConstraint model= new DirectToStoreConstraint();
-        //    string sku, size;
-        //    sku = fc["item.sku"];
-        //    size = fc["item.Size"];
-        //    var query = (from a in db.DirectToStoreConstraints where ((a.Sku == sku) && (a.Size == size)) select a);
-        //    if (query.Count() > 0)
-        //    {
-        //        model = query.First();
-        //    }
-        //    else
-        //    {
-        //        // Set sku and size, only done on creation
-        //        model.Sku = sku;
-        //        model.Size = size;
-
-        //        // Create constraint in context
-        //        db.DirectToStoreConstraints.Add(model);
-        //    }
-            
-        //    // Update qty and dates
-        //    model.MaxQty = Convert.ToInt32(fc["item.MaxQty"]);
-        //    model.StartDate = Convert.ToDateTime(fc["StartDate" + size]);
-        //    if (fc["EndDate"+size] != "")
-        //    {
-        //        model.EndDate = Convert.ToDateTime(fc["EndDate" + size]);
-        //    }
-
-        //    // Set timestamp
-        //    model.CreateDate = DateTime.Now;
-        //    model.CreatedBy = User.Identity.Name;
-
-        //    // Persist constraint changes
-        //    db.SaveChanges();
-
-        //    return RedirectToAction("Details", new { Sku = model.Sku });
-        //}
-
-        //[HttpPost]
-        //[CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,Admin,Support,")]
-        //public ActionResult SaveOneSizeDetail(FormCollection fc)
-        //{
-        //    DirectToStoreConstraint model = new DirectToStoreConstraint();
-        //    string sku, size;
-        //    sku = fc["item.sku"];
-        //    size = fc["item.Size"];
-        //    var query = (from a in db.DirectToStoreConstraints where ((a.Sku == sku) && (a.Size == size)) select a);
-        //    if (query.Count() > 0)            
-        //        model = query.First();            
-        //    else
-        //    {
-        //        model.Sku = sku;
-        //        model.Size = size;
-        //        model.CreateDate = DateTime.Now;
-        //        model.CreatedBy = User.Identity.Name;
-        //        db.DirectToStoreConstraints.Add(model);
-        //    }
-        //    model.MaxQty = Convert.ToInt32(fc["item.MaxQty"]);
-        //    model.StartDate = Convert.ToDateTime(fc["StartDate" + sku]);
-            
-        //    if (fc["EndDate" + sku] != "")            
-        //        model.EndDate = Convert.ToDateTime(fc["EndDate" + sku]);
-            
-        //    db.SaveChanges();
-        //    return RedirectToAction("OneSizeConstraints");
-        //}
     }
 }

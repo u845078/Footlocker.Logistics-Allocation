@@ -37,6 +37,7 @@ namespace Footlocker.Logistics.Allocation.Services
             return instance;
         }
 
+
         public DateTime GetControlDate(int instance)
         {
             DateTime controlDate = (from cd in db.ControlDates

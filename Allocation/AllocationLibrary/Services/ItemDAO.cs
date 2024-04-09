@@ -115,6 +115,11 @@ namespace Footlocker.Logistics.Allocation.Services
             return db.ItemMasters.Where(im => im.MerchantSku == sku).Select(im => im.ID).FirstOrDefault();
         }
 
+        public ItemMaster GetItem(long itemID)
+        {
+            return db.ItemMasters.Where(im => im.ID == itemID).FirstOrDefault();
+        }
+
         public List<string> GetSKUSizes(string sku)
         {
             List<string> sizes = (from a in db.Sizes

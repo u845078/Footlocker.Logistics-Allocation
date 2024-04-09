@@ -32,12 +32,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 List<string> uniqueNames = (from l in model.Routes
                                             select l.CreatedBy).Distinct().ToList();
-                Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
-
-                foreach (var item in uniqueNames)
-                {
-                    fullNamePairs.Add(item, GetFullUserNameFromDatabase(item.Replace('\\', '/')));
-                }
+                Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
 
                 foreach (var item in fullNamePairs)
                 {
@@ -191,24 +186,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 InstanceID = Convert.ToInt32(instanceID)
             };
 
-            if (model.InstanceID == 0)
-            {
-                model.InstanceID = 1;
-            }
+            if (model.InstanceID == 0)            
+                model.InstanceID = 1;            
 
             model.DCs = (from a in db.DistributionCenters
                          join b in db.InstanceDistributionCenters 
                            on a.ID equals b.DCID
                          where b.InstanceID == model.InstanceID
                          select a).ToList();
+            
+            List<string> users = (from a in model.DCs
+                                  select a.LastModifiedUser).Distinct().ToList();
 
-            Dictionary<string, string> names = new Dictionary<string, string>();
-            var users = (from a in model.DCs
-                         select a.LastModifiedUser).Distinct();
-            foreach (string userID in users)
-            {
-                names.Add(userID, GetFullUserNameFromDatabase(userID.Replace('\\', '/')));
-            }
+            Dictionary<string, string> names = LoadUserNames(users);
+
             foreach (var item in model.DCs)
             {
                 item.LastModifiedUserName = names[item.LastModifiedUser];

@@ -22,12 +22,23 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 Divisions = currentUser.GetUserDivisions(AppName)
             };
 
-            if ((div == null) && (model.Divisions.Count() > 0))
-            {
+            if (div == null && model.Divisions.Count() > 0)            
                 div = model.Divisions[0].DivCode;
-            }
+            
             model.CurrentDivision = div;
             model.Drivers = dao.GetAllocationDriverList(div);
+            
+            List<string> uniqueNames = (from a in model.Drivers
+                                        where !string.IsNullOrEmpty(a.CreatedBy)
+                                        select a.CreatedBy).Distinct().ToList();
+
+            Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
+
+            foreach (var item in fullNamePairs)
+            {
+                model.Drivers.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+            }
+
             return View(model);
         }
 

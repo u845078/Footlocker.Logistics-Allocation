@@ -38,18 +38,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                          where !string.IsNullOrEmpty(l.UpdatedBy)
                                         select l.UpdatedBy).Distinct().ToList();
 
-            Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+            List<string> newNames = uniqueNames2.Where(x => !uniqueNames.Any(y => y == x)).ToList();
 
-            foreach (var item in uniqueNames)
-            {
-                fullNamePairs.Add(item, GetFullUserNameFromDatabase(item.Replace('\\', '/')));
-            }
+            uniqueNames.AddRange(newNames);
 
-            foreach (var item in uniqueNames2)
-            {
-                if (!fullNamePairs.ContainsKey(item))
-                    fullNamePairs.Add(item, GetFullUserNameFromDatabase(item.Replace('\\', '/')));
-            }
+            Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
 
             foreach (var item in fullNamePairs)
             {
@@ -137,14 +130,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     ex = ex.InnerException;
                 }
-                if (ex.Message.Contains("PRIMARY KEY"))
-                {
-                    ViewData["Message"] = "Config value already set up. Please use Edit instead.";
-                }
-                else
-                {
-                    ViewData["Message"] = ex.Message;
-                }
+
+                if (ex.Message.Contains("PRIMARY KEY"))                
+                    ViewData["Message"] = "Config value already set up. Please use Edit instead.";                
+                else                
+                    ViewData["Message"] = ex.Message;                
 
                 model.Params = db.ConfigParams.ToList();
                 return View(model);
@@ -182,7 +172,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 if (ex.Message.Contains("PRIMARY KEY"))                
-                    ViewData["Message"] = "Config param already setup.";                
+                    ViewData["Message"] = "Config param already set up.";                
                 else                
                     ViewData["Message"] = ex.Message;                
 

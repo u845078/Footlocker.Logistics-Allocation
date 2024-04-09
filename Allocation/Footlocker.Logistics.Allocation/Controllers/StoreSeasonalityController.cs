@@ -44,6 +44,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 
                 model.CurrentDivision = div;
                 model.List = db.StoreSeasonality.Where(ss => ss.Division == div).ToList();
+
+                List<string> uniqueNames = (from a in model.List
+                                            where !string.IsNullOrEmpty(a.CreatedBy)
+                                            select a.CreatedBy).Distinct().ToList();
+
+                Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
+
+                foreach (var item in fullNamePairs)
+                {
+                    model.List.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+                }
             }
 
             model.UnassignedStores = (from a in db.vValidStores

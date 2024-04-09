@@ -214,6 +214,7 @@
     <Compile Include="Common\ActionResultCode.cs" />
     <Compile Include="Common\AjaxValidationException.cs" />
     <Compile Include="Common\AppConfig.cs" />
+    <Compile Include="Models\CrossDockExclusionViewModel.cs" />
     <Compile Include="Models\NSSUpload.cs" />
     <Compile Include="Spreadsheets\ARConstraintsSpreadsheet.cs" />
     <Compile Include="Spreadsheets\ARSKUSpreadsheet.cs" />

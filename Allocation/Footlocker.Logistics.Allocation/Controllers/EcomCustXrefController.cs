@@ -31,15 +31,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             model = (from e in db.EcomCustomerFulfillmentXrefs.Include("FulfillmentCenter")
                      select e).ToList();
+            
+            List<string> users = (from a in model
+                                  select a.LastModifiedUser).Distinct().ToList();
 
-            Dictionary<string, string> names = new Dictionary<string, string>();
-            var users = (from a in model
-                         select a.LastModifiedUser).Distinct();
-
-            foreach (string userID in users)
-            {
-                names.Add(userID, GetFullUserNameFromDatabase(userID.Replace('\\', '/')));
-            }
+            Dictionary<string, string> names = LoadUserNames(users);
 
             foreach (var item in model)
             {

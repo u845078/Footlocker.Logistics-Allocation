@@ -45,14 +45,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                        new { Division = d.DivCode }
                                                 orderby a.Division, a.Dept, a.Category
                                                 select a).ToList();
+            
+            List<string> users = (from a in headers
+                                  select a.CreatedBy).Distinct().ToList();
 
-            Dictionary<string, string> names = new Dictionary<string, string>();
-            var users = (from a in headers
-                         select a.CreatedBy).Distinct();
-            foreach (string userID in users)
-            {
-                names.Add(userID, GetFullUserNameFromDatabase(userID.Replace('\\', '/')));
-            }
+            Dictionary<string, string> names = LoadUserNames(users);
+
             foreach (var item in headers)
             {
                 item.CreatedBy = names[item.CreatedBy];

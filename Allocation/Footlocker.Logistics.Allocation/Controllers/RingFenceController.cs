@@ -74,30 +74,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
             List<GroupedRingFence> list = dao.GetValidRingFenceGroups(currentUser.GetUserDivList(AppName));
 
-            Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
-            var uniqueNames = (from a in list
-                               where !string.IsNullOrEmpty(a.LastModifiedUser)
-                               select a.LastModifiedUser).Distinct();
+            List<string> uniqueNames = (from a in list
+                                        where !string.IsNullOrEmpty(a.LastModifiedUser)
+                                        select a.LastModifiedUser).Distinct().ToList();
 
-            List<ApplicationUser> allUserNames = GetAllUserNamesFromDatabase();
-
-            foreach (var item in uniqueNames)
-            {
-                if (!item.Contains(" ") && !string.IsNullOrEmpty(item))
-                {
-                    string userLookup = item.Replace('\\', '/');
-                    userLookup = userLookup.Replace("CORP/", "");
-
-                    if (userLookup.Substring(0, 1) == "u")
-                    {
-                        fullNamePairs.Add(item, allUserNames.Where(aun => aun.UserName == userLookup).Select(aun => aun.FullName).FirstOrDefault());
-                    }
-                    else
-                        fullNamePairs.Add(item, item);
-                }
-                else
-                    fullNamePairs.Add(item, item);
-            }
+            Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
 
             foreach (var item in fullNamePairs)
             {
@@ -262,14 +243,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         RingFenceTypeDescription = a.RingFenceTypeDescription,
                         ItemDescription = a.ItemDescription
                     }).OrderByDescending(x => x.CreateDate).ToList();
+            
+            List<string> users = (from a in list
+                                  select a.LastModifiedUser).Distinct().ToList();
 
-            Dictionary<string, string> names = new Dictionary<string, string>();
-            var users = (from a in list
-                         select a.LastModifiedUser).Distinct();
-            foreach (string userID in users)
-            {
-                names.Add(userID, GetFullUserNameFromDatabase(userID.Replace('\\', '/')));
-            }
+            Dictionary<string, string> names = LoadUserNames(users);
+
             foreach (var item in list)
             {
                 item.LastModifiedUserName = names[item.LastModifiedUser];
@@ -428,14 +407,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                where a.ID == h.DCID 
                                select a.Name).FirstOrDefault();
             }
+            
+            List<string> users = (from a in model
+                                  select a.CreatedBy).Distinct().ToList();
 
-            Dictionary<string, string> names = new Dictionary<string, string>();
-            var users = (from a in model
-                         select a.CreatedBy).Distinct();
-            foreach (string userID in users)
-            {
-                names.Add(userID, GetFullUserNameFromDatabase(userID.Replace('\\', '/')));
-            }
+            Dictionary<string, string> names = LoadUserNames(users);
+
             foreach (var item in model)
             {
                 item.CreatedByName = names[item.CreatedBy];
@@ -906,55 +883,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
         }
 
-        //public ActionResult BulkAdmin(string message)
-        //{
-        //    RingFenceReleaseModel model = new RingFenceReleaseModel();
-
-        //    InitializeDivisions(model);
-        //    InitializeDepartments(model, false);
-        //    ViewData["message"] = message;
-        //    ViewData["ruleSetID"] = model.RuleSetID;
-        //    ViewData["ruleType"] = "ringFence";
-        //    //model.SearchResult = false;
-
-        //    return View(model);
-        //}
-
-        //[HttpPost]
-        //public ActionResult BulkAdmin(RingFenceReleaseModel model)
-        //{
-        //    ViewData["ruleSetID"] = model.RuleSetID;
-        //    ViewData["ruleType"] = "ringFence";
-        //    InitializeDivisions(model);
-        //    InitializeDepartments(model, false);
-        //    model.HaveResults = true;
-
-        //    if (model.ShowStoreSelector == "yes")
-        //    {
-        //        if (model.RuleSetID < 1)
-        //        {
-        //            //get a new ruleset
-        //            RuleSet rs = new RuleSet
-        //            {
-        //                Type = "ringFence",
-        //                CreateDate = DateTime.Now,
-        //                CreatedBy = currentUser.NetworkID
-        //            };
-
-        //            db.RuleSets.Add(rs);
-        //            db.SaveChanges();
-
-        //            model.RuleSetID = rs.RuleSetID;
-        //        }
-
-        //        ViewData["ruleSetID"] = model.RuleSetID;
-        //        return View(model);
-        //    }
-        //    //model.SearchResult = false;
-
-        //    return View(model);
-        //}
-
         [HttpPost]
         public ActionResult ReleasePOGroupRF(GroupedPORingFence rfGroup)
         {
@@ -1006,40 +934,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
             List<GroupedPORingFence> ringFenceList = dao.GetPORingFenceGroups(div, department, dcid, store, ruleset, sku, po, ringFenceType, ringFenceStatus);
-
-            //var rdqGroups = from rdq in rdqList
-            //                group rdq by new
-            //                {
-            //                    Division = rdq.Division,
-            //                    Store = rdq.Store,
-            //                    WarehouseName = rdq.WarehouseName,
-            //                    Category = rdq.Category,
-            //                    ItemID = rdq.ItemID,
-            //                    Sku = rdq.Sku,
-            //                    Status = rdq.Status
-            //                } into g
-            //                select new RDQGroup()
-            //                {
-            //                    InstanceID = instanceID,
-            //                    Division = g.Key.Division,
-            //                    Store = g.Key.Store,
-            //                    WarehouseName = g.Key.WarehouseName,
-            //                    Category = g.Key.Category,
-            //                    ItemID = Convert.ToInt64(g.Key.ItemID),
-            //                    Sku = g.Key.Sku,
-            //                    IsBin = g.Where(r => r.Size.Length > 3).Any() ? false : true,
-            //                    Qty = g.Sum(r => r.Qty),
-            //                    UnitQty = g.Sum(r => r.UnitQty),
-            //                    Status = g.Key.Status
-            //                };
-
-            //List<RDQGroup> rdqGroupList = rdqGroups.OrderBy(g => g.Division)
-            //        .ThenBy(g => g.Store)
-            //        .ThenBy(g => g.WarehouseName)
-            //        .ThenBy(g => g.Category)
-            //        .ThenBy(g => g.Sku)
-            //        .ThenBy(g => g.Status)
-            //        .ToList();
 
             return View(new GridModel(ringFenceList));
         }

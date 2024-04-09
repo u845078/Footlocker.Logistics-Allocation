@@ -31,19 +31,13 @@ namespace Footlocker.Logistics.Allocation.Models
             {
                 if (!string.IsNullOrEmpty(value))
                 {
-                    if (value.Length <= 2)
-                    {
-                        _store = value.PadLeft(2, '0');
-                    }
-                    else
-                    {
-                        _store = value.PadLeft(5, '0');
-                    }
+                    if (value.Length <= 2)                    
+                        _store = value.PadLeft(2, '0');                    
+                    else                    
+                        _store = value.PadLeft(5, '0');                    
                 }
-                else
-                {
-                    _store = value;
-                }
+                else                
+                    _store = value;                
             }
         }
 
@@ -52,7 +46,7 @@ namespace Footlocker.Logistics.Allocation.Models
         {
             get
             {
-                return (this.EndDate == null || this.EndDate >= DateTime.Now);
+                return EndDate == null || EndDate >= DateTime.Now;
             }
         }
 
@@ -73,7 +67,8 @@ namespace Footlocker.Logistics.Allocation.Models
         [NotMapped]
         public string Department
         {
-            get {
+            get 
+            {
                 return Sku.Substring(3, 2);
             }
         }
@@ -153,14 +148,17 @@ namespace Footlocker.Logistics.Allocation.Models
         [NotMapped]
         public string RingFenceTypeDescription
         {
-            get {
-                if ((_ringFenceTypeDescription == null)&&(RingFenceType != null))
-                {
+            get 
+            {
+                if (_ringFenceTypeDescription == null && RingFenceType != null)                
                     _ringFenceTypeDescription = RingFenceType.Description;
-                }
+                
                 return _ringFenceTypeDescription; 
             }
-            set { _ringFenceTypeDescription = value; }
+            set 
+            { 
+                _ringFenceTypeDescription = value; 
+            }
         }
 
         private int _type;
@@ -172,10 +170,10 @@ namespace Footlocker.Logistics.Allocation.Models
         }
 
         [NotMapped]
-        public string ringFenceStatusCode { get; set; }
+        public string RingFenceStatusCode { get; set; }
 
         [NotMapped]
-        public RingFenceStatusCodes ringFenceStatus { get; set; }
+        public RingFenceStatusCodes RingFenceStatus { get; set; }
 
         public virtual List<RingFenceDetail> ringFenceDetails { get; set; }
 
@@ -183,17 +181,14 @@ namespace Footlocker.Logistics.Allocation.Models
         {
             int tempQuantity = 0;
 
-            if (this.ringFenceDetails != null)
+            if (ringFenceDetails != null)
             {
-                tempQuantity = (from a in this.ringFenceDetails
-                                where ((a.Size.Length == 3) &&
-                                    (a.ActiveInd == "1"))
+                tempQuantity = (from a in ringFenceDetails
+                                where a.Size.Length == 3 &&
+                                    a.ActiveInd == "1" 
                                 select a.Qty).Sum();
 
-                var caselotRFD = (from a in this.ringFenceDetails
-                                where (a.Size.Length == 5 &&
-                                       a.ActiveInd == "1")                                      
-                                select a).ToList();
+                var caselotRFD = ringFenceDetails.Where(rfd => rfd.Size.Length == 5 && rfd.ActiveInd == "1").ToList();
 
                 if (caselotRFD.Count() > 0)
                 {
@@ -207,7 +202,7 @@ namespace Footlocker.Logistics.Allocation.Models
                                           where a.Name == cs.Size                                                
                                           select a.TotalQty).FirstOrDefault();
 
-                            tempQuantity += (cs.Qty * clQty);
+                            tempQuantity += cs.Qty * clQty;
                         }
                         catch
                         {
@@ -219,7 +214,6 @@ namespace Footlocker.Logistics.Allocation.Models
 
             Qty = tempQuantity;
         }
-
 
         /// <summary>
         /// Initializes a new instance of the RingFence class.
