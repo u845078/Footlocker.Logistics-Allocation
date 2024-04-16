@@ -21,15 +21,23 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
         private RDQ ParseUploadRow(DataRow row)
         {
+            string qtyString;
+            int qty;
+
             RDQ returnValue = new RDQ
             {
                 Sku = Convert.ToString(row[1]).Trim(),
                 Size = Convert.ToString(row[2]).Trim(),
-                PO = Convert.ToString(row[3]).Trim(),
-                Qty = Convert.ToInt32(row[4]),
+                PO = Convert.ToString(row[3]).Trim(),                
                 DC = Convert.ToString(row[6]).Trim(),
                 RingFencePickStore = Convert.ToString(row[7]).Trim()
             };
+
+            qtyString = Convert.ToString(row[4]);
+            if (int.TryParse(qtyString, out qty))
+                returnValue.Qty = qty;
+            else
+                returnValue.Qty = 0;
 
             returnValue.DC = string.IsNullOrEmpty(returnValue.DC) ? "" : returnValue.DC.PadLeft(2, '0');
             returnValue.RingFencePickStore = string.IsNullOrEmpty(returnValue.RingFencePickStore) ? "" : returnValue.RingFencePickStore.PadLeft(5, '0');
@@ -67,6 +75,14 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         private bool ValidateFile(List<RDQ> parsedRDQs, List<Tuple<RDQ, string>> errorList, out string errorMessage)
         {
             errorMessage = "";
+
+            parsedRDQs.Where(pr => pr.Qty <= 0)
+                      .ToList()
+                      .ForEach(r =>
+                      {
+                          SetErrorMessage(errorList, r, "Quantity must be a valid number greater than 0");
+                          parsedRDQs.Remove(r);
+                      });
 
             // remove all records that have a null or empty sku... we grab the division from this field so there
             // cannot be any empty skus before validating the file for only one division!
