@@ -68,6 +68,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 currentUser.FullName = de.Properties["fullname"].Value.ToString();
         }
 
+        public Dictionary<string, string> LoadUserNames(List<string> uniqueUserIDs)
+        {
+            Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
+            List<ApplicationUser> allUserNames = GetAllUserNamesFromDatabase();
+
+            foreach (var item in uniqueUserIDs)
+            {
+                if (!item.Contains(" ") && !string.IsNullOrEmpty(item))
+                {
+                    string userLookup = item.Replace('\\', '/');
+                    userLookup = userLookup.Replace("CORP/", "");
+
+                    if (userLookup.Substring(0, 1) == "u")
+                        fullNamePairs.Add(item, allUserNames.Where(aun => aun.UserName == userLookup).Select(aun => aun.FullName).FirstOrDefault());
+                    else
+                        fullNamePairs.Add(item, item);
+                }
+                else
+                    fullNamePairs.Add(item, item);
+            }
+
+            return fullNamePairs;
+        }
+
         public AppController()
         {
         }

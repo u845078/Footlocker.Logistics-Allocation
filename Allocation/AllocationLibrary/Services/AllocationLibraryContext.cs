@@ -105,8 +105,25 @@ namespace Footlocker.Logistics.Allocation.Services
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<RangePlan>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
-            modelBuilder.Entity<DirectToStoreSku>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
+            modelBuilder.Entity<DirectToStoreSku>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);            
+            
+            // Ring Fence setup
             modelBuilder.Entity<RingFence>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
+            modelBuilder.Entity<RingFence>().HasRequired(o => o.RingFenceType).WithMany().HasForeignKey(c => c.Type);
+            //modelBuilder.Entity<RingFence>().HasOptional(o => o.StoreDetail).WithMany().HasForeignKey(c => new { c.Division, c.Store });
+
+            modelBuilder.Entity<RingFence>()
+                .Property(x => x.Sku)
+                .HasColumnType("VARCHAR");
+
+            modelBuilder.Entity<RingFence>()
+                .Property(x => x.Division)
+                .HasColumnType("VARCHAR");
+
+            modelBuilder.Entity<RingFence>()
+                .Property(x => x.Store)
+                .HasColumnType("VARCHAR");
+
 
             // NOTE: StoreLookup->StoreExtension relationship defined on constraint that IS ALL of principal's compositePK, so optional, unilateral (1to 1) relationship...
             modelBuilder.Entity<StoreLookup>().HasOptional(sl => sl.StoreExtension).WithRequired();
@@ -122,21 +139,7 @@ namespace Footlocker.Logistics.Allocation.Services
             //modelBuilder.Entity<VendorGroupLeadTime>().HasRequired(o => o.Group).WithMany().HasForeignKey(c => c.VendorGroupID);
 
             modelBuilder.Entity<RDQ>().HasRequired(o => o.DistributionCenter).WithMany().HasForeignKey(c => c.DCID);
-            //modelBuilder.Entity<RDQ>().HasOptional(x => x.QuantumRecordType).WithMany().HasForeignKey(c => c.RecordType);
-
-            modelBuilder.Entity<RingFence>().HasRequired(o => o.RingFenceType).WithMany().HasForeignKey(c => c.Type);
-
-            modelBuilder.Entity<RingFence>()
-                .Property(x => x.Sku)
-                .HasColumnType("VARCHAR");
-
-            modelBuilder.Entity<RingFence>()
-                .Property(x => x.Division)
-                .HasColumnType("VARCHAR");
-
-            modelBuilder.Entity<RingFence>()
-                .Property(x => x.Store)
-                .HasColumnType("VARCHAR");
+            //modelBuilder.Entity<RDQ>().HasOptional(x => x.QuantumRecordType).WithMany().HasForeignKey(c => c.RecordType);            
 
             modelBuilder.Entity<SizeAllocation>().Property(x => x.RangeFromDB).HasColumnName("Range");
 
@@ -385,14 +388,6 @@ namespace Footlocker.Logistics.Allocation.Services
             }
 
             return returnVal;
-        }
-
-        public int ExecuteCommand(string commandText)
-        {
-            int changedRows;
-            changedRows = Database.ExecuteSqlCommand(commandText);
-
-            return changedRows;
         }
     }
 }

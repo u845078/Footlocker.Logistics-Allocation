@@ -18,7 +18,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Index()
         {
-            List<CrossDockExclusion> model = (from a in db.CrossDockExclusions select a).ToList();
+            List<CrossDockExclusion> model = db.CrossDockExclusions.ToList();
             List<Division> divs  = currentUser.GetUserDivisions(AppName);
             model = (from a in model 
                      join b in divs 
@@ -30,24 +30,38 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _Index()
         {
-            var userDivCodeList = currentUser.GetUserDivList(AppName);
-            var xdockVMs = db.CrossDockExclusions.Include("StoreLookup").Where(cde => userDivCodeList.Contains(cde.Division))
-                .Select(cde =>
-                    new CrossDockExclusionViewModel() {
-                        Division = cde.Division,
-                        Store = cde.Store,
-                        City = cde.StoreLookup.City,
-                        State = cde.StoreLookup.State,
-                        CreatedBy = cde.CreatedBy,
-                        CreateDate = cde.CreateDate
-                    });
+            List<string> userDivCodeList = currentUser.GetUserDivList(AppName);
+            List<CrossDockExclusionViewModel> xdockVMs = db.CrossDockExclusions.Include("StoreLookup").Where(cde => userDivCodeList.Contains(cde.Division))
+                                                                                                      .Select(cde =>
+                                                                                                            new CrossDockExclusionViewModel() {
+                                                                                                                Division = cde.Division,
+                                                                                                                Store = cde.Store,
+                                                                                                                City = cde.StoreLookup.City,
+                                                                                                                State = cde.StoreLookup.State,
+                                                                                                                CreatedBy = cde.CreatedBy,
+                                                                                                                CreateDate = cde.CreateDate
+                                                                                                            }).ToList();
+            List<string> uniqueNames = (from a in xdockVMs
+                                        where !string.IsNullOrEmpty(a.CreatedBy)
+                                        select a.CreatedBy).Distinct().ToList();
+
+            Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
+
+            foreach (var item in fullNamePairs)
+            {
+                xdockVMs.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+            }
+
             return View(new GridModel(xdockVMs));
         }
 
         public ActionResult Create()
         {
-            CrossDockExclusionModel model = new CrossDockExclusionModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            CrossDockExclusionModel model = new CrossDockExclusionModel()
+            {
+                Divisions = currentUser.GetUserDivisions(AppName)
+            };
+            
             return View(model);
         }
 
@@ -76,33 +90,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RDQDAO dao = new RDQDAO();
             dao.DeleteCrossdockRDQs(div, store);
 
-            CrossDockExclusion exc = (from a in db.CrossDockExclusions where ((a.Division == div) && (a.Store == store)) select a).First();
+            CrossDockExclusion exc = db.CrossDockExclusions.Where(cde => cde.Division == div && cde.Store == store).First();
             db.CrossDockExclusions.Remove(exc);
             db.SaveChanges();
 
             return RedirectToAction("Index");
         }
-
 
         public ActionResult DeleteLeaveRDQs(string div, string store)
         {
-            CrossDockExclusion exc = (from a in db.CrossDockExclusions where ((a.Division == div) && (a.Store == store)) select a).First();
+            CrossDockExclusion exc = db.CrossDockExclusions.Where(cde => cde.Division == div && cde.Store == store).First();
             db.CrossDockExclusions.Remove(exc);
             db.SaveChanges();
 
             return RedirectToAction("Index");
         }
-    }
-
-    public class CrossDockExclusionViewModel
-    {
-        public CrossDockExclusionViewModel() { }
-
-        public string Division { get; set; }
-        public string Store { get; set; }
-        public string City { get; set; }
-        public string State { get; set; }
-        public string CreatedBy { get; set; }
-        public DateTime CreateDate { get; set; }
     }
 }

@@ -35,14 +35,11 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 join u in userDivList
                                 on a.overrideDivision equals u.DivCode
                                 select a;
+            
+            List<string> users = (from a in filteredModel
+                                  select a.lastModifiedUser).Distinct().ToList();
 
-            Dictionary<string, string> names = new Dictionary<string, string>();
-            var users = (from a in filteredModel
-                         select a.lastModifiedUser).Distinct();
-            foreach (string userID in users)
-            {
-                names.Add(userID, GetFullUserNameFromDatabase(userID.Replace('\\', '/')));
-            }
+            Dictionary<string, string> names = LoadUserNames(users);
 
             foreach (var item in filteredModel)
             {

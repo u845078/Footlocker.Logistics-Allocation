@@ -18,10 +18,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private List<MandatoryCrossdock> GetMandatoryCrossdocksForUser()
         {
-            List<string> divs = (from a in currentUser.GetUserDivisions(AppName) select a.DivCode).ToList();
             List<string> temp = new List<string>();
 
-            foreach (string div in divs)
+            foreach (string div in currentUser.GetUserDivList(AppName))
             {
                 temp.AddRange(currentUser.GetUserDivDept(AppName));
             }
@@ -34,6 +33,17 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<MandatoryCrossdock> model = query.Where(q => temp.Contains(q.Division + "-" + q.Department))
                                                    .Select(q => q.MandatoryCrossDock)
                                                    .ToList();
+
+            List<string> uniqueNames = (from a in model
+                                        where !string.IsNullOrEmpty(a.CreatedBy)
+                                        select a.CreatedBy).Distinct().ToList();
+
+            Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
+
+            foreach (var item in fullNamePairs)
+            {
+                model.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+            }
             return model;
         }
 
@@ -50,10 +60,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,Admin,Support")]
         public ActionResult _StoreDefaults(int InstanceID, long ItemID)
         {
-            List<MandatoryCrossdockDefault> model = (from a in db.MandatoryCrossdockDefaults where ((a.InstanceID == InstanceID) && (a.ItemID == ItemID)) select a).ToList();
+            List<MandatoryCrossdockDefault> model = db.MandatoryCrossdockDefaults.Where(mcd => mcd.InstanceID == InstanceID && mcd.ItemID == ItemID).ToList();
             return View(new GridModel(model));
         }
-
 
         /// <summary>
         /// Add a default store for the sku
@@ -61,21 +70,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public JsonResult AddStore(int instanceid, long itemid, string store, int percent)
         {
             store = store.PadLeft(5, '0');
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
+            ConfigService configService = new ConfigService();
+
             try
             {
-                ItemMaster i = (from a in db.ItemMasters where a.ID == itemid select a).First();
+                ItemMaster i = itemDAO.GetItem(itemid);                
 
-                if ((from a in db.vValidStores where a.Division == i.Div && a.Store == store select a).Count() == 0)
-                {
+                if (db.vValidStores.Where(vs => vs.Division == i.Div && vs.Store == store).Count() == 0)                
                     return Json("Invalid Store");
-                }
 
-                MandatoryCrossdockDefault model = new MandatoryCrossdockDefault();
-                model.InstanceID = (from a in db.InstanceDivisions where a.Division == i.Div select a.InstanceID).First();
-                model.ItemID = i.ID;
-                model.Store = store;
-                model.Division = i.Div;
-                model.PercentAsInt = percent;
+                MandatoryCrossdockDefault model = new MandatoryCrossdockDefault()
+                {
+                    InstanceID = configService.GetInstance(i.Div),
+                    ItemID = i.ID,
+                    Store = store,
+                    Division = i.Div,
+                    PercentAsInt = percent
+                };
 
                 db.MandatoryCrossdockDefaults.Add(model);
                 db.SaveChanges(currentUser.NetworkID);
@@ -95,7 +107,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             try
             {
-                MandatoryCrossdockDefault model = (from a in db.MandatoryCrossdockDefaults where ((a.InstanceID == instanceid) && (a.ItemID == itemid) && (a.Store == store)) select a).First();
+                MandatoryCrossdockDefault model = db.MandatoryCrossdockDefaults.Where(mcd => mcd.InstanceID == instanceid && mcd.ItemID == itemid && mcd.Store == store).First();
                 db.MandatoryCrossdockDefaults.Remove(model);
                 db.SaveChanges(currentUser.NetworkID);
 
@@ -171,7 +183,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ConfigService configService = new ConfigService();
 
-            ItemMaster i = (from a in db.ItemMasters where a.MerchantSku == model.Sku select a).FirstOrDefault();
+            ItemMaster i = db.ItemMasters.Where(im => im.MerchantSku == model.Sku).FirstOrDefault();
 
             if (i == null)
             {
@@ -222,7 +234,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             db.SaveChanges(currentUser.NetworkID);
 
-            List<MandatoryCrossdockDefault> model = (from a in db.MandatoryCrossdockDefaults where a.InstanceID == instanceid && a.ItemID == itemid select a).ToList();
+            List<MandatoryCrossdockDefault> model = db.MandatoryCrossdockDefaults.Where(mcd => mcd.InstanceID == instanceid && mcd.ItemID == itemid).ToList();
 
             return View(new GridModel(model));
         }
