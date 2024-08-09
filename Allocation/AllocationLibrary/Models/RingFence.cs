@@ -41,6 +41,8 @@ namespace Footlocker.Logistics.Allocation.Models
             }
         }
 
+        //public virtual StoreLookup StoreDetail { get; set; }
+
         [NotMapped]
         public bool CanPick
         {

@@ -108,20 +108,20 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RingFence> list = dao.GetRingFences(currentUser.GetUserDivList(AppName));
 
             var rfGroups = from rf in list
-            group rf by new
-            {
-                rf.Sku,
-                itemid = rf.ItemID,
-            } into g
-            select new RingFenceSummary()
-            {
-                Sku = g.Key.Sku,
-                Size = "",
-                DC = "",
-                PO = "",
-                Qty = g.Sum(r => r.Qty),
-                CanPick = !g.Any(r => !r.CanPick)
-            };
+                           group rf by new
+                           {
+                               rf.Sku,
+                               itemid = rf.ItemID,
+                           } into g
+                           select new RingFenceSummary()
+                           {
+                               Sku = g.Key.Sku,
+                               Size = "",
+                               DC = "",
+                               PO = "",
+                               Qty = g.Sum(r => r.Qty),
+                               CanPick = !g.Any(r => !r.CanPick)
+                           };
 
             return PartialView(new GridModel(rfGroups.ToList()));
         }
@@ -129,7 +129,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _RingFenceStores()
         {
+            // future data enhancements
+            //AllocationLibraryContext context = new AllocationLibraryContext();
             List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
+            //List<RingFence> ringFences = context.RingFences.Where(rf => rf.Qty > 0 && 
+            //                                                            rf.ringFenceDetails.Any(rfd => rfd.ActiveInd == "1")).ToList();
+
             List<StoreLookup> list = (from a in db.RingFences
                                       join rfd in db.RingFenceDetails
                                         on a.ID equals rfd.RingFenceID

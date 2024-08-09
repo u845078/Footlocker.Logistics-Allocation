@@ -67,17 +67,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<DirectToStoreConstraint> model;
 
-            if (Session["OneSizeConstraintsList"] == null)
-            {
+            //if (Session["OneSizeConstraintsList"] == null)
+            //{
                 DirectToStoreDAO dao = new DirectToStoreDAO(appConfig.EuropeDivisions);
                 List<DirectToStoreConstraint> allDTS = dao.GetDTSConstraintsOneSize();
-                model = (from a in allDTS join b in currentUser.GetUserDepartments(AppName) on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } orderby a.Sku select a).ToList();
-                Session["OneSizeConstraintsList"] = model;
-            }
-            else
-            {
-                model = (List<DirectToStoreConstraint>)Session["OneSizeConstraintsList"];
-            }
+                model = (from a in allDTS 
+                         join b in currentUser.GetUserDepartments(AppName) 
+                         on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } 
+                         orderby a.Sku 
+                         select a).ToList();
+
+            //    Session["OneSizeConstraintsList"] = model;
+            //}
+            //else
+            //{
+            //    model = (List<DirectToStoreConstraint>)Session["OneSizeConstraintsList"];
+            //}
 
             return View(new GridModel(model));
         }
@@ -86,7 +91,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Div Logistics,Director of Allocation,Admin,Support")]
         public ActionResult _SaveOneSizeDetail([Bind(Prefix = "updated")]IEnumerable<DirectToStoreConstraint> updated)
         {
-            Session["OneSizeConstraintsList"] = null;
+            //Session["OneSizeConstraintsList"] = null;
             if (updated != null)
             {
                 foreach (DirectToStoreConstraint update in updated)

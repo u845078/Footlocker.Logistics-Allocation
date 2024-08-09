@@ -110,6 +110,8 @@ namespace Footlocker.Logistics.Allocation.Services
             // Ring Fence setup
             modelBuilder.Entity<RingFence>().HasRequired(o => o.ItemMaster).WithMany().HasForeignKey(c => c.ItemID);
             modelBuilder.Entity<RingFence>().HasRequired(o => o.RingFenceType).WithMany().HasForeignKey(c => c.Type);
+            //modelBuilder.Entity<RingFence>().HasOptional(o => o.StoreDetail).WithMany().HasForeignKey(c => new { c.Division, c.Store });
+
             modelBuilder.Entity<RingFence>()
                 .Property(x => x.Sku)
                 .HasColumnType("VARCHAR");

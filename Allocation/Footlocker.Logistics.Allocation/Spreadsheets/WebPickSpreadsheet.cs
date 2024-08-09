@@ -47,10 +47,12 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     returnValue.Store = Convert.ToString(row[5]).Trim().PadLeft(2, '0');
             }
 
-            if (Convert.ToString(row[8]).Trim() == "Y")
+            if (Convert.ToString(row[8]).Trim().ToUpper() == "Y")
                 returnValue.Status = "E-PICK";
-            else
+            else if (Convert.ToString(row[8]).Trim() == "N")
                 returnValue.Status = "WEB PICK";
+            else
+                returnValue.Status = string.Empty;
 
             return returnValue;
         }
@@ -75,6 +77,14 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                       .ForEach(r =>
                       {
                           SetErrorMessage(errorList, r, "Sku must be provided.");
+                          parsedRDQs.Remove(r);
+                      });
+
+            parsedRDQs.Where(pr => string.IsNullOrEmpty(pr.Status))
+                      .ToList()
+                      .ForEach(r =>
+                      {
+                          SetErrorMessage(errorList, r, "Pick Right Away must be a value of Y or N.");
                           parsedRDQs.Remove(r);
                       });
 

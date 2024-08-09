@@ -9,6 +9,7 @@ using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Factories;
 using System.IO;
 using System.Xml.Serialization;
+using System.Data.SqlClient;
 
 namespace Footlocker.Logistics.Allocation.Services
 {
@@ -141,30 +142,21 @@ namespace Footlocker.Logistics.Allocation.Services
             bulkdatabase.ExecuteNonQuery(SQLCommand);
         }
 
-        public void SetFirstReceiptDates(int instanceid)
-        {
-            DbCommand SQLCommand;
-            string SQL;
-            SQL = "dbo.[SetFirstReceiptDates]";
-
-            SQLCommand = _database.GetStoredProcCommand(SQL);
-            _database.AddInParameter(SQLCommand, "@instanceID", DbType.Int32, instanceid);
-            //this is bulk loading millions of records, don't time out.
-            SQLCommand.CommandTimeout = 0;
-            _database.ExecuteNonQuery(SQLCommand);
-        }
-
         public void SetFirstReceiptDates(int instanceid, string sku)
         {
             DbCommand SQLCommand;
             string SQL;
+            int rowsAffected;
             SQL = "dbo.[SetFirstReceiptDates]";
 
             SQLCommand = _database.GetStoredProcCommand(SQL);
             _database.AddInParameter(SQLCommand, "@instanceID", DbType.Int32, instanceid);
             _database.AddInParameter(SQLCommand, "@sku", DbType.String, sku);
+            _database.AddOutParameter(SQLCommand, "@RowsAffected", DbType.Int32, 0);
 
             _database.ExecuteNonQuery(SQLCommand);
+
+            rowsAffected = Convert.ToInt32(_database.GetParameterValue(SQLCommand, "@RowsAffected"));
         }
     }
 }
