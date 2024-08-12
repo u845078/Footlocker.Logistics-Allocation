@@ -2953,10 +2953,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                    }).Distinct().ToList();
             }
 
-            foreach (ReInitializeSKUModel m in reInitializeSKU)
+            List<string> uniqueNames = (from l in reInitializeSKU
+                                        select l.reInitializeSKU.CreateUser).Distinct().ToList();
+
+            Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
+
+            foreach (var item in fullNamePairs)
             {
-                if (m.reInitializeSKU.CreateUser.Contains("CORP"))
-                    m.reInitializeSKU.CreateUser = GetFullUserNameFromDatabase(m.reInitializeSKU.CreateUser.Replace('\\', '/'));                
+                reInitializeSKU.Where(x => x.reInitializeSKU.CreateUser == item.Key).ToList().ForEach(y => y.reInitializeSKU.CreateUser = item.Value);
             }
 
             return View(new GridModel(reInitializeSKU));

@@ -178,47 +178,44 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return PartialView(new GridModel(list));
         }
 
-        [GridAction]
-        public ActionResult _RingFences(string sku)
-        {
-            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
-            List<RingFence> list = db.RingFences.Where(rf => rf.Qty > 0 && rf.Sku == sku).ToList();
-            list = (from a in list
-                    join d in divs on a.Division equals d.DivCode
-                    select new RingFence{ 
-                        ID = a.ID,
-                        Sku = a.Sku, 
-                        Size = a.Size, 
-                        Division = a.Division,
-                        Store = a.Store,
-                        Qty = a.Qty,
-                        StartDate = a.StartDate,
-                        EndDate = a.EndDate,
-                        Type = a.Type,
-                        Comments = a.Comments,
-                        CreatedBy = a.CreatedBy,
-                        CreateDate = a.CreateDate,
-                        RingFenceTypeDescription = a.RingFenceTypeDescription,
-                        ItemDescription = a.ItemDescription,
-                        LastModifiedDate = a.LastModifiedDate,
-                        LastModifiedUser = a.LastModifiedUser
-                    }).OrderByDescending(x => x.CreateDate).ToList();
+        //[GridAction]
+        //public ActionResult _RingFences(string sku)
+        //{
+        //    List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
+        //    List<RingFence> list = db.RingFences.Where(rf => rf.Qty > 0 && rf.Sku == sku).ToList();
+        //    list = (from a in list
+        //            join d in divs on a.Division equals d.DivCode
+        //            select new RingFence{ 
+        //                ID = a.ID,
+        //                Sku = a.Sku, 
+        //                Size = a.Size, 
+        //                Division = a.Division,
+        //                Store = a.Store,
+        //                Qty = a.Qty,
+        //                StartDate = a.StartDate,
+        //                EndDate = a.EndDate,
+        //                Type = a.Type,
+        //                Comments = a.Comments,
+        //                CreatedBy = a.CreatedBy,
+        //                CreateDate = a.CreateDate,
+        //                RingFenceTypeDescription = a.RingFenceTypeDescription,
+        //                ItemDescription = a.ItemDescription,
+        //                LastModifiedDate = a.LastModifiedDate,
+        //                LastModifiedUser = a.LastModifiedUser
+        //            }).OrderByDescending(x => x.CreateDate).ToList();
+            
+        //    List<string> uniqueNames = (from a in list
+        //                                select a.LastModifiedUser).Distinct().ToList();
 
-            Dictionary<string, string> names = new Dictionary<string, string>();
-            var users = (from a in list
-                         select a.LastModifiedUser).Distinct();
-            foreach (string userID in users)
-            {
-                names.Add(userID, GetFullUserNameFromDatabase(userID.Replace('\\', '/')));
-            }
+        //    Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
 
-            foreach (var item in list)
-            {
-                item.LastModifiedUserName = names[item.LastModifiedUser];
-            }
+        //    foreach (var item in fullNamePairs)
+        //    {
+        //        list.Where(x => x.LastModifiedUser == item.Key).ToList().ForEach(y => y.LastModifiedUser = item.Value);                
+        //    }
 
-            return PartialView(new GridModel(list));
-        }
+        //    return PartialView(new GridModel(list));
+        //}
 
         [GridAction]
         public ActionResult _RingFencesForStore(string div, string store)

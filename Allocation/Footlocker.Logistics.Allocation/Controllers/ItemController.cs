@@ -466,18 +466,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                  select new { RingFence = rf, RingFenceDetail = rfd });
             }
 
-            var distinctUsers = newRingFences.GroupBy(h => h.RingFence.CreatedBy)
-                .Select(group => group.FirstOrDefault()).ToList();
+            List<string> uniqueNames = (from l in newRingFences
+                                        select l.RingFence.CreatedBy).Distinct().ToList();
+            
+            Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
 
-            foreach (var rec in distinctUsers)
+            foreach (var item in fullNamePairs)
             {
-                string fullName = "";
-                if (rec.RingFence.CreatedBy.Contains("CORP"))
-                    fullName = GetFullUserNameFromDatabase(rec.RingFence.CreatedBy.Replace('\\', '/'));
-                else
-                    fullName = GetFullUserNameFromDatabase(rec.RingFence.CreatedBy);
-
-                newRingFences.Where(r => r.RingFence.CreatedBy == rec.RingFence.CreatedBy).ToList().ForEach(x => x.RingFence.CreatedBy = fullName);
+                newRingFences.Where(x => x.RingFence.CreatedBy == item.Key).ToList().ForEach(y => y.RingFence.CreatedBy = item.Value);
             }
 
             foreach (var rf in newRingFences)
@@ -572,18 +568,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                          select a).ToList();
             }
 
-            var distinctUsers = model.GroupBy(h => h.CreatedBy)
-                 .Select(group => group.FirstOrDefault()).ToList();
+            List<string> uniqueNames = (from l in model
+                                        select l.CreatedBy).Distinct().ToList();
 
-            foreach (var rec in distinctUsers)
+            Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
+
+            foreach (var item in fullNamePairs)
             {
-                string fullName = "";
-                if (rec.CreatedBy.Contains("CORP"))
-                    fullName = GetFullUserNameFromDatabase(rec.CreatedBy.Replace('\\', '/'));
-                else
-                    fullName = rec.CreatedBy;
-
-                model.Where(r => r.CreatedBy == rec.CreatedBy).ToList().ForEach(x => x.CreatedBy = fullName);
+                model.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
             }
 
             return View(new GridModel(model));
@@ -633,19 +625,14 @@ namespace Footlocker.Logistics.Allocation.Controllers
                              ((a.Level == "DeptTeam") && (a.Value == item.Dept + "-" + item.TeamCode))))
                      select a).ToList();
 
-            IEnumerable<Hold> distinctUsers = holds
-                .GroupBy(h => h.CreatedBy)
-                .Select(group => group.First());
+            List<string> uniqueNames = (from l in holds
+                                        select l.CreatedBy).Distinct().ToList();
 
-            foreach (Hold hold in distinctUsers)
+            Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
+
+            foreach (var name in fullNamePairs)
             {
-                string fullName = "";
-                if (hold.CreatedBy.Contains("CORP"))
-                    fullName = GetFullUserNameFromDatabase(hold.CreatedBy.Replace('\\', '/'));
-                else
-                    fullName = hold.CreatedBy;
-
-                holds.Where(h => h.CreatedBy == hold.CreatedBy).ToList().ForEach(x => x.CreatedBy = fullName);
+                holds.Where(x => x.CreatedBy == name.Key).ToList().ForEach(y => y.CreatedBy = name.Value);
             }
 
             return View(new GridModel(holds));

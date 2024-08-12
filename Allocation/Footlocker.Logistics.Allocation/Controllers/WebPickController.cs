@@ -632,12 +632,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             List<string> uniqueNames = (from l in rdqList
                                         select l.CreatedBy).Distinct().ToList();
-            Dictionary<string, string> fullNamePairs = new Dictionary<string, string>();
-
-            foreach (var item in uniqueNames)
-            {
-                fullNamePairs.Add(item, GetFullUserNameFromDatabase(item.Replace('\\', '/')));
-            }
+            Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
 
             foreach (var item in fullNamePairs)
             {
