@@ -52,6 +52,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             StartDateString = Convert.ToString(row[9]).Trim();
             EndDateString = Convert.ToString(row[10]).Trim();
 
+            if (returnValue.Store == "")
+                returnValue.Store = null;
+
             if (!DateTime.TryParseExact(StartDateString, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                 errorMessage = "Start date is not in a mm/dd/yyyy format ";
             else

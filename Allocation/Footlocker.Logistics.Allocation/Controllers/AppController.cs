@@ -14,7 +14,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     /// Inherit from your controller from this, and you will get sitewide security/etc.
     /// </summary>
     /// TODO:  Set the authorization to your webpages Active Directory Group
-    [CheckAuthorization(Roles = "allocation-gs")]
+    //[CheckAuthorization(Roles = "allocation-gs")]
     public class AppController : Controller
     {
         Footlocker.Logistics.Allocation.Services.FootLockerCommonContext flCommon = new Footlocker.Logistics.Allocation.Services.FootLockerCommonContext();
@@ -105,7 +105,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         protected override void Initialize(RequestContext requestContext)
         {
-
             base.Initialize(requestContext);
             LoadCurrentUser();
 
