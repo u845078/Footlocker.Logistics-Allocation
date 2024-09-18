@@ -45,7 +45,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 EndDate = Convert.ToString(row[3]),
                 PO = Convert.ToString(row[4]),
                 Warehouse = Convert.ToString(row[5]).Trim().PadLeft(2, '0'),
-                Size = Convert.ToString(row[6]).ToUpper(),
+                Size = Convert.ToString(row[6]).ToUpper().Trim(),
                 QtyString = Convert.ToString(row[7]).ToUpper(),
                 Comments = Convert.ToString(row[8])
             };
@@ -83,8 +83,12 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             if (string.IsNullOrEmpty(inputData.Size))
                 errorMessage += "Size or caselot must be provided. ";
             else
-                if (inputData.Size.Length != 3 && inputData.Size.Length != 5)
-                    errorMessage += string.Format("The size {0} is non-existent or invalid. ", inputData.Size);
+            {
+                Regex binSizeExpression = new Regex(@"^\d{3}$");
+                Regex caseSizeExpression = new Regex(@"^\d{5}$");
+                if (!(binSizeExpression.IsMatch(inputData.Size) || caseSizeExpression.IsMatch(inputData.Size)))
+                    errorMessage += string.Format("The size {0} is not 3 or 5 digits. ", inputData.Size);
+            }                            
 
             if (inputData.PO != "")
             {
