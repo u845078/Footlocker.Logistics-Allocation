@@ -18,6 +18,6 @@ namespace Footlocker.Logistics.Allocation.Models
         [ForeignKey("DistributionCenter")]
         public int DCID { get; set; }
 
-        public virtual DistributionCenter DistributionCenter { get; set; }
+        public DistributionCenter DistributionCenter { get; set; }
     }
 }

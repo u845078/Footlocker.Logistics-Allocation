@@ -15,7 +15,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,VP of Allocation,Admin,Support")]
     public class ProductHierarchyOverrideController : AppController
     {
-        Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();        
         AllocationLibraryContext context = new Services.AllocationLibraryContext();
 
         #region ActionResult handlers
