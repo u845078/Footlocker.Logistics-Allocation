@@ -95,6 +95,10 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<InstanceDistributionCenter> InstanceDistributionCenters { get; set; }
         public DbSet<WarehouseAllocationType> WarehouseAllocationTypes { get; set; }
 
+        public DbSet<StoreBTS> StoreBTS { get; set; }
+        public DbSet<StoreBTSDetail> StoreBTSDetails { get; set; }
+        public DbSet<StoreBTSControl> StoreBTSControls { get; set; }
+
         public AllocationLibraryContext()
             : base("AllocationContext")
         {

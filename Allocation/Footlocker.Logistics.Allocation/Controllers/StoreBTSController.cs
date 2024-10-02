@@ -14,7 +14,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
     [CheckPermission(Roles = "Director of Allocation,Admin,Support")]
     public class StoreBTSController : AppController
     {
-        Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        //Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        readonly AllocationLibraryContext db = new AllocationLibraryContext();
 
         [HttpPost]
         public ActionResult _AutoCompleteFilteringAjax(string text, string div)
@@ -90,8 +91,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (year != null)            
                 model.CurrentYear = (int)year;            
             else            
-                model.CurrentYear = DateTime.Now.Year;
-            
+                model.CurrentYear = DateTime.Now.Year;            
+
             return View(model);
         }
 
@@ -299,9 +300,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
             db.StoreBTSDetails.Remove(det);
             db.SaveChanges();
 
-            StoreBTS group = db.StoreBTS.Where(sb => sb.ID == ID).First();
-            group.Count--;
-            db.SaveChanges();
+            //StoreBTS group = db.StoreBTS.Where(sb => sb.ID == ID).First();
+            //group.Count--;
+            //db.SaveChanges();
 
             return RedirectToAction("Details", new { ID});
         }
@@ -342,10 +343,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 else                
                     errors++;                
             }
-            StoreBTS group = db.StoreBTS.Where(sb => sb.ID == ID).First();
-            group.Count += count;
-            db.Entry(group).State = System.Data.EntityState.Modified;
-            db.SaveChanges();
+            //StoreBTS group = db.StoreBTS.Where(sb => sb.ID == ID).First();
+            //group.Count += count;
+            //db.Entry(group).State = System.Data.EntityState.Modified;
+            //db.SaveChanges();
 
             return RedirectToAction("Details", new { ID, message = string.Format("Copied group {0} stores, {1} errors.", count, errors) });            
         }
@@ -395,9 +396,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             db.StoreBTSDetails.Add(det);
                             db.SaveChanges();
 
-                            StoreBTS group = db.StoreBTS.Where(sb => sb.ID == ID).First();
-                            group.Count++;
-                            db.SaveChanges();
+                            //StoreBTS group = db.StoreBTS.Where(sb => sb.ID == ID).First();
+                            //group.Count++;
+                            //db.SaveChanges();
                         }
                         catch (System.Data.Entity.Validation.DbEntityValidationException ex2)
                         {
@@ -434,18 +435,18 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult ConfirmMove(int ID, string div, string store, int year)
         {
             StoreBTSDetail det = db.StoreBTSDetails.Where(sbd => sbd.Division == div && sbd.Store == store && sbd.Year == year).First();
-            StoreBTS group = db.StoreBTS.Where(sb => sb.ID == det.GroupID).First();
-            group.Count--;
-            db.SaveChanges();
+            //StoreBTS group = db.StoreBTS.Where(sb => sb.ID == det.GroupID).First();
+            //group.Count--;
+            //db.SaveChanges();
             
             det.GroupID = ID;
             det.CreateDate = DateTime.Now;
             det.CreatedBy = currentUser.NetworkID;
             db.SaveChanges();
 
-            group = db.StoreBTS.Where(sb => sb.ID == ID).First();
-            group.Count++;
-            db.SaveChanges();
+            //group = db.StoreBTS.Where(sb => sb.ID == ID).First();
+            //group.Count++;
+            //db.SaveChanges();
 
             return RedirectToAction("Details", new { ID });
         }

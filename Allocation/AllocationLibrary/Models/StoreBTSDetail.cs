@@ -4,8 +4,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
+    [Table("StoreBTSDetails")]
     public class StoreBTSDetail
     {
+        [ForeignKey("StoreBTS")]
         public int GroupID { get; set; }
 
         [Key]
@@ -29,5 +31,7 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [NotMapped]
         public string errorMessage { get; set; }
+
+        public virtual StoreBTS StoreBTS { get; set; }
     }
 }
