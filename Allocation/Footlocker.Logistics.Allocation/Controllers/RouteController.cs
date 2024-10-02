@@ -14,7 +14,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
     [CheckPermission(Roles = "Support,Logistics,Advanced Merchandiser Processes")]
     public class RouteController : AppController
     {
-        Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        //Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
+        AllocationLibraryContext db = new AllocationLibraryContext();
         ConfigService configService = new ConfigService();
         //
         // GET: /Route/
@@ -299,17 +300,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.DC.LastModifiedUser = currentUser.NetworkID;
 
             db.DistributionCenters.Add(model.DC);
-            db.SaveChanges();
+            model.DC.InstanceDistributionCenters = new List<InstanceDistributionCenter>();
+            //db.SaveChanges();
 
             foreach (var selInst in model.SelectedInstances)
             {
                 if (selInst.Checked)
                 {
-                    db.InstanceDistributionCenters.Add(new InstanceDistributionCenter
+                    model.DC.InstanceDistributionCenters.Add(new InstanceDistributionCenter()
                     {
-                        DCID = model.DC.ID,
                         InstanceID = selInst.ID
-                    });
+                    });  
+                    //db.InstanceDistributionCenters.Add(new InstanceDistributionCenter
+                    //{
+                    //    DCID = model.DC.ID,
+                    //    InstanceID = selInst.ID
+                    //});
                 }
             }
 

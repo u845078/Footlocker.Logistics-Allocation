@@ -92,6 +92,9 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<RDQRejectReasonCode> RDQRejectReasons { get; set; }
         public DbSet<DataChangeLog> DataChanges { get; set; }
 
+        public DbSet<InstanceDistributionCenter> InstanceDistributionCenters { get; set; }
+        public DbSet<WarehouseAllocationType> WarehouseAllocationTypes { get; set; }
+
         public AllocationLibraryContext()
             : base("AllocationContext")
         {

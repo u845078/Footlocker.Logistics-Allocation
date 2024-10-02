@@ -5,10 +5,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Footlocker.Logistics.Allocation.Models
 {
+    [Table("DistributionCenters")]
     public class DistributionCenter
     {
         [Key]
         [Column("ID")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
 
         [Required]
@@ -51,7 +53,7 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public virtual DistributionCenterRestrictions DistributionCenterRestriction { get; set; }
 
-        public List<InstanceDistributionCenter> InstanceDistributionCenters { get; set; }
+        public virtual List<InstanceDistributionCenter> InstanceDistributionCenters { get; set; }
 
         [Column("TransmitRDQsToKafkaInd")]
         [Display(Name="Transmit RDQs To Kafka")]

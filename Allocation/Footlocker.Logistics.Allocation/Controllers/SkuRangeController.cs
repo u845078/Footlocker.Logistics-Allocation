@@ -82,8 +82,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (range == null)
                 return RedirectToAction("Index", new { message = "Range no longer exists." });
 
-            range.CreatedBy = GetFullUserNameFromDatabase(range.CreatedBy.Replace('\\', '/'));
-            range.UpdatedBy = GetFullUserNameFromDatabase(range.UpdatedBy.Replace('\\', '/'));
+            range.CreatedBy = currentUser.NetworkID;
+            range.UpdatedBy = currentUser.NetworkID;
 
             return View(range);
         }
@@ -1285,8 +1285,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (model.RangePlan != null)
             {
-                model.RangePlan.CreatedBy = GetFullUserNameFromDatabase(model.RangePlan.CreatedBy.Replace('\\', '/'));
-                model.RangePlan.UpdatedBy = GetFullUserNameFromDatabase(model.RangePlan.UpdatedBy.Replace('\\', '/'));
+                model.RangePlan.CreatedBy = currentUser.NetworkID;
+                model.RangePlan.UpdatedBy = currentUser.NetworkID;
             }
 
             //update the store count
