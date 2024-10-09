@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Footlocker.Logistics.Allocation.Models.RingFence>
+﻿@model IEnumerable<RingFence>
 
 @{
     ViewBag.Title = "Ring Fences";
@@ -64,7 +64,7 @@
 <br />
 
 @Html.Raw("<font color=red>" + ViewData["message"] + "</font>")
-    @(Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFenceSummary>()
+    @(Html.Telerik().Grid<RingFenceSummary>()
         .Name("RingFenceSummaryGrid")
         .HtmlAttributes(new { @style = "width : 100%" })
         .HtmlAttributes(new { @class = "summary-grid" })
@@ -101,7 +101,7 @@
         .Groupable(grouping => grouping.Enabled(false))
         .Footer(true)
                 .DetailView(ordersDetailView => ordersDetailView.ClientTemplate(
-                    Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.RingFence>()
+                    Html.Telerik().Grid<RingFence>()
                                 .Name("RingFence" + "_<#= Sku #>")
                             .Columns(columns =>
                             {
@@ -114,7 +114,7 @@
                                 columns.Bound(rf => rf.EndDate).Format("{0:MM/dd/yyyy}").Title("End Date").Width(30).Visible(true);
                                 columns.Bound(rf => rf.RingFenceTypeDescription).Width(10).Visible(true).Title("Type");
                                 columns.Bound(rf => rf.Comments);
-                                columns.Bound(rf => rf.LastModifiedUserName).Title("Updated By").Visible(true).Width(150);
+                                columns.Bound(rf => rf.LastModifiedUser).Title("Updated By").Visible(true).Width(150);
                                 columns.Bound(rf => rf.LastModifiedDate).Format("{0:MM/dd/yyyy h:mm tt}").Title("Update Date").Width(150).Visible(true);
                                 columns.Template(@<text>
                                             <span style="">
