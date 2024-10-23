@@ -168,7 +168,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 message = "Incorrectly formatted or missing header row. Please correct and re-process.";
             else
             {
-                int row = 1;
+                int row = headerRowNumber + 1;
                 mainDivision = Convert.ToString(worksheet.Cells[row, 0].Value).Substring(0, 2);
                 availabilityCodes = mainframeDAO.GetAvailabityCodes(mainDivision);
 
@@ -180,14 +180,14 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                         if (!string.IsNullOrEmpty(errorMessage))
                         {
-                            message = string.Format("Row {0}: {1}", row, errorMessage);
+                            message = string.Format("Row {0}: {1}. No data has been updated. Please fix the error and resubmit complete file.", row + 1, errorMessage);
                             return;
                         }                            
 
                         errorMessage = ValidateUploadValues(uploadRec);
                         if (!string.IsNullOrEmpty(errorMessage))
                         {
-                            message = string.Format("Row {0}: {1}", row, errorMessage);
+                            message = string.Format("Row {0}: {1}. No data has been updated. Please fix the error and resubmit complete file.", row + 1, errorMessage);
                             return;
                         }
                         else
