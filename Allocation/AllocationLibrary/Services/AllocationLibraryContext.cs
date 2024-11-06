@@ -36,7 +36,7 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<WarehouseBlackout> WarehouseBlackouts { get; set; }
         public DbSet<StoreSeasonality> StoreSeasonality { get; set; }
         public DbSet<StoreSeasonalityDetail> StoreSeasonalityDetails { get; set; }
-        public DbSet<ExpeditePO> ExpiditePOs { get; set; }
+        public DbSet<ExpeditePO> ExpeditePOs { get; set; }
         public DbSet<DirectToStoreConstraint> DirectToStoreConstraints { get; set; }
         public DbSet<DirectToStoreSku> DirectToStoreSkus { get; set; }
         public DbSet<RuleSelectedStore> RuleSelectedStores { get; set; }

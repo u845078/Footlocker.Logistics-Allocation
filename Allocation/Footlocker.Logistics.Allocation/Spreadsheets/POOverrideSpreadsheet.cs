@@ -76,7 +76,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                             }
 
                             if (existingPOList.Count > 0)
-                                item.DeliveryDate = existingPOList[0].ExpectedDeliveryDate;
+                                item.ExpectedDeliveryDate = existingPOList[0].ExpectedDeliveryDate;
                         }
                     }
                 }

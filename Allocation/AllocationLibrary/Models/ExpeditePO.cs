@@ -17,13 +17,12 @@ namespace Footlocker.Logistics.Allocation.Models
 
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        [Display(Name = "ExpectedDeliveryDate")]
+        [Display(Name = "Expected Delivery Date")]
         [NotMapped]
-        public DateTime? DeliveryDate { get; set; }
+        public DateTime? ExpectedDeliveryDate { get; set; }
 
         [DataType(DataType.Date)]
-        [Column("DeliveryDate")]
-        public DateTime? StoredDeliveryDate { get; set; }
+        public DateTime? DeliveryDate { get; set; }
 
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
@@ -48,18 +47,18 @@ namespace Footlocker.Logistics.Allocation.Models
         /// <summary>
         /// Initializes a new instance of the ExpeditePO class.
         /// </summary>
-        public ExpeditePO()
-        {
-            this.Division = String.Empty;
-            this.PO = String.Empty;
-            this.DeliveryDate = DateTime.MinValue;
-            this.OverrideDate = DateTime.MinValue;
-            this.CreatedBy = String.Empty;
-            this.CreateDate = DateTime.MinValue;
-            this.Departments = String.Empty;
-            this.Sku = String.Empty;
-            this.TotalRetail = Decimal.Zero;
-            this.TotalUnits = 0;
-        }
+        //public ExpeditePO()
+        //{
+        //    this.Division = String.Empty;
+        //    this.PO = String.Empty;
+        //    this.ExpectedDeliveryDate = DateTime.MinValue;
+        //    this.OverrideDate = DateTime.MinValue;
+        //    this.CreatedBy = String.Empty;
+        //    this.CreateDate = DateTime.MinValue;
+        //    this.Departments = String.Empty;
+        //    this.Sku = String.Empty;
+        //    this.TotalRetail = Decimal.Zero;
+        //    this.TotalUnits = 0;
+        //}
     }
 }
