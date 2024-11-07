@@ -26,9 +26,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<ExpeditePO> divExpeditePOs = allocDB.ExpeditePOs.Where(ep => ep.Division == div).ToList(); 
 
             if (divExpeditePOs != null)
-            {
-                List<PurchaseOrder> POs = allocDB.PurchaseOrders.Where(p => p.Division == div).ToList();
-                
+            {                
+                List<PurchaseOrder> POs = (from a in db.POs
+                                           join r in db.ExpeditePOs
+                                           on a.PO equals r.PO
+                                           where r.Division == div
+                                           select a).ToList();
+
                 foreach (ExpeditePO epo in divExpeditePOs)
                 {
                     epo.ExpectedDeliveryDate = POs.Where(po => po.PO == epo.PO)
@@ -45,8 +49,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<ExpeditePO> skuExpeditePOs = allocDB.ExpeditePOs.Where(ep => ep.Sku == sku).ToList();
 
             if (skuExpeditePOs != null)
-            {
-                List<PurchaseOrder> POs = allocDB.PurchaseOrders.Where(p => p.SKU == sku).ToList();
+            {                
+                List<PurchaseOrder> POs = (from a in db.POs
+                                           join r in db.ExpeditePOs
+                                           on a.PO equals r.PO
+                                           where r.Sku == sku
+                                           select a).ToList();
 
                 foreach (ExpeditePO epo in skuExpeditePOs)
                 {
@@ -64,8 +72,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<ExpeditePO> poExpeditePOs = allocDB.ExpeditePOs.Where(ep => ep.Division == div && ep.PO == po).ToList();            
 
             if (poExpeditePOs != null)
-            {
-                List<PurchaseOrder> POs = allocDB.PurchaseOrders.Where(p => p.Division == div && p.PO == po).ToList();
+            {                
+                List<PurchaseOrder> POs = (from a in db.POs
+                                           join r in db.ExpeditePOs
+                                           on a.PO equals r.PO
+                                           where r.Division == div &&
+                                                 r.PO == po
+                                           select a).ToList();
 
                 foreach (ExpeditePO epo in poExpeditePOs)
                 {
