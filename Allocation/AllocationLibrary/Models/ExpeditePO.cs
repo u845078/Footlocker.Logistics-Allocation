@@ -22,6 +22,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public DateTime? ExpectedDeliveryDate { get; set; }
 
         [DataType(DataType.Date)]
+        [Display(Name = "Crossdock Delivery Date")]
         public DateTime? DeliveryDate { get; set; }
 
         [DataType(DataType.Date)]
