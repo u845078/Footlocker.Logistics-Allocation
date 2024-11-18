@@ -37,7 +37,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private void LoadLookups(StoreBatchModel viewModel)
         {
             // Get concepts of divisions which current user has access to
-            var accessibleDivCodes = currentUser.GetUserDivList(AppName);
+            var accessibleDivCodes = currentUser.GetUserDivList();
             var accessibleConcepts = 
                 db.ConceptTypes.Include("Divisions").Where(ct => ct.Divisions.Select(d => d.Division).Intersect(accessibleDivCodes).Any());
 
@@ -111,7 +111,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _Update()
         {
             List<StoreLookup> Stores = (from a in db.StoreLookups.Include("StoreExtension") select a).ToList();
-            Stores = (from a in Stores join b in currentUser.GetUserDivisions(AppName) on a.Division equals b.DivCode select a).ToList();
+            Stores = (from a in Stores join b in currentUser.GetUserDivisions() on a.Division equals b.DivCode select a).ToList();
 
             return View(new GridModel(Stores));
         }
@@ -155,7 +155,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<StoreLookup> Stores = (from a in db.StoreLookups.Include("StoreExtension") 
                                         select a).ToList();
             Stores = (from a in Stores 
-                      join b in currentUser.GetUserDivisions(AppName)
+                      join b in currentUser.GetUserDivisions()
                       on a.Division equals b.DivCode 
                       select a).ToList();
 
@@ -266,7 +266,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             var minihubStrategies = domainObjects.Select(sl => (sl.StoreExtension != null) ? ((sl.StoreExtension.MinihubStrategyInd) ? 1 : 0) : -1).Distinct();
 
             // Get concepts of divisions which current user has access to
-            var accessibleDivCodes = currentUser.GetUserDivList(AppName);
+            var accessibleDivCodes = currentUser.GetUserDivList();
             var accessibleConceptTypeIDs =
                 db.ConceptTypes.Include("Divisions")
                     .Where(ct => ct.Divisions.Select(d => d.Division).Intersect(accessibleDivCodes).Any())

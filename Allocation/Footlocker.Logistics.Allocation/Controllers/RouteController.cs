@@ -388,8 +388,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             StoreLeadTimeModel model = new StoreLeadTimeModel()
             {
-                Divisions = currentUser.GetUserDivisions(AppName),
-                CanUploadData = currentUser.HasUserRole(AppName, "IT")
+                Divisions = currentUser.GetUserDivisions(),
+                CanUploadData = currentUser.HasUserRole("IT")
             };
             
             if ((div == null) && (model.Divisions.Count > 0))

@@ -79,7 +79,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     errorMessage = "Invalid Sku, format should be ##-##-#####-##";
                 else
                 {
-                    if (!config.currentUser.HasDivision(config.AppName, range.Division))
+                    if (!config.currentUser.HasDivision(range.Division))
                         errorMessage = string.Format("You are not authorized to update division {0}", range.Division);
                     else
                     {

@@ -629,7 +629,7 @@ namespace Footlocker.Logistics.Allocation.Services
 
             try
             {
-                Expression finalExpression = GetExpression(finalRules, pe, currentUser.GetUserDivisionsString(AppName));
+                Expression finalExpression = GetExpression(finalRules, pe, currentUser.GetUserDivisionsString());
 
                 // Create an expression tree that represents the expression 
                 // 'queryableData.Where(company => (company.ToLower() == "coho winery" || company.Length > 16))'

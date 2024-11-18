@@ -123,7 +123,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             if (!authDivs.Split(',').Contains(mainDivision))
                 message = string.Format("Unauthorized division specified in spreadsheet, Division {0}. Please read instructions above for the authorized divisions.", mainDivision);
             else
-                if (!config.currentUser.HasDivision(config.AppName, mainDivision))            
+                if (!config.currentUser.HasDivision(mainDivision))            
                     message = "You do not have permission to update this division.";            
         }
 

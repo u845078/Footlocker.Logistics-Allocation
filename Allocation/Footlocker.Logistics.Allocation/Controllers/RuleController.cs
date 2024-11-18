@@ -380,7 +380,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 int count = storesInRule.Count();
                 if (storesInRule != null)
                 {                    
-                    var divisions = currentUser.GetUserDivisions(AppName);                    
+                    var divisions = currentUser.GetUserDivisions();                    
                     count = (from a in storesInRule
                              join b in divisions 
                              on a.Division equals b.DivCode 
@@ -509,7 +509,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     // only return stores that the user has divisional privs for
                     retList = (from a in retList 
-                               join b in currentUser.GetUserDivisions(AppName) 
+                               join b in currentUser.GetUserDivisions() 
                                on a.Division equals b.DivCode 
                                select a).ToList();
                 }

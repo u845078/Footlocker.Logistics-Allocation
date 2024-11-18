@@ -13,7 +13,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             excelDocument = GetTemplate();
 
             IQueryable<RDQRestriction> rdqRestrictions = (from rr in config.db.RDQRestrictions.AsEnumerable()
-                                                          join d in config.currentUser.GetUserDivisions(config.AppName)
+                                                          join d in config.currentUser.GetUserDivisions()
                                                             on rr.Division equals d.DivCode
                                                           orderby rr.Division, rr.Department, rr.Category, rr.Brand
                                                           select rr).AsQueryable();

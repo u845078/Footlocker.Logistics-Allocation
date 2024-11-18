@@ -14,7 +14,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         public void ExtractGrid(IList<IFilterDescriptor> filters)
         {
             IQueryable<SkuAttributeHeader> headers = (from a in config.db.SkuAttributeHeaders.Include("SkuAttributeDetails").AsEnumerable()
-                                                      join d in config.currentUser.GetUserDivisions(config.AppName)
+                                                      join d in config.currentUser.GetUserDivisions()
                                                         on new { a.Division } equals new { Division = d.DivCode }
                                                       orderby a.Division, a.Dept, a.Category, a.SKU
                                                       select a).AsQueryable();

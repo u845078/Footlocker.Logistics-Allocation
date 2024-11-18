@@ -39,7 +39,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private RDQRestrictionModel RetrieveModel()
         {
             RDQRestrictionModel model = new RDQRestrictionModel();
-            var permissions = currentUser.GetUserRoles(AppName);
+            var permissions = currentUser.GetUserRoles();
             model.CanEdit = permissions.Contains("Support") || permissions.Contains("Logistics");
             return model;
         }
@@ -193,7 +193,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<StoreLookup> returnValue = new List<StoreLookup>();
 
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Division> divs = currentUser.GetUserDivisions();
             var list = (from rr in db.RDQRestrictions
                            join sl in db.StoreLookups
                              on new { Division = rr.Division, Store = rr.ToStore } equals
@@ -221,7 +221,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                       select re).Distinct().ToList();
 
             returnValue = (from a in list
-                           join d in currentUser.GetUserDivisions(AppName)
+                           join d in currentUser.GetUserDivisions()
                              on a.Division equals d.DivCode
                          select a).ToList();
 
@@ -240,7 +240,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                       select le).Distinct().ToList();
 
             returnValue = (from a in list
-                           join d in currentUser.GetUserDivisions(AppName)
+                           join d in currentUser.GetUserDivisions()
                              on a.Division equals d.DivCode
                          select a).ToList();
 
@@ -260,7 +260,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                       select new { Division = rr.Division, DistributionCenter = dc}).Distinct().ToList();
 
             returnValue = (from a in list
-                           join d in currentUser.GetUserDivisions(AppName)
+                           join d in currentUser.GetUserDivisions()
                              on a.Division equals d.DivCode
                          select a.DistributionCenter).ToList();
 
@@ -304,7 +304,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<RDQRestriction> returnValue = new List<RDQRestriction>();
 
-            List<string> divisions = currentUser.GetUserDivList(AppName)
+            List<string> divisions = currentUser.GetUserDivList()
                     .Distinct()
                     .ToList();
 
@@ -854,7 +854,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private List<SelectListItem> GetDivisionsList()
         {
             List<SelectListItem> divisionList = new List<SelectListItem>();
-            List<Division> userDivList = currentUser.GetUserDivisions(AppName); 
+            List<Division> userDivList = currentUser.GetUserDivisions(); 
             var divsWithDepts = (from a in db.Departments select a.divisionCode).Distinct();
 
 

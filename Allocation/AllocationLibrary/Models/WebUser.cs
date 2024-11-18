@@ -15,6 +15,8 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public string NetworkID { get; set; }
 
+        public string AppName { get; set; }
+
         public string ActiveDirectoryEntry
         {
             get
@@ -35,9 +37,9 @@ namespace Footlocker.Logistics.Allocation.Models
         private List<Department> UserDepartments { get; set; }
         private List<string> UserRoles { get; set; }
 
-        public bool HasUserRole(string app, List<string> roles)
+        public bool HasUserRole(List<string> roles)
         {
-            return roles.Intersect(GetUserRoles(app)).Count() > 0;
+            return roles.Intersect(GetUserRoles()).Count() > 0;
         }
 
         /// <summary>
@@ -46,15 +48,15 @@ namespace Footlocker.Logistics.Allocation.Models
         /// <param name="app">The app name</param>
         /// <param name="role">The role you're looking for</param>
         /// <returns>boolean if it is found</returns>
-        public bool HasUserRole(string app, string role)
+        public bool HasUserRole(string role)
         {
-            return GetUserRoles(app).Contains(role);
+            return GetUserRoles().Contains(role);
         }
 
-        public bool HasDivisionRole(string app, string role, string division)
+        public bool HasDivisionRole(string role, string division)
         {
-            if (HasUserRole(app, role))            
-                return WebSecurityService.UserHasDivisionRole(NetworkID, app, division, role);            
+            if (HasUserRole(role))            
+                return WebSecurityService.UserHasDivisionRole(NetworkID, AppName, division, role);            
             else 
                 return false;
         }
@@ -64,10 +66,10 @@ namespace Footlocker.Logistics.Allocation.Models
         /// </summary>
         /// <param name="app">Application name</param>
         /// <returns>List of role strings</returns>
-        public List<string> GetUserRoles(string app)
+        public List<string> GetUserRoles()
         {
             if (UserRoles == null)
-                UserRoles = WebSecurityService.ListUserRoles(NetworkID, app);
+                UserRoles = WebSecurityService.ListUserRoles(NetworkID, AppName);
 
             return UserRoles;
         }
@@ -77,9 +79,9 @@ namespace Footlocker.Logistics.Allocation.Models
         /// </summary>
         /// <param name="app">The application name</param>
         /// <returns></returns>
-        public string GetUserDivisionsString(string app)
+        public string GetUserDivisionsString()
         {
-            List<string> userDivCodes = GetUserDivList(app);
+            List<string> userDivCodes = GetUserDivList();
             return string.Join("", userDivCodes);
         }
 
@@ -89,9 +91,9 @@ namespace Footlocker.Logistics.Allocation.Models
         /// <param name="app">The Application Name</param>
         /// <param name="division">The division you're looking for</param>
         /// <returns>boolean: true, they got it; false, they don't</returns>
-        public bool HasDivision(string app, string division)
+        public bool HasDivision(string division)
         {
-            return GetUserDivisionsString(app).Contains(division);
+            return GetUserDivisionsString().Contains(division);
         }
 
         /// <summary>
@@ -101,9 +103,9 @@ namespace Footlocker.Logistics.Allocation.Models
         /// <param name="div">Division</param>
         /// <param name="dept">Division</param>
         /// <returns></returns>
-        public bool HasDivDept(string app, string div, string dept)
+        public bool HasDivDept(string div, string dept)
         {
-            return GetUserDivDept(app).Contains(string.Format("{0}-{1}", div, dept));
+            return GetUserDivDept().Contains(string.Format("{0}-{1}", div, dept));
         }
 
         /// <summary>
@@ -111,15 +113,15 @@ namespace Footlocker.Logistics.Allocation.Models
         /// </summary>
         /// <param name="app">The websecurity application name string</param>
         /// <returns>list of Department objects</returns>
-        public List<Department> GetUserDepartments(string app)
+        public List<Department> GetUserDepartments()
         {
             if (UserDepartments == null)
             {
                 UserDepartments = new List<Department>();
 
-                foreach (string div in GetUserDivList(app))
+                foreach (string div in GetUserDivList())
                 {
-                    UserDepartments.AddRange(WebSecurityService.ListUserDepartments(NetworkID, app, div));
+                    UserDepartments.AddRange(WebSecurityService.ListUserDepartments(NetworkID, AppName, div));
                 }
             }
 
@@ -131,10 +133,10 @@ namespace Footlocker.Logistics.Allocation.Models
         /// </summary>
         /// <param name="app">The websecurity application name string</param>
         /// <returns>list of div-dept strings</returns>
-        public List<string> GetUserDivDept(string app)
+        public List<string> GetUserDivDept()
         {
             List<string> temp = new List<string>();
-            UserDepartments = GetUserDepartments(app);
+            UserDepartments = GetUserDepartments();
 
             temp.AddRange(UserDepartments.Select(d => string.Format("{0}-{1}", d.DivCode, d.DeptNumber)).ToList());
 
@@ -146,25 +148,26 @@ namespace Footlocker.Logistics.Allocation.Models
         /// </summary>
         /// <param name="app">The websecurity application name string</param>
         /// <returns>list of div code strings</returns>
-        public List<string> GetUserDivList(string app)
+        public List<string> GetUserDivList()
         {
-            UserDivisions = GetUserDivisions(app);
+            UserDivisions = GetUserDivisions();
 
             return UserDivisions.Select(d => d.DivCode).ToList();
         }
 
-        public List<Division> GetUserDivisions(string app)
+        public List<Division> GetUserDivisions()
         {
             if (UserDivisions == null)
-                UserDivisions = WebSecurityService.ListUserDivisions(NetworkID, app);
+                UserDivisions = WebSecurityService.ListUserDivisions(NetworkID, AppName);
 
             return UserDivisions;
         }
 
-        public WebUser(string userDomain, string networkID)
+        public WebUser(string userDomain, string networkID, string appName)
         {
             UserDomain = userDomain;
             NetworkID = networkID;
+            AppName = appName;
         }
     }
 }

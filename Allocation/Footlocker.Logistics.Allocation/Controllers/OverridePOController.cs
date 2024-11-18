@@ -95,7 +95,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ExpeditePOModel model = new ExpeditePOModel()
             {
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = currentUser.GetUserDivisions()
             };
 
             if (string.IsNullOrEmpty(div))
@@ -127,7 +127,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             ExpeditePOModel model = new ExpeditePOModel()
             {
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = currentUser.GetUserDivisions()
             };
 
             return View(model);
@@ -183,7 +183,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     Division = div
                 },
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = currentUser.GetUserDivisions()
             };
             return View(model);
         }
@@ -203,7 +203,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 foreach (ExistingPO po in model.ExistingPOs)
                 {
                     string dept = po.Sku.Substring(3, 2);
-                    if (!currentUser.HasDivDept(AppName, po.Division, dept))                    
+                    if (!currentUser.HasDivDept(po.Division, dept))                    
                         model.Message += string.Format("<br>You do not have permission for dept {0}", dept);                    
 
                     if (!model.NewPO.Departments.Contains(dept))
@@ -234,7 +234,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             else
             {
                 ViewData["message"] = "PO not found";
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = currentUser.GetUserDivisions();
                 return View(model);            
             }
         }
@@ -247,7 +247,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 {
                     Division = div
                 },
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = currentUser.GetUserDivisions()
             };
             
             return View(model);
@@ -263,7 +263,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             foreach (ExistingPO po in model.ExistingPOs)
             {
                 string dept = po.Sku.Substring(3, 2);
-                if (!currentUser.HasDivDept(AppName, po.Division, dept))
+                if (!currentUser.HasDivDept(po.Division, dept))
                 {
                     model.Message += string.Format("<br>You do not have permission for dept {0}", dept);
                 }

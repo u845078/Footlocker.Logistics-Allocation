@@ -125,7 +125,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     bool canEPick = false;
                     bool canWebPick = true;
 
-                    List<string> userRoles = config.currentUser.GetUserRoles(config.AppName);
+                    List<string> userRoles = config.currentUser.GetUserRoles();
 
                     // if they don't have any web pick roles, take out web pick
                     if (!userRoles.Intersect(webPickRoles).Any())
@@ -154,7 +154,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                         }
 
                         // 2) check to see if user has permission for this division
-                        if (!config.currentUser.HasDivision(config.AppName, division))
+                        if (!config.currentUser.HasDivision(division))
                         {
                             errorMessage = string.Format("You do not have permission for Division {0}.", division);
                             return false;

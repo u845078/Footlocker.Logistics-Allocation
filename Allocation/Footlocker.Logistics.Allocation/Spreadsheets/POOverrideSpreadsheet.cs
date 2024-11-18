@@ -57,7 +57,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                         {
                             foreach (ExistingPO po in existingPOList)
                             {
-                                if (!config.currentUser.HasDivDept(config.AppName, po.Division, po.Sku.Substring(3, 2)))
+                                if (!config.currentUser.HasDivDept(po.Division, po.Sku.Substring(3, 2)))
                                     item.ErrorMessage = "Permission denied.";
 
                                 if (!item.Departments.Contains(po.Sku.Substring(3, 2)))

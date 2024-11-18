@@ -33,7 +33,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         {
             errorMessage = string.Empty;
 
-            if (!config.currentUser.HasDivision(config.AppName, inputData.Division))
+            if (!config.currentUser.HasDivision(inputData.Division))
                 errorMessage = string.Format("You are not authorized to update division {0}", inputData.Division);
             else
             {

@@ -20,7 +20,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<DirectToStoreSku> allDTS = db.DirectToStoreSkus.ToList();
 
             model = (from a in allDTS 
-                     join b in currentUser.GetUserDepartments(AppName) 
+                     join b in currentUser.GetUserDepartments() 
                      on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } 
                      select a).ToList();
 
@@ -48,7 +48,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<DTSConstraintModel> allDTS = db.DTSConstraintModels.ToList();
 
             model = (from a in allDTS 
-                     join b in currentUser.GetUserDepartments(AppName) 
+                     join b in currentUser.GetUserDepartments() 
                      on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } 
                      select a).ToList();
 
@@ -72,7 +72,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 DirectToStoreDAO dao = new DirectToStoreDAO(appConfig.EuropeDivisions);
                 List<DirectToStoreConstraint> allDTS = dao.GetDTSConstraintsOneSize();
                 model = (from a in allDTS 
-                         join b in currentUser.GetUserDepartments(AppName) 
+                         join b in currentUser.GetUserDepartments() 
                          on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } 
                          orderby a.Sku 
                          select a).ToList();
@@ -124,7 +124,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<DirectToStoreSku> allDTS = (from a in db.DirectToStoreSkus.Include("ItemMaster")
                                              select a).ToList();
             model = (from a in allDTS 
-                     join b in currentUser.GetUserDepartments(AppName) 
+                     join b in currentUser.GetUserDepartments() 
                      on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } 
                      select a).ToList();
             GridModel gridList = new GridModel(model);
@@ -139,7 +139,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<DirectToStoreSku> model;
             List<DirectToStoreSku> allDTS = (from a in db.DirectToStoreSkus select a).ToList();
             model = (from a in allDTS 
-                     join b in currentUser.GetUserDepartments(AppName) 
+                     join b in currentUser.GetUserDepartments() 
                      on new { a.Division, a.Department } equals new { Division = b.DivCode, Department = b.DeptNumber } 
                      select a).ToList();
             return View(new GridModel(model));
@@ -163,7 +163,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             model.CreateDate = DateTime.Now;
             model.CreatedBy = currentUser.NetworkID;
-            if (currentUser.HasDivDept(AppName, model.Sku.Substring(0, 2), model.Sku.Substring(3, 2)))
+            if (currentUser.HasDivDept(model.Sku.Substring(0, 2), model.Sku.Substring(3, 2)))
             {
                 ItemMaster item = db.ItemMasters.Where(im => im.MerchantSku == model.Sku && im.Deleted == 0).FirstOrDefault();
 
@@ -253,7 +253,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             DirectToStoreDAO vendorDao = new DirectToStoreDAO(appConfig.EuropeDivisions);
             model.Vendors = vendorDao.GetVendors(model.Sku);
 
-            if (currentUser.HasDivDept(AppName, model.Sku.Substring(0, 2), model.Sku.Substring(3, 2)))
+            if (currentUser.HasDivDept(model.Sku.Substring(0, 2), model.Sku.Substring(3, 2)))
             {
                 ItemMaster item = db.ItemMasters.Where(im => im.MerchantSku == model.Sku).FirstOrDefault();
 
@@ -306,7 +306,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                       where a.Sku == Sku 
                                       select a).First();
 
-            if (currentUser.HasDivision(AppName, model.Sku.Substring(0, 2)))
+            if (currentUser.HasDivision(model.Sku.Substring(0, 2)))
             {
                 db.DirectToStoreSkus.Remove(model);
                 db.SaveChanges();

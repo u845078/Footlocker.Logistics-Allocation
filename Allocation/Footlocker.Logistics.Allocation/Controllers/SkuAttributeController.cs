@@ -22,7 +22,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Index()
         {
-            ViewBag.hasEditRole = currentUser.HasUserRole(AppName, editRoles.Split(',').ToList());
+            ViewBag.hasEditRole = currentUser.HasUserRole(editRoles.Split(',').ToList());
 
             ModelStateDictionary previousModelState = TempData["ModelState"] as ModelStateDictionary;
 
@@ -40,7 +40,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _Index()
         {
             List<SkuAttributeHeader> headers = (from a in db.SkuAttributeHeaders.AsEnumerable()
-                                                join d in currentUser.GetUserDivisions(AppName)
+                                                join d in currentUser.GetUserDivisions()
                                                     on new { a.Division } equals
                                                        new { Division = d.DivCode }
                                                 orderby a.Division, a.Dept, a.Category
@@ -87,7 +87,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void InitializeDivisions(SkuAttributeModel model)
         {
-            var userDivisions = currentUser.GetUserDivisions(AppName)
+            var userDivisions = currentUser.GetUserDivisions()
                 .OrderBy(d => d.DivCode)
                 .Select(d => new SelectListItem 
                             { 
@@ -108,13 +108,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void InitializeDepartments(SkuAttributeModel model, bool reset)
         {
-            var userDepts = currentUser.GetUserDepartments(AppName).Where(d => d.DivCode == model.Division)
-                                                                   .Select(d => new SelectListItem
-                                                                   {
-                                                                       Text = d.DisplayName,
-                                                                       Value = d.DeptNumber,
-                                                                       Selected = d.DeptNumber == model.Department
-                                                                   });
+            var userDepts = currentUser.GetUserDepartments().Where(d => d.DivCode == model.Division)
+                                                            .Select(d => new SelectListItem
+                                                            {
+                                                                Text = d.DisplayName,
+                                                                Value = d.DeptNumber,
+                                                                Selected = d.DeptNumber == model.Department
+                                                            });
             model.DepartmentList = new SelectList(userDepts, "Value", "Text");
 
             if (reset || string.IsNullOrEmpty(model.Department))
@@ -352,10 +352,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             InitializeCategories(model);
             InitializeBrands(model);
             
-            if (currentUser.HasDivDept(AppName, model.Division, model.Department))
+            if (currentUser.HasDivDept(model.Division, model.Department))
             {
                 //check edit role    
-                ViewBag.hasEditRole = currentUser.HasUserRole(AppName, editRoles.Split(',').ToList());
+                ViewBag.hasEditRole = currentUser.HasUserRole(editRoles.Split(',').ToList());
             }
             else
             {
@@ -373,7 +373,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ViewBag.hasEditRole = true;
 
-            if (currentUser.HasDivDept(AppName, model.Division, model.Department))
+            if (currentUser.HasDivDept(model.Division, model.Department))
             {
                 if (submitButton == "Save")
                 {
@@ -425,7 +425,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             SkuAttributeHeader header = db.SkuAttributeHeaders.Where(s => s.ID == ID).First();
 
-            if (currentUser.HasDivDept(AppName, header.Division, header.Dept))
+            if (currentUser.HasDivDept(header.Division, header.Dept))
             {
                 db.SkuAttributeHeaders.Remove(header);
                 //db.SaveChanges();

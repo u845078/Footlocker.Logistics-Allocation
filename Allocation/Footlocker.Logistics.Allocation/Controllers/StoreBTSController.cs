@@ -31,7 +31,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             StoreBTSModel model = new StoreBTSModel()
             {
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = currentUser.GetUserDivisions()
             };
             
             if (model.Divisions.Count() > 0)
@@ -359,7 +359,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             store = store.PadLeft(5, '0');
             int year = storebts.Year;
 
-            if (currentUser.HasDivision(AppName, division))
+            if (currentUser.HasDivision(division))
             {
                 var storequery = db.StoreLookups.Where(sl => sl.Division == division && sl.Store == store);
 

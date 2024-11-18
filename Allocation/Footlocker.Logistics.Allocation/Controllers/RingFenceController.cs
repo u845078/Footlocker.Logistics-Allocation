@@ -72,7 +72,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             List<RingFenceModel> model = new List<RingFenceModel>();
 
             RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
-            List<GroupedRingFence> list = dao.GetValidRingFenceGroups(currentUser.GetUserDivList(AppName));
+            List<GroupedRingFence> list = dao.GetValidRingFenceGroups(currentUser.GetUserDivList());
 
             List<string> uniqueNames = (from a in list
                                         where !string.IsNullOrEmpty(a.LastModifiedUser)
@@ -105,7 +105,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _RingFenceSummary()
         {
             RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
-            List<RingFence> list = dao.GetRingFences(currentUser.GetUserDivList(AppName));
+            List<RingFence> list = dao.GetRingFences(currentUser.GetUserDivList());
 
             var rfGroups = from rf in list
                            group rf by new
@@ -131,7 +131,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             // future data enhancements
             //AllocationLibraryContext context = new AllocationLibraryContext();
-            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions();
             //List<RingFence> ringFences = context.RingFences.Where(rf => rf.Qty > 0 && 
             //                                                            rf.ringFenceDetails.Any(rfd => rfd.ActiveInd == "1")).ToList();
 
@@ -156,7 +156,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             div = div.Trim();
             store = store.Trim();
 
-            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions();
             List<FOB> list = (from a in db.RingFences 
                               join b in db.StoreLookups 
                               on new { a.Division, a.Store } equals new { b.Division, b.Store } 
@@ -181,7 +181,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _RingFences(string sku)
         {
-            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions();
             List<RingFence> list = db.RingFences.Where(rf => rf.Qty > 0 && rf.Sku == sku).ToList();
             list = (from a in list
                     join d in divs on a.Division equals d.DivCode
@@ -222,7 +222,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult _RingFencesForStore(string div, string store)
         {
             List<RingFence> list;
-            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions();
             list = db.RingFences.Where(rf => rf.Qty > 0 && rf.Division == div && rf.Store == store).ToList();
 
             list = (from a in list
@@ -274,7 +274,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
+                List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions();
                 list = (from a in db.RingFences 
                         join i in db.ItemMasters on a.ItemID equals i.ID
                         join b in db.FOBDepts on i.Dept equals b.Department
@@ -314,7 +314,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             RingFenceModel model = new RingFenceModel()
             {
                 RingFence = new RingFence(),
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = currentUser.GetUserDivisions()
             };
 
             return View(model);
@@ -347,7 +347,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(RingFenceModel model)
         {
-            model.Divisions = currentUser.GetUserDivisions(AppName);            
+            model.Divisions = currentUser.GetUserDivisions();            
             string errorMessage;
             
             RingFenceDAO dao = new RingFenceDAO(appConfig.EuropeDivisions);
@@ -372,7 +372,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ViewData["ringFenceID"] = model.RingFence.ID;
 
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = currentUser.GetUserDivisions();
 
             return View("AssignInventory", model);
         }
@@ -383,7 +383,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 RingFence = db.RingFences.Where(rf => rf.ID == ID).First(),
                 FutureAvailable = db.RingFenceDetails.Where(rfd => rfd.RingFenceID == ID && rfd.ActiveInd == "1").ToList(),
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = currentUser.GetUserDivisions()
             };
 
             List<DistributionCenter> dcs = db.DistributionCenters.ToList();
@@ -508,7 +508,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 RingFence = db.RingFences.Where(rf => rf.ID == ID).First(), 
                 Details = sizes, 
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = currentUser.GetUserDivisions()
             };
             
             return View(model);
@@ -585,7 +585,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 RingFence = db.RingFences.Where(rf => rf.ID == ID).First(),
                 FutureAvailable = new List<RingFenceDetail>(),
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = currentUser.GetUserDivisions()
             };
 
             ViewData["Size"] = size;
@@ -600,7 +600,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             // Build up a RingFence view model
             RingFenceModel model = new RingFenceModel()
             {
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = currentUser.GetUserDivisions()
             };
 
             RingFence ringfence = db.RingFences.Where(rf => rf.ID == ID).FirstOrDefault();
@@ -626,7 +626,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             try
             {
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = currentUser.GetUserDivisions();
                 ViewData["ringFenceID"] = model.RingFence.ID;
                 if (!dao.CanUserUpdateRingFence(model.RingFence, currentUser, AppName, out errorMessage))
                 {
@@ -822,7 +822,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void InitializeDivisions(RingFenceReleaseModel model)
         {
-            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions();
 
             var allInstances = (from a in db.Instances
                                 join b in db.InstanceDivisions
@@ -878,7 +878,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         model.Division = model.Divisions.First().DivCode;
                 }
 
-                model.Departments = currentUser.GetUserDepartments(AppName).Where(d => d.DivCode == model.Division).ToList();
+                model.Departments = currentUser.GetUserDepartments().Where(d => d.DivCode == model.Division).ToList();
                 if (model.Departments.Any())
                     model.Departments.Insert(0, new Department() { DeptNumber = "00", DepartmentName = "All departments" });
                 else
@@ -1022,7 +1022,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 RingFence = rf,
                 Details = dao.GetRingFenceDetails(rf.ID),
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = currentUser.GetUserDivisions()
             };
 
             return View(model);

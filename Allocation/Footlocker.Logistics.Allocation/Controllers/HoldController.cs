@@ -30,7 +30,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (string.IsNullOrEmpty(duration))            
                 duration = "All";            
 
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Division> divs = currentUser.GetUserDivisions();
             List<Hold> list = db.Holds.Where(h => h.Duration == duration || duration == "All").ToList();
             list = (from a in list
                     join d in divs 
@@ -78,7 +78,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (string.IsNullOrEmpty(duration))            
                 duration = "All";
             
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Division> divs = currentUser.GetUserDivisions();
             List<Hold> list = db.Holds.Where(h => h.Duration == duration || duration == "All").ToList();
             list = (from a in list
                     join d in divs 
@@ -108,7 +108,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (string.IsNullOrEmpty(duration))            
                 duration = "All";
             
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Division> divs = currentUser.GetUserDivisions();
             List<Hold> list = db.Holds.Where(h => h.Duration == duration || duration == "All").ToList();
 
             list = (from a in list
@@ -140,7 +140,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (string.IsNullOrEmpty(duration))            
                 duration = "All";
             
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Division> divs = currentUser.GetUserDivisions();
             List<Hold> list = db.Holds.Where(h => h.Duration == duration || duration == "All").ToList();
             list = (from a in list
                     join d in divs on a.Division equals d.DivCode
@@ -166,7 +166,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             else
                 holdTypeCode = 1;
 
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Division> divs = currentUser.GetUserDivisions();
             List<Hold> list = db.Holds.Where(h => (h.Duration == duration || duration == "All") &&
                                                   h.Division == div &&
                                                   h.Level == level &&
@@ -204,7 +204,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             else
                 holdTypeCode = 1;
 
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Division> divs = currentUser.GetUserDivisions();
             List<Hold> list = db.Holds.Where(h => (h.Duration == duration || duration == "All") && 
                                                   h.Division == div &&
                                                   h.ReserveInventory == holdTypeCode &&
@@ -246,7 +246,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 { 
                     StartDate = DateTime.Now.AddDays(1) 
                 },
-                Divisions = currentUser.GetUserDivisions(AppName),
+                Divisions = currentUser.GetUserDivisions(),
                 ShowStoreSelector = "no",
                 RuleModel = new RuleModel()
             };
@@ -288,7 +288,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
 
                 ViewData["ruleSetID"] = model.RuleSetID;
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = currentUser.GetUserDivisions();
                 return View(model);
             }
             else
@@ -296,12 +296,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.Hold.CreateDate = DateTime.Now;
                 model.Hold.CreatedBy = currentUser.NetworkID;
 
-                if (currentUser.GetUserDivisions(AppName).Exists(d => d.DivCode == model.Hold.Division))
+                if (currentUser.GetUserDivisions().Exists(d => d.DivCode == model.Hold.Division))
                 {
                     if (model.Hold.Level == "Sku" && model.Hold.Division != model.Hold.Value.Substring(0, 2))
                     {
                         ViewData["message"] = "Invalid Sku, division does not match selection.";
-                        model.Divisions = currentUser.GetUserDivisions(AppName);
+                        model.Divisions = currentUser.GetUserDivisions();
                         return View(model);
                     }
                     else
@@ -313,7 +313,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                             if (!string.IsNullOrEmpty(validationMessage))
                             {
                                 ViewData["message"] = validationMessage;
-                                model.Divisions = currentUser.GetUserDivisions(AppName);
+                                model.Divisions = currentUser.GetUserDivisions();
                                 return View(model);
                             }
                             else
@@ -354,7 +354,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                 if (!string.IsNullOrEmpty(validationMessage))
                                 {
                                     ViewData["message"] = validationMessage;
-                                    model.Divisions = currentUser.GetUserDivisions(AppName);
+                                    model.Divisions = currentUser.GetUserDivisions();
                                     return View(model);
                                 }
                                 else
@@ -372,7 +372,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 else
                 {
                     ViewData["message"] = "You are not authorized to create holds for this division.";
-                    model.Divisions = currentUser.GetUserDivisions(AppName);
+                    model.Divisions = currentUser.GetUserDivisions();
                     return View(model);
                 }
             }
@@ -410,7 +410,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             HoldModel model = new HoldModel()
             {
                 Hold = db.Holds.Where(h => h.ID == ID).FirstOrDefault(),
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = currentUser.GetUserDivisions()
             };
 
             model.OriginalStartDate = model.Hold.StartDate;
@@ -435,7 +435,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (!string.IsNullOrEmpty(validationMessage))
             {
                 ViewData["message"] = validationMessage;
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = currentUser.GetUserDivisions();
                 return View(model);
             }
             else
@@ -467,7 +467,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                                  h.ReserveInventory == 0).First();
             }
             model.Hold.Comments = "";
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = currentUser.GetUserDivisions();
             model.OriginalStartDate = model.Hold.StartDate;
 
             return View(model);
@@ -483,7 +483,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.Hold = db.Holds.Where(h => h.Division == div && h.Store == store && h.ReserveInventory == 0).First();
             
             model.Hold.Comments = "";
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = currentUser.GetUserDivisions();
             model.OriginalStartDate = model.Hold.StartDate;
 
             return View(model);
@@ -538,7 +538,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (validationMessage != "")
             {
                 ViewData["message"] = validationMessage;
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = currentUser.GetUserDivisions();
                 return View(model);
             }
             else
@@ -600,7 +600,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (validationMessage != "")
             {
                 ViewData["message"] = validationMessage;
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = currentUser.GetUserDivisions();
                 return View(model);
             }
             else

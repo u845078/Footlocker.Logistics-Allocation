@@ -19,7 +19,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Index()
         {
             List<CrossDockExclusion> model = db.CrossDockExclusions.ToList();
-            List<Division> divs  = currentUser.GetUserDivisions(AppName);
+            List<Division> divs  = currentUser.GetUserDivisions();
             model = (from a in model 
                      join b in divs 
                      on a.Division equals b.DivCode 
@@ -30,7 +30,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [GridAction]
         public ActionResult _Index()
         {
-            List<string> userDivCodeList = currentUser.GetUserDivList(AppName);
+            List<string> userDivCodeList = currentUser.GetUserDivList();
             List<CrossDockExclusionViewModel> xdockVMs = db.CrossDockExclusions.Include("StoreLookup").Where(cde => userDivCodeList.Contains(cde.Division))
                                                                                                       .Select(cde =>
                                                                                                             new CrossDockExclusionViewModel() {
@@ -59,7 +59,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             CrossDockExclusionModel model = new CrossDockExclusionModel()
             {
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = currentUser.GetUserDivisions()
             };
             
             return View(model);
@@ -79,7 +79,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             catch (Exception ex)
             {
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = currentUser.GetUserDivisions();
                 model.ErrorMessage = ex.Message;
                 return View(model);
             }

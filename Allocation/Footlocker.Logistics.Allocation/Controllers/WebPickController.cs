@@ -28,7 +28,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #region WebPick screens
         public ActionResult Index(string message)
         {
-            List<string> divs = currentUser.GetUserDivList(AppName);
+            List<string> divs = currentUser.GetUserDivList();
             List<RDQ> list = db.RDQs.Where(r => r.Type == "user").ToList();
 
             list = (from a in list
@@ -64,7 +64,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void InitializeCreate(WebPickModel model)
         {
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = currentUser.GetUserDivisions();
             model.DCs = db.DistributionCenters.ToList();
 
             model.PickOptions = new List<SelectListItem>
@@ -76,9 +76,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 }
             };
 
-            if (currentUser.HasUserRole(AppName, "EPick"))
+            if (currentUser.HasUserRole("EPick"))
             {
-                List<string> userRoles = currentUser.GetUserRoles(AppName);
+                List<string> userRoles = currentUser.GetUserRoles();
 
                 // if they don't have any web pick roles, take out web pick
                 if (!userRoles.Intersect(webPickRoles).Any())
@@ -484,7 +484,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         private void InitializeDivisions(BulkRDQModel model)
         {
-            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions();
 
             var allInstances = (from a in db.Instances 
                                 join b in db.InstanceDivisions 
@@ -532,7 +532,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                         model.Division = model.Divisions.First().DivCode;
                 }
 
-                model.Departments = currentUser.GetUserDepartments(AppName).Where(d => d.DivCode == model.Division).ToList();
+                model.Departments = currentUser.GetUserDepartments().Where(d => d.DivCode == model.Division).ToList();
                 if (model.Departments.Any())                
                     model.Departments.Insert(0, new Department() { DeptNumber = "00", DepartmentName = "All departments" });                
                 else                
@@ -652,13 +652,13 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (department == "00")
             {
                 // get the list of user departments
-                List<string> depts = currentUser.GetUserDivDept(AppName).Where(d => d.StartsWith(string.Format("{0}-", div))).ToList();
+                List<string> depts = currentUser.GetUserDivDept().Where(d => d.StartsWith(string.Format("{0}-", div))).ToList();
 
                 tempRDQList = rdqDAO.GetHeldRDQs(instance, div, department, category, sku, po, store, status);
 
                 foreach (RDQ rdq in tempRDQList)
                 {
-                    if (currentUser.HasDivDept(AppName, div, rdq.Department))                        
+                    if (currentUser.HasDivDept(div, rdq.Department))                        
                         rdqList.Add(rdq);                                          
                 }
 			}
@@ -698,7 +698,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             db.SaveChanges(currentUser.NetworkID);
 
-            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Footlocker.Common.Division> divs = currentUser.GetUserDivisions();
             List<RDQ> list = (from a in db.RDQs 
                               join b in divs 
                                 on a.Division equals b.DivCode 

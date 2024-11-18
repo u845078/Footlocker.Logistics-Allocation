@@ -25,7 +25,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                      select b).Distinct().ToList();
 
             model = (from a in model 
-                     join b in currentUser.GetUserDivisions(AppName) 
+                     join b in currentUser.GetUserDivisions() 
                      on a.Division equals b.DivCode 
                      select a).ToList();
                      
@@ -37,7 +37,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             EditStoreAttributeModel model = new EditStoreAttributeModel()
             {
                 StoreAttributes = db.StoreAttributes.Where(sa => sa.Division == div && sa.Store == store).ToList(),
-                Divisions = currentUser.GetUserDivisions(AppName),
+                Divisions = currentUser.GetUserDivisions(),
                 newStoreAttribute = new StoreAttribute()
                 {
                     Division = div,
@@ -74,7 +74,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (message != "")
             {
                 ViewData["message"] = message;
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = currentUser.GetUserDivisions();
                 model.FOBs = dao.GetFOBs(model.newStoreAttribute.Division);
                 model.StoreAttributes = db.StoreAttributes.Where(sa => sa.Division == model.newStoreAttribute.Division && sa.Store == model.newStoreAttribute.Store).ToList();
                 return View(model);                
@@ -105,7 +105,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     Weight = 100
                 };
 
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = currentUser.GetUserDivisions();
 
                 return View(model);
             }
@@ -121,7 +121,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Create()
         {
             CreateStoreAttributeModel model = new CreateStoreAttributeModel();
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = currentUser.GetUserDivisions();
             model.StoreAttribute = new StoreAttribute()
             {
                 StartDate = DateTime.Now,
@@ -146,7 +146,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 if (message != "")
                 {
                     ViewData["message"] = message;
-                    model.Divisions = currentUser.GetUserDivisions(AppName);
+                    model.Divisions = currentUser.GetUserDivisions();
                     model.FOBs = fobDAO.GetFOBs("");
                     return View(model);                    
                 }
@@ -165,7 +165,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             catch (Exception ex)
             {
                 ViewData["message"] = ex.Message;
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = currentUser.GetUserDivisions();
                 FamilyOfBusinessDAO dao = new FamilyOfBusinessDAO();
                 model.FOBs = dao.GetFOBs("");
                 return View(model);
@@ -215,7 +215,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             CreateStoreAttributeModel model = new CreateStoreAttributeModel()
             {
-                Divisions = currentUser.GetUserDivisions(AppName),
+                Divisions = currentUser.GetUserDivisions(),
                 StoreAttribute = db.StoreAttributes.Where(sa => sa.ID == ID).First()
             };
 
@@ -234,7 +234,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (message != "")
             {
                 ViewData["message"] = message;
-                model.Divisions = currentUser.GetUserDivisions(AppName);
+                model.Divisions = currentUser.GetUserDivisions();
                 model.FOBs = fobDAO.GetFOBs("");
                 return View(model);
 
@@ -343,7 +343,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     errorMessage = SetErrorMessage(errorMessage, "Invalid format for \"Dept\" level, expected ##.");                
                 else
                 {
-                    if (!currentUser.GetUserDivDept(AppName).Contains(string.Format("{0}-{1}", sa.Division, sa.Value)))                    
+                    if (!currentUser.GetUserDivDept().Contains(string.Format("{0}-{1}", sa.Division, sa.Value)))                    
                         errorMessage = SetErrorMessage(errorMessage, "The provided department does not exist or you do not have permission for this department.");                    
                 }
             }

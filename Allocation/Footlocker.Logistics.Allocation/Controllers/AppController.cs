@@ -61,7 +61,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             DirectoryEntry de;
 
-            currentUser = new WebUser(Environment.UserDomainName, User.Identity.Name.Replace("CORP\\", ""));
+            currentUser = new WebUser(Environment.UserDomainName, User.Identity.Name.Replace("CORP\\", ""), AppName);
             de = new DirectoryEntry(currentUser.ActiveDirectoryEntry);
 
             if (de.Guid != null)

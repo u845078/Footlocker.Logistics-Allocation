@@ -47,7 +47,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
         private void ValidateRow(DeliveryGroupUploadModel row)
         {
-            if (!config.currentUser.HasDivDept(config.AppName, row.Division, row.Department))
+            if (!config.currentUser.HasDivDept(row.Division, row.Department))
                 row.ErrorMessage = string.Format("You do not have permission for the division/department {0}/{1}.", row.Division, row.Department);
 
             if (row.DeliveryGroup == null)

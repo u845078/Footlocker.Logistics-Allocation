@@ -26,7 +26,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ViewData["message"] = message;
 
-            List<Division> userDivList = currentUser.GetUserDivisions(AppName);
+            List<Division> userDivList = currentUser.GetUserDivisions();
 
             List<ProductHierarchyOverrides> model = (from p in context.ProductOverrides.Include(p => p.productOverrideType)
                         select p).ToList();
@@ -252,7 +252,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                      select id.Division).ToList();
             }
 
-            List<Division> userDivList = currentUser.GetUserDivisions(AppName);
+            List<Division> userDivList = currentUser.GetUserDivisions();
             var divsWithDepts = (from a in db.Departments 
                                  select a.divisionCode).Distinct();
 
@@ -426,7 +426,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
             else
             {
-                model.overrideDivisionLabel = (from a in currentUser.GetUserDivisions(AppName)
+                model.overrideDivisionLabel = (from a in currentUser.GetUserDivisions()
                                                where a.DivCode == itemRec.Div
                                                select a.DisplayName).FirstOrDefault();
 
@@ -462,7 +462,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         private ProductHierarchyOverrideModel FillModelLists(ProductHierarchyOverrideModel model)
         {
             ProductHierarchyOverrides pho = model.prodHierarchyOverride;
-            List<Division> userDivisions = currentUser.GetUserDivisions(AppName); 
+            List<Division> userDivisions = currentUser.GetUserDivisions(); 
 
             model.Instances = GetInstances(userDivisions);
             if (string.IsNullOrEmpty(model.selectedInstance))

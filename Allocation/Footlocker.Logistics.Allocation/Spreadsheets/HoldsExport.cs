@@ -16,7 +16,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             if (string.IsNullOrEmpty(duration))
                 duration = "All";
 
-            List<Division> userDivs = config.currentUser.GetUserDivisions(config.AppName);
+            List<Division> userDivs = config.currentUser.GetUserDivisions();
             List<Hold> holdsList = config.db.Holds.Where(h => h.Duration == duration || duration == "All").ToList();
 
             IQueryable<Hold> holds = (from a in holdsList

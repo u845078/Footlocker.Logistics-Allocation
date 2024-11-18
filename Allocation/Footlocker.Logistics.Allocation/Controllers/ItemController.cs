@@ -48,7 +48,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             string checkroles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning";
             List<string> roles = checkroles.Split(new char[] { ',' }).ToList();
-            return currentUser.HasUserRole(AppName, roles);
+            return currentUser.HasUserRole(roles);
         }
         
         [CheckPermission(Roles = "Support,Buyer Planner,Director of Allocation,Div Logistics,Head Merchandiser,IT,Logistics,Merchandiser,Space Planning,TroubleShootingReadOnly")]        
@@ -188,7 +188,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             TroubleshootStoreModel model = new TroubleshootStoreModel()
             {
-                Divisions = currentUser.GetUserDivisions(AppName)
+                Divisions = currentUser.GetUserDivisions()
             };
 
             return View(model);
@@ -212,7 +212,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             DateTime today = configService.GetControlDate(model.Division);            
 
-            model.Divisions = currentUser.GetUserDivisions(AppName);
+            model.Divisions = currentUser.GetUserDivisions();
 
             var validStoreCount = db.vValidStores.Where(vs => vs.Division == model.Division && vs.Store == model.Store).Count();
             model.isValid = validStoreCount > 0;

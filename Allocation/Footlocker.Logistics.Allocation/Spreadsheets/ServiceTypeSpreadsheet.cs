@@ -136,7 +136,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 if (!levelExpression.IsMatch(parsedRec.SKU))
                     errorMessage = "SKU is in an invalid format. It must be ##-##-#####-##";
                 else
-                    if (!config.currentUser.HasDivision(config.AppName, parsedRec.Division))
+                    if (!config.currentUser.HasDivision(parsedRec.Division))
                         errorMessage = string.Format("You do not have permission to update division {0}", parsedRec.Division);
             }
 

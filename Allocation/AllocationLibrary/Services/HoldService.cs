@@ -48,7 +48,7 @@ namespace Footlocker.Logistics.Allocation.Services
             else
                 errorMessage = "You are not authorized to create this hold.";
 
-            if (!currentUser.HasUserRole(AppName, GetHoldTypePermissions().Split(',').ToList()))
+            if (!currentUser.HasUserRole(GetHoldTypePermissions().Split(',').ToList()))
                 return errorMessage;
             else
                 return "";
@@ -148,51 +148,51 @@ namespace Footlocker.Logistics.Allocation.Services
 
                 if (Hold.Level == "Sku")
                 {
-                    if (!currentUser.HasDivision(AppName, Hold.Value.Substring(0, 2)))
+                    if (!currentUser.HasDivision(Hold.Value.Substring(0, 2)))
                         returnMessage = "You do not have authority to create this hold. You need division level access.";
-                    else if (!currentUser.HasDivDept(AppName, Hold.Value.Substring(0, 2), Hold.Value.Substring(3, 2)))
+                    else if (!currentUser.HasDivDept(Hold.Value.Substring(0, 2), Hold.Value.Substring(3, 2)))
                         returnMessage = "You do not have authority to create this hold. You need dept level access.";
                     else if (Hold.Level == "Sku" && Hold.Division != Hold.Value.Substring(0, 2))
                         returnMessage = "Invalid Sku, division does not match selection.";
                 }
                 else if (Hold.Level == "Dept")
                 {
-                    if (!currentUser.HasDivDept(AppName, Hold.Division, Hold.Value))
+                    if (!currentUser.HasDivDept(Hold.Division, Hold.Value))
                         returnMessage = "You do not have authority to create this hold. You need dept level access.";
                 }
                 else if (Hold.Level == "VendorDept")
                 {
-                    if (!currentUser.HasDivDept(AppName, Hold.Division, Hold.Value.Substring(6, 2)))
+                    if (!currentUser.HasDivDept(Hold.Division, Hold.Value.Substring(6, 2)))
                         returnMessage = "You do not have authority to create this hold. You need dept level access.";
                 }
                 else if (Hold.Level == "VendorDeptCategory")
                 {
-                    if (!currentUser.HasDivDept(AppName, Hold.Division, Hold.Value.Substring(6, 2)))
+                    if (!currentUser.HasDivDept(Hold.Division, Hold.Value.Substring(6, 2)))
                         returnMessage = "You do not have authority to create this hold. You need dept level access.";
                 }
                 else if (Hold.Level == "DeptBrand")
                 {
-                    if (!currentUser.HasDivDept(AppName, Hold.Division, Hold.Value.Substring(0, 2)))
+                    if (!currentUser.HasDivDept(Hold.Division, Hold.Value.Substring(0, 2)))
                         returnMessage = "You do not have authority to create this hold. You need dept level access.";
                 }
                 else if (Hold.Level == "Category")
                 {
-                    if (!currentUser.HasDivDept(AppName, Hold.Division, Hold.Value.Substring(0, 2)))
+                    if (!currentUser.HasDivDept(Hold.Division, Hold.Value.Substring(0, 2)))
                         returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                 }
                 else if (Hold.Level == "DeptTeam")
                 {
-                    if (!currentUser.HasDivDept(AppName, Hold.Division, Hold.Value.Substring(0, 2)))
+                    if (!currentUser.HasDivDept(Hold.Division, Hold.Value.Substring(0, 2)))
                         returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                 }
                 else if (Hold.Level == "DeptCatTeam")
                 {
-                    if (!currentUser.HasDivDept(AppName, Hold.Division, Hold.Value.Substring(0, 2)))
+                    if (!currentUser.HasDivDept(Hold.Division, Hold.Value.Substring(0, 2)))
                         returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                 }
                 else if (string.Equals(Hold.Level, "DeptCatBrand"))
                 {
-                    if (!currentUser.HasDivDept(AppName, Hold.Division, Hold.Value.Substring(0, 2)))
+                    if (!currentUser.HasDivDept(Hold.Division, Hold.Value.Substring(0, 2)))
                         returnMessage = "You do not have authority to create this hold.  You need dept level access.";
                 }
                 else
@@ -219,7 +219,7 @@ namespace Footlocker.Logistics.Allocation.Services
                     else
                     {
                         int divDepts = DepartmentService.ListDepartments(Hold.Division).Count();
-                        int enabledDepts = currentUser.GetUserDepartments(AppName).Where(m => m.DivCode == Hold.Division).Count();
+                        int enabledDepts = currentUser.GetUserDepartments().Where(m => m.DivCode == Hold.Division).Count();
 
                         if (divDepts != enabledDepts)
                             returnMessage = "You do not have authority to create this hold. Store level holds must have dept level access for ALL departments in the division.";

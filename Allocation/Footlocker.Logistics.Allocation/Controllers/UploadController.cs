@@ -153,7 +153,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             foreach (string div in divisions)
             {
-                if (currentUser.HasDivision(AppName, div))
+                if (currentUser.HasDivision(div))
                 {
                     canLoad = true;
                     break;
@@ -300,7 +300,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             foreach (string div in divisions)
             {
-                if (currentUser.HasDivision(AppName, div))
+                if (currentUser.HasDivision(div))
                 {
                     canLoad = true;
                     break;

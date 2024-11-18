@@ -57,7 +57,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     {
                         foreach (DirectToStoreSku rec in parsedARSKUs)
                         {
-                            if (!config.currentUser.GetUserDivList(config.AppName).Contains(rec.Division))                            
+                            if (!config.currentUser.GetUserDivList().Contains(rec.Division))                            
                                 message = "Upload failed: One ore more Skus are in a division you do not have permissions for.";                            
                         }
 

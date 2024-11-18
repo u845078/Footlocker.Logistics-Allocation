@@ -847,12 +847,12 @@ namespace Footlocker.Logistics.Allocation.Models.Services
             bool result = true;
             errorMessage = "";
 
-            if (!user.HasDivision(appName, rf.Division))
+            if (!user.HasDivision(rf.Division))
             {
                 result = false;
                 errorMessage = string.Format("You do not have permission to ring fence for division {0}", rf.Division);
             }
-            else if (!user.HasDivDept(appName, rf.Division, rf.Department))
+            else if (!user.HasDivDept(rf.Division, rf.Department))
             {
                 result = false;
                 errorMessage = string.Format("You do not have permission to ring fence for department {0}", rf.Department);

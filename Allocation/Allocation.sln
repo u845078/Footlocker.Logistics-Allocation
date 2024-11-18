@@ -24,6 +24,7 @@ Global
 		{E2F50E2F-9AAA-4EC8-9E25-676504C0A820}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2F50E2F-9AAA-4EC8-9E25-676504C0A820}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3325DFE7-386B-4D74-AFDA-25893C70F531}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3325DFE7-386B-4D74-AFDA-25893C70F531}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3325DFE7-386B-4D74-AFDA-25893C70F531}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3325DFE7-386B-4D74-AFDA-25893C70F531}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
@@ -31,8 +32,8 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {2E6A8B06-3ADB-4F83-8FC4-0226F3ACF8E4}
 		EnterpriseLibraryConfigurationToolBinariesPath = packages\Unity.2.1.505.0\lib\NET35;packages\Unity.Interception.2.1.505.0\lib\NET35;packages\EnterpriseLibrary.Common.5.0.505.0\lib\NET35;packages\EnterpriseLibrary.Data.5.0.505.0\lib\NET35
+		SolutionGuid = {2E6A8B06-3ADB-4F83-8FC4-0226F3ACF8E4}
 	EndGlobalSection
 	GlobalSection(TeamFoundationVersionControl) = preSolution
 		SccNumberOfProjects = 4

@@ -164,7 +164,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             parsedRingFences.Where(rf => invalidStoreList.Contains(string.Format("{0}-{1}", rf.Division, rf.Store)))
                             .ForEach(ist => ist.ErrorMessage = string.Format("The division and store combination {0}-{1} is not an existing or valid combination.", ist.Division, ist.Store));
 
-            List<string> invalidDivisions = uniqueDivisions.Where(div => !config.currentUser.GetUserDivList(config.AppName).Exists(ud => ud == div)).ToList();
+            List<string> invalidDivisions = uniqueDivisions.Where(div => !config.currentUser.GetUserDivList().Exists(ud => ud == div)).ToList();
             parsedRingFences.Where(rf => invalidDivisions.Contains(rf.Division))
                             .ForEach(rf => rf.ErrorMessage = string.Format("You do not have permission for Division {0}.", rf.Division));
 

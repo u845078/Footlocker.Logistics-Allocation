@@ -20,9 +20,9 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             List<string> temp = new List<string>();
 
-            foreach (string div in currentUser.GetUserDivList(AppName))
+            foreach (string div in currentUser.GetUserDivList())
             {
-                temp.AddRange(currentUser.GetUserDivDept(AppName));
+                temp.AddRange(currentUser.GetUserDivDept());
             }
 
             var query = (from mc in db.MandatoryCrossdocks

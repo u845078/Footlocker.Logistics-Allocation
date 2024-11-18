@@ -13,7 +13,7 @@ namespace AllocationTests
         [TestMethod]
         public void BasicValuesTest()
         {
-            WebUser testUser = new WebUser("CORP", "u695130");
+            WebUser testUser = new WebUser("CORP", "u695130", "Allocation");
             Assert.AreEqual("CORP", testUser.UserDomain);
             Assert.AreEqual("u695130", testUser.NetworkID);
             Assert.AreEqual("CORP\\u695130", testUser.FullNetworkID);
@@ -25,7 +25,7 @@ namespace AllocationTests
         {
             DirectoryEntry de;
 
-            WebUser testUser = new WebUser("CORP", "u695130");
+            WebUser testUser = new WebUser("CORP", "u695130", "Allocation");
             de = new DirectoryEntry(testUser.ActiveDirectoryEntry);
 
             if (de.Guid != null)
@@ -38,8 +38,8 @@ namespace AllocationTests
         public void UserDivListTest()
         {
             List<string> userDivisions;
-            WebUser testUser = new WebUser("CORP", "u695130");
-            userDivisions = testUser.GetUserDivList("Allocation");
+            WebUser testUser = new WebUser("CORP", "u695130", "Allocation");
+            userDivisions = testUser.GetUserDivList();
             Assert.IsTrue(userDivisions.Contains("03"));
             Assert.IsTrue(userDivisions.Contains("18"));
             Assert.IsTrue(userDivisions.Contains("31"));
@@ -51,8 +51,8 @@ namespace AllocationTests
         public void UserDivisionsTest()
         {
             List<Division> userDivisions;
-            WebUser testUser = new WebUser("CORP", "u695130");
-            userDivisions = testUser.GetUserDivisions("Allocation");
+            WebUser testUser = new WebUser("CORP", "u695130", "Allocation");
+            userDivisions = testUser.GetUserDivisions();
             Assert.IsTrue(userDivisions.Exists(ud => ud.DivCode == "03"));
             Assert.IsTrue(userDivisions.Exists(ud => ud.DivCode == "18"));
             Assert.IsTrue(userDivisions.Exists(ud => ud.DivCode == "31"));
@@ -64,8 +64,8 @@ namespace AllocationTests
         public void UserDivisionsStringTest()
         {
             string userDivisions;
-            WebUser testUser = new WebUser("CORP", "u695130");
-            userDivisions = testUser.GetUserDivisionsString("Allocation");
+            WebUser testUser = new WebUser("CORP", "u695130", "Allocation");
+            userDivisions = testUser.GetUserDivisionsString();
             Assert.AreEqual("03040608161718242829314759737677818590", userDivisions);
         }
 
@@ -73,8 +73,8 @@ namespace AllocationTests
         public void UserDivDeptsTest()
         {
             List<string> userDepartments;
-            WebUser testUser = new WebUser("CORP", "u695130");
-            userDepartments = testUser.GetUserDivDept("Allocation");
+            WebUser testUser = new WebUser("CORP", "u695130", "Allocation");
+            userDepartments = testUser.GetUserDivDept();
             Assert.IsTrue(userDepartments.Contains("03-17"));
             Assert.IsTrue(userDepartments.Contains("18-05"));
             Assert.IsTrue(userDepartments.Contains("16-05"));
@@ -87,8 +87,8 @@ namespace AllocationTests
         public void UserDepartmentsTest()
         {
             List<Department> userDepartments;
-            WebUser testUser = new WebUser("CORP", "u695130");
-            userDepartments = testUser.GetUserDepartments("Allocation");
+            WebUser testUser = new WebUser("CORP", "u695130", "Allocation");
+            userDepartments = testUser.GetUserDepartments();
             Assert.IsTrue(userDepartments.Exists(ud => ud.DivCode == "03" && ud.DeptNumber == "17"));
             Assert.IsTrue(userDepartments.Exists(ud => ud.DivCode == "18" && ud.DeptNumber == "05"));
             Assert.IsTrue(userDepartments.Exists(ud => ud.DivCode == "16" && ud.DeptNumber == "05"));
@@ -100,32 +100,32 @@ namespace AllocationTests
         [TestMethod]
         public void UserHasDepartmentTest()
         {
-            WebUser testUser = new WebUser("CORP", "u695130");
-            bool dataCheck = testUser.HasDivision("Allocation", "31");
+            WebUser testUser = new WebUser("CORP", "u695130", "Allocation");
+            bool dataCheck = testUser.HasDivision("31");
             Assert.IsTrue(dataCheck);
-            dataCheck = testUser.HasDivision("Allocation", "03");
+            dataCheck = testUser.HasDivision("03");
             Assert.IsTrue(dataCheck);
-            dataCheck = testUser.HasDivision("Allocation", "99");
+            dataCheck = testUser.HasDivision("99");
             Assert.IsFalse(dataCheck);
         }
 
         [TestMethod]
         public void UserHasDivDeptTest()
         {
-            WebUser testUser = new WebUser("CORP", "u695130");
-            Assert.IsTrue(testUser.HasDivDept("Allocation", "03", "17"));
-            Assert.IsTrue(testUser.HasDivDept("Allocation", "18", "05"));
-            Assert.IsTrue(testUser.HasDivDept("Allocation", "16", "05"));
-            Assert.IsTrue(testUser.HasDivDept("Allocation", "31", "55"));
-            Assert.IsFalse(testUser.HasDivDept("Allocation", "99", "99"));
+            WebUser testUser = new WebUser("CORP", "u695130", "Allocation");
+            Assert.IsTrue(testUser.HasDivDept("03", "17"));
+            Assert.IsTrue(testUser.HasDivDept("18", "05"));
+            Assert.IsTrue(testUser.HasDivDept("16", "05"));
+            Assert.IsTrue(testUser.HasDivDept("31", "55"));
+            Assert.IsFalse(testUser.HasDivDept("99", "99"));
         }
 
         [TestMethod]
         public void UserRoleListTest()
         {
             List<string> userRoles;
-            WebUser testUser = new WebUser("CORP", "u695130");
-            userRoles = testUser.GetUserRoles("Allocation");
+            WebUser testUser = new WebUser("CORP", "u695130", "Allocation");
+            userRoles = testUser.GetUserRoles();
             Assert.IsTrue(userRoles.Contains("IT"));
             Assert.IsTrue(userRoles.Contains("Support"));
             Assert.IsTrue(userRoles.Contains("EPick"));
@@ -135,25 +135,25 @@ namespace AllocationTests
         [TestMethod]
         public void UserRoleTests()
         {
-            WebUser testUser = new WebUser("CORP", "u695130");
-            Assert.IsTrue(testUser.HasUserRole("Allocation", "IT"));
-            Assert.IsTrue(testUser.HasUserRole("Allocation", "Support"));
-            Assert.IsTrue(testUser.HasUserRole("Allocation", "EPick"));
-            Assert.IsFalse(testUser.HasUserRole("Allocation", "Director"));
+            WebUser testUser = new WebUser("CORP", "u695130", "Allocation");
+            Assert.IsTrue(testUser.HasUserRole("IT"));
+            Assert.IsTrue(testUser.HasUserRole("Support"));
+            Assert.IsTrue(testUser.HasUserRole("EPick"));
+            Assert.IsFalse(testUser.HasUserRole("Director"));
         }
 
         [TestMethod]
         public void UserRoleList2Test()
         {
             List<string> rolesToFind = new List<string>() { "IT", "ABC" };
-            WebUser testUser = new WebUser("CORP", "u695130");
-            Assert.IsTrue(testUser.HasUserRole("Allocation", rolesToFind));
+            WebUser testUser = new WebUser("CORP", "u695130", "Allocation");
+            Assert.IsTrue(testUser.HasUserRole(rolesToFind));
 
             rolesToFind = new List<string>() { "NOT", "FOUND" };
-            Assert.IsFalse(testUser.HasUserRole("Allocation", rolesToFind));
+            Assert.IsFalse(testUser.HasUserRole(rolesToFind));
 
             rolesToFind = new List<string>() { "IT", "Support", "EPick" };
-            Assert.IsTrue(testUser.HasUserRole("Allocation", rolesToFind));
+            Assert.IsTrue(testUser.HasUserRole(rolesToFind));
         }
     }
 }

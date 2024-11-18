@@ -34,7 +34,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Index(string message)
         {
             ViewData["message"] = message;
-            List<RangePlan> model = rangePlanDAO.GetRangesForUser(currentUser, AppName);
+            List<RangePlan> model = rangePlanDAO.GetRangesForUser(currentUser);
 
             if (model.Count > 0)
             {
@@ -58,7 +58,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Manage()
         {
-            List<string> userDivDepts = currentUser.GetUserDivDept(AppName);
+            List<string> userDivDepts = currentUser.GetUserDivDept();
 
             List<RangePlan> model = db.RangePlans.Include("ItemMaster").Where(u => userDivDepts.Contains(u.Sku.Substring(0, 5))).ToList();
 
@@ -155,10 +155,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (db.Renumbers.Any(a => a.OldSKU.Substring(0, 12) == SKU.Substring(0, 12)))
                 return "This SKU has been renumbered and should not be used.";
 
-            if (!currentUser.HasDivDept(AppName, SKU.Substring(0, 2), SKU.Substring(3, 2)))
+            if (!currentUser.HasDivDept(SKU.Substring(0, 2), SKU.Substring(3, 2)))
                 return "You do not have permission for this division/department.";
 
-            List<Division> divs = currentUser.GetUserDivisions(AppName);
+            List<Division> divs = currentUser.GetUserDivisions();
 
             if (!divs.Any(d => d.DivCode == SKU.Substring(0, 2)))            
                 return "You do not have permission to create a range plan for this division";
@@ -2431,7 +2431,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     long planID;
                     string sku = Convert.ToString(rule.Value);
 
-                    string myInClause = currentUser.GetUserDivisionsString(AppName);
+                    string myInClause = currentUser.GetUserDivisionsString();
                     try
                     {
                         planID = (from x in db.RangePlans where x.Sku == sku select x).First().Id;
@@ -2653,7 +2653,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (model.StartSend < start)
             {
-                if (!currentUser.HasUserRole(AppName, "IT"))
+                if (!currentUser.HasUserRole("IT"))
                 {
                     if (!edit)                    
                         return "Earliest start date is " + start;                    
@@ -2826,7 +2826,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
 
-            if (currentUser.HasDivisionRole(AppName, "Ecomm Presale", model.SKU.Substring(0, 2)))            
+            if (currentUser.HasDivisionRole("Ecomm Presale", model.SKU.Substring(0, 2)))            
             {
                 ViewData["message"] = "You do not have security to create PreSale records for this division.";
                 return View(model);

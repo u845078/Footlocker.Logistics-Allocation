@@ -14,7 +14,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         public void WriteData(GridCommand settings)
         {
             WriteHeaderRecord();
-            List<string> userDivisions = config.currentUser.GetUserDivList(config.AppName);
+            List<string> userDivisions = config.currentUser.GetUserDivList();
             IQueryable<ValidRingFence> ringFences = ringFenceDAO.GetValidRingFences(userDivisions);
 
             if (settings.FilterDescriptors.Any())            

@@ -40,7 +40,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 errorMessage = string.Format("Unauthorized division specified in spreadsheet, Division {0}. Please read instructions above for the authorized divisions.", parsedRec.Division);
             else
             {
-                if (!config.currentUser.HasDivision(config.AppName, parsedRec.Division))
+                if (!config.currentUser.HasDivision(parsedRec.Division))
                     errorMessage = string.Format("You are not authorized to update division {0}", parsedRec.Division);
                 else
                 {

@@ -138,10 +138,10 @@ namespace Footlocker.Logistics.Allocation.Services
             db.SaveChanges(user.NetworkID);
         }
 
-        public List<RangePlan> GetRangesForUser(WebUser webUser, string appName)
+        public List<RangePlan> GetRangesForUser(WebUser webUser)
         {
-            List<string> userDivDepts = webUser.GetUserDivDept(appName);
-            List<string> divs = webUser.GetUserDivList(appName);
+            List<string> userDivDepts = webUser.GetUserDivDept();
+            List<string> divs = webUser.GetUserDivList();
 
             var query = (from rp in db.RangePlans
                          join im in db.ItemMasters

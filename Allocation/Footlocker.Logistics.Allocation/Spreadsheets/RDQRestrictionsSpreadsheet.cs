@@ -62,7 +62,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 errorMessage = "Division must be provided.";
             else
             {
-                if (!config.currentUser.HasDivision(config.AppName, inputData.Division))
+                if (!config.currentUser.HasDivision(inputData.Division))
                     errorMessage = string.Format("You do not have permission for Division {0}", inputData.Division);            
             }
 

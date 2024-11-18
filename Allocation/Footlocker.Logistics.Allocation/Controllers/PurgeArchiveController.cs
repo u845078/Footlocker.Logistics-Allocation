@@ -35,7 +35,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         public ActionResult Index()
         {
             PurgeArchiveTypeModel model = new PurgeArchiveTypeModel();
-            model.CanEdit = currentUser.HasUserRole(AppName, "IT");
+            model.CanEdit = currentUser.HasUserRole("IT");
             return View(model);
         }
 
