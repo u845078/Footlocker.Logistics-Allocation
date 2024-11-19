@@ -1285,8 +1285,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             if (model.RangePlan != null)
             {
-                model.RangePlan.CreatedBy = currentUser.NetworkID;
-                model.RangePlan.UpdatedBy = currentUser.NetworkID;
+                model.RangePlan.CreatedBy = GetFullUserNameFromDatabase(model.RangePlan.CreatedBy);
+                model.RangePlan.UpdatedBy = GetFullUserNameFromDatabase(model.RangePlan.UpdatedBy);
             }
 
             //update the store count
