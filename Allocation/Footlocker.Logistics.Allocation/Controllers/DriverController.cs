@@ -12,7 +12,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
     public class DriverController : AppController
     {
         Footlocker.Logistics.Allocation.DAO.AllocationContext db = new DAO.AllocationContext();
-        AllocationLibraryContext allocDB = new AllocationLibraryContext();
 
         public ActionResult Index(string div)
         {

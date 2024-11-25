@@ -18,7 +18,7 @@ namespace Footlocker.Logistics.Allocation.Models
         public string Description { get; set; }
         public decimal Retail { get; set; }
         public int Units { get; set; }
-        public Boolean DirectToStore { get; set; }
+        public bool DirectToStore { get; set; }
         public string WarehouseNumber { get; set; }
 
         public string POStatusCode { get; set; }

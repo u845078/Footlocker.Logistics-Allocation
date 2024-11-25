@@ -7,6 +7,7 @@ using System.DirectoryServices;
 using System.Web.Routing;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.Common;
+using Footlocker.Logistics.Allocation.Services;
 
 namespace Footlocker.Logistics.Allocation.Controllers
 {
@@ -19,6 +20,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
     {
         Footlocker.Logistics.Allocation.Services.FootLockerCommonContext flCommon = new Footlocker.Logistics.Allocation.Services.FootLockerCommonContext();
         public AppConfig appConfig = new AppConfig();
+        public AllocationLibraryContext allocDB = new AllocationLibraryContext();
 
         public WebUser currentUser;
         public const string AppName = "Allocation";

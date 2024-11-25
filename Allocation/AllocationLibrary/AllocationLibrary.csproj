@@ -182,6 +182,7 @@
     <Compile Include="Models\RingFenceSummary.cs" />
     <Compile Include="Models\RingFenceType.cs" />
     <Compile Include="Models\Size.cs" />
+    <Compile Include="Models\SKU.cs" />
     <Compile Include="Models\State.cs" />
     <Compile Include="Models\StoreAttribute.cs" />
     <Compile Include="Models\StoreBase.cs" />

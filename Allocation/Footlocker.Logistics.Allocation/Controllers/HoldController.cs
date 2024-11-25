@@ -31,7 +31,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 duration = "All";            
 
             List<Division> divs = currentUser.GetUserDivisions();
-            List<Hold> list = db.Holds.Where(h => h.Duration == duration || duration == "All").ToList();
+            List<Hold> list = allocDB.Holds.Where(h => h.Duration == duration || duration == "All").ToList();
             list = (from a in list
                     join d in divs 
                     on a.Division equals d.DivCode                     
