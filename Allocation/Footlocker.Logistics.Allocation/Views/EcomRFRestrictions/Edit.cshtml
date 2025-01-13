@@ -1,0 +1,68 @@
+﻿@model EcomRFRestriction
+
+@{
+    ViewBag.Title = "Edit";
+}
+
+<h2>Edit Ecom Ring Fence Restriction</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    @Html.AntiForgeryToken()
+
+    if ((Convert.ToString(ViewData["message"]) != "") && (ViewData["message"] != null))
+    {
+        <font color="red">@Html.Raw(ViewData["message"])</font>
+    }
+
+    @Html.HiddenFor(model => model.ItemID)
+    @Html.HiddenFor(model => model.EcomRFRestrictionID)
+
+    <div class="display-label">
+        @Html.LabelFor(model => model.SKU)
+    </div>
+    <div class="editor-field">
+        @Html.HiddenFor(model => model.SKU)
+        @Html.DisplayFor(model => model.SKU)
+    </div>
+    <br />
+    <div class="display-label">
+        @Html.LabelFor(model => model.SKUDescription)
+    </div>
+    <div class="editor-field">
+        @Html.DisplayFor(model => model.SKUDescription)
+        @Html.HiddenFor(model => model.SKUDescription)
+    </div>
+    <br />
+    <fieldset>
+        <legend>Edit Restriction</legend>
+
+        <div class="display-label">
+            @Html.LabelFor(model => model.StartDate)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.StartDate)
+            @Html.ValidationMessageFor(model => model.StartDate)
+        </div>
+        <div class="display-label">
+            @Html.LabelFor(model => model.EndDate)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.EndDate)
+            @Html.ValidationMessageFor(model => model.EndDate)
+        </div>
+    </fieldset>
+
+    <p>
+        <input type="submit" value="Save" class="t-button" />
+    </p>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index", "EcomRFRestrictions", new { @class = "t-button" })
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

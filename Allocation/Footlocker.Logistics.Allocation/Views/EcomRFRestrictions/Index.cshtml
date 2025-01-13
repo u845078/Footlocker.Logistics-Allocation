@@ -1,0 +1,53 @@
+﻿@model List<EcomRFRestriction>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Ecom Ring Fence Restrictions</h2>
+<p>
+    @Html.ActionLink("Create New", "Create", new { }, new { @class = "t-button" })
+</p>
+
+@if ((Convert.ToString(ViewData["message"]) != "") && (ViewData["message"] != null))
+{
+    <font color="red">@Html.Raw(ViewData["message"])</font>
+}
+
+<script>
+</script>
+
+@(Html.Telerik().Grid(Model)
+        .Name("EcomRFRestrictionGrid")
+        .Columns(columns =>
+        {
+            columns.Bound(o => o.SKU).ReadOnly();
+            columns.Bound(o => o.SKUDescription).Title("SKU Description").ReadOnly();
+            columns.Bound(o => o.StartDate).Format("{0:MM/dd/yyyy}").Title("Start Date");
+            columns.Bound(o => o.EndDate).Format("{0:MM/dd/yyyy}").Title("End Date");
+            columns.Bound(o => o.LastModifiedDate).Title("Updated Date").ReadOnly();
+            columns.Bound(o => o.LastModifiedUser).Title("Updated By").ReadOnly();
+            columns.Command(commands =>
+            {
+                commands
+                .Custom("Delete")
+                .Text("Delete")
+                .DataRouteValues(route => { route.Add(o => o.EcomRFRestrictionID).RouteKey("EcomRFRestrictionID"); })
+                .Ajax(false)
+                .Action("Delete", "EcomRFRestrictions").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+                commands
+                .Custom("Edit")
+                .Text("Edit")
+                .DataRouteValues(route => { route.Add(o => o.EcomRFRestrictionID).RouteKey("EcomRFRestrictionID"); })
+                .Ajax(false)
+                .Action("Edit", "EcomRFRestrictions");
+            }).HtmlAttributes(new { style = "text-align: left" }).Width(300);
+        })
+        .DataBinding(dataBinding =>
+        {
+            dataBinding.Server();
+        })
+        .Sortable(sorting => sorting.Enabled(true))
+        .Pageable(paging => paging.Enabled(true))
+        .Filterable(filtering => filtering.Enabled(true))
+)

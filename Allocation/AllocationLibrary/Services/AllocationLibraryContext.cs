@@ -99,6 +99,8 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<StoreBTSDetail> StoreBTSDetails { get; set; }
         public DbSet<StoreBTSControl> StoreBTSControls { get; set; }
 
+        public DbSet<EcomRFRestriction> EcomRFRestictions { get; set; }
+
         public AllocationLibraryContext()
             : base("AllocationContext")
         {
