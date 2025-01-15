@@ -62,7 +62,6 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         {
             errorMessage = string.Empty;
             bool canConvert;
-            string[] validFormats = { "M/d/yyyy", "M/d/yyyy hh:mm:ss tt" };
             DateTime parsedDate;
 
             if (string.IsNullOrEmpty(inputData.Division))

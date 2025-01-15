@@ -117,6 +117,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             appConfig.currentUser = currentUser;
             appConfig.AppName = AppName;
             appConfig.db = new DAO.AllocationContext();
+            appConfig.allocDB = new AllocationLibraryContext();
             appConfig.AppPath = Server.MapPath("~/"); 
         }
     }

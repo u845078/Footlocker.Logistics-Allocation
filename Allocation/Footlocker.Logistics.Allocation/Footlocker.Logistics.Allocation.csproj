@@ -235,6 +235,7 @@
     <Compile Include="Common\Filters\HandleAjaxError.cs" />
     <Compile Include="Common\Filters\HandleAjaxValidationError.cs" />
     <Compile Include="Common\Filters\LogError.cs" />
+    <Compile Include="Spreadsheets\EcomRFRestrictionSpreadsheet.cs" />
     <Compile Include="Spreadsheets\ExportSpreadsheet.cs" />
     <Compile Include="Spreadsheets\HoldsExport.cs" />
     <Compile Include="Spreadsheets\HoldsUpdateSpreadsheet.cs" />
@@ -749,6 +750,7 @@
     <Content Include="Views\EcomRFRestrictions\Index.cshtml" />
     <Content Include="Views\EcomRFRestrictions\Edit.cshtml" />
     <Content Include="Views\EcomRFRestrictions\Create.cshtml" />
+    <Content Include="Views\EcomRFRestrictions\Upload.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />

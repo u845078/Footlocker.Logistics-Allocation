@@ -1,5 +1,8 @@
-﻿using Footlocker.Logistics.Allocation.Models;
+﻿using Aspose.Cells;
+using Footlocker.Logistics.Allocation.Models;
+using Footlocker.Logistics.Allocation.Models.Services;
 using Footlocker.Logistics.Allocation.Services;
+using Footlocker.Logistics.Allocation.Spreadsheets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +14,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
     [CheckPermission(Roles = "Merchandiser,Head Merchandiser,Director of Allocation,Admin,Support")]
     public class EcomRFRestrictionsController : AppController
     {
+        readonly ConfigService configService = new ConfigService();
+
         public ActionResult Index()
         {
             EcomRFRestrictionModel model = new EcomRFRestrictionModel();
@@ -175,5 +180,74 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return returnValue;
         }
+
+        #region Upload
+        public ActionResult Upload()
+        {
+            return View();
+        }
+
+        public ActionResult ExcelTemplate()
+        {
+            EcomRFRestrictionSpreadsheet ecomRFRestrictionSpreadsheet = new EcomRFRestrictionSpreadsheet(appConfig, configService, new ItemDAO(appConfig.EuropeDivisions));
+            Workbook excelDocument;
+
+            excelDocument = ecomRFRestrictionSpreadsheet.GetTemplate();
+
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "EcomRFRestrictionUpload.xlsx", ContentDisposition.Attachment, ecomRFRestrictionSpreadsheet.SaveOptions);
+            return View();
+        }
+
+        /// <summary>
+        /// Save the files to a folder.  An array is used because some browsers allow the user to select multiple files at one time.
+        /// </summary>
+        /// <param name="attachments"></param>
+        /// <returns></returns>
+        public ActionResult Save(IEnumerable<HttpPostedFileBase> attachments)
+        {
+            EcomRFRestrictionSpreadsheet ecomRFRestrictionSpreadsheet = new EcomRFRestrictionSpreadsheet(appConfig, configService, new ItemDAO(appConfig.EuropeDivisions));
+
+            string message;
+            int successCount = 0;
+
+            foreach (HttpPostedFileBase file in attachments)
+            {
+                ecomRFRestrictionSpreadsheet.Save(file);
+
+                if (!string.IsNullOrEmpty(ecomRFRestrictionSpreadsheet.message))
+                    return Content(ecomRFRestrictionSpreadsheet.message);
+                else
+                {
+                    if (ecomRFRestrictionSpreadsheet.errorList.Count() > 0)
+                    {
+                        Session["errorList"] = ecomRFRestrictionSpreadsheet.errorList;
+
+                        message = string.Format("{0} successfully uploaded, {1} Errors", ecomRFRestrictionSpreadsheet.validRecs.Count.ToString(),
+                            ecomRFRestrictionSpreadsheet.errorList.Count.ToString());
+
+                        return Content(message);
+                    }
+                }
+
+                successCount = ecomRFRestrictionSpreadsheet.validRecs.Count();
+            }
+
+            return Json(new { message = string.Format("{0} Ecom Ring Fence Exception(s) Uploaded", successCount) }, "application/json");
+        }
+
+        public ActionResult DownloadErrors()
+        {
+            List<EcomRFRestriction> errors = (List<EcomRFRestriction>)Session["errorList"];
+            Workbook excelDocument;
+            EcomRFRestrictionSpreadsheet ecomRFRestrictionSpreadsheet = new EcomRFRestrictionSpreadsheet(appConfig, configService, new ItemDAO(appConfig.EuropeDivisions));
+
+            if (errors != null)
+            {
+                excelDocument = ecomRFRestrictionSpreadsheet.GetErrors(errors);
+                excelDocument.Save(System.Web.HttpContext.Current.Response, "EcomRFRestrictionErrors.xlsx", ContentDisposition.Attachment, ecomRFRestrictionSpreadsheet.SaveOptions);
+            }
+            return View();
+        }
+        #endregion
     }
 }

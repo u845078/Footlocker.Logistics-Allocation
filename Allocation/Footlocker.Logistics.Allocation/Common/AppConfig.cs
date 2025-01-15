@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
 using Footlocker.Logistics.Allocation.Models;
 using Footlocker.Logistics.Allocation.DAO;
+using Footlocker.Logistics.Allocation.Services;
 
 namespace Footlocker.Logistics.Allocation.Common
 {
@@ -49,11 +50,13 @@ namespace Footlocker.Logistics.Allocation.Common
         private string _imageURL;
         private string _db2PrefixDriver;
         private string _updateMF;
+        private string _ecomRFRestrictionsTemplate;
 
         public string AppName;
         public string AppPath;
         public WebUser currentUser;
         public AllocationContext db;
+        public AllocationLibraryContext allocDB;
 
         public string WebPickTemplate
         {
@@ -327,6 +330,17 @@ namespace Footlocker.Logistics.Allocation.Common
                     _rerankStoresTemplate = ConfigurationManager.AppSettings["RerankStoresTemplate"].ToString();
 
                 return _rerankStoresTemplate;
+            }
+        }
+
+        public string EcomRFRestrictionsTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_ecomRFRestrictionsTemplate))
+                    _ecomRFRestrictionsTemplate = ConfigurationManager.AppSettings["EcomRFRestrictionsTemplate"].ToString();
+
+                return _ecomRFRestrictionsTemplate;
             }
         }
 

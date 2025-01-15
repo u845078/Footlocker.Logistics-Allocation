@@ -26,8 +26,17 @@ namespace Footlocker.Logistics.Allocation.Models
         [Display(Name = "Start Date")]
         public DateTime StartDate { get; set; }
 
+        [NotMapped]
+        public string ErrorMessage { get; set; }
+
+        [NotMapped]
+        public string StartDateString { get; set; }
+
         [Display(Name = "End Date")]
         public DateTime? EndDate { get; set; }
+
+        [NotMapped]
+        public string EndDateString { get; set; }
         public DateTime LastModifiedDate { get; set; }
         public string LastModifiedUser { get; set; }
     }
