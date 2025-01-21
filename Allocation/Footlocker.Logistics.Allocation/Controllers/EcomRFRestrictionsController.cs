@@ -102,8 +102,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                     else
                     {
-                        model.StartDate = model.StartDate;
-                        model.EndDate = model.EndDate;
                         model.LastModifiedDate = DateTime.Now;
                         model.LastModifiedUser = currentUser.NetworkID;
 
