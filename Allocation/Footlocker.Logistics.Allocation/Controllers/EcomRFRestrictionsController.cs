@@ -90,7 +90,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.ItemID = itemDAO.GetItemID(model.SKU);
 
                 if (model.ItemID == 0)
+                {
                     ModelState.AddModelError("SKU", "Invalid SKU: it was not found in the database");
+                    return View(model);
+                }
                 else
                 {
                     int recCount = allocDB.EcomRFRestictions.Where(erfr => erfr.ItemID == model.ItemID).Count();
