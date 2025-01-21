@@ -86,10 +86,10 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 // validate item to make sure it is okay and put the error in the right place
 
-                ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);                
+                ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
                 model.ItemID = itemDAO.GetItemID(model.SKU);
 
-                if (model.ItemID == 0)                
+                if (model.ItemID == 0)
                     ModelState.AddModelError("SKU", "Invalid SKU: it was not found in the database");
                 else
                 {
@@ -99,7 +99,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     {
                         ModelState.AddModelError("SKU", "There is a record for this SKU already. Either edit the existing one or use a different SKU");
                         return View(model);
-                    }                        
+                    }
                     else
                     {
                         model.StartDate = model.StartDate;
@@ -112,6 +112,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     }
                 }
             }
+            else
+                return View(model);
 
             return RedirectToAction("Index");
         }

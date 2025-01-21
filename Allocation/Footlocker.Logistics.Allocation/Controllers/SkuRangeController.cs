@@ -1283,12 +1283,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
             if (reInitStatus != null)            
                 model.RangePlan.ReInitializeStatus = reInitStatus.SkuExtracted ? "SKU Extracted on " + reInitStatus.LastModifiedDate.ToShortDateString() : "Pending to be Extracted";            
 
-            if (model.RangePlan != null)
-            {
-                model.RangePlan.CreatedBy = GetFullUserNameFromDatabase(model.RangePlan.CreatedBy);
-                model.RangePlan.UpdatedBy = GetFullUserNameFromDatabase(model.RangePlan.UpdatedBy);
-            }
-
             //update the store count
             model.RangePlan.StoreCount = (from a in db.RangePlanDetails
                                           join b in db.vValidStores
@@ -1314,6 +1308,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.RangePlan.OPDepartment = false;
 
             db.SaveChanges();
+
+            if (model.RangePlan != null)
+            {
+                model.RangePlan.CreatedBy = GetFullUserNameFromDatabase(model.RangePlan.CreatedBy);
+                model.RangePlan.UpdatedBy = GetFullUserNameFromDatabase(model.RangePlan.UpdatedBy);
+            }
 
             return model;
         }
