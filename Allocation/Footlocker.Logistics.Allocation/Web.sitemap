@@ -51,6 +51,7 @@
       <siteMapNode title="Web or Emergency Pick" controller="WebPick" action="Index" />
       <siteMapNode title="PreSale" controller="SkuRange" action="PreSale" />
       <siteMapNode title="Re-Initialize SKU" controller="SkuRange" action="ReInitializeSKU" />
+      <siteMapNode title="Ecom Ring Fence Restrictions" controller="EcomRFRestrictions" action="Index" />
     </siteMapNode>
 
     <siteMapNode title="Troubleshooting">

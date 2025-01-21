@@ -17,6 +17,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
         public string errorMessage;
         public int headerRowNumber = 0;
         public DataTable excelData;
+        public string[] validFormats = { "M/d/yyyy", "M/d/yyyy hh:mm:ss tt" };
 
         public bool HasValidHeaderRow()
         {

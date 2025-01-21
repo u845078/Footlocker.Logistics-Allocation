@@ -217,7 +217,9 @@
     <Compile Include="Common\ActionResultCode.cs" />
     <Compile Include="Common\AjaxValidationException.cs" />
     <Compile Include="Common\AppConfig.cs" />
+    <Compile Include="Controllers\EcomRFRestrictionsController.cs" />
     <Compile Include="Models\CrossDockExclusionViewModel.cs" />
+    <Compile Include="Models\EcomRFRestrictionModel.cs" />
     <Compile Include="Models\NSSUpload.cs" />
     <Compile Include="Spreadsheets\ARConstraintsSpreadsheet.cs" />
     <Compile Include="Spreadsheets\ARSKUSpreadsheet.cs" />
@@ -233,6 +235,7 @@
     <Compile Include="Common\Filters\HandleAjaxError.cs" />
     <Compile Include="Common\Filters\HandleAjaxValidationError.cs" />
     <Compile Include="Common\Filters\LogError.cs" />
+    <Compile Include="Spreadsheets\EcomRFRestrictionSpreadsheet.cs" />
     <Compile Include="Spreadsheets\ExportSpreadsheet.cs" />
     <Compile Include="Spreadsheets\HoldsExport.cs" />
     <Compile Include="Spreadsheets\HoldsUpdateSpreadsheet.cs" />
@@ -471,6 +474,7 @@
     <Content Include="Scripts\FootLocker\telerikShims_Grid_MultiSelect.js" />
     <Content Include="Scripts\FootLocker\window.js" />
     <Content Include="Scripts\form2js.js" />
+    <Content Include="Content\Templates\EcomRFRestrictionTemplate.xlsx" />
     <None Include="Scripts\jquery-1.7.1-vsdoc.js" />
     <Content Include="Scripts\jquery-1.7.1.js" />
     <Content Include="Scripts\jquery-1.7.1.min.js" />
@@ -743,6 +747,10 @@
     <Content Include="Views\EcomCustXref\FormLayout.cshtml" />
     <Content Include="Views\EcomCustXref\Edit.cshtml" />
     <Content Include="Views\RingFence\Release.cshtml" />
+    <Content Include="Views\EcomRFRestrictions\Index.cshtml" />
+    <Content Include="Views\EcomRFRestrictions\Edit.cshtml" />
+    <Content Include="Views\EcomRFRestrictions\Create.cshtml" />
+    <Content Include="Views\EcomRFRestrictions\Upload.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />
