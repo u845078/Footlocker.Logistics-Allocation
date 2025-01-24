@@ -50,17 +50,22 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     else
                     {
                         if (!DateTime.TryParseExact(item.StartDateString, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
-                            errorMessage += "Start Date is not in a mm/dd/yyyy format ";
+                            errorMessage = "Start Date is not in a mm/dd/yyyy format ";
                         else
                         {
                             item.StartDate = parsedDate;
 
-                            if (!string.IsNullOrEmpty(item.EndDateString))
+                            if (item.StartDate.Date < DateTime.Now.Date)
+                                errorMessage = "Your Start Date cannot be in the past. Choose the current or future date";
+                            else
                             {
-                                if (!DateTime.TryParseExact(item.EndDateString, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
-                                    errorMessage += "If you provide End Date, it must be in a mm/dd/yyyy format ";
-                                else
-                                    item.EndDate = parsedDate;
+                                if (!string.IsNullOrEmpty(item.EndDateString))
+                                {
+                                    if (!DateTime.TryParseExact(item.EndDateString, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                                        errorMessage = "If you provide End Date, it must be in a mm/dd/yyyy format ";
+                                    else
+                                        item.EndDate = parsedDate;
+                                }
                             }
                         }
                     }

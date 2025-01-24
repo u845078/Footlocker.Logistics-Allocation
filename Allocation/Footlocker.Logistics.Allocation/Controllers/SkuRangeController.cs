@@ -1063,6 +1063,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.OrderPlanningRequest = db.OrderPlanningRequests.Where(opr => opr.PlanID == planID).FirstOrDefault();
             GetPresentationQtyModelDetails(model, show);
 
+            if (model.RangePlan != null)
+            {
+                model.RangePlan.CreatedBy = GetFullUserNameFromDatabase(model.RangePlan.CreatedBy);
+                model.RangePlan.UpdatedBy = GetFullUserNameFromDatabase(model.RangePlan.UpdatedBy);                
+            }
+
             return View(model);
         }
 
@@ -1308,12 +1314,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 model.RangePlan.OPDepartment = false;
 
             db.SaveChanges();
-
-            if (model.RangePlan != null)
-            {
-                model.RangePlan.CreatedBy = GetFullUserNameFromDatabase(model.RangePlan.CreatedBy);
-                model.RangePlan.UpdatedBy = GetFullUserNameFromDatabase(model.RangePlan.UpdatedBy);
-            }
 
             return model;
         }

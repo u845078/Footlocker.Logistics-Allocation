@@ -175,10 +175,15 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             string returnValue = string.Empty;
 
-            if (model.EndDate.HasValue)
+            if (model.StartDate.Date < DateTime.Now.Date)
+                returnValue = "Your Start Date cannot be in the past. Choose the current or future date";
+            else
             {
-                if (model.EndDate < model.StartDate)                
-                    returnValue = "Your End Date cannot be before your Start Date.";                
+                if (model.EndDate.HasValue)
+                {
+                    if (model.EndDate < model.StartDate)
+                        returnValue = "Your End Date cannot be before your Start Date.";
+                }
             }
 
             return returnValue;

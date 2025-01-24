@@ -160,22 +160,7 @@ namespace Footlocker.Logistics.Allocation.Models
         /// Initializes a new instance of the RangePlan class.
         /// </summary>
         public RangePlan()
-        {
-            this.Id = 0L;
-            this.Sku = String.Empty;
-            this.Description = String.Empty;
-            this.StartDate = new DateTime?();
-            this.EndDate = new DateTime?();
-            this.PlanType = String.Empty;
-            this.UpdatedBy = String.Empty;
-            this.UpdateDate = new DateTime?();
-            this.CreatedBy = String.Empty;
-            this.CreateDate = DateTime.MinValue;
-            this.Division = String.Empty;
-            this.Department = String.Empty;
-            this.ItemID = new Int64?();
-            this.StoreCount = 0;
-            this.ItemMaster = null;            
+        {           
             ActiveOP = false;
         }
     }
