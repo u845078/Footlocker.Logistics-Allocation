@@ -50,19 +50,19 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     else
                     {
                         if (!DateTime.TryParseExact(item.StartDateString, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
-                            errorMessage = "Start Date is not in a mm/dd/yyyy format ";
+                            item.ErrorMessage = "Start Date is not in a mm/dd/yyyy format ";
                         else
                         {
                             item.StartDate = parsedDate;
 
                             if (item.StartDate.Date < DateTime.Now.Date)
-                                errorMessage = "Your Start Date cannot be in the past. Choose the current or future date";
+                                item.ErrorMessage = "Your Start Date cannot be in the past. Choose the current or future date";
                             else
                             {
                                 if (!string.IsNullOrEmpty(item.EndDateString))
                                 {
                                     if (!DateTime.TryParseExact(item.EndDateString, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
-                                        errorMessage = "If you provide End Date, it must be in a mm/dd/yyyy format ";
+                                        item.ErrorMessage = "If you provide End Date, it must be in a mm/dd/yyyy format ";
                                     else
                                         item.EndDate = parsedDate;
                                 }
@@ -143,8 +143,8 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 foreach (EcomRFRestriction p in errorList)
                 {
                     mySheet.Cells[row, 0].PutValue(p.SKU);
-                    mySheet.Cells[row, 1].PutValue(p.StartDate);
-                    mySheet.Cells[row, 2].PutValue(p.EndDate);
+                    mySheet.Cells[row, 1].PutValue(p.StartDateString);
+                    mySheet.Cells[row, 2].PutValue(p.EndDateString);
                     mySheet.Cells[row, maxColumns].PutValue(p.ErrorMessage);
                     mySheet.Cells[row, maxColumns].SetStyle(errorStyle);
                     row++;
