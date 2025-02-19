@@ -105,6 +105,8 @@
                             columns.Bound(o => o.OverrideDate);
                             columns.Bound(o => o.CreatedBy);
                             columns.Bound(o => o.CreateDate);
+                            columns.Bound(o => o.LastModifiedUser);
+                            columns.Bound(o => o.LastModifiedDate);
                             columns.Command(commands =>
                             {
                                 commands.Custom("Edit")

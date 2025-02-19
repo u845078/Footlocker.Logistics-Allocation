@@ -31,7 +31,10 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public string CreatedBy { get; set; }
         public DateTime? CreateDate { get; set; }
-        
+
+        public string LastModifiedUser { get; set; }
+        public DateTime LastModifiedDate { get; set; }
+
         public string Departments { get; set; }
         
         public string Sku { get; set; }

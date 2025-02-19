@@ -128,6 +128,27 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 ViewData["message"] = message;
 
             ExpeditePOModel model = GetOverridePOsForDiv(div);
+
+            //if (model.POs.Count > 0)
+            //{
+            //    List<string> uniqueNames = (from l in model.POs
+            //                                select l.CreatedBy.Trim()).Distinct().ToList();
+
+            //    List<string> uniqueNames2 = (from l in model.POs
+            //                                select l.LastModifiedUser.Trim()).Distinct().ToList();
+
+            //    foreach (string uniqueName in uniqueNames2)
+            //        if (!uniqueNames.Contains(uniqueName))
+            //            uniqueNames.Add(uniqueName);
+
+            //    Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
+
+            //    foreach (var item in fullNamePairs)
+            //    {
+            //        model.POs.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+            //        model.POs.Where(x => x.LastModifiedUser == item.Key).ToList().ForEach(y => y.LastModifiedUser = item.Value);
+            //    }
+            //}
             return View(model);
         }
 
@@ -153,13 +174,54 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             ExpeditePOModel model = GetOverridePOsForDiv(div);
 
+            if (model.POs.Count > 0)
+            {
+                List<string> uniqueNames = (from l in model.POs
+                                            select l.CreatedBy.Trim()).Distinct().ToList();
+
+                List<string> uniqueNames2 = (from l in model.POs
+                                             select l.LastModifiedUser.Trim()).Distinct().ToList();
+
+                foreach (string uniqueName in uniqueNames2)
+                    if (!uniqueNames.Contains(uniqueName))
+                        uniqueNames.Add(uniqueName);
+
+                Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
+
+                foreach (var item in fullNamePairs)
+                {
+                    model.POs.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+                    model.POs.Where(x => x.LastModifiedUser == item.Key).ToList().ForEach(y => y.LastModifiedUser = item.Value);
+                }
+            }
+
             return View(new GridModel(model.POs));
         }
 
         [GridAction]
         public ActionResult _POListAjax(string sku)
         {
-            var POs = getOverridePOsForSku(sku);
+            List<ExpeditePO> POs = getOverridePOsForSku(sku);
+
+            if (POs.Count > 0)
+            {
+                List<string> uniqueNames = (from l in POs
+                                            select l.CreatedBy.Trim()).Distinct().ToList();
+                List<string> uniqueNames2 = (from l in POs
+                                             select l.LastModifiedUser.Trim()).Distinct().ToList();
+
+                foreach (string uniqueName in uniqueNames2)
+                    if (!uniqueNames.Contains(uniqueName))
+                        uniqueNames.Add(uniqueName);
+
+                Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
+
+                foreach (var item in fullNamePairs)
+                {
+                    POs.Where(x => x.CreatedBy == item.Key).ToList().ForEach(y => y.CreatedBy = item.Value);
+                    POs.Where(x => x.LastModifiedUser == item.Key).ToList().ForEach(y => y.LastModifiedUser = item.Value);
+                }
+            }
 
             return View(new GridModel(POs));
         }
