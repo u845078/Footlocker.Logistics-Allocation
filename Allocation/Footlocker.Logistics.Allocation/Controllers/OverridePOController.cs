@@ -599,21 +599,19 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult EditSku(ExpeditePO model)
-        {
-            //note that we're matching DeliveryDate because we used that field to store the old override date
+        {            
             List<ExpeditePO> list = allocDB.ExpeditePOs.Where(ep => ep.Division == model.Division && 
-                                                                    ep.Sku == model.Sku && 
-                                                                    ep.OverrideDate == model.ExpectedDeliveryDate).ToList();
+                                                                    ep.Sku == model.Sku).ToList();
 
             foreach (ExpeditePO po in list)
             {
                 po.OverrideDate = model.OverrideDate;
                 po.LastModifiedDate = DateTime.Now;
-                po.LastModifiedUser = currentUser.NetworkID;
-                allocDB.Entry(po).State = System.Data.EntityState.Modified;
-                allocDB.SaveChanges();
+                po.LastModifiedUser = currentUser.NetworkID;                                
             }
-            
+
+            allocDB.SaveChanges();
+
             return RedirectToAction("Index", new { div = model.Division });
         }
 
@@ -667,7 +665,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         {
             model.PO = model.PO.Trim();
 
-            allocDB.Entry(model).State = System.Data.EntityState.Modified;
+            ExpeditePO edited = allocDB.ExpeditePOs.Where(e => e.PO == model.PO).FirstOrDefault();
+
+            edited.OverrideDate = model.OverrideDate;
+            edited.LastModifiedDate = DateTime.Now;
+            edited.LastModifiedUser = currentUser.NetworkID;
+
             allocDB.SaveChanges();
             
             return RedirectToAction("Index", new { div = model.Division });
