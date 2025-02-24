@@ -27,7 +27,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 Departments = "",
                 Sku = "",
                 CreateDate = DateTime.Now, 
-                CreatedBy = config.currentUser.NetworkID
+                CreatedBy = config.currentUser.NetworkID,
+                LastModifiedUser = config.currentUser.NetworkID,
+                LastModifiedDate = DateTime.Now
             };
 
             return newExpeditePO; 
