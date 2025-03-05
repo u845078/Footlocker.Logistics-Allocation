@@ -620,6 +620,8 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult CreateAfterVerify(ExpeditePOModel model)
         {
+            model.NewPO.CreatedBy = currentUser.NetworkID;
+            model.NewPO.CreateDate = DateTime.Now;
             model.NewPO.LastModifiedDate = DateTime.Now;
             model.NewPO.LastModifiedUser = currentUser.NetworkID;
 
