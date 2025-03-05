@@ -397,14 +397,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             po.OverrideDate = overrideDate;
 
             int alreadyExists = allocDB.ExpeditePOs.Where(ep => ep.PO == po.PO && ep.Division == po.Division).Count();
+            
+            po.LastModifiedDate = DateTime.Now;
+            po.LastModifiedUser = currentUser.NetworkID;
 
-            if (alreadyExists > 0)
-            {
-                po.LastModifiedDate = DateTime.Now;
-                po.LastModifiedUser = currentUser.NetworkID;
-
-                allocDB.Entry(po).State = System.Data.EntityState.Modified;
-            }                
+            if (alreadyExists > 0)                           
+                allocDB.Entry(po).State = System.Data.EntityState.Modified;            
             else
             {
                 po.CreateDate = DateTime.Now;

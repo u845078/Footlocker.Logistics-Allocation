@@ -14,7 +14,7 @@ namespace Footlocker.Logistics.Allocation.Models
             get
             {
                 if (!string.IsNullOrEmpty(skuString))
-                    return skuString.Split('-')[1];
+                    return skuString.Split('-')[0];
                 else
                     return string.Empty;
             }
@@ -25,7 +25,7 @@ namespace Footlocker.Logistics.Allocation.Models
             get
             {
                 if (!string.IsNullOrEmpty(skuString))
-                    return skuString.Split('-')[2];
+                    return skuString.Split('-')[1];
                 else
                     return string.Empty;
             }
