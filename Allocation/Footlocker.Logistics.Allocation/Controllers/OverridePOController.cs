@@ -371,7 +371,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
             {
                 Departments = ""
             };
-            
+
+            int alreadyExists = allocDB.ExpeditePOs.Where(ep => ep.PO == PO && ep.Division == div).Count();
+
+            if (alreadyExists > 0)
+                po = allocDB.ExpeditePOs.Where(ep => ep.PO == PO && ep.Division == div).FirstOrDefault();
+
             foreach (ExistingPO det in list)
             {
                 SKU detSKU = new SKU(det.Sku);
@@ -395,9 +400,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             }
 
             po.OverrideDate = overrideDate;
-
-            int alreadyExists = allocDB.ExpeditePOs.Where(ep => ep.PO == po.PO && ep.Division == po.Division).Count();
-            
+                      
             po.LastModifiedDate = DateTime.Now;
             po.LastModifiedUser = currentUser.NetworkID;
 
@@ -482,8 +485,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                     po.CreatedBy = currentUser.NetworkID;
 
                     allocDB.ExpeditePOs.Add(po);
-                }
-                    
+                }                    
 
                 allocDB.SaveChanges();
             }
@@ -618,8 +620,6 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult CreateAfterVerify(ExpeditePOModel model)
         {
-            model.NewPO.CreatedBy = currentUser.NetworkID;
-            model.NewPO.CreateDate = DateTime.Now;
             model.NewPO.LastModifiedDate = DateTime.Now;
             model.NewPO.LastModifiedUser = currentUser.NetworkID;
 
