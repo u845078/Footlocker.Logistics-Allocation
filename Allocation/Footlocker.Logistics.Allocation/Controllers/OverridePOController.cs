@@ -462,30 +462,34 @@ namespace Footlocker.Logistics.Allocation.Controllers
             ExpeditePO po;
             foreach (ExistingPO det in list)
             {
-                po = new ExpeditePO 
-                { 
-                    ExpectedDeliveryDate = det.ExpectedDeliveryDate, 
-                    Sku = det.Sku, 
-                    PO = det.PO, 
-                    Departments = sku.Split('-')[1], 
-                    Division = sku.Split('-')[0], 
-                    TotalRetail = det.Retail, 
-                    TotalUnits = det.Units,
-                    OverrideDate = overrideDate,
-                    LastModifiedDate = DateTime.Now,
-                    LastModifiedUser = currentUser.NetworkID
-                };
-
-                int alreadyExists = allocDB.ExpeditePOs.Where(ep => ep.PO == po.PO && ep.Division == po.Division).Count();
+                int alreadyExists = allocDB.ExpeditePOs.Where(ep => ep.PO == det.PO && ep.Division == det.Division).Count();
                 if (alreadyExists > 0)
-                    allocDB.Entry(po).State = System.Data.EntityState.Modified;                
+                {
+                    po = allocDB.ExpeditePOs.Where(ep => ep.PO == det.PO && ep.Division == det.Division).FirstOrDefault();
+                    po.ExpectedDeliveryDate = det.ExpectedDeliveryDate;
+                    po.LastModifiedDate = DateTime.Now;
+                    po.LastModifiedUser = currentUser.NetworkID;
+                }
                 else
                 {
-                    po.CreateDate = DateTime.Now;
-                    po.CreatedBy = currentUser.NetworkID;
+                    po = new ExpeditePO
+                    {
+                        ExpectedDeliveryDate = det.ExpectedDeliveryDate,
+                        Sku = det.Sku,
+                        PO = det.PO,
+                        Departments = sku.Split('-')[1],
+                        Division = sku.Split('-')[0],
+                        TotalRetail = det.Retail,
+                        TotalUnits = det.Units,
+                        OverrideDate = overrideDate,
+                        CreateDate = DateTime.Now,
+                        CreatedBy = currentUser.NetworkID,
+                        LastModifiedDate = DateTime.Now,
+                        LastModifiedUser = currentUser.NetworkID
+                    };
 
                     allocDB.ExpeditePOs.Add(po);
-                }                    
+                }
 
                 allocDB.SaveChanges();
             }
