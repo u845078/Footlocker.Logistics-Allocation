@@ -624,23 +624,30 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult CreateAfterVerify(ExpeditePOModel model)
         {
-            model.NewPO.LastModifiedDate = DateTime.Now;
-            model.NewPO.LastModifiedUser = currentUser.NetworkID;
+            ExpeditePO newExpeditePO;
 
             if (allocDB.ExpeditePOs.Where(ep => ep.PO == model.NewPO.PO && ep.Division == model.NewPO.Division).Count() > 0)
-                allocDB.Entry(model.NewPO).State = System.Data.EntityState.Modified;            
+            {
+                newExpeditePO = allocDB.ExpeditePOs.Where(ep => ep.PO == model.NewPO.PO && ep.Division == model.NewPO.Division).FirstOrDefault();
+                newExpeditePO.OverrideDate = model.NewPO.OverrideDate;
+            }                
             else
             {
-                model.NewPO.CreateDate = DateTime.Now;
-                model.NewPO.CreatedBy = currentUser.NetworkID;
+                newExpeditePO =  model.NewPO;
 
-                allocDB.ExpeditePOs.Add(model.NewPO);
-            }                
-            
-            if (string.IsNullOrEmpty(model.NewPO.Sku))            
-                model.NewPO.Sku = "unknown";            
+                newExpeditePO.CreateDate = DateTime.Now;
+                newExpeditePO.CreatedBy = currentUser.NetworkID;
 
-            model.NewPO.PO = model.NewPO.PO.Trim();
+                allocDB.ExpeditePOs.Add(newExpeditePO);
+            }
+
+            newExpeditePO.LastModifiedDate = DateTime.Now;
+            newExpeditePO.LastModifiedUser = currentUser.NetworkID;
+
+            if (string.IsNullOrEmpty(model.NewPO.Sku))
+                newExpeditePO.Sku = "unknown";
+
+            newExpeditePO.PO = model.NewPO.PO.Trim();
             allocDB.SaveChanges();
             
             return RedirectToAction("Index", new { div = model.NewPO.Division });
