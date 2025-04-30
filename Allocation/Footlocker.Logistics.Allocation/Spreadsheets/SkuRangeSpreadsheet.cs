@@ -89,8 +89,15 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                         else
                         {
                             if (!string.IsNullOrEmpty(range.RangeStartDate))
+                            {
                                 if (!DateTime.TryParseExact(range.RangeStartDate, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                                     errorMessage = "Delivery group start date is not in a mm/dd/yyyy format";
+                                else
+                                {
+                                    if (parsedDate > DateTime.Now.AddYears(1))
+                                        errorMessage = "Start Date must be within one year";
+                                }                                    
+                            }
 
                             if (range.EndDate != "-1")
                                 if (!DateTime.TryParseExact(range.EndDate, validFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))

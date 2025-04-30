@@ -1,4 +1,4 @@
-﻿@model Footlocker.Logistics.Allocation.Models.DeliveryGroupModel
+﻿@model DeliveryGroupModel
 
 @{
     ViewBag.Title = "EditDeliveryGroup";
@@ -36,6 +36,7 @@
                           .HtmlAttributes(new { id = ViewData.TemplateInfo.GetFullHtmlFieldName(string.Empty) + "_wrapper" })
                           .ClientEvents(events => events
                           .OnChange("setEndDate")))
+                    @Html.ValidationMessageFor(m => m.DeliveryGroup.StartDate)
                 </td>
             </tr>
             <tr>

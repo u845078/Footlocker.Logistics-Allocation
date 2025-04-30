@@ -1551,6 +1551,24 @@ namespace Footlocker.Logistics.Allocation.Controllers
             return View(new GridModel(PlanStores));
         }
 
+        private void SetEditDeliveryGroupObjects(DeliveryGroupModel model)
+        {
+            ViewData["ruleSetID"] = model.DeliveryGroup.RuleSetID;
+            ViewData["ruleType"] = "Delivery";
+            ItemMaster i = (from a in db.ItemMasters
+                            join b in db.RangePlans
+                              on a.ID equals b.ItemID
+                            where b.Id == model.DeliveryGroup.PlanID
+                            select a).FirstOrDefault();
+            if (i != null)            
+                ViewData["LifeCycle"] = i.LifeCycleDays;
+            
+            model.RuleModel = new RuleModel()
+            {
+                RuleSetID = model.DeliveryGroup.RuleSetID
+            };
+        }
+
         public ActionResult EditDeliveryGroup(long planID, long deliveryGroupID)
         {
             DeliveryGroupModel model = new DeliveryGroupModel()
@@ -1575,22 +1593,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
                 db.SaveChanges();
             }
 
-            ViewData["ruleSetID"] = model.DeliveryGroup.RuleSetID;
-            ViewData["ruleType"] = "Delivery";
-            ItemMaster i = (from a in db.ItemMasters 
-                            join b in db.RangePlans 
-                              on a.ID equals b.ItemID 
-                            where b.Id == planID 
-                            select a).FirstOrDefault();
-            if (i != null)
-            {
-                ViewData["LifeCycle"] = i.LifeCycleDays;
-            }
-
-            model.RuleModel = new RuleModel()
-            {
-                RuleSetID = model.DeliveryGroup.RuleSetID
-            };
+            SetEditDeliveryGroupObjects(model);
             
             return View(model);
         }
@@ -1599,21 +1602,32 @@ namespace Footlocker.Logistics.Allocation.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult EditDeliveryGroup(DeliveryGroupModel model)
         {
-            db.Entry(model.DeliveryGroup).State = System.Data.EntityState.Modified;
-            if (model.DeliveryGroup.EndDate != null)
+            if (model.DeliveryGroup.StartDate > DateTime.Now.AddYears(1))            
+                ModelState.AddModelError("DeliveryGroup.StartDate", "Start Date must be within one year");            
+
+            if (ModelState.IsValid)
             {
-                if (((DateTime)model.DeliveryGroup.EndDate).Year < 2000)
+                db.Entry(model.DeliveryGroup).State = System.Data.EntityState.Modified;
+                if (model.DeliveryGroup.EndDate.HasValue)
                 {
-                    int centuries = ((DateTime.Now.Year - 1900) / 100) * 100;
-                    model.DeliveryGroup.EndDate = ((DateTime)model.DeliveryGroup.EndDate).AddYears(centuries);
+                    if (model.DeliveryGroup.EndDate.Value.Year < 2000)
+                    {
+                        int centuries = ((DateTime.Now.Year - 1900) / 100) * 100;
+                        model.DeliveryGroup.EndDate = ((DateTime)model.DeliveryGroup.EndDate).AddYears(centuries);
+                    }
                 }
+
+                UpdateDeliveryGroupDates(model.DeliveryGroup);
+                //note above line will save all changes
+                rangePlanDAO.UpdateRangeHeader(model.DeliveryGroup.PlanID, currentUser);
+
+                return RedirectToAction("PresentationQuantities", new { planID = model.DeliveryGroup.PlanID });
             }
-
-            UpdateDeliveryGroupDates(model.DeliveryGroup);
-            //note above line will save all changes
-            rangePlanDAO.UpdateRangeHeader(model.DeliveryGroup.PlanID, currentUser);
-
-            return RedirectToAction("PresentationQuantities", new { planID = model.DeliveryGroup.PlanID });
+            else
+            {
+                SetEditDeliveryGroupObjects(model);
+                return View(model);
+            }                
         }
 
         private void UpdateStoreDates(string div, string store, long ruleSetID, long planID, string rangeType)

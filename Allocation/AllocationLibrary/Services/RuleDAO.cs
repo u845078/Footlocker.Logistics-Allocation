@@ -128,17 +128,20 @@ namespace Footlocker.Logistics.Allocation.Services
 
             RuleSet rs = GetRuleSet(ruleSetID);
 
-            if (!string.IsNullOrEmpty(rs.Division))
-                div = rs.Division;
-            else
+            if (rs != null)
             {
-                RangePlan range = null;
+                if (!string.IsNullOrEmpty(rs.Division))
+                    div = rs.Division;
+                else
+                {
+                    RangePlan range = null;
 
-                if (rs.PlanID.HasValue)                
-                    range = db.RangePlans.Where(rp => rp.Id == rs.PlanID.Value).FirstOrDefault();                
+                    if (rs.PlanID.HasValue)
+                        range = db.RangePlans.Where(rp => rp.Id == rs.PlanID.Value).FirstOrDefault();
 
-                if (range != null)
-                    div = range.Division;
+                    if (range != null)
+                        div = range.Division;
+                }
             }
 
             return div;

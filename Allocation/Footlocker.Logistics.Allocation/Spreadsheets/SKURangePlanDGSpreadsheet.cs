@@ -52,6 +52,14 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
             if (row.DeliveryGroup == null)
                 row.ErrorMessage = "Range plan for this SKU and/or Delivery Group Name was not found";
+
+            if (row.StartDate.HasValue)
+                if (row.StartDate.Value > DateTime.Now.AddYears(1))
+                    row.ErrorMessage = "Start Date must be within one year";
+
+            if (row.StartDate.HasValue && row.EndDate.HasValue)
+                if (row.EndDate.Value < row.StartDate.Value)
+                    row.ErrorMessage = "Start Date must be before the End Date";
         }
 
 
