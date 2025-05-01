@@ -3136,13 +3136,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
         #endregion
 
-        #region Delivery Group Upload
-        [CheckPermission(Roles = "Merchandiser, Head Merchandiser, Buyer Planner, Director of Allocation, Admin, Support")]
-        public ActionResult SkuRPDGUpload()
-        {
-            return View();
-        }
-
+        #region Data Exports
         public ActionResult ExcelRange(string sku)
         {
             SKURangeExport exportRange = new SKURangeExport(appConfig, new RangePlanDetailDAO());
@@ -3162,6 +3156,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
         #endregion
 
         #region SKU Range Plan Delivery Group upload
+        [CheckPermission(Roles = "Merchandiser, Head Merchandiser, Buyer Planner, Director of Allocation, Admin, Support")]
+        public ActionResult SkuRPDGUpload()
+        {
+            return View();
+        }
+
         [CheckPermission(Roles = "Merchandiser, Head Merchandiser, Buyer Planner, Director of Allocation, Admin, Support")]
         public ActionResult ExcelSkuRangePlanDGUploadTemplate()
         {
@@ -3202,6 +3202,22 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             string message = string.Format("Success! {0} lines were processed.", skuRangePlanDGSpreadsheet.parsedDeliveryGroups.Count.ToString());
             return Json(new { successMessage = message }, "application/json");
+        }
+
+        public ActionResult DownloadRangeDGErrors()
+        {
+            SKURangePlanDGSpreadsheet skuRangePlanDGSpreadsheet = new SKURangePlanDGSpreadsheet(appConfig, configService, rangePlanDAO);
+            Workbook excelDocument;
+
+            List<DeliveryGroupUploadModel> errorList = new List<DeliveryGroupUploadModel>();
+
+            if (Session["errorList"] != null)
+                errorList = (List<DeliveryGroupUploadModel>)Session["errorList"];
+
+            excelDocument = skuRangePlanDGSpreadsheet.GetErrors(errorList);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "RangeDeliveryGroupUploadErrors.xlsx", ContentDisposition.Attachment, skuRangePlanDGSpreadsheet.SaveOptions);
+
+            return View();
         }
         #endregion
     }

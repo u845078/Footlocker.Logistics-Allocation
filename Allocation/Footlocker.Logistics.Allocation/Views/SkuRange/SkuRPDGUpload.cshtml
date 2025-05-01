@@ -53,15 +53,15 @@
 
     function onError(e) {
         var message = e.XMLHttpRequest.responseText;
-        $('#message').empty().append("<font color='red'>"+message+"</font>");
+        $('#message').empty().append("<font color='red'>" + message + "<br /></font><br><a class='t-button' href='DownloadRangeDGErrors'>Download Errors</a>");
 
-            e.preventDefault();
-        }
+        e.preventDefault();
+    }
 
-        function onSuccess(e) {
-            var message = e.XMLHttpRequest.responseText;
-            $('#message').empty().append("<font color='red'>Success</font>");
+    function onSuccess(e) {
+        var message = e.XMLHttpRequest.responseText;
+        $('#message').empty().append("<font color='red'>Success</font>");
 
-            e.preventDefault();
-        }
+        e.preventDefault();
+    }
 </script>

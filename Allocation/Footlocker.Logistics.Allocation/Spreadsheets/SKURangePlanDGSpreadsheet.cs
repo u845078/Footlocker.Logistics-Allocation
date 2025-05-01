@@ -6,6 +6,7 @@ using Footlocker.Logistics.Allocation.Common;
 using System.Linq;
 using System.Web;
 using System.Data;
+using Aspose.Cells;
 
 namespace Footlocker.Logistics.Allocation.Spreadsheets
 {
@@ -110,6 +111,53 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                     FLLogger logger = new FLLogger(config.LogFile);
                     logger.Log(ex.Message + ": " + ex.StackTrace, FLLogger.eLogMessageType.eError);
                 }
+            }
+        }
+
+        public Workbook GetErrors(List<DeliveryGroupUploadModel> errorList)
+        {
+            if (errorList != null)
+            {
+                excelDocument = GetTemplate();
+                Worksheet mySheet = excelDocument.Worksheets[0];
+
+                int row = 1;
+                foreach (DeliveryGroupUploadModel p in errorList)
+                {
+                    mySheet.Cells[row, 0].PutValue(p.SKU);
+                    mySheet.Cells[row, 1].PutValue(p.DeliveryGroupName);
+
+                    if (p.StartDate.HasValue)
+                    {
+                        mySheet.Cells[row, 2].PutValue(p.StartDate.Value);
+                        mySheet.Cells[row, 2].SetStyle(dateStyle);
+                    }                        
+
+                    if (p.EndDate.HasValue)
+                    {
+                        mySheet.Cells[row, 3].PutValue(p.EndDate.Value);
+                        mySheet.Cells[row, 3].SetStyle(dateStyle);
+                    }                        
+
+                    if (p.MinEndDays.HasValue)
+                    {
+                        mySheet.Cells[row, 4].PutValue(p.MinEndDays.Value);
+                        mySheet.Cells[row, 4].SetStyle(dateStyle);
+                    }                        
+
+                    mySheet.Cells[row, maxColumns].PutValue(p.ErrorMessage);
+                    mySheet.Cells[row, maxColumns].SetStyle(errorStyle);
+                    row++;
+                }
+
+                return excelDocument;
+            }
+            else
+            {
+                // if this message is hit that means there was an exception while processing that was not accounted for
+                // check the log to see what the exception was
+                message = "An unexpected error has occured.  Please try again or contact an administrator.";
+                return null;
             }
         }
 
