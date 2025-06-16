@@ -158,7 +158,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                                                                                             ((r.Category == null && string.IsNullOrEmpty(pr.Category)) || r.Category == pr.Category) &&
                                                                                             ((r.Brand == null && string.IsNullOrEmpty(pr.Brand)) || r.Brand == pr.Brand) &&
                                                                                             ((r.SKU == null && string.IsNullOrEmpty(pr.SKU)) || r.SKU == pr.SKU) &&
-                                                                                            ((r.RDQType == null && string.IsNullOrEmpty(pr.RDQType)) || r.RDQType.ToLower() == pr.RDQType.ToLower()) &&
+                                                                                            ((r.RDQType == null && string.IsNullOrEmpty(pr.RDQType)) || (r.RDQType != null && r.RDQType.ToLower() == pr.RDQType.ToLower())) &&
                                                                                             ((r.Vendor == null && string.IsNullOrEmpty(pr.Vendor)) || r.Vendor == pr.Vendor) &&
                                                                                             ((r.FromDCCode == null && string.IsNullOrEmpty(pr.FromDCCode)) || r.FromDCCode == pr.FromDCCode) &&
                                                                                             ((r.ToDCCode == null && string.IsNullOrEmpty(pr.ToDCCode)) || r.ToDCCode == pr.ToDCCode) &&

@@ -218,9 +218,11 @@
     <Compile Include="Common\AjaxValidationException.cs" />
     <Compile Include="Common\AppConfig.cs" />
     <Compile Include="Controllers\EcomRFRestrictionsController.cs" />
+    <Compile Include="Controllers\ReinitBaseDemandController.cs" />
     <Compile Include="Models\CrossDockExclusionViewModel.cs" />
     <Compile Include="Models\EcomRFRestrictionModel.cs" />
     <Compile Include="Models\NSSUpload.cs" />
+    <Compile Include="Models\ReinitializeBaseDemandModel.cs" />
     <Compile Include="Spreadsheets\ARConstraintsSpreadsheet.cs" />
     <Compile Include="Spreadsheets\ARSKUSpreadsheet.cs" />
     <Compile Include="Spreadsheets\BaseSpreadsheet.cs" />
@@ -475,6 +477,7 @@
     <Content Include="Scripts\FootLocker\window.js" />
     <Content Include="Scripts\form2js.js" />
     <Content Include="Content\Templates\EcomRFRestrictionTemplate.xlsx" />
+    <Content Include="Content\Templates\BaseDemandTemplate.xlsx" />
     <None Include="Scripts\jquery-1.7.1-vsdoc.js" />
     <Content Include="Scripts\jquery-1.7.1.js" />
     <Content Include="Scripts\jquery-1.7.1.min.js" />
@@ -751,6 +754,7 @@
     <Content Include="Views\EcomRFRestrictions\Edit.cshtml" />
     <Content Include="Views\EcomRFRestrictions\Create.cshtml" />
     <Content Include="Views\EcomRFRestrictions\Upload.cshtml" />
+    <Content Include="Views\ReinitBaseDemand\Index.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />

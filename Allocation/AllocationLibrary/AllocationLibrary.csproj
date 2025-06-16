@@ -176,6 +176,7 @@
     <Compile Include="Models\RDQRestriction.cs" />
     <Compile Include="Models\RDQType.cs" />
     <Compile Include="Models\Region.cs" />
+    <Compile Include="Models\ReinitializeBaseDemand.cs" />
     <Compile Include="Models\ReInitializeSKU.cs" />
     <Compile Include="Models\Renumber.cs" />
     <Compile Include="Models\RingFenceSizeSummary.cs" />

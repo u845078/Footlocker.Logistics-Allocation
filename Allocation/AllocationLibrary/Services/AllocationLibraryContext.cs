@@ -101,6 +101,8 @@ namespace Footlocker.Logistics.Allocation.Services
 
         public DbSet<EcomRFRestriction> EcomRFRestictions { get; set; }
 
+        public DbSet<ReinitializeBaseDemand> ReinitializeBaseDemand { get; set; }
+
         public AllocationLibraryContext()
             : base("AllocationContext")
         {
