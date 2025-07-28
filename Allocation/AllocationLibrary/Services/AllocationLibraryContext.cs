@@ -51,7 +51,7 @@ namespace Footlocker.Logistics.Allocation.Services
         public DbSet<ControlDate> ControlDates { get; set; }
         public DbSet<SizeObj> Sizes { get; set; }
         public DbSet<StoreCluster> StoreClusters { get; set; }
-        public DbSet<ValidStoreLookup> vValidStores { get; set; }
+        public DbSet<ValidStoreLookup> ValidStores { get; set; }
         public DbSet<DeliveryGroup> DeliveryGroups { get; set; }
         public DbSet<MaxLeadTime> MaxLeadTimes { get; set; }
         public DbSet<Price> Prices { get; set; }

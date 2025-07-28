@@ -51,6 +51,7 @@ namespace Footlocker.Logistics.Allocation.Common
         private string _db2PrefixDriver;
         private string _updateMF;
         private string _ecomRFRestrictionsTemplate;
+        private string _baseDemandTemplate;
 
         public string AppName;
         public string AppPath;
@@ -341,6 +342,17 @@ namespace Footlocker.Logistics.Allocation.Common
                     _ecomRFRestrictionsTemplate = ConfigurationManager.AppSettings["EcomRFRestrictionsTemplate"].ToString();
 
                 return _ecomRFRestrictionsTemplate;
+            }
+        }
+
+        public string BaseDemandTemplate
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_baseDemandTemplate))
+                    _baseDemandTemplate = ConfigurationManager.AppSettings["BaseDemandTemplate"].ToString();
+
+                return _baseDemandTemplate;
             }
         }
 

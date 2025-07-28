@@ -19,117 +19,118 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult Index()
         {
-            ReinitializeBaseDemandModel model = new ReinitializeBaseDemandModel();
-
-            model.ShowAllSKUsInd = false;
+            List<ReinitializeBaseDemandModel> model = new List<ReinitializeBaseDemandModel>();
 
             return View(model);
         }
 
-        public ActionResult Index(bool allSKU)
+        [GridAction]
+        public ActionResult _ReinitBaseDemandIndex(bool allSKU)
         {
-            List<ReinitializeBaseDemand> reinitBaseDemand = new List<ReinitializeBaseDemand>();
+            List<ReinitializeBaseDemandModel> reinitBaseDemand = new List<ReinitializeBaseDemandModel>();
             ReinitializeBaseDemandModel model = new ReinitializeBaseDemandModel();
 
             if (allSKU)
             {
                 reinitBaseDemand = (from a in allocDB.ReinitializeBaseDemand
-                                    join b in allocDB.ItemMasters on a.SKU equals b.MerchantSku
+                                    join b in allocDB.ItemMasters on a.ItemID equals b.ID
                                     orderby b.MerchantSku, a.LastModifiedDate descending
-                                    select new ReinitializeBaseDemand
+                                    select new ReinitializeBaseDemandModel
                                     {
-                                        ReinitializeBaseDemandID = a.ReinitializeBaseDemandID,
-                                        Division = a.Division,
                                         SKU = b.MerchantSku,
                                         SKUDescription = b.Description,
-                                        Size = a.Size, 
-                                        Store = a.Store, 
-                                        BaseDemand = a.BaseDemand,
-                                        CreateDateTime = a.CreateDateTime,
-                                        CreateUser = a.CreateUser
+                                        ReinitializeBaseDemand = a
                                     }).Distinct().ToList();
             }
             else
             {
                 reinitBaseDemand = (from a in allocDB.ReinitializeBaseDemand
-                                    join b in allocDB.ItemMasters on a.SKU equals b.MerchantSku
+                                    join b in allocDB.ItemMasters on a.ItemID equals b.ID
                                     where a.ExtractedInd == false
                                     orderby b.MerchantSku, a.LastModifiedDate descending
-                                    select new ReinitializeBaseDemand
+                                    select new ReinitializeBaseDemandModel
                                     {
-                                        ReinitializeBaseDemandID = a.ReinitializeBaseDemandID,
-                                        Division = a.Division,
                                         SKU = b.MerchantSku,
                                         SKUDescription = b.Description,
-                                        Size = a.Size,
-                                        Store = a.Store,
-                                        BaseDemand = a.BaseDemand,
-                                        CreateDateTime = a.CreateDateTime,
-                                        CreateUser = a.CreateUser
+                                        ReinitializeBaseDemand = a
                                     }).Distinct().ToList();
             }
 
-            List<string> uniqueNames = (from l in reinitBaseDemand
-                                        select l.CreateUser).Distinct().ToList();
-
-            Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
-
-            foreach (var item in fullNamePairs)
+            if (reinitBaseDemand.Count > 0)
             {
-                reinitBaseDemand.Where(x => x.CreateUser == item.Key).ToList().ForEach(y => y.CreateUser = item.Value);
+                List<string> uniqueNames = (from l in reinitBaseDemand
+                                            select l.ReinitializeBaseDemand.CreateUser).Distinct().ToList();
+
+                Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
+
+                foreach (var item in fullNamePairs)
+                {
+                    reinitBaseDemand.Where(x => x.ReinitializeBaseDemand.CreateUser == item.Key).ToList().ForEach(y => y.ReinitializeBaseDemand.CreateUser = item.Value);
+                }
             }
 
-            model.ReinitBaseDemandList = reinitBaseDemand;
-            model.ShowAllSKUsInd = allSKU;
-
-            return View(model);
+            return View(new GridModel(reinitBaseDemand));
         }
 
         public ActionResult Create()
         {
-            EcomRFRestrictionModel model = new EcomRFRestrictionModel()
+            ReinitializeBaseDemandModel model = new ReinitializeBaseDemandModel()
             {
-                ecomRFRestriction = new EcomRFRestriction()
-            };
+                ReinitializeBaseDemand = new ReinitializeBaseDemand()
+            };            
 
-            return View(model.ecomRFRestriction);
+            return View(model);
+        }
+
+        private void ValidateInput(ReinitializeBaseDemandModel model)
+        {            
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
+            StoreDAO storeDAO = new StoreDAO();
+
+            model.ReinitializeBaseDemand.ItemID = itemDAO.GetItemID(model.SKU);
+
+            if (model.ReinitializeBaseDemand.ItemID == 0)            
+                ModelState.AddModelError("SKU", "Invalid SKU: it was not found in the database");
+            else            
+                model.ReinitializeBaseDemand.Division = itemDAO.GetItem(model.ReinitializeBaseDemand.ItemID).Div;
+            
+            if (storeDAO.GetValidStore(model.ReinitializeBaseDemand.Division, model.ReinitializeBaseDemand.Store) == null)
+                ModelState.AddModelError("ReinitializeBaseDemand.Store", "Invalid Store: it was not found in the database");
+
+            if (!itemDAO.DoValidSizesExist(model.SKU, model.ReinitializeBaseDemand.Size))
+                ModelState.AddModelError("ReinitializeBaseDemand.Size", "Invalid Size: it was not found in the database for this SKU");
+
+            if (model.ReinitializeBaseDemand.BaseDemand <= 0)
+                ModelState.AddModelError("ReinitializeBaseDemand.BaseDemand", "Invalid Base Demand: it must be greater than 0");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(EcomRFRestriction model)
+        public ActionResult Create(ReinitializeBaseDemandModel model)
         {
-            ViewData["message"] = ValidateInput(model);
+            ValidateInput(model);
 
-            if (string.IsNullOrEmpty(ViewData["message"].ToString()))
+            if (ModelState.IsValid)
             {
-                // validate item to make sure it is okay and put the error in the right place
+                // validate item to make sure it is okay and put the error in the right place                
+                int recCount = allocDB.ReinitializeBaseDemand.Where(rbd => rbd.ItemID == model.ReinitializeBaseDemand.ItemID &&
+                                                                           rbd.Size == model.ReinitializeBaseDemand.Size &&
+                                                                           rbd.Store == model.ReinitializeBaseDemand.Store).Count();
 
-                ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
-                model.ItemID = itemDAO.GetItemID(model.SKU);
-
-                if (model.ItemID == 0)
+                if (recCount > 0)
                 {
-                    ModelState.AddModelError("SKU", "Invalid SKU: it was not found in the database");
+                    ModelState.AddModelError("SKU", "There is a record for this SKU/Size/Store already.");
                     return View(model);
                 }
                 else
                 {
-                    int recCount = allocDB.EcomRFRestictions.Where(erfr => erfr.ItemID == model.ItemID).Count();
+                    model.ReinitializeBaseDemand.CreateDateTime = DateTime.Now;
+                    model.ReinitializeBaseDemand.CreateUser = currentUser.NetworkID;
+                    model.ReinitializeBaseDemand.LastModifiedDate = DateTime.Now;
+                    model.ReinitializeBaseDemand.LastModifiedUser = currentUser.NetworkID;
 
-                    if (recCount > 0)
-                    {
-                        ModelState.AddModelError("SKU", "There is a record for this SKU already. Either edit the existing one or use a different SKU");
-                        return View(model);
-                    }
-                    else
-                    {
-                        model.LastModifiedDate = DateTime.Now;
-                        model.LastModifiedUser = currentUser.NetworkID;
-
-                        allocDB.EcomRFRestictions.Add(model);
-                        allocDB.SaveChanges();
-                    }
+                    allocDB.ReinitializeBaseDemand.Add(model.ReinitializeBaseDemand);
+                    allocDB.SaveChanges();
                 }
             }
             else
@@ -137,75 +138,21 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
             return RedirectToAction("Index");
         }
-
-        public ActionResult Edit(long EcomRFRestrictionID)
+        
+        public ActionResult Delete(string id)
         {
-            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
-
-            EcomRFRestrictionModel model = new EcomRFRestrictionModel()
-            {
-                ecomRFRestriction = allocDB.EcomRFRestictions.Where(erfr => erfr.EcomRFRestrictionID == EcomRFRestrictionID).FirstOrDefault()
-            };
-
-            ItemMaster item = itemDAO.GetItem(model.ecomRFRestriction.ItemID);
-            model.ecomRFRestriction.SKU = item.MerchantSku;
-            model.ecomRFRestriction.SKUDescription = item.Description;
-
-            return View(model.ecomRFRestriction);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(EcomRFRestriction model)
-        {
-            ViewData["message"] = ValidateInput(model);
-
-            if (!string.IsNullOrEmpty(ViewData["message"].ToString()))
-                return View(model);
-
-            EcomRFRestriction record = allocDB.EcomRFRestictions.Where(erfr => erfr.EcomRFRestrictionID == model.EcomRFRestrictionID).FirstOrDefault();
-
-            record.SKU = model.SKU;
-            record.LastModifiedUser = currentUser.NetworkID;
-            record.LastModifiedDate = DateTime.Now;
-            record.StartDate = model.StartDate;
-            record.EndDate = model.EndDate;
-
-            allocDB.SaveChanges();
-            return RedirectToAction("Index");
-        }
-
-        public ActionResult Delete(long ecomRFRestrictionID)
-        {
-            EcomRFRestriction record = allocDB.EcomRFRestictions.Where(erfr => erfr.EcomRFRestrictionID == ecomRFRestrictionID).FirstOrDefault();
+            long baseDemandID = long.Parse(id);
+            ReinitializeBaseDemand record = allocDB.ReinitializeBaseDemand.Where(rbd => rbd.ReinitializeBaseDemandID == baseDemandID).FirstOrDefault();
 
             if (record == null)
-                ViewData["message"] = string.Format("Could not find ID {0} to delete.", ecomRFRestrictionID.ToString());
+                ViewData["message"] = string.Format("Could not find ID {0} to delete.", id);
             else
             {
-                allocDB.EcomRFRestictions.Remove(record);
+                allocDB.ReinitializeBaseDemand.Remove(record);
                 allocDB.SaveChanges();
             }
 
             return RedirectToAction("Index");
-        }
-
-        private string ValidateInput(EcomRFRestriction model)
-        {
-            string returnValue = string.Empty;
-
-            if (model.StartDate.Date < DateTime.Now.Date)
-                returnValue = "Your Start Date cannot be in the past. Choose the current or future date";
-            else
-            {
-                if (model.EndDate.HasValue)
-                {
-                    if (model.EndDate < model.StartDate)
-                        returnValue = "Your End Date cannot be before your Start Date.";
-                }
-            }
-
-            return returnValue;
         }
 
         #region Upload
@@ -216,12 +163,12 @@ namespace Footlocker.Logistics.Allocation.Controllers
 
         public ActionResult ExcelTemplate()
         {
-            EcomRFRestrictionSpreadsheet ecomRFRestrictionSpreadsheet = new EcomRFRestrictionSpreadsheet(appConfig, configService, new ItemDAO(appConfig.EuropeDivisions));
+            BaseDemandSpreadsheet baseDemandSpreadsheet = new BaseDemandSpreadsheet(appConfig, configService, new ItemDAO(appConfig.EuropeDivisions), new StoreDAO());
             Workbook excelDocument;
 
-            excelDocument = ecomRFRestrictionSpreadsheet.GetTemplate();
+            excelDocument = baseDemandSpreadsheet.GetTemplate();
 
-            excelDocument.Save(System.Web.HttpContext.Current.Response, "EcomRFRestrictionUpload.xlsx", ContentDisposition.Attachment, ecomRFRestrictionSpreadsheet.SaveOptions);
+            excelDocument.Save(System.Web.HttpContext.Current.Response, "BaseDemandUpload.xlsx", ContentDisposition.Attachment, baseDemandSpreadsheet.SaveOptions);
             return View();
         }
 
@@ -232,46 +179,46 @@ namespace Footlocker.Logistics.Allocation.Controllers
         /// <returns></returns>
         public ActionResult Save(IEnumerable<HttpPostedFileBase> attachments)
         {
-            EcomRFRestrictionSpreadsheet ecomRFRestrictionSpreadsheet = new EcomRFRestrictionSpreadsheet(appConfig, configService, new ItemDAO(appConfig.EuropeDivisions));
+            BaseDemandSpreadsheet baseDemandSpreadsheet = new BaseDemandSpreadsheet(appConfig, configService, new ItemDAO(appConfig.EuropeDivisions), new StoreDAO());
 
             string message;
             int successCount = 0;
 
             foreach (HttpPostedFileBase file in attachments)
             {
-                ecomRFRestrictionSpreadsheet.Save(file);
+                baseDemandSpreadsheet.Save(file);
 
-                if (!string.IsNullOrEmpty(ecomRFRestrictionSpreadsheet.message))
-                    return Content(ecomRFRestrictionSpreadsheet.message);
+                if (!string.IsNullOrEmpty(baseDemandSpreadsheet.message))
+                    return Content(baseDemandSpreadsheet.message);
                 else
                 {
-                    if (ecomRFRestrictionSpreadsheet.errorList.Count() > 0)
+                    if (baseDemandSpreadsheet.errorList.Count() > 0)
                     {
-                        Session["errorList"] = ecomRFRestrictionSpreadsheet.errorList;
+                        Session["errorList"] = baseDemandSpreadsheet.errorList;
 
-                        message = string.Format("{0} successfully uploaded, {1} Errors", ecomRFRestrictionSpreadsheet.validRecs.Count.ToString(),
-                            ecomRFRestrictionSpreadsheet.errorList.Count.ToString());
+                        message = string.Format("{0} successfully uploaded, {1} Errors", baseDemandSpreadsheet.validBaseDemand.Count.ToString(),
+                            baseDemandSpreadsheet.errorList.Count.ToString());
 
                         return Content(message);
                     }
                 }
 
-                successCount = ecomRFRestrictionSpreadsheet.validRecs.Count();
+                successCount = baseDemandSpreadsheet.validBaseDemand.Count();
             }
 
-            return Json(new { message = string.Format("{0} Ecom Ring Fence Exception(s) Uploaded", successCount) }, "application/json");
+            return Json(new { message = string.Format("{0} Base Demand Override(s) Uploaded", successCount) }, "application/json");
         }
 
         public ActionResult DownloadErrors()
         {
-            List<EcomRFRestriction> errors = (List<EcomRFRestriction>)Session["errorList"];
+            List<ReinitializeBaseDemand> errors = (List<ReinitializeBaseDemand>)Session["errorList"];
             Workbook excelDocument;
-            EcomRFRestrictionSpreadsheet ecomRFRestrictionSpreadsheet = new EcomRFRestrictionSpreadsheet(appConfig, configService, new ItemDAO(appConfig.EuropeDivisions));
+            BaseDemandSpreadsheet baseDemandSpreadsheet = new BaseDemandSpreadsheet(appConfig, configService, new ItemDAO(appConfig.EuropeDivisions), new StoreDAO());
 
             if (errors != null)
             {
-                excelDocument = ecomRFRestrictionSpreadsheet.GetErrors(errors);
-                excelDocument.Save(System.Web.HttpContext.Current.Response, "EcomRFRestrictionErrors.xlsx", ContentDisposition.Attachment, ecomRFRestrictionSpreadsheet.SaveOptions);
+                excelDocument = baseDemandSpreadsheet.GetErrors(errors);
+                excelDocument.Save(System.Web.HttpContext.Current.Response, "BaseDemandOverrideErrors.xlsx", ContentDisposition.Attachment, baseDemandSpreadsheet.SaveOptions);
             }
             return View();
         }

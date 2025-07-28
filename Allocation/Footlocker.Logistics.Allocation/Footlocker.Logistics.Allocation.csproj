@@ -225,6 +225,7 @@
     <Compile Include="Models\ReinitializeBaseDemandModel.cs" />
     <Compile Include="Spreadsheets\ARConstraintsSpreadsheet.cs" />
     <Compile Include="Spreadsheets\ARSKUSpreadsheet.cs" />
+    <Compile Include="Spreadsheets\BaseDemandSpreadsheet.cs" />
     <Compile Include="Spreadsheets\BaseSpreadsheet.cs" />
     <Compile Include="Spreadsheets\BTSDetailsExport.cs" />
     <Compile Include="Spreadsheets\BTSExport.cs" />
@@ -755,6 +756,8 @@
     <Content Include="Views\EcomRFRestrictions\Create.cshtml" />
     <Content Include="Views\EcomRFRestrictions\Upload.cshtml" />
     <Content Include="Views\ReinitBaseDemand\Index.cshtml" />
+    <Content Include="Views\ReinitBaseDemand\Create.cshtml" />
+    <Content Include="Views\ReinitBaseDemand\Upload.cshtml" />
     <None Include="Views\SkuRange\EditorTemplates\Rule_old.cshtml" />
     <Content Include="Views\SkuRange\EditorTemplates\Rule2.cshtml" />
     <Content Include="Views\SkuRange\TestRule.cshtml" />

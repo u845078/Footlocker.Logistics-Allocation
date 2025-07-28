@@ -276,6 +276,7 @@
     <Compile Include="Services\RangeReformat.cs" />
     <Compile Include="Services\RingFenceDAO.cs" />
     <Compile Include="Services\SizeDAO.cs" />
+    <Compile Include="Services\StoreDAO.cs" />
     <Compile Include="Services\StoreInventoryDAO.cs" />
     <Compile Include="Services\VendorGroupDetailDAO.cs" />
     <Compile Include="Services\RDQDAO.cs" />

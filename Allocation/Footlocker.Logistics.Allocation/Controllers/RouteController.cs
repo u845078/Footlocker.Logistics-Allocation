@@ -400,7 +400,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             model.Division = div;
             model.StoreZones = new List<StoreZoneModel>();
 
-            var query1 = from a in db.vValidStores
+            var query1 = from a in db.ValidStores
                           join b in db.NetworkZoneStores 
                             on new { a.Division, a.Store } equals new { b.Division, b.Store } into gj
                           from subset in gj.DefaultIfEmpty()

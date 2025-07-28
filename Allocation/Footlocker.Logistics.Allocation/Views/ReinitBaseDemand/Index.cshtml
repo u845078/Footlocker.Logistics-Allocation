@@ -1,14 +1,15 @@
-﻿@model ReinitializeBaseDemandModel
+﻿@model IEnumerable<ReinitializeBaseDemandModel>
 
 @{
     ViewBag.Title = "Index";
 }
 
-<h2>Re-Initialize Base Demand</h2>
+<h2>Base Demand Override</h2>
 <p>
-    @Html.ActionLink("Create New", "CreateReInitializeSKU", new { }, new { @class = "t-button" })
+    @Html.ActionLink("Create New", "Create", new { }, new { @class = "t-button" })&nbsp;&nbsp;&nbsp;
+    @Html.ActionLink("Upload", "Upload", new { }, new { @class = "t-button" })
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input type="checkbox" onclick="toggleUpload(this);" />Show All SKUs</input>
+    <input type="checkbox" onclick="toggleUpload(this);"/>Show All SKUs
 </p>
 
 <script>
@@ -27,27 +28,29 @@
     }
 </script>
 <div id="ActiveGrid">
-    @(Html.Telerik().Grid(Model.ReinitBaseDemandList)
+    @(Html.Telerik().Grid(Model)
         .Name("SKUActiveGrid")
         .Columns(columns =>
         {
             columns.Bound(i => i.SKU);
             columns.Bound(i => i.SKUDescription);
-            columns.Bound(i => i.reInitializeSKU.SkuStatus);
-            columns.Bound(i => i.reInitializeSKU.ExtractionDate).Title("Extraction Date");
-            columns.Bound(i => i.reInitializeSKU.CreateDate);
-            columns.Bound(i => i.reInitializeSKU.CreateUser);
+            columns.Bound(i => i.ReinitializeBaseDemand.Size);
+            columns.Bound(i => i.ReinitializeBaseDemand.Store);
+            columns.Bound(i => i.ReinitializeBaseDemand.BaseDemand);
+            columns.Bound(i => i.ReinitializeBaseDemand.RecordStatus);
+            columns.Bound(i => i.ReinitializeBaseDemand.ExtractDate).Title("Extraction Date");
+            columns.Bound(i => i.ReinitializeBaseDemand.CreateDateTime);
+            columns.Bound(i => i.ReinitializeBaseDemand.CreateUser);
             columns.Command(commands =>
             {
-                commands
-                .Custom("Delete")
-                .Text("Delete")
-                .DataRouteValues(route => { route.Add(o => o.reInitializeSKU.ReInitializeSkuID).RouteKey("id"); })
-                .Ajax(false)
-                .Action("DeleteSKUDetails", "SkuRange").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+                commands.Custom("Delete")
+                        .Text("Delete")
+                        .DataRouteValues(route => { route.Add(o => o.ReinitializeBaseDemand.ReinitializeBaseDemandID).RouteKey("id"); })
+                        .Ajax(false)
+                        .Action("Delete", "ReinitBaseDemand").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
             }).HtmlAttributes(new { style = "text-align: left" });
         })
-        .DataBinding(dataBinding => dataBinding.Ajax().Select("_ReInitializeSKU", "SkuRange", new { allSKU = false }))
+        .DataBinding(dataBinding => dataBinding.Ajax().Select("_ReinitBaseDemandIndex", "ReinitBaseDemand", new { allSKU = false }))
         .Sortable(sorting => sorting.Enabled(true))
         .Pageable(paging => paging.Enabled(true))
         .Filterable(filtering => filtering.Enabled(true))
@@ -61,13 +64,16 @@
         {
             columns.Bound(i => i.SKU);
             columns.Bound(i => i.SKUDescription);
-            columns.Bound(i => i.reInitializeSKU.SkuStatus);
-            columns.Bound(i => i.reInitializeSKU.ExtractionDate).Title("Extraction Date");
-            columns.Bound(i => i.reInitializeSKU.CreateDate);
-            columns.Bound(i => i.reInitializeSKU.CreateUser);
+            columns.Bound(i => i.ReinitializeBaseDemand.Size);
+            columns.Bound(i => i.ReinitializeBaseDemand.Store);
+            columns.Bound(i => i.ReinitializeBaseDemand.BaseDemand);
+            columns.Bound(i => i.ReinitializeBaseDemand.RecordStatus);
+            columns.Bound(i => i.ReinitializeBaseDemand.ExtractDate).Title("Extraction Date");
+            columns.Bound(i => i.ReinitializeBaseDemand.CreateDateTime);
+            columns.Bound(i => i.ReinitializeBaseDemand.CreateUser);
         })
-        .DataKeys(dt => dt.Add(d => d.reInitializeSKU.ReInitializeSkuID))
-        .DataBinding(dataBinding => dataBinding.Ajax().Select("_ReInitializeSKU", "SkuRange", new { allSKU = true}))
+        .DataKeys(dt => dt.Add(d => d.ReinitializeBaseDemand.ReinitializeBaseDemandID))
+        .DataBinding(dataBinding => dataBinding.Ajax().Select("_ReinitBaseDemandIndex", "ReinitBaseDemand", new { allSKU = true }))
         .Sortable(sorting => sorting.Enabled(true))
         .Pageable(paging => paging.Enabled(true))
         .Filterable(filtering => filtering.Enabled(true))

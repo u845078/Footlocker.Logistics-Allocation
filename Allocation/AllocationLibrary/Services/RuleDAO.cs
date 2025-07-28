@@ -530,7 +530,7 @@ namespace Footlocker.Logistics.Allocation.Services
         {
             var results = (from a in db.StoreLookups 
                            join b in db.RuleSelectedStores on new { div = a.Division, store = a.Store } equals new { div = b.Division, store = b.Store }
-                           join c in db.vValidStores on new { div = a.Division, store = a.Store } equals new { div = c.Division, store = c.Store }
+                           join c in db.ValidStores on new { div = a.Division, store = a.Store } equals new { div = c.Division, store = c.Store }
                            where (b.RuleSetID == ruleSetID) select a);
 
             return results.ToList();

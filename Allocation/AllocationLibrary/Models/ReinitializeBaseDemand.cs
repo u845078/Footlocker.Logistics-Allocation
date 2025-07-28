@@ -10,26 +10,26 @@ namespace Footlocker.Logistics.Allocation.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long ReinitializeBaseDemandID { get; set; }
-
-        [Required]
-        public string Division { get; set; }
         
-        [Required]
-        public long ItemID { get; set; }
+        public string Division { get; set; }
 
         [NotMapped]
-        [RegularExpression(@"^\d{2}-\d{2}-\d{5}-\d{2}$", ErrorMessage = "SKU must be in the format ##-##-#####-##")]
-        [Display(Name = "SKU")]
         public string SKU { get; set; }
 
-        [NotMapped]
-        public string SKUDescription { get; set; }
+        public long ItemID { get; set; }
 
+        [RegularExpression(@"^\d{3}$", ErrorMessage = "Size must be in the format ###")]
+        [Required]
         public string Size { get; set; }
 
+        [RegularExpression(@"^\d{5}$", ErrorMessage = "Store must be in the format #####")]
+        [Required]
         public string Store { get; set; }
 
-        public float BaseDemand {  get; set; }
+        public decimal BaseDemand {  get; set; }
+
+        [NotMapped]
+        public string BaseDemandString { get; set; }
 
         public bool ExtractedInd {  get; set; }
 
@@ -43,6 +43,18 @@ namespace Footlocker.Logistics.Allocation.Models
                 else
                     return "Pending";
             }
+        }
+
+        [NotMapped]
+        public DateTime? ExtractDate 
+        { 
+            get
+            {
+                if (!ExtractedInd)
+                    return null;
+                else
+                    return LastModifiedDate;
+            }            
         }
 
         [NotMapped]
