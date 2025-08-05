@@ -25,6 +25,31 @@ namespace Footlocker.Logistics.Allocation.Controllers
         }
 
         [GridAction]
+        public ActionResult _Details(string sku)
+        {
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
+            long itemID = itemDAO.GetItemID(sku);
+
+            List<ReinitializeBaseDemand> reinitBaseDemand = new List<ReinitializeBaseDemand>();
+            reinitBaseDemand = allocDB.ReinitializeBaseDemand.Where(rbd => rbd.ExtractedInd == false).ToList();
+
+            if (reinitBaseDemand.Count > 0)
+            {
+                List<string> uniqueNames = (from l in reinitBaseDemand
+                                            select l.CreateUser).Distinct().ToList();
+
+                Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
+
+                foreach (var item in fullNamePairs)
+                {
+                    reinitBaseDemand.Where(x => x.CreateUser == item.Key).ToList().ForEach(y => y.CreateUser = item.Value);
+                }
+            }
+
+            return View(new GridModel(reinitBaseDemand));
+        }
+
+        [GridAction]
         public ActionResult _ReinitBaseDemandIndex(bool allSKU)
         {
             List<ReinitializeBaseDemandModel> reinitBaseDemand = new List<ReinitializeBaseDemandModel>();
@@ -41,32 +66,48 @@ namespace Footlocker.Logistics.Allocation.Controllers
                                         SKUDescription = b.Description,
                                         ReinitializeBaseDemand = a
                                     }).Distinct().ToList();
+
+                if (reinitBaseDemand.Count > 0)
+                {
+                    List<string> uniqueNames = (from l in reinitBaseDemand
+                                                select l.ReinitializeBaseDemand.CreateUser).Distinct().ToList();
+
+                    Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
+
+                    foreach (var item in fullNamePairs)
+                    {
+                        reinitBaseDemand.Where(x => x.ReinitializeBaseDemand.CreateUser == item.Key).ToList().ForEach(y => y.ReinitializeBaseDemand.CreateUser = item.Value);
+                    }
+                }
             }
             else
             {
-                reinitBaseDemand = (from a in allocDB.ReinitializeBaseDemand
+                var baseDemandGroups = from rbd in allocDB.ReinitializeBaseDemand
+                                       where rbd.ExtractedInd == false
+                                       group rbd by new { rbd.ItemID } into grp
+                                       select new
+                                       {
+                                           grp.Key.ItemID
+                                       };
+
+                reinitBaseDemand = (from a in baseDemandGroups
                                     join b in allocDB.ItemMasters on a.ItemID equals b.ID
-                                    where a.ExtractedInd == false
-                                    orderby b.MerchantSku, a.LastModifiedDate descending
                                     select new ReinitializeBaseDemandModel
                                     {
                                         SKU = b.MerchantSku,
-                                        SKUDescription = b.Description,
-                                        ReinitializeBaseDemand = a
+                                        SKUDescription = b.Description
                                     }).Distinct().ToList();
-            }
 
-            if (reinitBaseDemand.Count > 0)
-            {
-                List<string> uniqueNames = (from l in reinitBaseDemand
-                                            select l.ReinitializeBaseDemand.CreateUser).Distinct().ToList();
-
-                Dictionary<string, string> fullNamePairs = LoadUserNames(uniqueNames);
-
-                foreach (var item in fullNamePairs)
-                {
-                    reinitBaseDemand.Where(x => x.ReinitializeBaseDemand.CreateUser == item.Key).ToList().ForEach(y => y.ReinitializeBaseDemand.CreateUser = item.Value);
-                }
+                //reinitBaseDemand = (from a in allocDB.ReinitializeBaseDemand
+                //                    join b in allocDB.ItemMasters on a.ItemID equals b.ID
+                //                    where a.ExtractedInd == false
+                //                    orderby b.MerchantSku, a.LastModifiedDate descending
+                //                    select new ReinitializeBaseDemandModel
+                //                    {
+                //                        SKU = b.MerchantSku,
+                //                        SKUDescription = b.Description,
+                //                        ReinitializeBaseDemand = a
+                //                    }).Distinct().ToList();
             }
 
             return View(new GridModel(reinitBaseDemand));
@@ -149,6 +190,28 @@ namespace Footlocker.Logistics.Allocation.Controllers
             else
             {
                 allocDB.ReinitializeBaseDemand.Remove(record);
+                allocDB.SaveChanges();
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        public ActionResult DeleteSKU(string id)
+        {
+            ItemDAO itemDAO = new ItemDAO(appConfig.EuropeDivisions);
+            long itemID = itemDAO.GetItemID(id);
+
+            if (itemID == 0)
+                ViewData["message"] = string.Format("Could not find the SKU {0} to delete.", id);
+            else
+            {
+                List<ReinitializeBaseDemand> recordList = allocDB.ReinitializeBaseDemand.Where(rbd => rbd.ItemID == itemID && rbd.ExtractedInd == false).ToList();
+                
+                foreach (ReinitializeBaseDemand record in recordList)
+                {
+                    allocDB.ReinitializeBaseDemand.Remove(record);
+                }
+                
                 allocDB.SaveChanges();
             }
 

@@ -34,20 +34,13 @@
         {
             columns.Bound(i => i.SKU);
             columns.Bound(i => i.SKUDescription);
-            columns.Bound(i => i.ReinitializeBaseDemand.Size);
-            columns.Bound(i => i.ReinitializeBaseDemand.Store);
-            columns.Bound(i => i.ReinitializeBaseDemand.BaseDemand);
-            columns.Bound(i => i.ReinitializeBaseDemand.RecordStatus);
-            columns.Bound(i => i.ReinitializeBaseDemand.ExtractDate).Title("Extraction Date");
-            columns.Bound(i => i.ReinitializeBaseDemand.CreateDateTime);
-            columns.Bound(i => i.ReinitializeBaseDemand.CreateUser);
             columns.Command(commands =>
             {
                 commands.Custom("Delete")
                         .Text("Delete")
-                        .DataRouteValues(route => { route.Add(o => o.ReinitializeBaseDemand.ReinitializeBaseDemandID).RouteKey("id"); })
+                        .DataRouteValues(route => { route.Add(o => o.SKU).RouteKey("id"); })
                         .Ajax(false)
-                        .Action("Delete", "ReinitBaseDemand").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+                        .Action("DeleteSKU", "ReinitBaseDemand").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
             }).HtmlAttributes(new { style = "text-align: left" });
         })
         .DataBinding(dataBinding => dataBinding.Ajax().Select("_ReinitBaseDemandIndex", "ReinitBaseDemand", new { allSKU = false }))
@@ -55,6 +48,35 @@
         .Pageable(paging => paging.Enabled(true))
         .Filterable(filtering => filtering.Enabled(true))
         .Groupable(grouping => grouping.Enabled(false))
+        .DetailView(details => details.ClientTemplate(
+            Html.Telerik().Grid<Footlocker.Logistics.Allocation.Models.ReinitializeBaseDemand>()
+            .Name("Details_<#= SKU #>")
+            .Columns(columns =>
+            {
+                columns.Bound(i => i.Size);
+                columns.Bound(i => i.Store);
+                columns.Bound(i => i.BaseDemand);
+                columns.Bound(i => i.RecordStatus);
+                columns.Bound(i => i.CreateDateTime);
+                columns.Bound(i => i.CreateUser);
+                columns.Command(commands =>
+                {
+                    commands.Custom("Delete")
+                            .Text("Delete")
+                            .DataRouteValues(route => { route.Add(o => o.ReinitializeBaseDemandID).RouteKey("id"); })
+                            .Ajax(false)
+                            .Action("Delete", "ReinitBaseDemand").HtmlAttributes(new { onclick = "return confirm('Are you sure?');" });
+                });
+            })
+            .DataBinding(dataBinding => dataBinding.Ajax()
+            .Select("_Details", "ReinitBaseDemand", new { sku = "<#= SKU #>" }))
+            .Pageable()
+            .Sortable()
+            .Filterable(filtering => filtering.Enabled(true))
+            .Footer(true)
+            .HtmlAttributes(new { style = "Margin-Left:75px;Width:850px;" })
+            .ToHtmlString()
+    ))
     )
 </div>
 <div id="AllSKUGrid">

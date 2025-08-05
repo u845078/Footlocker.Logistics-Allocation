@@ -15,6 +15,8 @@ namespace Footlocker.Logistics.Allocation.Models
 
         public string SKUDescription { get; set; }
 
+        public string RecordStatus { get; set; }
+
         public ReinitializeBaseDemand ReinitializeBaseDemand { get; set; }
     }
 }
