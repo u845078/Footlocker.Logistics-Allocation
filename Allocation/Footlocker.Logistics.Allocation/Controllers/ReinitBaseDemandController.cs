@@ -31,7 +31,7 @@ namespace Footlocker.Logistics.Allocation.Controllers
             long itemID = itemDAO.GetItemID(sku);
 
             List<ReinitializeBaseDemand> reinitBaseDemand = new List<ReinitializeBaseDemand>();
-            reinitBaseDemand = allocDB.ReinitializeBaseDemand.Where(rbd => rbd.ExtractedInd == false).ToList();
+            reinitBaseDemand = allocDB.ReinitializeBaseDemand.Where(rbd => rbd.ItemID == itemID && rbd.ExtractedInd == false).ToList();
 
             if (reinitBaseDemand.Count > 0)
             {
