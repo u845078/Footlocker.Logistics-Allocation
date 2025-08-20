@@ -191,7 +191,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             if (header.SkuAttributeDetails.Sum(sad => sad.WeightInt) != 100)
                 errorsFound += "The weight must add up to 100. ";
 
-            // validate of Quantum Attribute Mapping does not already exist
+            // validate that Quantum Attribute Mapping does not already exist
             if (String.IsNullOrEmpty(errorsFound))
             {
                 bool existing = config.db.SkuAttributeHeaders.Where(sah => 
