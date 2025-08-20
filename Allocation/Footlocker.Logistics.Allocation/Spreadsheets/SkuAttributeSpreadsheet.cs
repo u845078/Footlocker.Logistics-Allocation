@@ -167,7 +167,11 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
 
                 if (categoryExists || brandExists)                
                     errorsFound += "You can't provide a Category or Brand ID when providing a SKU. ";                
-            }        
+            }
+            else
+            {
+                header.SKU = null;
+            }
 
             // department MUST be mandatory.
             var departmentAttributeDetail = header.SkuAttributeDetails.Where(sad => sad.AttributeType.ToLower().Equals("department")).SingleOrDefault();
@@ -187,6 +191,24 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
             if (header.SkuAttributeDetails.Sum(sad => sad.WeightInt) != 100)
                 errorsFound += "The weight must add up to 100. ";
 
+            // validate of Quantum Attribute Mapping does not already exist
+            if (String.IsNullOrEmpty(errorsFound))
+            {
+                bool existing = config.db.SkuAttributeHeaders.Where(sah => 
+                                                                    sah.Division == header.Division &&
+                                                                    sah.Dept == header.Dept &&
+                                                                    (sah.Category == header.Category || (sah.Category == null && header.Category == null)) &&
+                                                                    (sah.Brand == header.Brand || (sah.Brand == null && header.Brand == null)) &&
+                                                                    (sah.SKU == header.SKU || (sah.SKU == null && header.SKU == null))
+                                                                   ).Any();
+
+                if (existing)
+                    errorsFound += "This Department/Category/BrandID/SKU is already setup. ";
+
+                if (!string.IsNullOrEmpty(header.Brand) && string.IsNullOrEmpty(header.Category))
+                    errorsFound += "Category is required when a BrandID is selected";
+            }
+            // 
             return errorsFound;
         }
 
