@@ -192,9 +192,7 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                 errorsFound += "The weight must add up to 100. ";
 
             // validate that Quantum Attribute Mapping does not already exist
-            if (String.IsNullOrEmpty(errorsFound))
-            {
-                bool existing = config.db.SkuAttributeHeaders.Where(sah => 
+            bool existing = config.db.SkuAttributeHeaders.Where(sah => 
                                                                     sah.Division == header.Division &&
                                                                     sah.Dept == header.Dept &&
                                                                     (sah.Category == header.Category || (sah.Category == null && header.Category == null)) &&
@@ -202,13 +200,9 @@ namespace Footlocker.Logistics.Allocation.Spreadsheets
                                                                     (sah.SKU == header.SKU || (sah.SKU == null && header.SKU == null))
                                                                    ).Any();
 
-                if (existing)
-                    errorsFound += "This Department/Category/BrandID/SKU is already setup. ";
+            if (existing)
+                errorsFound += "This Department/Category/BrandID/SKU is already setup. ";
 
-                if (!string.IsNullOrEmpty(header.Brand) && string.IsNullOrEmpty(header.Category))
-                    errorsFound += "Category is required when a BrandID is selected";
-            }
-            // 
             return errorsFound;
         }
 
