@@ -36,7 +36,7 @@ jobs:
         Move-Item "$env:TEMP\net45sdk\build\.NETFramework\v4.5" $targetPath
 
     - name: Build with MSBuild
-      run: msbuild Allocation.sln /p:Configuration=Release
+      run: msbuild ./Allocation/Allocation.sln /p:Configuration=Release
 
     # - name: Create dynamic output directory and copy artifacts
     #   shell: pwsh
