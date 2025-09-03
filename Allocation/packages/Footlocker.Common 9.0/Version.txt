@@ -1,0 +1,3 @@
+6/15/2015 - The Excel service was updated to use Aspose.Cells.
+9/9/2015 - Added FTPsToMainframe with parameters for retrying the ftp.
+07/17/2017 - Web API Auth changes

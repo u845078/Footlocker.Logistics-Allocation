@@ -1,0 +1,545 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Footlocker.Common</name>
+    </assembly>
+    <members>
+        <member name="T:Footlocker.Common.TaskWorkFlowStatusService">
+            <summary>
+            Service for Insert, Get, Check the Task work for status for the passed in Task id or the Task name
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.TaskWorkFlowStatusService.GetTaskWorkFlowStatusById(System.String)">
+            <summary>
+            Get the Task work Flow status by passing the Task ID
+            </summary>
+            <param name="taskID"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.TaskWorkFlowStatusService.GetTaskWorkFlowStatusByModuleName(System.String)">
+            <summary>
+            Get the Task work Flow status by passing the ModuleName
+            </summary>
+            <param name="ModuleName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.TaskWorkFlowStatusService.InsertNewTaskWorkFlowStatus(System.String,System.String,System.Int64,System.String)">
+            <summary>
+            Insert Task work flow status with new instance (will create new Task Id internally) and returns the new ID.
+            Current Status ID = 0 denotes the current status is completed.
+            </summary>
+            <param name="ModuleName"></param>
+            <param name="currentStatusDesc"></param>
+            <param name="currentStatusId"></param>
+            <param name="createdBy"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.TaskWorkFlowStatusService.InsertTaskWorkFlowStatus(System.String,System.String,System.String,System.Int64,System.String)">
+            <summary>
+            Insert Updates for the existing running task will return the same TaskID passed in. Current Status ID = 0 denotes the current status is completed.
+            </summary>
+            <param name="taskID"></param>
+            <param name="ModuleName"></param>
+            <param name="currentStatusDesc"></param>
+            <param name="currentStatusId"></param>
+            <param name="createdBy"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.TaskWorkFlowStatusService.IsTaskRunning(System.String)">
+            <summary>
+            Check if the Task is running. If the latest status is 0 the task is completed, if other than 0 the process is still running.
+            </summary>
+            <param name="ModuleName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.TaskWorkFlowStatusService.GetProcessWaitingMessage(System.String,System.Int32,System.Int32)">
+            <summary>
+            Get process waiting message
+            </summary>
+            <param name="moduleName"></param>
+            <param name="retry"></param>
+            <param name="retrySleep"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.TaskWorkFlowStatusService.GetProcessAlreadyRunningMessage(System.String)">
+            <summary>
+            Get Process Already Running Error message
+            </summary>
+            <param name="moduleName"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Footlocker.Common.Excel.ExcelReport">
+            <summary>
+            Provides an object representation of an Excel report.
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Excel.ExcelService.ToExcel``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            This will write a list of objects into excel
+            </summary>
+            <typeparam name="T">Type of object in the list</typeparam>
+            <param name="list">list of objects to put in excel</param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.Excel.ExcelService.GetSheets(System.String)">
+            <summary>
+            Returns a collection of available tab names in an Excel file
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Excel.ExcelService.GetRows(System.String,System.String)">
+            <summary>
+            Returns all the rows from an Excel tab within an Excel file in a DataSet
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Excel.ExcelService.CheckColumnNames(System.Data.DataSet,System.String)">
+            <summary>
+            Checks if all the specified column names exist in the dataset.
+            Throws an exception if a column is missing.
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Excel.ExcelService.CheckColumnNames(System.Data.DataTable,System.String)">
+            <summary>
+            Checks if all the specified column names exist in the datatable.
+            Throws an exception if a column is missing.
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Excel.ExcelService.DeleteFile(System.String)">
+            <summary>
+            Delete the file
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Excel.ExcelService.SetupExcelDocument(System.String)">
+            <summary>
+            Setup the excel template
+            </summary>
+            <param name="templateName"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Footlocker.Common.Utilities.PropertyColumnMapping">
+            <summary>
+            This class maps your object's properties to the destination SQL Server table's columns.
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.PropertyColumnMapping.CompareTo(System.Object)">
+            <summary>
+            Compares this instance to the specified Footlocker.Common.Utilities.PropertyColumnMapping objects and indicates
+            whether this preceeds, follows, or appears in the same position as the specified Footocker.Common.Utilities.PropertyColumnMapping.
+            </summary>
+            <param name="o">The object to compare.</param>
+            <returns>-1 if o preceeds, 0 if o is equal, 1 if o follows or o is not a PropertyColumnMapping object.</returns>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.PropertyColumnMapping.#ctor(System.ComponentModel.PropertyDescriptor,System.String)">
+            <summary>
+            An object representing a relationship between one of your object's properties and a column in SQL Server.
+            </summary>
+            <param name="sourceProperty">Use TypeDescriptor.GetProperties(typeof(__YourType__)) to get a PropertyDescriptionCollection. Choose the properties you will store and make an object for each of them.</param>
+            <param name="destinationColumn">The name of the SQL Server column in which you will store this data.</param>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.PropertyColumnMapping.DestinationColumn">
+            <summary>
+            The name of the SQL Server column to which this property will write.
+            </summary>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.PropertyColumnMapping.SourceProperty">
+            <summary>
+            The property of the type that will be written to SQL Server.
+            </summary>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.PropertyColumnMapping.DataTableColumnNum">
+            <summary>
+            This ensures that the integrity of the data is preserved by keeping a reference to the 
+            column of the DataTable object that stored this property.
+            </summary>
+        </member>
+        <member name="T:Footlocker.Common.Utilities.BulkInsertService">
+            <summary>
+            Use this class to perform fast inserts to a SQL Server table if you have a huge number of data to store.
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.BulkInsertService.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new BulkInsertService object, which can perform large inserts to a given SQL Server table.
+            </summary>
+            <param name="tableName">The name of the SQL Server table. Please include the schema name.</param>
+            <param name="sqlServerDbConnStringKey">The connection string key for your SQL Server database.</param>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.BulkInsertService.PerformBulkInsert``1(System.Collections.Generic.List{Footlocker.Common.Utilities.PropertyColumnMapping},System.Collections.Generic.IList{``0},System.Int32)">
+            <summary>
+            Performs a bulk insert to a SQL Server table.
+            </summary>
+            <typeparam name="T">Your BOL type.</typeparam>
+            <param name="columnMappings">The relationship between your type's properties and the corresponding SQL Server table columns.</param>
+            <param name="data">Your data.</param>
+            <param name="timeout">Number of seconds specified for timeout. Defaults to 15 minutes.</param>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.BulkInsertService.PerformBulkInsert(System.Data.DataTable,System.Int32)">
+            <summary>
+            Performs a bulk insert to a SQL Server table having Datatable as input
+            </summary>
+            <param name="dtblInput"></param>
+            <param name="timeout"></param>
+        </member>
+        <member name="T:Footlocker.Common.Utilities.ReadSql">
+            <summary>
+            Static class used for reading Data Readers.
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.ReadSql.GetVal``1(System.Data.Common.DbDataReader,System.String)">
+            <summary>
+            Returns a reference- or value-type, based on the input and column name.
+            
+            If the column is null, the type's default value is returned.
+            </summary>
+            <typeparam name="T">The type expected for return.</typeparam>
+            <param name="rdr">The data reader to be searched.</param>
+            <param name="columnName">The column name of the row to be copied.</param>
+            <returns>The value in the specified column, converted to type T.</returns>
+        </member>
+        <member name="M:Footlocker.Common.WebSecurityService.ListUserAttributes(System.String,System.String)">
+            <summary>
+            Gets all user attributes
+            </summary>
+            <param name="userName">user name</param>
+            <param name="appName">application name</param>
+            <returns>List of user attributes object</returns>
+        </member>
+        <member name="M:Footlocker.Common.WebSecurityService.GetUserAttributeValue(System.String,System.String,System.String)">
+            <summary>
+            Gets the value for a specific application attribute
+            </summary>
+            <param name="userName">user name</param>
+            <param name="appName">application name</param>
+            <param name="attributeName">attribute name for which value has to be return</param>
+            <returns>return value must be casted into specific type. default object will be returned</returns>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.GetSqlDatabase">
+            <summary>
+            Get an instance of a Database object with default connectionstring name "SQLDB".
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.GetSqlDatabase(System.String)">
+            <summary>
+            Get an instance of a Database object for a specific connectionstring name.
+            </summary>
+            <param name="connectionName">The connectionstring name specified in the config file.</param>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.GetDivisionDatabase(System.String)">
+            <summary>
+            Get an instance of a Database object for a division.
+            </summary>
+            <param name="divCode">The division whose database is required.</param>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.GetWarehouseDatabase(System.String)">
+            <summary>
+            Get an instance of a Database object for a warehouse.
+            </summary>
+            <param name="warehouseId">The warehouse whose database is required.</param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:Footlocker.Common.DatabaseService.GetSqlStringCommand(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String)" -->
+        <!-- Badly formed XML comment ignored for member "M:Footlocker.Common.DatabaseService.GetStoredProcCommand(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String)" -->
+        <member name="M:Footlocker.Common.DatabaseService.ExecuteStoredProcReader(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Excutes the stored procedure and returns the Datareader which can be used for iterating. This method accepts standard input params 
+            for sp where no customizations for input params.
+            </summary>
+            <param name="db"></param>
+            <param name="spName"></param>
+            <param name="ipParams"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.ExecuteStoredProcReader(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String,System.Collections.Generic.List{System.Data.SqlClient.SqlParameter})">
+            <summary>
+            Excutes the stored procedure and returns the Datareader which can be used for iterating. This method accepts customized list of params
+            </summary>
+            <param name="db"></param>
+            <param name="spName"></param>
+            <param name="ipParams"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.ExecuteStoredProcReader(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String)">
+            <summary>
+            Excutes the stored procedure and returns the Datareader which can be used for iterating, with no inputs
+            </summary>
+            <param name="db"></param>
+            <param name="spName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.ExecuteStoredProcAsTable(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Excutes the stored procedure and returns the Datatable which can be used for iterating. This method accepts standard input params 
+            for sp where no customizations for input params.
+            </summary>
+            <param name="db"></param>
+            <param name="spName"></param>
+            <param name="ipParams"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.ExecuteStoredProcAsTable(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String,System.Collections.Generic.List{System.Data.SqlClient.SqlParameter})">
+            <summary>
+            Excutes the stored procedure and returns the Datatable which can be used for iterating. This method accepts customized list of params
+            </summary>
+            <param name="db"></param>
+            <param name="spName"></param>
+            <param name="ipParams"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.ExecuteStoredProcAsTable(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String)">
+            <summary>
+            Excutes the stored procedure and returns the Datatable which can be used for iterating, with no input params
+            </summary>
+            <param name="db"></param>
+            <param name="spName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.ExecuteStoredProcAsCommand(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String,System.Collections.Generic.List{System.Data.SqlClient.SqlParameter})">
+            <summary>
+            Executes the procedure with custom input params and returns the command for reading the outputvalues.
+            </summary>
+            <param name="db"></param>
+            <param name="spName"></param>
+            <param name="ipParams"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.ExecuteStoredProcNonQuery(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Excutes the stored procedure with standard input params and no resutls
+            </summary>
+            <param name="db"></param>
+            <param name="spName"></param>
+            <param name="ipParams"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.ExecuteStoredProcNonQuery(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String,System.Collections.Generic.List{System.Data.SqlClient.SqlParameter})">
+            <summary>
+            Excutes the stored procedure with no results. This method accepts customized list of params
+            </summary>
+            <param name="db"></param>
+            <param name="spName"></param>
+            <param name="ipParams"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.ExecuteStoredProcNonQuery(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String)">
+            <summary>
+            Excutes the stored procedure with no inputs and no resutls, with no inputs
+            </summary>
+            <param name="db"></param>
+            <param name="spName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.ExecuteSQLReader(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String)">
+            <summary>
+            Excutes the SQL passed in returning Datareader which can be used for Iterating
+            </summary>
+            <param name="db"></param>
+            <param name="strSQL"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.ExecuteSQLAsTable(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String)">
+            <summary>
+            Excutes the SQL passed in returning DataTable which can be used for Iterating
+            </summary>
+            <param name="db"></param>
+            <param name="strSQL"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.ExecuteSQLNonQuery(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String)">
+            <summary>
+            Excutes the SQL passed with no results
+            </summary>
+            <param name="db"></param>
+            <param name="strSQL"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.ControlMService.ScheduleControlM(System.String,System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Schedule a controlM job to run
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.DateService.ToDate(System.String,Footlocker.Common.Utilities.DateService.DateFormat)">
+            <summary>
+            Convert an AS400 date string of YYYYMMDD or MMDDYY format to .NET DateTime value
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.EMailService.SendEmail(System.String,System.String,System.String,System.String)">
+            <summary>
+            Send Email.
+            </summary>
+            <param name="fromEmail">Send From email address.</param>
+            <param name="toEmail">Send To email addresses. Can be a comma delimited list of emails to send to multiple addresses.</param>
+            <param name="subject">Email subject.</param>
+            <param name="body">Email body.</param>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.EMailService.SendEmail(System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Send Email.
+            </summary>
+            <param name="fromEmail">Send From email address.</param>
+            <param name="toEmail">Send To email addresses. Can be a comma delimited list of emails to send to multiple addresses.</param>
+            <param name="subject">Email subject.</param>
+            <param name="body">Email body.</param>
+            <param name="attachments">Email file attachments. Can be a comma delimited list of files to send.</param>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.EMailService.SendEmail(System.String,System.String,System.String,System.String,System.String,System.Boolean)">
+            <summary>
+            Send Email.
+            </summary>
+            <param name="fromEmail">Send From email address.</param>
+            <param name="toEmail">Send To email addresses. Can be a comma delimited list of emails to send to multiple addresses.</param>
+            <param name="subject">Email subject.</param>
+            <param name="body">Email body.</param>
+            <param name="attachments">Email file attachments. Can be a comma delimited list of files to send.</param>
+        </member>
+        <member name="T:Footlocker.Common.Utilities.File.FlatFileReader">
+            <summary>
+            FlatFileReader class to read the flat file
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.FlatFileReader.ParseLine">
+            <summary>
+            Reads the current line and moves
+            </summary>
+            <returns>String containing the current line</returns>
+        </member>
+        <member name="T:Footlocker.Common.Utilities.File.StringLayoutDelimitedAttribute">
+            <summary>
+            String layout class
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutDelimitedAttribute.#ctor(System.Int32,System.String,System.Int32)">
+            <summary>
+            Attribute to define the layout of the current column
+            </summary>
+            <param name="position"></param>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutDelimitedAttribute.Position">
+            <summary>
+            Gets or sets the position of the column
+            </summary>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutDelimitedAttribute.Format">
+            <summary>
+            Format of the property
+            </summary>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutDelimitedAttribute.Length">
+            <summary>
+            Property Length
+            </summary>
+        </member>
+        <member name="T:Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility">
+            <summary>
+            Utility class to define the layout
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility.Parse(System.String,System.Char,Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility.TrimInputMode)">
+            <summary>
+            parses the input string and dynamically assigns values to property
+            </summary>
+            <param name="input">input string parameter to be processed</param>
+            <param name="delimiter">delimiter to split the string</param>
+            <param name="trim">right/left/all trim</param>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility.SetProperty(System.Reflection.PropertyInfo,System.String)">
+            <summary>
+            Sets the property value based on the type
+            </summary>
+            <param name="property">property field</param>
+            <param name="value">values to be assigned</param>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility.ToString(System.Char)">
+            <summary>
+            concatenates all the property into a single string and returns it
+            </summary>
+            <param name="delimiter">delimiter type eg: | or ; or any character</param>
+            <returns>returns the string after concatenating all the fields</returns>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility.ToStringWithQuotes(System.Char)">
+            <summary>
+            concatenates all the property into a single string and returns it
+            </summary>
+            <param name="delimiter">delimiter type eg: | or ; or any character</param>
+            <returns>returns the string after concatenating all the fields</returns>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility.TrimInput">
+            <summary>
+            gets or sets the input trim format
+            </summary>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility.PaddingChar">
+            <summary>
+            gets or sets the padding char
+            </summary>
+        </member>
+        <member name="T:Footlocker.Common.Utilities.File.StringLayoutExcludeAttribute">
+            <summary>
+            String layout class
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutExcludeAttribute.#ctor">
+            <summary>
+            Attribute to define the layout of the current column
+            </summary>
+            <param name="position"></param>
+        </member>
+        <member name="T:Footlocker.Common.Utilities.File.StringLayoutFixedAttribute">
+            <summary>
+            String layout class
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutFixedAttribute.#ctor(System.Int32,System.Int32,System.String,System.Boolean)">
+            <summary>
+            Attribute to define the layout of the current column
+            </summary>
+            <param name="position"></param>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutFixedAttribute.StartPosition">
+            <summary>
+            Gets or sets the start position of the column
+            </summary>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutFixedAttribute.EndPosition">
+            <summary>
+            Gets or sets the end position of the column
+            </summary>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutFixedAttribute.Format">
+            <summary>
+            Property formatting
+            </summary>
+        </member>
+        <member name="T:Footlocker.Common.Utilities.File.StringLayoutFixedUtility">
+            <summary>
+            Utility class to define the layout
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutFixedUtility.Parse(System.String,Footlocker.Common.Utilities.File.StringLayoutFixedUtility.TrimInputMode)">
+            <summary>
+            parses the input string and dynamically assigns values to property
+            </summary>
+            <param name="input">input string parameter to be processed</param>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutFixedUtility.SetProperty(System.Reflection.PropertyInfo,System.String)">
+            <summary>
+            Sets the property value based on the type
+            </summary>
+            <param name="property">property field</param>
+            <param name="value">values to be assigned</param>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutFixedUtility.ToString">
+            <summary>
+            concatenates all the property into a single string and returns it
+            </summary>
+            <returns>returns the string after concatenating all the fields</returns>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutFixedUtility.TrimInput">
+            <summary>
+            gets or sets the input trim format
+            </summary>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutFixedUtility.PaddingChar">
+            <summary>
+            gets or sets the padding char
+            </summary>
+        </member>
+    </members>
+</doc>
