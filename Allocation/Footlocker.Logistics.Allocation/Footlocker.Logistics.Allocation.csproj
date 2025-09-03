@@ -54,22 +54,22 @@
     </Reference>
     <Reference Include="flcommon, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Footlocker\flcommon.dll</HintPath>
+      <HintPath>..\packages\flcommon.dll</HintPath>
     </Reference>
     <Reference Include="Footlocker.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\FootLocker\Footlocker.Common 5.0\Footlocker.Common.dll</HintPath>
+      <HintPath>..\packages\Footlocker.Common 5.0\Footlocker.Common.dll</HintPath>
     </Reference>
     <Reference Include="Footlocker.Common.Entities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Footlocker\Footlocker.Common 9.0\Footlocker.Common.Entities.dll</HintPath>
+      <HintPath>..\packages\Footlocker.Common 9.0\Footlocker.Common.Entities.dll</HintPath>
     </Reference>
     <Reference Include="Footlocker.Common.mvcExtensions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Footlocker\Footlocker.Common.mvcExtensions.dll</HintPath>
+      <HintPath>..\packages\Footlocker.Common.mvcExtensions.dll</HintPath>
     </Reference>
     <Reference Include="Footlocker.Common.Services">
-      <HintPath>C:\FootLocker\Footlocker.Common 9.0\Footlocker.Common.Services.dll</HintPath>
+      <HintPath>..\packages\Footlocker.Common 9.0\Footlocker.Common.Services.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp">
       <Private>True</Private>
@@ -137,7 +137,7 @@
     </Reference>
     <Reference Include="System.Web.Optimization, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Footlocker\System.Web.Optimization.dll</HintPath>
+      <HintPath>..\packages\System.Web.Optimization.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.Razor.2.0.20710.0\lib\net40\System.Web.Razor.dll</HintPath>
@@ -207,7 +207,7 @@
       <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.4.0.20505.0\lib\net40\System.Web.Http.WebHost.dll</HintPath>
     </Reference>
     <Reference Include="Telerik.Web.Mvc">
-      <HintPath>C:\Footlocker\Telerik\2012Q1\Telerik.Web.Mvc.dll</HintPath>
+      <HintPath>..\packages\Telerik.Web.Mvc.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
