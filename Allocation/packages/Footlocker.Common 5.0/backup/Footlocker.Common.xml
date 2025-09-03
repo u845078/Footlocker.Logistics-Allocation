@@ -1,0 +1,261 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Footlocker.Common</name>
+    </assembly>
+    <members>
+        <member name="T:Footlocker.Common.Excel.ExcelReport">
+            <summary>
+            Provides an object representation of an Excel report.
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Excel.ExcelService.ToExcel``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            This will write a list of objects into excel
+            </summary>
+            <typeparam name="T">Type of object in the list</typeparam>
+            <param name="list">list of objects to put in excel</param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.Excel.ExcelService.GetSheets(System.String)">
+            <summary>
+            Returns a collection of available tab names in an Excel file
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Excel.ExcelService.GetRows(System.String,System.String)">
+            <summary>
+            Returns all the rows from an Excel tab within an Excel file in a DataSet
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Excel.ExcelService.CheckColumnNames(System.Data.DataSet,System.String)">
+            <summary>
+            Checks if all the specified column names exist in the dataset.
+            Throws an exception if a column is missing.
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Excel.ExcelService.CheckColumnNames(System.Data.DataTable,System.String)">
+            <summary>
+            Checks if all the specified column names exist in the datatable.
+            Throws an exception if a column is missing.
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Excel.ExcelService.DeleteFile(System.String)">
+            <summary>
+            Delete the file
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Excel.ExcelService.SetupExcelDocument(System.String)">
+            <summary>
+            Setup the excel template
+            </summary>
+            <param name="templateName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.GetSqlDatabase">
+            <summary>
+            Get an instance of a Database object with default connectionstring name "SQLDB".
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.GetSqlDatabase(System.String)">
+            <summary>
+            Get an instance of a Database object for a specific connectionstring name.
+            </summary>
+            <param name="connectionName">The connectionstring name specified in the config file.</param>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.GetDivisionDatabase(System.String)">
+            <summary>
+            Get an instance of a Database object for a division.
+            </summary>
+            <param name="divCode">The division whose database is required.</param>
+        </member>
+        <member name="M:Footlocker.Common.DatabaseService.GetWarehouseDatabase(System.String)">
+            <summary>
+            Get an instance of a Database object for a warehouse.
+            </summary>
+            <param name="warehouseId">The warehouse whose database is required.</param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:Footlocker.Common.DatabaseService.GetSqlStringCommand(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String)" -->
+        <!-- Badly formed XML comment ignored for member "M:Footlocker.Common.DatabaseService.GetStoredProcCommand(Microsoft.Practices.EnterpriseLibrary.Data.Database,System.String)" -->
+        <member name="M:Footlocker.Common.Utilities.ControlMService.ScheduleControlM(System.String,System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Schedule a controlM job to run
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.DateService.ToDate(System.String,Footlocker.Common.Utilities.DateService.DateFormat)">
+            <summary>
+            Convert an AS400 date string of YYYYMMDD or MMDDYY format to .NET DateTime value
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.EMailService.SendEmail(System.String,System.String,System.String,System.String)">
+            <summary>
+            Send Email.
+            </summary>
+            <param name="fromEmail">Send From email address.</param>
+            <param name="toEmail">Send To email addresses. Can be a comma delimited list of emails to send to multiple addresses.</param>
+            <param name="subject">Email subject.</param>
+            <param name="body">Email body.</param>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.EMailService.SendEmail(System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Send Email.
+            </summary>
+            <param name="fromEmail">Send From email address.</param>
+            <param name="toEmail">Send To email addresses. Can be a comma delimited list of emails to send to multiple addresses.</param>
+            <param name="subject">Email subject.</param>
+            <param name="body">Email body.</param>
+            <param name="attachments">Email file attachments. Can be a comma delimited list of files to send.</param>
+        </member>
+        <member name="T:Footlocker.Common.Utilities.File.FlatFileReader">
+            <summary>
+            FlatFileReader class to read the flat file
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.FlatFileReader.ParseLine">
+            <summary>
+            Reads the current line and moves
+            </summary>
+            <returns>String containing the current line</returns>
+        </member>
+        <member name="T:Footlocker.Common.Utilities.File.StringLayoutDelimitedAttribute">
+            <summary>
+            String layout class
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutDelimitedAttribute.#ctor(System.Int32,System.String,System.Int32)">
+            <summary>
+            Attribute to define the layout of the current column
+            </summary>
+            <param name="position"></param>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutDelimitedAttribute.Position">
+            <summary>
+            Gets or sets the position of the column
+            </summary>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutDelimitedAttribute.Format">
+            <summary>
+            Format of the property
+            </summary>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutDelimitedAttribute.Length">
+            <summary>
+            Property Length
+            </summary>
+        </member>
+        <member name="T:Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility">
+            <summary>
+            Utility class to define the layout
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility.Parse(System.String,System.Char,Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility.TrimInputMode)">
+            <summary>
+            parses the input string and dynamically assigns values to property
+            </summary>
+            <param name="input">input string parameter to be processed</param>
+            <param name="delimiter">delimiter to split the string</param>
+            <param name="trim">right/left/all trim</param>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility.SetProperty(System.Reflection.PropertyInfo,System.String)">
+            <summary>
+            Sets the property value based on the type
+            </summary>
+            <param name="property">property field</param>
+            <param name="value">values to be assigned</param>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility.ToString(System.Char)">
+            <summary>
+            concatenates all the property into a single string and returns it
+            </summary>
+            <param name="delimiter">delimiter type eg: | or ; or any character</param>
+            <returns>returns the string after concatenating all the fields</returns>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility.ToStringWithQuotes(System.Char)">
+            <summary>
+            concatenates all the property into a single string and returns it
+            </summary>
+            <param name="delimiter">delimiter type eg: | or ; or any character</param>
+            <returns>returns the string after concatenating all the fields</returns>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility.TrimInput">
+            <summary>
+            gets or sets the input trim format
+            </summary>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutDelimitedUtility.PaddingChar">
+            <summary>
+            gets or sets the padding char
+            </summary>
+        </member>
+        <member name="T:Footlocker.Common.Utilities.File.StringLayoutExcludeAttribute">
+            <summary>
+            String layout class
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutExcludeAttribute.#ctor">
+            <summary>
+            Attribute to define the layout of the current column
+            </summary>
+            <param name="position"></param>
+        </member>
+        <member name="T:Footlocker.Common.Utilities.File.StringLayoutFixedAttribute">
+            <summary>
+            String layout class
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutFixedAttribute.#ctor(System.Int32,System.Int32,System.String,System.Boolean)">
+            <summary>
+            Attribute to define the layout of the current column
+            </summary>
+            <param name="position"></param>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutFixedAttribute.StartPosition">
+            <summary>
+            Gets or sets the start position of the column
+            </summary>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutFixedAttribute.EndPosition">
+            <summary>
+            Gets or sets the end position of the column
+            </summary>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutFixedAttribute.Format">
+            <summary>
+            Property formatting
+            </summary>
+        </member>
+        <member name="T:Footlocker.Common.Utilities.File.StringLayoutFixedUtility">
+            <summary>
+            Utility class to define the layout
+            </summary>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutFixedUtility.Parse(System.String,Footlocker.Common.Utilities.File.StringLayoutFixedUtility.TrimInputMode)">
+            <summary>
+            parses the input string and dynamically assigns values to property
+            </summary>
+            <param name="input">input string parameter to be processed</param>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutFixedUtility.SetProperty(System.Reflection.PropertyInfo,System.String)">
+            <summary>
+            Sets the property value based on the type
+            </summary>
+            <param name="property">property field</param>
+            <param name="value">values to be assigned</param>
+        </member>
+        <member name="M:Footlocker.Common.Utilities.File.StringLayoutFixedUtility.ToString">
+            <summary>
+            concatenates all the property into a single string and returns it
+            </summary>
+            <returns>returns the string after concatenating all the fields</returns>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutFixedUtility.TrimInput">
+            <summary>
+            gets or sets the input trim format
+            </summary>
+        </member>
+        <member name="P:Footlocker.Common.Utilities.File.StringLayoutFixedUtility.PaddingChar">
+            <summary>
+            gets or sets the padding char
+            </summary>
+        </member>
+    </members>
+</doc>
