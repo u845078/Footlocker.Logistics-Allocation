@@ -1,0 +1,52 @@
+name: Allocation depends on .NET Framework 4.5
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.1
+
+    - name: Install .NET Framework 4.5 SDK
+      shell: pwsh
+      run: |
+        $url = 'https://www.nuget.org/api/v2/package/Microsoft.NETFramework.ReferenceAssemblies.net45/1.0.3'
+        $zipPath = "$env:TEMP\net45sdk.zip"
+        Invoke-WebRequest -Uri $url -OutFile $zipPath
+
+        Expand-Archive -Path $zipPath -DestinationPath "$env:TEMP\net45sdk"
+
+        $targetPath = 'C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5'
+
+        if (Test-Path $targetPath) {
+          Remove-Item -Recurse -Force $targetPath
+        }
+
+        Move-Item "$env:TEMP\net45sdk\build\.NETFramework\v4.5" $targetPath
+
+    - name: Build with MSBuild
+      run: msbuild Allocation.sln /p:Configuration=Release
+
+    # - name: Create dynamic output directory and copy artifacts
+    #   shell: pwsh
+    #   run: |
+    #     $date = Get-Date -Format "yyyyMMdd"
+    #     $timestamp = Get-Date -Format "HHmmss"
+    #     $outputDir = "\\mlwweb06\Deployment\Footlocker.Logistics\Allocation Main\Allocation Main_${date}.${timestamp}"
+
+    #     # Create the directory on the remote server
+    #     New-Item -ItemType Directory -Path $outputDir -Force
+
+    #     # Copy artifacts to the remote directory
+    #     Copy-Item -Path "bin\\Release\\*" -Destination $outputDir -Recurse
