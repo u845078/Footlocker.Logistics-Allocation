@@ -33,7 +33,7 @@ jobs:
           Remove-Item -Recurse -Force $targetPath
         }
 
-        Move-Item "$env:TEMP\net45sdk\build\.NETFramework\v4.0" $targetPath
+        Move-Item "$env:TEMP\net40sdk\build\.NETFramework\v4.0" $targetPath
 
     - name: Build with MSBuild
       run: msbuild ./Allocation/Allocation.sln /p:Configuration=Release
