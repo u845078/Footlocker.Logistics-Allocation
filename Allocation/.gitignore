@@ -1,0 +1,10 @@
+# Ignore build output
+bin/
+obj/
+
+# Ignore Visual Studio folder
+.vs/
+.vscode/
+
+# Ignore files
+*.user
