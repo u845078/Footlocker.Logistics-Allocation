@@ -1,4 +1,4 @@
-name: Allocation depends on .NET Framework 4.5
+name: Allocation depends on .NET Framework 4.0
 
 on:
   workflow_dispatch:
@@ -18,25 +18,25 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.1
 
-    - name: Install .NET Framework 4.5 SDK
+    - name: Install .NET Framework 4.0 SDK
       shell: pwsh
       run: |
-        $url = 'https://www.nuget.org/api/v2/package/Microsoft.NETFramework.ReferenceAssemblies.net45/1.0.3'
-        $zipPath = "$env:TEMP\net45sdk.zip"
+        $url = 'https://www.nuget.org/api/v2/package/Microsoft.NETFramework.ReferenceAssemblies.net40/1.0.3'
+        $zipPath = "$env:TEMP\net40sdk.zip"
         Invoke-WebRequest -Uri $url -OutFile $zipPath
 
-        Expand-Archive -Path $zipPath -DestinationPath "$env:TEMP\net45sdk"
+        Expand-Archive -Path $zipPath -DestinationPath "$env:TEMP\net40sdk"
 
-        $targetPath = 'C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5'
+        $targetPath = 'C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0'
 
         if (Test-Path $targetPath) {
           Remove-Item -Recurse -Force $targetPath
         }
 
-        Move-Item "$env:TEMP\net45sdk\build\.NETFramework\v4.5" $targetPath
+        Move-Item "$env:TEMP\net40sdk\build\.NETFramework\v4.0" $targetPath
 
     - name: Build with MSBuild
-      run: msbuild Allocation.sln /p:Configuration=Release
+      run: msbuild ./Allocation/Allocation.sln /p:Configuration=Release
 
     # - name: Create dynamic output directory and copy artifacts
     #   shell: pwsh
